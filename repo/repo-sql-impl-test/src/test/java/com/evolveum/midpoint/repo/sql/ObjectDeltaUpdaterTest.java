@@ -619,7 +619,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (isUsingH2()) {
-            AssertJUnit.assertEquals(11, TestStatementInspector.getQueryCount());
+            AssertJUnit.assertEquals(7, TestStatementInspector.getQueryCount());
         }
 
         try (EntityManager em = factory.createEntityManager()) {
@@ -717,7 +717,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (isUsingH2()) {
-            AssertJUnit.assertEquals(10, TestStatementInspector.getQueryCount());
+            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
         try (EntityManager em = factory.createEntityManager()) {
@@ -917,7 +917,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (isUsingH2()) {
-            AssertJUnit.assertEquals(13, TestStatementInspector.getQueryCount());
+            AssertJUnit.assertEquals(9, TestStatementInspector.getQueryCount());
         }
 
         try (EntityManager em = factory.createEntityManager()) {
@@ -1018,7 +1018,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
         if (isUsingH2()) {
-            AssertJUnit.assertEquals(12, TestStatementInspector.getQueryCount());
+            AssertJUnit.assertEquals(8, TestStatementInspector.getQueryCount());
         }
 
         try (EntityManager em = factory.createEntityManager()) {
