@@ -1,0 +1,120 @@
+/*
+ * Copyright (C) 2010-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+
+def verbose = params.VERBOSE ?: '0'
+
+podTemplate(
+        nodeSelector: params.NODE_SELECTOR,
+        activeDeadlineSeconds: 7200,
+        idleMinutes: 5,
+        // No need for secret volume, no mvn deploy done here.
+        volumes: [ persistentVolumeClaim(claimName: "midpoint-quick-pipeline-m2repo", mountPath: "/root/.m2/repository")],
+        //workspaceVolume: dynamicPVC(requestsSize: "10Gi"),
+        workspaceVolume: persistentVolumeClaimWorkspaceVolume(claimName: "midpoint-quick-pipeline-workspace"),
+        containers: [
+                containerTemplate(name: 'jnlp',
+                        image: 'jenkins/inbound-agent:4.13-2-alpine',
+                        runAsUser: '0',
+                        resourceRequestCpu: '1',
+                        resourceLimitCpu: '1',
+                        resourceRequestMemory: '1Gi',
+                        resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'maven',
+                        image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        command: 'cat',
+                        resourceRequestCpu: params.BUILDER_CPU ?: '4',
+                        resourceLimitCpu: params.BUILDER_CPU ?: '4',
+                        resourceRequestMemory: '8Gi',
+                        resourceLimitMemory: '8Gi') // by default -Xmx4g is set in main POM
+        ]
+) {
+    node(POD_LABEL) {
+        try {
+            stage("checkout") {
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+                git branch: params.BRANCH ?: 'master',
+                        url: 'https://github.com/Evolveum/midpoint.git'
+            }
+            stage("build") {
+                container('maven') {
+                    if (params.CLEAN_M2_REPOSITORY) {
+                        sh "rm -rf ~/.m2/repository/*"
+                    }
+
+                    sh """#!/bin/bash -ex
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            id
+                            env | sort
+                            mvn --version
+                        fi
+
+                        mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
+
+                        if [ "${verbose}" -ge 1 ]
+                        then
+                            df -h
+                        fi
+                    """
+
+                    // If we get here it's success, test results can change it to UNSTABLE.
+                    currentBuild.result = 'SUCCESS'
+
+                    step([$class: 'Publisher',
+                        reportFilenamePattern: '**/testng-results.xml',
+                        failureOnFailedTestConfig: true
+                    ])
+
+                    if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
+                        sh "find . -wholename '*/target/test.log' -print0 | tar -czf test-logs.tgz --null -T -"
+	                    archiveArtifacts allowEmptyArchive: true, artifacts: "test-logs.tgz", followSymlinks: false
+                    }
+                }
+            }
+        } catch (Exception e) {
+            currentBuild.result = 'FAILURE' // error below will not set result for mailer!
+            error "Marking build as FAILURE because of: ${e}"
+        } finally {
+            if (verbose > '0') {
+                echo "Build: ${currentBuild}"
+                echo "Result: ${currentBuild.currentResult}"
+            }
+
+            try {
+                /* Is this different plugin or just different style declaration? Any benefits?
+                mail (
+                    to: env.DEFAULT_MAIL_RECIPIENT,
+                    subject: 'test',
+                    body: 'more test'
+                )
+                */
+
+                // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
+                step([$class: 'Mailer',
+                    notifyEveryUnstableBuild: true,
+                    recipients: env.DEFAULT_MAIL_RECIPIENT,
+                    sendToIndividuals: false])
+
+                sh """#!/bin/bash -ex
+                    if [ "${verbose}" -ge 1 ]
+                    then
+                        df -h
+                    fi
+                """
+            } catch (Exception e) {
+                println 'Could not send email: ' + e
+            }
+        }
+    }
+}
