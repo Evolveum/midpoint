@@ -23,6 +23,21 @@ podTemplate(
                         resourceLimitCpu: '1',
                         resourceRequestMemory: '1Gi',
                         resourceLimitMemory: '1Gi'),
+                containerTemplate(name: 'postgres',
+                        image: params.POSTGRES_IMAGE ?: 'postgres:15-alpine',
+                        runAsUser: '0',
+                        ttyEnabled: true,
+                        resourceRequestCpu: '2',
+                        resourceLimitCpu: '2',
+                        resourceRequestMemory: '4Gi',
+                        resourceLimitMemory: '4Gi',
+                        envVars: [
+                            envVar(key: 'POSTGRES_INITDB_ARGS', value: '--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8'),
+                            envVar(key: 'POSTGRES_USER', value: 'midtest'),
+                            envVar(key: 'POSTGRES_PASSWORD', value: 'password'),
+                            // TODO is separate mount for data necessary?
+                        ],
+                        ports: [portMapping(name: 'postgres', containerPort: 5432)]),
                 containerTemplate(name: 'maven',
                         image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
                         runAsUser: '0',
@@ -46,6 +61,33 @@ podTemplate(
                 git branch: params.BRANCH ?: 'master',
                         url: 'https://github.com/Evolveum/midpoint.git'
             }
+            stage("db-init") {
+                container('postgres') {
+                    if (!params.DB_UPGRADE_FROM_TAG) {
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native/postgres.sql \
+                                -f config/sql/native/postgres-audit.sql -f config/sql/native/postgres-quartz.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    } else {
+                        // In the future, when the path changes, this may require either some logic, or make it part of the parameter.
+                        // This expects upgrade from 4.4.4 github repository
+                        sh """#!/bin/bash -ex
+                            psql --version
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new.sql
+                            wget https://raw.githubusercontent.com/Evolveum/midpoint/${params.DB_UPGRADE_FROM_TAG}/config/sql/native-new/postgres-new-audit.sql
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f postgres.sql \
+                                -f postgres-audit.sql -f config/sql/native/postgres-quartz.sql
+
+                            echo -e "\n*** UPGRADING DB ***\n"
+                            psql -v ON_ERROR_STOP=1 -q -U midtest -f config/sql/native/postgres-upgrade.sql \
+                                -f config/sql/native/postgres-upgrade-audit.sql
+                            #psql -U midtest -c "\\dt" # uncomment to list the tables
+                        """
+                    }
+                }
+            }
             stage("build") {
                 container('maven') {
                     if (params.CLEAN_M2_REPOSITORY) {
@@ -60,7 +102,8 @@ podTemplate(
                             mvn --version
                         fi
 
-                        mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P -dist -DintegrationTestSuite=fast
+                        mvn -B -ntp -U -Dmaven.test.failure.ignore clean install -P sqale,-dist -DintegrationTestSuite=fast \
+                          -Dmidpoint.repository.jdbcUrl=jdbc:postgresql://localhost:5432/midtest
 
                         if [ "${verbose}" -ge 1 ]
                         then
