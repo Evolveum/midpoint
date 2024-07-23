@@ -974,28 +974,28 @@ public class ObjectRetriever {
     }
 
     public boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
-        EntityManager session = null;
+        EntityManager em = null;
         try {
-            session = baseHelper.beginReadOnlyTransaction();
+            em = baseHelper.beginReadOnlyTransaction();
 
             Query query;
             if (lowerObjectOids.size() == 1) {
-                query = session.createNamedQuery("isAnySubordinateAttempt.oneLowerOid");
+                query = em.createNamedQuery("isAnySubordinateAttempt.oneLowerOid");
                 query.setParameter("dOid", lowerObjectOids.iterator().next());
             } else {
-                query = session.createNamedQuery("isAnySubordinateAttempt.moreLowerOids");
+                query = em.createNamedQuery("isAnySubordinateAttempt.moreLowerOids");
                 query.setParameter("dOids", lowerObjectOids);
             }
             query.setParameter("aOid", upperOrgOid);
 
             Number number = RUtil.getSingleResultOrNull(query);
-            session.getTransaction().commit();
+            em.getTransaction().commit();
 
             return number != null && number.longValue() != 0L;
         } catch (RuntimeException ex) {
-            baseHelper.handleGeneralException(ex, session, null);
+            baseHelper.handleGeneralException(ex, em, null);
         } finally {
-            baseHelper.cleanupManagerAndResult(session, null);
+            baseHelper.cleanupManagerAndResult(em, null);
         }
 
         throw new SystemException("isAnySubordinateAttempt failed somehow, this really should not happen.");
