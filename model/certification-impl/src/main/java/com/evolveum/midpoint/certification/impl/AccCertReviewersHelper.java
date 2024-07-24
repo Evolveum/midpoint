@@ -56,7 +56,7 @@ public class AccCertReviewersHelper {
                 .getReviewerSpecification();
     }
 
-    List<ObjectReferenceType> getReviewersForCase(
+    public List<ObjectReferenceType> getReviewersForCase(
             AccessCertificationCaseType _case,
             AccessCertificationCampaignType campaign,
             AccessCertificationReviewerSpecificationType reviewerSpec,

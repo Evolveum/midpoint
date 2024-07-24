@@ -102,7 +102,7 @@ public class AccCertResponseComputationHelper {
     }
 
     @NotNull
-    AccessCertificationResponseType computeOutcomeForStage(AccessCertificationCaseType aCase,
+    public AccessCertificationResponseType computeOutcomeForStage(AccessCertificationCaseType aCase,
             AccessCertificationCampaignType campaign, int stageNumber) {
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stageNumber);
         List<AccessCertificationResponseType> allResponses = getResponses(aCase, stageNumber, norm(campaign.getIteration()));
@@ -140,7 +140,7 @@ public class AccCertResponseComputationHelper {
     // aCase contains outcomes from previous (closed) stages. Outcome from the current (not yet closed) stage (additionalStageNumber)
     // is in additionalStageResponse.
     @NotNull
-    AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase,
+    public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase,
             AccessCertificationCampaignType campaign, int additionalStageNumber, AccessCertificationResponseType additionalStageOutcome) {
         List<AccessCertificationResponseType> stageOutcomes = getOutcomesFromCompletedStages(aCase, additionalStageNumber, additionalStageOutcome);
         return normalizeToNonNull(getOverallOutcomeStrategy(campaign).computeOutcome(summarize(stageOutcomes)));

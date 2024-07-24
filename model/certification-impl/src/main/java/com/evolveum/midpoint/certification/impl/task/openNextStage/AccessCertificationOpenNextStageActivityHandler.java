@@ -32,6 +32,9 @@ public class AccessCertificationOpenNextStageActivityHandler
     @Autowired private CertificationManagerImpl certificationManager;
     @Autowired private AccCertGeneralHelper helper;
     @Autowired private AccCertQueryHelper queryHelper;
+    @Autowired private AccCertReviewersHelper reviewersHelper;
+    @Autowired private AccCertResponseComputationHelper computationHelper;
+    @Autowired private AccCertUpdateHelper updateHelper;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     public TaskManager getTaskManager() {
@@ -52,6 +55,18 @@ public class AccessCertificationOpenNextStageActivityHandler
 
     public RepositoryService getRepositoryService() {
         return repositoryService;
+    }
+
+    public AccCertReviewersHelper getReviewersHelper() {
+        return reviewersHelper;
+    }
+
+    public AccCertResponseComputationHelper getComputationHelper() {
+        return computationHelper;
+    }
+
+    public AccCertUpdateHelper getUpdateHelper() {
+        return updateHelper;
     }
 
     @PostConstruct

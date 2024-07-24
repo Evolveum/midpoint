@@ -293,6 +293,30 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
+//    @Override
+//    public void closeCampaignTask(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+//        OperationResult result = parentResult.createSubresult(OPERATION_OPEN_NEXT_STAGE);
+//        result.addParam("campaignOid", campaignOid);
+//
+//        try {
+//            AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+//            result.addParam("campaign", ObjectTypeUtil.toShortString(campaign));
+//
+//            LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortStringLazy(campaign));
+//
+//            securityEnforcer.authorize(
+//                    ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
+//                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
+//
+//            launcher.openNextStageCampaignTask(campaign, task, result);
+//        } catch (RuntimeException e) {
+//            result.recordFatalError("Couldn't move to the next certification campaign stage: unexpected exception: " + e.getMessage(), e);
+//            throw e;
+//        } finally {
+//            result.computeStatusIfUnknown();
+//        }
+//    }
+
     @Override
     public void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException,

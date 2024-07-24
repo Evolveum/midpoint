@@ -2514,6 +2514,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+//        getCertificationManagerRequired().closeCampaignTask(campaignOid, task, result);
         getCertificationManagerRequired().closeCampaign(campaignOid, task, result);
     }
 
