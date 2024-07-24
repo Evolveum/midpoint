@@ -38,8 +38,8 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
     protected static final String FORM_SAVE_OLD = "save";
 
     protected static final String MAIN_FORM = "detailsView:mainForm";
-    protected static final String PATH_FORM_NAME = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:"
-            + "input:propertiesLabel:properties:0:property:values:0:value:valueForm:valueContainer:input:originValueContainer:"
+    protected static final String PATH_FORM_NAME = "mainPanel:properties:container:1:valuesContainer:values:0:value:valueForm:valueContainer:"
+            + "input:propertiesLabel:properties:0:property:valuesContainer:values:0:value:valueForm:valueContainer:input:originValueContainer:"
             + "origValueWithButton:origValue:input";
     protected static final String FORM_SAVE = "buttons:buttons:2:";
 
@@ -114,5 +114,10 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         tester.assertRenderedPage(expectedRenderedPageClass);
 
         return pageRole;
+    }
+
+    protected void choiceArchetype(int order) {
+        String tabPath = "detailsView:template:list:" + order + ":tile";
+        tester.executeAjaxEvent(tabPath, "click");
     }
 }

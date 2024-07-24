@@ -82,7 +82,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         assignRole(USER_ADMINISTRATOR_OID, role1Oid);
 
         String panel = "detailsView:mainForm:mainPanel";
-        String tableBox = panel + ":form:memberContainer:memberTable:items:itemsTable:box";
+        String tableBox = panel + ":form:memberContainer:memberTable:itemsTable";
         String memberTable = tableBox + ":tableContainer:table";
 
         // WHEN
@@ -93,7 +93,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
 
         // THEN
         tester.assertComponent(panel, AbstractRoleMemberPanel.class);
-        tester.debugComponentTrees(":rows:.*:cells:3:cell:link:label");
+        tester.debugComponentTrees(":rows:.*:cells:3:cell:link:title");
         // It should show all members who are assigned Role0001
         tester.assertLabel(memberTable + ":body:rows:1:cells:3:cell:link:label", USER_ADMINISTRATOR_USERNAME);
         tester.assertLabel(memberTable + ":body:rows:2:cells:3:cell:link:label", USER_JACK_USERNAME);
