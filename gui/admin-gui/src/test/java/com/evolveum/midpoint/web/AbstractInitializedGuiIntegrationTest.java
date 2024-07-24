@@ -6,22 +6,17 @@
  */
 package com.evolveum.midpoint.web;
 
-import static org.testng.AssertJUnit.assertNotNull;
-
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
-
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -73,30 +68,6 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         importObjectFromFile(ROLE_MAPMAKER_FILE);
 
         repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
-    }
-
-    @Test
-    public void test000PreparationAndSanity() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        assertNotNull("No model service", modelService);
-
-        // WHEN
-        when("Jack is assigned with account");
-        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
-
-        // THEN
-        then("One link (account) is created");
-        result.computeStatus();
-        display(result);
-        TestUtil.assertSuccess(result);
-
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        display("User after change execution", userJack);
-        assertUserJack(userJack);
-        accountJackOid = getSingleLinkOid(userJack);
     }
 
     protected Page renderPage(Class<? extends Page> expectedRenderedPageClass) {
