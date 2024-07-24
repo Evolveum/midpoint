@@ -1662,6 +1662,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     boolean shouldUseMatchingProvenance() {
-        return getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
+        return getOutputDefinition() != null && getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
     }
 }
