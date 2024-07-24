@@ -135,6 +135,54 @@ public interface CommonInitialObjects {
     TestObject<MarkType> MARK_INVALID_DATA = TestObject.classPath(
             MARKS, "804-mark-invalid-data.xml", SystemObjectsType.MARK_INVALID_DATA.value());
 
+    TestObject<MarkType> MARK_EXCLUSION_VIOLATION = TestObject.classPath(
+            MARKS, "811-exclusion-violation.xml", SystemObjectsType.MARK_EXCLUSION_VIOLATION.value());
+
+    TestObject<MarkType> MARK_REQUIREMENT_VIOLATION = TestObject.classPath(
+            MARKS, "812-requirement-violation.xml", SystemObjectsType.MARK_REQUIREMENT_VIOLATION.value());
+
+    TestObject<MarkType> MARK_UNDERASSIGNED = TestObject.classPath(
+            MARKS, "813-underassigned.xml", SystemObjectsType.MARK_UNDERASSIGNED.value());
+
+    TestObject<MarkType> MARK_OVERASSIGNED = TestObject.classPath(
+            MARKS, "814-overassigned.xml", SystemObjectsType.MARK_OVERASSIGNED.value());
+
+    TestObject<MarkType> MARK_OBJECT_MODIFIED = TestObject.classPath(
+            MARKS, "815-object-modified.xml", SystemObjectsType.MARK_OBJECT_MODIFIED.value());
+
+    TestObject<MarkType> MARK_ASSIGNMENT_MODIFIED = TestObject.classPath(
+            MARKS, "816-assignment-modified.xml", SystemObjectsType.MARK_ASSIGNMENT_MODIFIED.value());
+
+    TestObject<MarkType> MARK_HAS_ASSIGNMENT = TestObject.classPath(
+            MARKS, "817-has-assignment.xml", SystemObjectsType.MARK_HAS_ASSIGNMENT.value());
+
+    TestObject<MarkType> MARK_HAS_NO_ASSIGNMENT = TestObject.classPath(
+            MARKS, "818-has-no-assignment.xml", SystemObjectsType.MARK_HAS_NO_ASSIGNMENT.value());
+
+    TestObject<MarkType> MARK_OBJECT_STATE = TestObject.classPath(
+            MARKS, "819-object-state.xml", SystemObjectsType.MARK_OBJECT_STATE.value());
+
+    TestObject<MarkType> MARK_ASSIGNMENT_STATE = TestObject.classPath(
+            MARKS, "820-assignment-state.xml", SystemObjectsType.MARK_ASSIGNMENT_STATE.value());
+
+    TestObject<MarkType> MARK_OBJECT_TIME_VALIDITY = TestObject.classPath(
+            MARKS, "821-object-time-validity.xml", SystemObjectsType.MARK_OBJECT_TIME_VALIDITY.value());
+
+    TestObject<MarkType> MARK_ASSIGNMENT_TIME_VALIDITY = TestObject.classPath(
+            MARKS, "822-assignment-time-validity.xml", SystemObjectsType.MARK_ASSIGNMENT_TIME_VALIDITY.value());
+
+    TestObject<MarkType> MARK_SUSPICIOUS = TestObject.classPath(
+            MARKS, "830-suspicious.xml", SystemObjectsType.MARK_SUSPICIOUS.value());
+
+    TestObject<MarkType> MARK_UNDERSTAFFED_SECURITY = TestObject.classPath(
+            MARKS, "831-understaffed-security.xml", SystemObjectsType.MARK_UNDERSTAFFED_SECURITY.value());
+
+    TestObject<MarkType> MARK_ORPHANED = TestObject.classPath(
+            MARKS, "832-orphaned.xml", SystemObjectsType.MARK_ORPHANED.value());
+
+    TestObject<MarkType> MARK_NEGLECTED = TestObject.classPath(
+            MARKS, "833-neglected.xml", SystemObjectsType.MARK_NEGLECTED.value());
+
     String PARAM_SIMULATION_RESULT_REF = "simulationResultRef";
     String PARAM_PATHS_TO_INCLUDE = "pathsToInclude";
     String PARAM_PATHS_TO_EXCLUDE = "pathsToExclude";
@@ -226,7 +274,23 @@ public interface CommonInitialObjects {
                     MARK_DECOMMISSION_LATER,
                     MARK_CORRELATE_LATER,
                     MARK_DO_NOT_TOUCH,
-                    MARK_INVALID_DATA);
+                    MARK_INVALID_DATA,
+                    MARK_EXCLUSION_VIOLATION,
+                    MARK_REQUIREMENT_VIOLATION,
+                    MARK_UNDERASSIGNED,
+                    MARK_OVERASSIGNED,
+                    MARK_OBJECT_MODIFIED,
+                    MARK_ASSIGNMENT_MODIFIED,
+                    MARK_HAS_ASSIGNMENT,
+                    MARK_HAS_NO_ASSIGNMENT,
+                    MARK_OBJECT_STATE,
+                    MARK_ASSIGNMENT_STATE,
+                    MARK_OBJECT_TIME_VALIDITY,
+                    MARK_ASSIGNMENT_TIME_VALIDITY,
+                    MARK_SUSPICIOUS,
+                    MARK_UNDERSTAFFED_SECURITY,
+                    MARK_ORPHANED,
+                    MARK_NEGLECTED);
         } catch (CommonException | IOException | RuntimeException e) {
             throw e;
         } catch (Exception e) {

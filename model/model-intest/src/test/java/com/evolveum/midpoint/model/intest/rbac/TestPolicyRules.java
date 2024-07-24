@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.intest.rbac;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -50,6 +51,8 @@ public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        CommonInitialObjects.addMarks(this, initTask, initResult);
 
         if (isNativeRepository()) {
             repoAddObjectFromFile(POLICY_SKIPPER_LICENSE_FILE, initResult);

@@ -17223,6 +17223,13 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000832">
                 <xsd:annotation>
                     <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ORPHANED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000833">
+                <xsd:annotation>
+                    <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_NEGLECTED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
