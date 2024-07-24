@@ -48,6 +48,9 @@
             <name>parentDescription</name>
             <path>description</path>
         </source>
+        <target>
+            <path>assignment</path>
+        </target>
         <expression>
             <assignmentTargetSearch>
                 <targetType>OrgType</targetType>
@@ -115,6 +118,7 @@
                 </code>
             </script>
         </condition>
+
     </mapping>
 
     <mapping>
