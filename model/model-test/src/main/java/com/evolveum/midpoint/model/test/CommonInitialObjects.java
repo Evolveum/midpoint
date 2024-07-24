@@ -17,10 +17,7 @@ import com.evolveum.midpoint.test.TestReport;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Definition of commonly used initial objects be used in tests on or above the `model` level.
@@ -35,6 +32,7 @@ public interface CommonInitialObjects {
     String MARKS = INITIAL_OBJECTS + "/mark";
     String REPORTS = INITIAL_OBJECTS + "/report";
     String OBJECT_COLLECTION = INITIAL_OBJECTS + "/object-collection";
+    String POLICIES = INITIAL_OBJECTS + "/policy";
 
     String ARCHETYPES = INITIAL_OBJECTS + "/archetype";
 
@@ -63,6 +61,14 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> ARCHETYPE_ITERATIVE_BULK_ACTION_TASK = TestObject.classPath(
             ARCHETYPES, "509-archetype-task-iterative-bulk-action.xml",
             SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CLASSIFICATION = TestObject.classPath(
+            ARCHETYPES, "062-archetype-classification.xml",
+            SystemObjectsType.ARCHETYPE_CLASSIFICATION.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_BUSINESS_ROLE = TestObject.classPath(
+            ARCHETYPES, "022-archetype-business-role.xml",
+            SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value());
 
     TestObject<MarkType> MARK_FOCUS_ACTIVATED = TestObject.classPath(
             MARKS, "710-mark-focus-activated.xml", SystemObjectsType.MARK_FOCUS_ACTIVATED.value());
@@ -183,6 +189,9 @@ public interface CommonInitialObjects {
     TestObject<MarkType> MARK_NEGLECTED = TestObject.classPath(
             MARKS, "833-neglected.xml", SystemObjectsType.MARK_NEGLECTED.value());
 
+    TestObject<PolicyType> POLICY_INFORMATION_SECURITY_RESPONSIBILITY = TestObject.classPath(
+            POLICIES, "333-classification-information-security-responsibility.xml", SystemObjectsType.CLASSIFICATION_INFORMATION_SECURITY_RESPONSIBILITY.value());
+
     String PARAM_SIMULATION_RESULT_REF = "simulationResultRef";
     String PARAM_PATHS_TO_INCLUDE = "pathsToInclude";
     String PARAM_PATHS_TO_EXCLUDE = "pathsToExclude";
@@ -242,6 +251,7 @@ public interface CommonInitialObjects {
             REPORTS,
             "160-report-certification-work-items.xml",
             "00000000-0000-0000-0000-000000000160");
+
 
     /** To be used when needed. */
     static void addMarks(AbstractModelIntegrationTest test, Task task, OperationResult result)
