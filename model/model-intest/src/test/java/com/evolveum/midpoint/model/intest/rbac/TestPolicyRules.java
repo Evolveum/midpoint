@@ -6,53 +6,28 @@
  */
 package com.evolveum.midpoint.model.intest.rbac;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestRequirement extends AbstractInitializedModelIntegrationTest {
+public class TestPolicyRules extends AbstractInitializedModelIntegrationTest {
 
-    protected static final File TEST_DIR = new File("src/test/resources/rbac/requirement");
+    protected static final File TEST_DIR = new File("src/test/resources/rbac/policy-rules");
 
     private static final File POLICY_SKIPPER_LICENSE_FILE = new File(TEST_DIR, "policy-skipper-license.xml");
     private static final String POLICY_SKIPPER_LICENSE_OID = "25f26c46-427f-11ef-9666-f352a031a80e";
@@ -228,9 +203,12 @@ public class TestRequirement extends AbstractInitializedModelIntegrationTest {
     }
 
 
-    // TODO: assign both license and skipper in one operation
+    // TODO: requirement: assign both license and skipper in one operation
 
-    // TODO: unassign both license and skipper in one operation
+    // TODO: requirement: unassign both license and skipper in one operation
 
-    // TODO: business roles that contains both license and role skipper
+    // TODO: requirement: business roles that contains both license and role skipper
+
+
+
 }
