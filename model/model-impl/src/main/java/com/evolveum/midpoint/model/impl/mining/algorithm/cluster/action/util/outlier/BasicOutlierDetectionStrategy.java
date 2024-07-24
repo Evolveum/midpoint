@@ -4,10 +4,9 @@ import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.u
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -38,7 +37,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
     public void executeAnalysis(@NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
@@ -87,7 +86,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
             @NotNull RoleAnalysisSessionType session,
             @NotNull Task task,
             @NotNull MiningOperationChunk miningOperationChunk,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             RangeType range,
             Double sensitivity,
             ObjectReferenceType clusterRef,
@@ -112,6 +111,9 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
 
         ListMultimap<String, DetectedAnomalyResult> userRoleMap = ArrayListMultimap.create();
         long startTime1 = System.currentTimeMillis();
+        double totalTimeInSecAnomalyConf = 0;
+        double totalTimeInSecPatternAnalysis = 0;
+
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
 
             FrequencyItem frequencyItem = miningRoleTypeChunk.getFrequencyItem();
@@ -119,7 +121,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                 List<String> roles = miningRoleTypeChunk.getMembers();
                 List<String> users = miningRoleTypeChunk.getProperties();
 
-                roles.forEach(role -> {
+                for (String role : roles) {
                     DetectedAnomalyResult anomalyResult = new DetectedAnomalyResult();
                     anomalyResult.setTargetObjectRef(new ObjectReferenceType().oid(role).type(RoleType.COMPLEX_TYPE));
 
@@ -136,20 +138,34 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                         PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
                                 user, task, result);
                         //TODO
+                        long startTimeP = System.currentTimeMillis();
                         RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(
                                 miningRoleTypeChunk, user, miningRoleTypeChunks);
+                        long endTimeP = System.currentTimeMillis();
+                        double totalProcessingTimeP = (double) (endTimeP - startTimeP) / 1000.0;
+                        totalTimeInSecPatternAnalysis += totalProcessingTimeP;
+
                         statistics.setPatternAnalysis(patternAnalysis);
+                        long startTime = System.currentTimeMillis();
                         double anomalyConfidence = calculateAssignmentAnomalyConfidence(
                                 roleAnalysisService, attributesForUserAnalysis,
-                                userTypeObject, userCountInRepo, anomalyResult,userAnalysisCache, task, result);
+                                userTypeObject, userCountInRepo, anomalyResult, userAnalysisCache, task, result);
+                        long endTime = System.currentTimeMillis();
+                        double totalProcessingTime = (double) (endTime - startTime) / 1000.0;
+                        totalTimeInSecAnomalyConf += totalProcessingTime;
                         statistics.setConfidence(anomalyConfidence);
                         userRoleMap.put(user, anomalyResult);
                     }
 
-                });
+                }
 
             }
         }
+
+        LOGGER.debug("Total processing time for all calculateAssignmentAnomalyConfidence: " + totalTimeInSecAnomalyConf + " seconds");
+
+        //TODO from this version pattern detection took 99% of time for chunk analysis. (CHECK MAJOR/ current implementation of pattern detection is experimental not proofed yet.)
+        LOGGER.debug("Total processing time for all pattern analysis: " + totalTimeInSecPatternAnalysis + " seconds");
         long endTime = System.currentTimeMillis();
         double totalProcessingTime = (double) (endTime - startTime1) / 1000.0;
 

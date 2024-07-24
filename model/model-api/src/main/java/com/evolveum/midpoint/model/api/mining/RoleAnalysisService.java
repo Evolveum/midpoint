@@ -9,7 +9,7 @@ package com.evolveum.midpoint.model.api.mining;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ListMultimap;
@@ -653,7 +653,7 @@ public interface RoleAnalysisService {
     List<AttributeAnalysisStructure> userTypeAttributeAnalysisCached(
             @NotNull Set<PrismObject<UserType>> prismUsers,
             Double membershipDensity,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
@@ -826,7 +826,7 @@ public interface RoleAnalysisService {
 
     RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttributeCached(
             @NotNull String objectOid,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);

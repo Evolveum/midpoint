@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -1672,7 +1672,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     public List<AttributeAnalysisStructure> userTypeAttributeAnalysisCached(
             @NotNull Set<PrismObject<UserType>> prismUsers,
             Double membershipDensity,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet) {
@@ -2094,19 +2094,33 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     @Override
     public RoleAnalysisAttributeAnalysisResult resolveRoleMembersAttributeCached(
             @NotNull String objectOid,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet) {
 
-        Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-        this.extractUserTypeMembers(
-                userExistCache, null,
-                new HashSet<>(Collections.singleton(objectOid)),
-                task, result);
+        ListMultimap<String, String> roleMemberCache = userAnalysisCache.getRoleMemberCache();
+        List<String> usersOidList = roleMemberCache.get(objectOid);
+        Set<PrismObject<UserType>> users;
 
-        Set<PrismObject<UserType>> users = new HashSet<>(userExistCache.values());
-        userExistCache.clear();
+        if (usersOidList == null) {
+            Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
+            this.extractUserTypeMembers(
+                    userExistCache, null,
+                    new HashSet<>(Collections.singleton(objectOid)),
+                    task, result);
+
+            users = new HashSet<>(userExistCache.values());
+            userExistCache.clear();
+        } else {
+            users = new HashSet<>();
+            for (String userOid : usersOidList) {
+                PrismObject<UserType> userTypeObject = getUserTypeObject(userOid, task, result);
+                if (userTypeObject != null) {
+                    users.add(userTypeObject);
+                }
+            }
+        }
 
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
                 .userTypeAttributeAnalysisCached(users, 100.0, userAnalysisCache, task, result, attributeDefSet);

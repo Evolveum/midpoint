@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
@@ -10,6 +9,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.statistic.ClusterStatistic;
 import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -39,7 +39,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisSessionType session,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
         UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
@@ -86,7 +86,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
             @NotNull Task task,
             ObjectReferenceType analyzedObjectRef,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             String memberOid,
             ZScoreData zScoreData,
             ObjectReferenceType clusterRef,
@@ -375,7 +375,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
             double minThreshold,
             ListMultimap<List<String>, String> chunkMap,
             List<String> outliersMembers,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             Integer minMembersCount,
             List<RoleAnalysisAttributeDef> userAnalysisAttributeDef,
             List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef,

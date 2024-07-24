@@ -8,12 +8,14 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
@@ -31,6 +33,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.getExistingActiveRolesOidsSet;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.getRoleBasedRoleToUserMap;
 
 /**
  * Clustering action.
@@ -50,6 +57,8 @@ public class ClusteringActionExecutor extends BaseAction {
     private static final String DECOMISSIONED_MARK_OID = "00000000-0000-0000-0000-000000000801";
 
     private static final Trace LOGGER = TraceManager.getTrace(ClusteringActionExecutor.class);
+
+    private AttributeAnalysisCache attributeAnalysisCache = new AttributeAnalysisCache();
 
     private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering",
             7, this::incrementProgress);
@@ -175,13 +184,16 @@ public class ClusteringActionExecutor extends BaseAction {
             );
 
         }
+
+        ListMultimap<String, String> roleMembersMap = loadRoleMembersMap(roleAnalysisService.getModelService(), session.getUserModeOptions().getQuery(), task, result);
+        attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
+
         //TODO not just basic it must be connected to in and out outlier analysis (experimental)
-        Map<String, Map<String, AttributePathResult>> userAnalysisCache = new ConcurrentHashMap<>();
         for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
             long startTime = System.currentTimeMillis();
             RoleAnalysisClusterType cluster = clusterTypePrismObject.asObjectable();
             OutlierDetectionActionExecutor detectionExecutionUtil = new OutlierDetectionActionExecutor(roleAnalysisService);
-            detectionExecutionUtil.executeOutlierDetection(cluster, session, analysisOption, userAnalysisCache, task, result);
+            detectionExecutionUtil.executeOutlierDetection(cluster, session, analysisOption, attributeAnalysisCache, task, result);
             long endTime = System.currentTimeMillis();
             double processingTimeInSeconds = (double) (endTime - startTime) / 1000.0;
             LOGGER.debug("Processing time for outlier detection cluster " + cluster.getName() + ": " + processingTimeInSeconds + " seconds");
@@ -203,4 +215,15 @@ public class ClusteringActionExecutor extends BaseAction {
                 .updateSessionStatistics(sessionRef, sessionStatistic, task, result);
     }
 
+    public static @NotNull ListMultimap<String, String> loadRoleMembersMap(@NotNull ModelService modelService,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Set<String> existingRolesOidsSet = getExistingActiveRolesOidsSet(modelService, task, result);
+
+        //role //user
+        return getRoleBasedRoleToUserMap(
+                modelService, userQuery, existingRolesOidsSet, task, result);
+    }
 }

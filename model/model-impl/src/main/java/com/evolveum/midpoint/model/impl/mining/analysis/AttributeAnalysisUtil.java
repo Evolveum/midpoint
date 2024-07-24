@@ -11,6 +11,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
@@ -53,7 +55,7 @@ public class AttributeAnalysisUtil {
             @NotNull RoleAnalysisServiceImpl roleAnalysisService,
             @NotNull Set<PrismObject<UserType>> prismUsers,
             @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result,
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet) {
@@ -80,14 +82,14 @@ public class AttributeAnalysisUtil {
             @NotNull Set<PrismObject<UserType>> prismUsers,
             @NotNull List<RoleAnalysisAttributeDef> itemDef,
             @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures,
-            @NotNull Map<String, Map<String, AttributePathResult>> userAnalysisCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
         int usersCount = prismUsers.size();
         Map<String, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<UserType> prismUser : prismUsers) {
-            Map<String, AttributePathResult> userCache = userAnalysisCache.get(prismUser.getOid());
+            Map<String, AttributePathResult> userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
             if (userCache == null) {
                 Map<String, AttributePathResult> attributeResultMapForSpecificUser = new HashMap<>();
                 for (RoleAnalysisAttributeDef item : itemDef) {
@@ -117,7 +119,7 @@ public class AttributeAnalysisUtil {
                         }
                     }
                 }
-                userAnalysisCache.put(prismUser.getOid(), attributeResultMapForSpecificUser);
+                userAnalysisCache.putMemberUserAnalysisCache(prismUser.getOid(), attributeResultMapForSpecificUser);
             }
 
             if (userCache != null) {
