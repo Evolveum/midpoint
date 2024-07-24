@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -52,6 +54,7 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         super.initSystem(initTask, initResult);
 
         modelService.postInit(initResult);
+        repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, RepoAddOptions.createOverwrite(), false, initResult);
         userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
         login(userAdministrator);
 
