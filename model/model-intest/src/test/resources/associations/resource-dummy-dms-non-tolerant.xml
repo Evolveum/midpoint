@@ -6,12 +6,15 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource oid="d77da617-ee78-46f7-8a15-cde88193308d"
+<resource oid="204871af-6a87-4d93-a23e-34bdc1a89196"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>dms</name>
+    <name>dms-non-tolerant</name>
+    <documentation>
+        The `access` is a non-tolerant association here.
+    </documentation>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>
@@ -29,7 +32,7 @@
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>dms</icfi:instanceId>
+            <icfi:instanceId>dms-non-tolerant</icfi:instanceId>
             <icfi:useLegacySchema>false</icfi:useLegacySchema>
         </icfc:configurationProperties>
     </connectorConfiguration>
@@ -58,6 +61,10 @@
                         <path>name</path>
                     </source>
                 </outbound>
+            </attribute>
+            <attribute> <!-- probably temporary -->
+                <ref>ri:access</ref>
+                <tolerant>false</tolerant>
             </attribute>
             <synchronization>
                 <reaction>
@@ -89,7 +96,7 @@
             </delineation>
             <focus>
                 <type>ServiceType</type>
-                <archetypeRef oid="ce92f877-9f22-44cf-9ef1-f55675760eb0"/>
+                <archetypeRef oid="737dc161-2df6-45b3-8201-036745f9e51a"/>
             </focus>
             <attribute>
                 <ref>icfs:name</ref>

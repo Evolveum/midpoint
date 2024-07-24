@@ -267,7 +267,8 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public PrismReference getReferenceAttribute(ItemName refAttrName) {
-            return associationValue.getObjectsContainerRequired().findReferenceAttribute(refAttrName);
+            var objects = associationValue.getObjectsContainer();
+            return objects != null ? objects.findReferenceAttribute(refAttrName) : null;
         }
 
         @Override

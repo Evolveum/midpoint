@@ -22,9 +22,11 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.Resource;
 
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,6 +40,8 @@ import com.evolveum.midpoint.test.DummyTestResource;
 import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -91,8 +95,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final String JOHN_MEDICINE_CONTRACT_ID = "10104921";
     private static final String JOHN_MEDICINE_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_MEDICINE_CONTRACT_ID;
 
+    private static final String SERVICE_GUIDE_NAME = "guide";
+
     private static DummyHrScenarioExtended hrScenario;
     private static DummyDmsScenario dmsScenario;
+    private static DummyDmsScenario dmsScenarioNonTolerant;
     private static DummyAdTrivialScenario adScenario;
 
     private static final DummyTestResource RESOURCE_DUMMY_HR = new DummyTestResource(
@@ -102,6 +109,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final DummyTestResource RESOURCE_DUMMY_DMS = new DummyTestResource(
             TEST_DIR, "resource-dummy-dms.xml", "d77da617-ee78-46f7-8a15-cde88193308d", "dms",
             c -> dmsScenario = DummyDmsScenario.on(c).initialize());
+
+    private static final DummyTestResource RESOURCE_DUMMY_DMS_NON_TOLERANT = new DummyTestResource(
+            TEST_DIR, "resource-dummy-dms-non-tolerant.xml", "204871af-6a87-4d93-a23e-34bdc1a89196",
+            "dms-non-tolerant",
+            c -> dmsScenarioNonTolerant = DummyDmsScenario.on(c).initialize());
 
     private static final DummyTestResource RESOURCE_DUMMY_AD = new DummyTestResource(
             TEST_DIR, "resource-dummy-ad.xml", "a817af1e-a1ef-4dcf-aab4-04e266c93e74", "ad",
@@ -113,6 +125,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "archetype-costCenter.xml", "eb49f576-5813-4988-9dd1-91e418c65be6");
     private static final TestObject<ArchetypeType> ARCHETYPE_DOCUMENT = TestObject.file(
             TEST_DIR, "archetype-document.xml", "ce92f877-9f22-44cf-9ef1-f55675760eb0");
+    private static final TestObject<ArchetypeType> ARCHETYPE_DOCUMENT_NON_TOLERANT = TestObject.file(
+            TEST_DIR, "archetype-document-non-tolerant.xml", "737dc161-2df6-45b3-8201-036745f9e51a");
 
     private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
 
@@ -141,19 +155,27 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         initTestObjects(initTask, initResult,
-                ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT);
+                ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT, ARCHETYPE_DOCUMENT_NON_TOLERANT);
 
-        RESOURCE_DUMMY_HR.initAndTest(this, initTask, initResult);
-        createCommonHrObjects();
-        importCostCenters();
+        // The subresult is created to avoid failing on benign warnings from the above objects' initialization
+        var subResult = initResult.createSubresult("initializeResources");
+        try {
+            RESOURCE_DUMMY_HR.initAndTest(this, initTask, subResult);
+            createCommonHrObjects();
+            importCostCenters(subResult);
 
-        RESOURCE_DUMMY_DMS.initAndTest(this, initTask, initResult);
-        createCommonDmsObjects();
-        importDocuments();
+            RESOURCE_DUMMY_DMS.initAndTest(this, initTask, subResult);
+            createCommonDmsObjects();
+            importDocuments(subResult);
 
-        RESOURCE_DUMMY_AD.initAndTest(this, initTask, initResult);
-        createCommonAdObjects();
-        importGroups();
+            RESOURCE_DUMMY_DMS_NON_TOLERANT.initAndTest(this, initTask, subResult);
+
+            RESOURCE_DUMMY_AD.initAndTest(this, initTask, subResult);
+            createCommonAdObjects();
+            importGroups(subResult);
+        } finally {
+            subResult.close();
+        }
     }
 
     /**
@@ -191,14 +213,16 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         hrScenario.personContract.add(john, johnContractLaw);
         hrScenario.contractOrgUnit.add(johnContractLaw, law);
         hrScenario.contractCostCenter.add(johnContractLaw, cc1000);
+
+        // beware, john's data is changed in test methods
     }
 
-    private void importCostCenters() throws Exception {
+    private void importCostCenters(OperationResult result) throws Exception {
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, INTENT_COST_CENTER))
                 .withProcessingAllAccounts()
-                .executeOnForeground(getTestOperationResult());
+                .executeOnForeground(result);
 
         orgCc1000 = assertOrgByName(CC_1000_NAME, "after")
                 .display()
@@ -210,7 +234,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     private void createCommonDmsObjects() throws Exception {
         DummyObject jack = dmsScenario.account.add("jack");
-        DummyObject guide = dmsScenario.document.add("guide");
+        DummyObject guide = dmsScenario.document.add(SERVICE_GUIDE_NAME);
         DummyObject jackCanReadGuide = dmsScenario.access.add("jack-can-read-guide");
         jackCanReadGuide.addAttributeValues(DummyDmsScenario.Access.AttributeNames.LEVEL.local(), LEVEL_READ);
         DummyObject jackCanWriteGuide = dmsScenario.access.add("jack-can-write-guide");
@@ -223,14 +247,14 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         dmsScenario.accessDocument.add(jackCanWriteGuide, guide);
     }
 
-    private void importDocuments() throws Exception {
+    private void importDocuments(OperationResult result) throws Exception {
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_DMS.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.GENERIC, INTENT_DOCUMENT))
                 .withProcessingAllAccounts()
-                .executeOnForeground(getTestOperationResult());
+                .executeOnForeground(result);
 
-        serviceGuide = assertServiceByName("guide", "after")
+        serviceGuide = assertServiceByName(SERVICE_GUIDE_NAME, "after")
                 .display()
                 .getObjectable();
     }
@@ -244,12 +268,12 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         adScenario.accountGroup.add(jim, dummyAdministrators);
     }
 
-    private void importGroups() throws Exception {
+    private void importGroups(OperationResult result) throws Exception {
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_AD.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ENTITLEMENT, INTENT_GROUP))
                 .withProcessingAllAccounts()
-                .executeOnForeground(getTestOperationResult());
+                .executeOnForeground(result);
 
         roleAdministrators = assertRoleByName("administrators", "after").display().getObjectable();
         roleGuests = assertRoleByName("guests", "after").display().getObjectable();
@@ -291,7 +315,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         // in particular in TestDummyAssociations / TestDummyNativeAssociations.
     }
 
-    /** Checks that the account and its associations are correctly imported (and re-imported after a change). */
+    /**
+     * Checks that the account and its associations are correctly imported (and re-imported after a change).
+     *
+     * Tests assignment correlation as well as automatic provenance-based mapping ranges.
+     */
     @Test
     public void test110ImportHrPerson() throws Exception {
         var task = getTestTask();
@@ -376,7 +404,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .display()
                 .getOid();
 
-        and("john is updated");
+        and("john is updated; one assignment is added, one is changed, one is deleted");
         // @formatter:off
         assertUserAfterByUsername(PERSON_JOHN_NAME)
                 .assignments()
@@ -400,6 +428,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                     .end()
                     .assertDescription(null)
                 .end()
+                .by().identifier(JOHN_LAW_CONTRACT_ASSIGNMENT_ID).assertNone()
                 .end();
         // @formatter:on
     }
@@ -439,6 +468,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_DMS.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
                 .withNameValue("jack")
+                .withTracing()
                 .executeOnForeground(result);
 
         then("jack is found");
@@ -452,6 +482,170 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .by().identifier("guide:write").find()
                     .assertTargetRef(serviceGuide.getOid(), ServiceType.COMPLEX_TYPE, RELATION_WRITE)
                 .end();
+        // @formatter:on
+    }
+
+    /**
+     * Creates a DMS account, gradually provisioning it with associations. Uses tolerant association definition.
+     *
+     * . Read access to `security-policy` is provisioned via midPoint.
+     * . Admin access to `security-policy` is added manually.
+     * . Write access to `security-policy` is provisioned via midPoint. Admin access should remain.
+     */
+    @Test
+    public void test220ProvisionDmsAccountTolerant() throws Exception {
+        executeProvisionDmsAccountTest(
+                ARCHETYPE_DOCUMENT, dmsScenario, RESOURCE_DUMMY_DMS, true);
+    }
+
+    /**
+     * Creates a DMS account, gradually provisioning it with associations. Uses non-tolerant association definition.
+     *
+     * . Read access to `security-policy` is provisioned via midPoint.
+     * . Admin access to `security-policy` is added manually.
+     * . Write access to `security-policy` is provisioned via midPoint. Admin access should be deleted.
+     */
+    @Test
+    public void test230ProvisionDmsAccountNonTolerant() throws Exception {
+        executeProvisionDmsAccountTest(
+                ARCHETYPE_DOCUMENT_NON_TOLERANT, dmsScenarioNonTolerant, RESOURCE_DUMMY_DMS_NON_TOLERANT, false);
+    }
+
+    private void executeProvisionDmsAccountTest(
+            TestObject<ArchetypeType> documentArchetype,
+            DummyDmsScenario dmsScenario,
+            DummyTestResource resource,
+            boolean tolerant) throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+        var documentName = "security-policy-" + getTestNameShort();
+
+        given("security policy document");
+        var document = new ServiceType()
+                .name(documentName)
+                .assignment(documentArchetype.assignmentTo())
+                .assignment(resource.assignmentTo(ShadowKindType.GENERIC, INTENT_DOCUMENT));
+        var documentOid = addObject(document, task, result);
+        assertServiceAfter(documentOid)
+                .assertLiveLinks(1);
+
+        when("user with 'read' access is created and provisioned");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .targetRef(documentOid, ServiceType.COMPLEX_TYPE, RELATION_READ));
+        var userOid = addObject(user, task, result);
+        assertUserAfter(userOid)
+                .assertLiveLinks(1);
+
+        then("the account with read access to document exists");
+        // @formatter:off
+        assertUserAfter(userOid)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assignments()
+                    .by().targetOid(documentOid).targetRelation(RELATION_READ).find().end()
+                    .assertAssignments(1)
+                .end()
+                .links().by().resourceOid(resource.oid).find()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(DummyDmsScenario.Account.LinkNames.ACCESS.q())
+                .singleValue()
+                .associationObject()
+                .attributes()
+                .assertValue(DummyDmsScenario.Access.AttributeNames.LEVEL.q(), LEVEL_READ)
+                .singleReferenceValueShadow(DummyDmsScenario.Access.LinkNames.DOCUMENT.q())
+                .assertOrigValues(ICFS_NAME, documentName);
+        // @formatter:on
+
+        when("manually adding admin access");
+        var dummyAdminAccess = dmsScenario.access.add(RandomStringUtils.randomAlphabetic(10));
+        dummyAdminAccess.addAttributeValues(DummyDmsScenario.Access.AttributeNames.LEVEL.local(), LEVEL_ADMIN);
+        dmsScenario.accountAccess.add(dmsScenario.account.getByNameRequired(userName), dummyAdminAccess);
+        dmsScenario.accessDocument.add(dummyAdminAccess, dmsScenario.document.getByNameRequired(documentName));
+
+        and("provisioning the user with write access to the document");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(new AssignmentType()
+                                .targetRef(documentOid, ServiceType.COMPLEX_TYPE, RELATION_WRITE))
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("the account with read and write access to the document exists");
+        // @formatter:off
+        UserAsserter<?> userAsserter = assertUserAfter(userOid)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assignments()
+                    .by().targetOid(documentOid).targetRelation(RELATION_READ).find().end()
+                    .by().targetOid(documentOid).targetRelation(RELATION_WRITE).find().end()
+                    .assertAssignments(tolerant ? 3 : 2)
+                .end()
+                .links().by().resourceOid(resource.oid).find()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(DummyDmsScenario.Account.LinkNames.ACCESS.q())
+                .singleValueSatisfying(
+                        sav -> LEVEL_WRITE.equals(sav
+                                .getAttributesContainerRequired()
+                                .findSimpleAttribute(DummyDmsScenario.Access.AttributeNames.LEVEL.q())
+                                .getRealValue(String.class)))
+                    .associationObject()
+                        .attributes()
+                            .singleReferenceValueShadow(DummyDmsScenario.Access.LinkNames.DOCUMENT.q())
+                                .assertOrigValues(ICFS_NAME, documentName)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .singleValueSatisfying(
+                        sav -> LEVEL_READ.equals(sav
+                                .getAttributesContainerRequired()
+                                .findSimpleAttribute(DummyDmsScenario.Access.AttributeNames.LEVEL.q())
+                                .getRealValue(String.class)))
+                    .associationObject()
+                        .attributes()
+                            .singleReferenceValueShadow(DummyDmsScenario.Access.LinkNames.DOCUMENT.q())
+                                .assertOrigValues(ICFS_NAME, documentName)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .assertSize(tolerant ? 3 : 2)
+                .end()
+                .end()
+                .end()
+                .end()
+                .end();
+
+        if (tolerant) {
+            // Here we check tolerated association, and corresponding (inbound-created) assignment
+            userAsserter
+                    .assignments()
+                        .by().targetOid(documentOid).targetRelation(RELATION_ADMIN).find().end()
+                    .end()
+                    .links().by().resourceOid(resource.oid).find()
+                    .resolveTarget()
+                    .associations()
+                    .association(DummyDmsScenario.Account.LinkNames.ACCESS.q())
+                    .singleValueSatisfying(
+                            sav -> LEVEL_ADMIN.equals(sav
+                                    .getAttributesContainerRequired()
+                                    .findSimpleAttribute(DummyDmsScenario.Access.AttributeNames.LEVEL.q())
+                                    .getRealValue(String.class)))
+                        .associationObject()
+                            .attributes()
+                                .singleReferenceValueShadow(DummyDmsScenario.Access.LinkNames.DOCUMENT.q())
+                                    .assertOrigValues(ICFS_NAME, documentName)
+                                .end()
+                            .end()
+                        .end()
+                    .end();
+        }
         // @formatter:on
     }
 
