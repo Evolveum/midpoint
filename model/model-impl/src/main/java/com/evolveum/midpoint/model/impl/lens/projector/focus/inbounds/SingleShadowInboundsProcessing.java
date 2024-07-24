@@ -14,7 +14,6 @@ import java.util.function.Function;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.APrioriDeltaProvider;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.*;
 import com.evolveum.midpoint.prism.Containerable;
@@ -73,7 +72,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
         try {
 
             new SingleShadowInboundsProcessing<>(ctx, createEnv(ctx))
-                    .executeCompletely(result);
+                    .executeToDeltas(result);
 
             var focus = ctx.getPreFocus();
             LOGGER.debug("Focus:\n{}", focus.debugDumpLazily(1));
@@ -87,7 +86,7 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
         }
     }
 
-    public static DeltaSetTripleIvwoMap evaluateToTripleMap(
+    public static SingleShadowInboundsProcessing<?> evaluateToTripleMap(
             SingleShadowInboundsProcessingContext<?> ctx, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
             ConfigurationException, ObjectNotFoundException {
@@ -98,10 +97,10 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
 
             var processing = new SingleShadowInboundsProcessing<>(ctx, createEnv(ctx));
             processing.executeToTriples(result);
-            var tripleMap = processing.getOutputTripleMap();
 
-            LOGGER.debug("Triple map:\n{}", DebugUtil.debugDumpLazily(tripleMap, 1));
-            return tripleMap;
+            LOGGER.debug("Triple map:\n{}", DebugUtil.debugDumpLazily(processing.getOutputTripleMap(), 1));
+
+            return processing;
 
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -129,10 +128,10 @@ public class SingleShadowInboundsProcessing<T extends Containerable> extends Abs
         try {
             var preFocusPcv = ctx.getPreFocusAsPcv();
             new SingleShadowInboundsPreparation<>(
-                    evaluationRequests,
-                    new LimitedSource(ctx),
-                    new LimitedTarget<>(preFocusPcv, getFocusDefinition(preFocusPcv), itemDefinitionMap),
-                    new LimitedContext(ctx, getCorrelationItemPaths(result), env, assignmentsProcessingContext),
+                    evaluationRequestsMap,
+                    new LimitedInboundsSource(ctx),
+                    new LimitedInboundsTarget<>(preFocusPcv, getFocusDefinition(preFocusPcv), itemDefinitionMap),
+                    new LimitedInboundsContext(ctx, getCorrelationItemPaths(result), env),
                     lResult -> {})
                     .prepareOrEvaluate(result);
         } catch (StopProcessingProjectionException e) {

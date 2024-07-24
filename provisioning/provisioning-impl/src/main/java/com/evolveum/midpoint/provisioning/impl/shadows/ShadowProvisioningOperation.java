@@ -55,7 +55,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     final ShadowUpdater shadowUpdater = ShadowsLocalBeans.get().shadowUpdater;
     private final ProvisioningContextFactory ctxFactory = ShadowsLocalBeans.get().ctxFactory;
     final ResourceObjectConverter resourceObjectConverter = ShadowsLocalBeans.get().resourceObjectConverter;
-    final EntitlementsHelper associationsHelper = ShadowsLocalBeans.get().entitlementsHelper;
+    final AssociationsHelper associationsHelper = ShadowsLocalBeans.get().associationsHelper;
     final ErrorHandlerLocator errorHandlerLocator = ShadowsLocalBeans.get().errorHandlerLocator;
     private final EventDispatcher eventDispatcher = ShadowsLocalBeans.get().eventDispatcher;
     final Clock clock = ShadowsLocalBeans.get().clock;
@@ -66,7 +66,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     final ProvisioningOperationOptions options;
     @NotNull final Task task;
 
-    /** A delta that represents the original request. */
+    /** A delta that represents the original request. High-level language (associations, not references). */
     @NotNull final ObjectDelta<ShadowType> requestedDelta;
 
     /**
@@ -75,10 +75,13 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
      * - For ADD operation, we allow it to be the same as {@link #requestedDelta}.
      * - For DELETE op, they are obviously the same.
      * - But for MODIFY op, only resource-level modifications are transferred there.
+     *
+     * During the processing, operations are transformed here from high-level form (associations) to low-level form
+     * (reference attributes).
      */
     @NotNull final ObjectDelta<ShadowType> resourceDelta;
 
-    /** A delta that represents what was executed. */
+    /** A delta that represents what was executed. High-level language (associations, not references). */
     ObjectDelta<ShadowType> executedDelta;
 
     OperationResultStatus statusFromErrorHandling;
@@ -145,7 +148,7 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         this.executedDelta = executedDelta;
     }
 
-    /** Returns the delta that was requested to be executed OR that was really executed. */
+    /** Returns the delta that was requested to be executed OR that was really executed. Always high-level. */
     private @NotNull ObjectDelta<ShadowType> getEffectiveDelta() {
         return Objects.requireNonNullElse(executedDelta, requestedDelta);
     }

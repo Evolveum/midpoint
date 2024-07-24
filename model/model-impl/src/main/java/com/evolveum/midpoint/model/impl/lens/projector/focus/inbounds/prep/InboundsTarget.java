@@ -15,11 +15,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The target i.e. the object (focus, assignment, ...) into which the output of mappings will be put.
+ * The target for the inbounds processing i.e. the object (focus, assignment, ...) into which the output of mappings will be put.
  *
  * @param <T> type of the object
  */
-public abstract class MappingTarget<T extends Containerable> {
+public abstract class InboundsTarget<T extends Containerable> {
 
     /**
      * Current target object.
@@ -37,7 +37,7 @@ public abstract class MappingTarget<T extends Containerable> {
     /** Relative path of the default `$target` variable. TODO */
     @NotNull private final ItemPath targetPathPrefix;
 
-    MappingTarget(
+    InboundsTarget(
             @Nullable PrismContainerValue<T> targetPcv,
             @NotNull PrismContainerDefinition<T> targetDefinition,
             @NotNull PathKeyedMap<ItemDefinition<?>> itemDefinitionMap,

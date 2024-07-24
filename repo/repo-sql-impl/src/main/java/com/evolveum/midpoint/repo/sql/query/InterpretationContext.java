@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import java.util.Objects;
 
-import org.hibernate.Session;
+import jakarta.persistence.EntityManager;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -27,7 +27,7 @@ public class InterpretationContext {
     private final QueryInterpreter interpreter;
     private final PrismContext prismContext;
     private final RelationRegistry relationRegistry;
-    private final Session session;
+    private final EntityManager entityManager;
     private final ExtItemDictionary extItemDictionary;
 
     private final ItemPathResolver itemPathResolver = new ItemPathResolver(this);
@@ -45,25 +45,25 @@ public class InterpretationContext {
 
     public InterpretationContext(QueryInterpreter interpreter, Class<? extends Containerable> type,
             PrismContext prismContext, RelationRegistry relationRegistry,
-            ExtItemDictionary extItemDictionary, Session session, SupportedDatabase databaseType)
+            ExtItemDictionary extItemDictionary, EntityManager entityManager, SupportedDatabase databaseType)
             throws QueryException {
-        this(interpreter, type, prismContext, relationRegistry, extItemDictionary, session);
+        this(interpreter, type, prismContext, relationRegistry, extItemDictionary, entityManager);
 
         this.hibernateQuery = new HibernateQuery(rootEntityDefinition, databaseType);
     }
 
     public InterpretationContext(QueryInterpreter interpreter, Class<? extends Containerable> type,
             PrismContext prismContext, RelationRegistry relationRegistry,
-            ExtItemDictionary extItemDictionary, Session session, HibernateQuery parentQuery)
+            ExtItemDictionary extItemDictionary, EntityManager em, HibernateQuery parentQuery)
             throws QueryException {
-        this(interpreter, type, prismContext, relationRegistry, extItemDictionary, session);
+        this(interpreter, type, prismContext, relationRegistry, extItemDictionary, em);
 
         this.hibernateQuery = parentQuery.createSubquery(rootEntityDefinition);
     }
 
     private InterpretationContext(QueryInterpreter interpreter, Class<? extends Containerable> type,
             PrismContext prismContext, RelationRegistry relationRegistry,
-            ExtItemDictionary extItemDictionary, Session session)
+            ExtItemDictionary extItemDictionary, EntityManager entityManager)
             throws QueryException {
 
         Objects.requireNonNull(interpreter, "interpreter");
@@ -71,14 +71,14 @@ public class InterpretationContext {
         Objects.requireNonNull(prismContext, "prismContext");
         Objects.requireNonNull(relationRegistry, "relationRegistry");
         Objects.requireNonNull(extItemDictionary, "extItemDictionary");
-        Objects.requireNonNull(session, "session");
+        Objects.requireNonNull(entityManager, "session");
 
         this.interpreter = interpreter;
         this.type = type;
         this.prismContext = prismContext;
         this.relationRegistry = relationRegistry;
         this.extItemDictionary = extItemDictionary;
-        this.session = session;
+        this.entityManager = entityManager;
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
 
@@ -97,8 +97,8 @@ public class InterpretationContext {
         return relationRegistry;
     }
 
-    public Session getSession() {
-        return session;
+    public EntityManager getEntityManager() {
+        return entityManager;
     }
 
     public QueryInterpreter getInterpreter() {
@@ -135,6 +135,6 @@ public class InterpretationContext {
 
     public InterpretationContext createSubcontext(Class<? extends Containerable> type) throws QueryException {
         return new InterpretationContext(interpreter, type, prismContext,
-                relationRegistry, extItemDictionary, session, hibernateQuery);
+                relationRegistry, extItemDictionary, entityManager, hibernateQuery);
     }
 }

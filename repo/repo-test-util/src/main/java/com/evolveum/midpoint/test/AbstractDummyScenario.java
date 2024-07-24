@@ -9,15 +9,12 @@ package com.evolveum.midpoint.test;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.icf.dummy.resource.*;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.icf.dummy.resource.DummyObject;
-import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -107,6 +104,20 @@ public class AbstractDummyScenario {
                     "No object of type %s with name %s", getObjectClassName(), name);
         }
 
+        @SuppressWarnings("WeakerAccess")
+        public void deleteById(String id)
+                throws ConflictException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException,
+                InterruptedException, ConnectException {
+            controller.getDummyResource().deleteObjectById(getObjectClassName().local(), id);
+        }
+
+        public void deleteByName(String name)
+                throws ConflictException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException,
+                InterruptedException, ConnectException {
+            var object = getByNameRequired(name);
+            deleteById(object.getId());
+        }
+
         public abstract @NotNull ObjectClassName getObjectClassName();
 
         /** Requires the schema be attached first; see {@link #attachResourceSchema(CompleteResourceSchema)}. */
@@ -125,6 +136,11 @@ public class AbstractDummyScenario {
         /** Creates the respective link on the resource. */
         public void add(DummyObject first, DummyObject second) {
             controller.getDummyResource().addLinkValue(getLinkClassName().local(), first, second);
+        }
+
+        /** Deletes the respective link on the resource. */
+        public void delete(DummyObject first, DummyObject second) {
+            controller.getDummyResource().deleteLinkValue(getLinkClassName().local(), first, second);
         }
 
         public abstract @NotNull ObjectClassName getLinkClassName();

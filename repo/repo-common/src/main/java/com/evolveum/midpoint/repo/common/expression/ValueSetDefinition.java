@@ -252,9 +252,9 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     public record ExtraSetSpecification(
             @Nullable String assignmentSubtype) {
 
-        public static ExtraSetSpecification fromBean(@NotNull VariableBindingDefinitionType defBean) {
+        public static ExtraSetSpecification fromBean(@Nullable VariableBindingDefinitionType defBean) {
             return new ExtraSetSpecification(
-                    defBean.getAssignmentSubtype());
+                    defBean != null ? defBean.getAssignmentSubtype() : null);
         }
 
         public boolean matches(PrismValue value) {

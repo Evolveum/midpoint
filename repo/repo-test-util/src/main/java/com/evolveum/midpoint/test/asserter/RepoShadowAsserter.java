@@ -91,6 +91,7 @@ public class RepoShadowAsserter<RA> extends ShadowAsserter<RA> {
         return this;
     }
 
+    /** Attribute is present iff it is among {@link #cachedAttributes}. */
     @SafeVarargs
     public final <T> RepoShadowAsserter<RA> assertCachedOrigValues(String attrName, T... expectedValues) {
         return assertCachedOrigValues(
@@ -112,6 +113,7 @@ public class RepoShadowAsserter<RA> extends ShadowAsserter<RA> {
                 expectedValues);
     }
 
+    /** Attribute is present iff it is among {@link #cachedAttributes}. */
     @SafeVarargs
     public final <T> RepoShadowAsserter<RA> assertCachedNormValues(QName attrName, T... expectedValues) {
         return assertCachedOrigOrNormValues(attrName, RepoShadowAsserter::extractNormValues, expectedValues);

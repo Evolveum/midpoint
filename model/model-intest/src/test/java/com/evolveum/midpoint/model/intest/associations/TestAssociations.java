@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.intest.associations;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.midpoint.model.intest.TestEntitlements;
@@ -76,7 +78,18 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     private static final String ORG_SCIENCES_NAME = "sciences";
     private static final String ORG_LAW_NAME = "law";
+    private static final String ORG_MEDICINE_NAME = "medicine";
     private static final String CC_1000_NAME = "cc1000";
+    private static final String CC_1100_NAME = "cc1100";
+
+    private static final String PERSON_JOHN_NAME = "john";
+
+    private static final String JOHN_SCIENCES_CONTRACT_ID = "10703321";
+    private static final String JOHN_SCIENCES_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_SCIENCES_CONTRACT_ID;
+    private static final String JOHN_LAW_CONTRACT_ID = "10409314";
+    private static final String JOHN_LAW_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_LAW_CONTRACT_ID;
+    private static final String JOHN_MEDICINE_CONTRACT_ID = "10104921";
+    private static final String JOHN_MEDICINE_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_MEDICINE_CONTRACT_ID;
 
     private static DummyHrScenarioExtended hrScenario;
     private static DummyDmsScenario dmsScenario;
@@ -101,8 +114,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<ArchetypeType> ARCHETYPE_DOCUMENT = TestObject.file(
             TEST_DIR, "archetype-document.xml", "ce92f877-9f22-44cf-9ef1-f55675760eb0");
 
+    private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
+
     // HR objects
     private OrgType orgCc1000;
+    private OrgType orgCc1100;
 
     // DMS objects
     private ServiceType serviceGuide;
@@ -149,19 +165,24 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .addAttributeValues(OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Sciences");
         DummyObject law = hrScenario.orgUnit.add(ORG_LAW_NAME)
                 .addAttributeValues(OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Law");
+        hrScenario.orgUnit.add(ORG_MEDICINE_NAME)
+                .addAttributeValues(OrgUnit.AttributeNames.DESCRIPTION.local(), "Faculty of Medicine");
 
         DummyObject cc1000 = hrScenario.costCenter.add(CC_1000_NAME)
                 .addAttributeValues(CostCenter.AttributeNames.DESCRIPTION.local(), CC_1000_NAME);
+        hrScenario.costCenter.add(CC_1100_NAME)
+                .addAttributeValues(CostCenter.AttributeNames.DESCRIPTION.local(), CC_1100_NAME);
 
-        DummyObject john = hrScenario.person.add("john")
+        DummyObject john = hrScenario.person.add(PERSON_JOHN_NAME)
                 .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.FIRST_NAME.local(), "John")
                 .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Doe")
                 .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.TITLE.local(), "Ing.");
 
-        DummyObject johnContractSciences = hrScenario.contract.add("10703321")
-                .addAttributeValues(DummyHrScenarioExtended.Contract.AttributeNames.NOTE.local(), "needs review");
+        DummyObject johnContractSciences = hrScenario.contract.add(JOHN_SCIENCES_CONTRACT_ID)
+                .addAttributeValues(DummyHrScenarioExtended.Contract.AttributeNames.NOTE.local(), "needs review")
+                .addAttributeValues(DummyHrScenarioExtended.Contract.AttributeNames.VALID_FROM.local(), List.of(sciencesContractFrom));
 
-        DummyObject johnContractLaw = hrScenario.contract.add("10409314");
+        DummyObject johnContractLaw = hrScenario.contract.add(JOHN_LAW_CONTRACT_ID);
 
         hrScenario.personContract.add(john, johnContractSciences);
         hrScenario.contractOrgUnit.add(johnContractSciences, sciences);
@@ -180,6 +201,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .executeOnForeground(getTestOperationResult());
 
         orgCc1000 = assertOrgByName(CC_1000_NAME, "after")
+                .display()
+                .getObjectable();
+        orgCc1100 = assertOrgByName(CC_1100_NAME, "after")
                 .display()
                 .getObjectable();
     }
@@ -234,14 +258,14 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     /** Checks that simply getting the account gets the correct results. A prerequisite for the following test. */
     @Test
-    public void test100GetExistingHrPerson() throws Exception {
+    public void test100GetHrPerson() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
         when("john is get");
         var query = Resource.of(RESOURCE_DUMMY_HR.get())
                 .queryFor(DummyHrScenarioExtended.Person.OBJECT_CLASS_NAME.xsd())
-                .and().item(DummyHrScenarioExtended.Person.AttributeNames.NAME.path()).eq("john")
+                .and().item(DummyHrScenarioExtended.Person.AttributeNames.NAME.path()).eq(PERSON_JOHN_NAME)
                 .build();
         var shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
@@ -267,9 +291,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         // in particular in TestDummyAssociations / TestDummyNativeAssociations.
     }
 
-    /** Checks that the account and its associations are correctly imported. */
+    /** Checks that the account and its associations are correctly imported (and re-imported after a change). */
     @Test
-    public void test110ImportExistingHrPerson() throws Exception {
+    public void test110ImportHrPerson() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -277,7 +301,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
-                .withNameValue("john")
+                .withNameValue(PERSON_JOHN_NAME)
                 .executeOnForeground(result);
 
         then("orgs are there (they were created on demand)");
@@ -290,25 +314,24 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
         and("john is found");
         // @formatter:off
-        assertUserAfterByUsername("john")
+        assertUserAfterByUsername(PERSON_JOHN_NAME)
                 .assignments()
                 .assertAssignments(3)
                 .by().targetType(ArchetypeType.COMPLEX_TYPE).find()
                     .assertTargetOid(ARCHETYPE_PERSON.oid)
                 .end()
-                .by().identifier("contract:10703321").find()
+                .by().identifier(JOHN_SCIENCES_CONTRACT_ASSIGNMENT_ID).find()
                     .assertTargetRef(orgSciencesOid, OrgType.COMPLEX_TYPE)
                     .assertOrgRef(orgCc1000.getOid(), OrgType.COMPLEX_TYPE)
-                    .assertSubtype("contract")
                     .extension()
                         .assertPropertyValuesEqual(HR_COST_CENTER, CC_1000_NAME)
                     .end()
                     .assertDescription("needs review")
+                    //.assertValidFrom(XmlTypeConverter.createXMLGregorianCalendar(sciencesContractFrom)) // TODO enable when done
                 .end()
-                .by().identifier("contract:10409314").find()
+                .by().identifier(JOHN_LAW_CONTRACT_ASSIGNMENT_ID).find()
                     .assertTargetRef(orgLawOid, OrgType.COMPLEX_TYPE)
                     .assertOrgRef(orgCc1000.getOid(), OrgType.COMPLEX_TYPE)
-                    .assertSubtype("contract")
                     .extension()
                         .assertPropertyValuesEqual(HR_COST_CENTER, CC_1000_NAME)
                     .end()
@@ -317,10 +340,72 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .end();
                 //.assertOrganizations(ORG_SCIENCES_NAME, ORG_LAW_NAME); // FIXME will be fixed later
         // @formatter:on
+
+        when("john is changed on HR resource");
+
+        var dummyJohn = hrScenario.person.getByNameRequired(PERSON_JOHN_NAME);
+        var dummyMedicine = hrScenario.orgUnit.getByNameRequired(ORG_MEDICINE_NAME);
+        var dummyCc1000 = hrScenario.costCenter.getByNameRequired(CC_1000_NAME);
+        var dummyCc1100 = hrScenario.costCenter.getByNameRequired(CC_1100_NAME);
+
+        // one contract is added
+        var dummyContractMedicine = hrScenario.contract.add(JOHN_MEDICINE_CONTRACT_ID);
+        hrScenario.personContract.add(dummyJohn, dummyContractMedicine);
+        hrScenario.contractOrgUnit.add(dummyContractMedicine, dummyMedicine);
+        hrScenario.contractCostCenter.add(dummyContractMedicine, dummyCc1100);
+
+        // one is changed
+        var dummyContractSciences = hrScenario.contract.getByNameRequired(JOHN_SCIENCES_CONTRACT_ID);
+        dummyContractSciences.replaceAttributeValues(
+                DummyHrScenarioExtended.Contract.AttributeNames.NOTE.local(), "reviewed");
+        hrScenario.contractCostCenter.delete(dummyContractSciences, dummyCc1000);
+        hrScenario.contractCostCenter.add(dummyContractSciences, dummyCc1100);
+
+        // one is deleted
+        hrScenario.contract.deleteByName(JOHN_LAW_CONTRACT_ID);
+
+        when("john is re-imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_HR.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
+                .withNameValue(PERSON_JOHN_NAME)
+                .executeOnForeground(result);
+
+        then("new org is there (created on demand)");
+        var orgMedicineOid = assertOrgByName(ORG_MEDICINE_NAME, "after")
+                .display()
+                .getOid();
+
+        and("john is updated");
+        // @formatter:off
+        assertUserAfterByUsername(PERSON_JOHN_NAME)
+                .assignments()
+                .assertAssignments(3)
+                .by().targetType(ArchetypeType.COMPLEX_TYPE).find()
+                    .assertTargetOid(ARCHETYPE_PERSON.oid)
+                .end()
+                .by().identifier(JOHN_SCIENCES_CONTRACT_ASSIGNMENT_ID).find()
+                    .assertTargetRef(orgSciencesOid, OrgType.COMPLEX_TYPE)
+                    .assertOrgRef(orgCc1100.getOid(), OrgType.COMPLEX_TYPE)
+                    .extension()
+                        .assertPropertyValuesEqual(HR_COST_CENTER, CC_1100_NAME)
+                    .end()
+                    .assertDescription("reviewed")
+                .end()
+                .by().identifier(JOHN_MEDICINE_CONTRACT_ASSIGNMENT_ID).find()
+                    .assertTargetRef(orgMedicineOid, OrgType.COMPLEX_TYPE)
+                    .assertOrgRef(orgCc1100.getOid(), OrgType.COMPLEX_TYPE)
+                    .extension()
+                        .assertPropertyValuesEqual(HR_COST_CENTER, CC_1100_NAME)
+                    .end()
+                    .assertDescription(null)
+                .end()
+                .end();
+        // @formatter:on
     }
 
     @Test
-    public void test200GetExistingDmsAccount() throws Exception {
+    public void test200GetDmsAccount() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -345,7 +430,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test210ImportExistingDmsAccount() throws Exception {
+    public void test210ImportDmsAccount() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -363,17 +448,15 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(2)
                 .by().identifier("guide:read").find()
                     .assertTargetRef(serviceGuide.getOid(), ServiceType.COMPLEX_TYPE, RELATION_READ)
-                    .assertSubtype("documentAccess")
                 .end()
                 .by().identifier("guide:write").find()
                     .assertTargetRef(serviceGuide.getOid(), ServiceType.COMPLEX_TYPE, RELATION_WRITE)
-                    .assertSubtype("documentAccess")
                 .end();
         // @formatter:on
     }
 
     @Test
-    public void test300GetExistingAdAccount() throws Exception {
+    public void test300GetAdAccount() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -398,7 +481,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test310ImportExistingAdAccount() throws Exception {
+    public void test310ImportAdAccount() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -412,7 +495,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(1)
                 .by().targetOid(roleAdministrators.getOid()).find()
                     .assertTargetRef(roleAdministrators.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
-                    .assertSubtype("groupMembership")
                 .end();
         // @formatter:on
     }
@@ -439,7 +521,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(1)
                 .by().targetOid(roleGuests.getOid()).find()
                     .assertTargetRef(roleGuests.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
-                    .assertSubtype("groupMembership")
                 .end();
         // @formatter:on
 
@@ -454,11 +535,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(2)
                 .by().targetOid(roleGuests.getOid()).find()
                     .assertTargetRef(roleGuests.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
-                    .assertSubtype("groupMembership")
                 .end()
                 .by().targetOid(roleTesters.getOid()).find()
                     .assertTargetRef(roleTesters.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
-                    .assertSubtype("groupMembership")
                 .end();
         // @formatter:on
     }

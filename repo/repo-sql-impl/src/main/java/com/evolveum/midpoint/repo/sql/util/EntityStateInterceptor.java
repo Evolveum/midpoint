@@ -6,12 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sql.util;
 
-import org.hibernate.EmptyInterceptor;
+import org.hibernate.Interceptor;
 
 /**
  * @author lazyman
  */
-public class EntityStateInterceptor extends EmptyInterceptor {
+public class EntityStateInterceptor implements Interceptor {
 
     @Override
     public Boolean isTransient(Object entity) {

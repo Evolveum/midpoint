@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 /**
- * How should we process given {@link MappedItem} ?
+ * How should we process given {@link MappedSourceItem} ?
  *
  * TODO find a better name for the enum and its values
  */
@@ -34,5 +34,13 @@ enum ProcessingMode {
     ABSOLUTE_STATE_IF_KNOWN,
 
     /** Mapping(s) will not be processed. */
-    NONE
+    NONE;
+
+    boolean triggersFullShadowLoading() {
+        return this == ABSOLUTE_STATE;
+    }
+
+    boolean requiresFullShadowForEvaluation() {
+        return this == ABSOLUTE_STATE || this == ABSOLUTE_STATE_IF_KNOWN;
+    }
 }

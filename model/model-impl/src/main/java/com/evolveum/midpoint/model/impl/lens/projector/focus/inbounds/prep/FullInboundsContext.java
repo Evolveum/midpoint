@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.AssignmentsProcessingContext;
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -24,15 +23,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
-public class FullContext extends MappingContext {
+public class FullInboundsContext extends InboundsContext {
 
     @NotNull private final LensContext<?> lensContext;
 
-    public FullContext(
+    public FullInboundsContext(
             @NotNull LensContext<?> lensContext,
-            @NotNull MappingEvaluationEnvironment env,
-            @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {
-        super(env, assignmentsProcessingContext);
+            @NotNull MappingEvaluationEnvironment env) {
+        super(env);
         this.lensContext = lensContext;
     }
 
@@ -70,10 +68,5 @@ public class FullContext extends MappingContext {
     @Override
     public @NotNull PathSet getCorrelationItemPaths() {
         return new PathSet();
-    }
-
-    @Override
-    public @NotNull TaskExecutionMode getExecutionMode() {
-        return getTaskExecutionMode();
     }
 }

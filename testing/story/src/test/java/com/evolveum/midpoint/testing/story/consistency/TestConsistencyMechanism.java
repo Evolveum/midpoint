@@ -443,7 +443,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                     .assertValue(QNAME_GIVEN_NAME, "Jack")
                     .assertValue(QNAME_CN, "Jack Sparrow")
                     .assertValue(QNAME_SN, "Sparrow")
-                    .assertNoAttribute(QNAME_CAR_LICENSE)
+                    .assertNoSimpleAttribute(QNAME_CAR_LICENSE)
                 .end()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -489,7 +489,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                     .assertValue(QNAME_GIVEN_NAME, "Jack")
                     .assertValue(QNAME_CN, "Jack Deniels")
                     .assertValue(QNAME_SN, "Deniels")
-                    .assertNoAttribute(QNAME_CAR_LICENSE)
+                    .assertNoSimpleAttribute(QNAME_CAR_LICENSE)
                 .end()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
@@ -553,7 +553,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                     .assertValue(QNAME_GIVEN_NAME, "Jack")
                     .assertValue(QNAME_CN, "Jack Russel")
                     .assertValue(QNAME_SN, "Russel")
-                    .assertNoAttribute(QNAME_CAR_LICENSE)
+                    .assertNoSimpleAttribute(QNAME_CAR_LICENSE)
                 .end()
                 .assertResource(RESOURCE_OPENDJ_OID)
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED);
