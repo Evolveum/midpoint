@@ -188,7 +188,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismContainerValueWrapper<AssignmentType> assignmentValue = assignment.getValues().iterator().next();
         PrismContainerWrapper<ResourceAttributeDefinitionType> resourceAttrDefWrapper = assignmentValue.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE));
         assertNotNull("unexpected null assignment wrapper", resourceAttrDefWrapper);
-        assertEquals("Unexpected values for assignment " + resourceAttrDefWrapper.getValues().size(), 0, resourceAttrDefWrapper.getValues().size());
+        assertEquals("Unexpected values for assignment " + resourceAttrDefWrapper.getValues().size(), 1, resourceAttrDefWrapper.getValues().size());
 
         ModelServiceLocator locator = getServiceLocator(task);
 
