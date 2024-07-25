@@ -45,7 +45,11 @@ public class ConfirmationPanel extends BasePanel<String> implements Popupable {
 
     public ConfirmationPanel(String id, IModel<String> message) {
         super(id, message);
+    }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 

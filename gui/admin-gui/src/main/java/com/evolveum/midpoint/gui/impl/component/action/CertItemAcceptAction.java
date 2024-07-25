@@ -11,6 +11,7 @@ import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
 
 @ActionType(
         identifier = "certItemAccept",
@@ -23,7 +24,7 @@ public class CertItemAcceptAction extends AbstractCertItemDecisionAction {
         super();
     }
 
-    public CertItemAcceptAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+    public CertItemAcceptAction(GuiActionType actionDto) {
         super(actionDto);
     }
 

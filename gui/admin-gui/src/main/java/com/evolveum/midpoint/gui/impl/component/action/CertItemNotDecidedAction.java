@@ -11,6 +11,7 @@ import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
 
 @ActionType(
         identifier = "certItemNotDecided",
@@ -22,7 +23,7 @@ public class CertItemNotDecidedAction extends AbstractCertItemDecisionAction {
         super();
     }
 
-    public CertItemNotDecidedAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+    public CertItemNotDecidedAction(GuiActionType actionDto) {
         super(actionDto);
     }
 
