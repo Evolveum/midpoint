@@ -55,7 +55,7 @@ class ResourceDefinitionFeatures {
                         NativeObjectClassUcfDefinition::isAuxiliary,
                         XsdSerializers.aBoolean(MidPointConstants.RA_AUXILIARY));
 
-        static final DefinitionFeature<Boolean, NativeObjectClassDefinitionBuilder, Object, ?> DF_ASSOCIATION_OBJECT =
+        static final DefinitionFeature<Boolean, NativeObjectClassDefinitionBuilder, Object, ?> DF_EMBEDDED =
                 DefinitionFeature.of(
                         Boolean.class,
                         NativeObjectClassDefinitionBuilder.class,

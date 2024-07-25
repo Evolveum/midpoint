@@ -126,6 +126,8 @@ public class DummyDmsScenario extends AbstractDummyScenario {
                             .build())
                     .withSecondParticipant(aParticipant()
                             .withObjectClassNames(Access.OBJECT_CLASS_NAME.local())
+                            .withMinOccurs(1) // necessary for cascading deletion operations
+                            .withMaxOccurs(1)
                             .build())
                     .build());
         }

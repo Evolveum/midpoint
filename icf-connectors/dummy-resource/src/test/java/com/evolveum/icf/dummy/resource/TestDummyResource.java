@@ -59,6 +59,8 @@ public class TestDummyResource {
                                 .build())
                         .withSecondParticipant(aParticipant()
                                 .withObjectClassNames(OC_CONTRACT)
+                                .withMinOccurs(1) // necessary for cascading deletion operations
+                                .withMaxOccurs(1)
                                 .build())
                         .build());
         dummyResource.addLinkClassDef(

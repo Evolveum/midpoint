@@ -175,6 +175,8 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
                                     .build())
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(Contract.OBJECT_CLASS_NAME.local())
+                                    .withMinOccurs(1) // necessary for cascading deletion operations
+                                    .withMaxOccurs(1)
                                     .build())
                             .build());
         }

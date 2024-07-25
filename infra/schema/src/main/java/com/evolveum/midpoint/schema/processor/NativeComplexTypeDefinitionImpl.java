@@ -255,7 +255,7 @@ public class NativeComplexTypeDefinitionImpl
                 ResourceDefinitionFeatures.ForClass.DF_NATIVE_OBJECT_CLASS_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DEFAULT_ACCOUNT_DEFINITION,
                 ResourceDefinitionFeatures.ForClass.DF_AUXILIARY,
-                ResourceDefinitionFeatures.ForClass.DF_ASSOCIATION_OBJECT,
+                ResourceDefinitionFeatures.ForClass.DF_EMBEDDED,
                 ResourceDefinitionFeatures.ForClass.DF_NAMING_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DISPLAY_NAME_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DESCRIPTION_ATTRIBUTE_NAME,
