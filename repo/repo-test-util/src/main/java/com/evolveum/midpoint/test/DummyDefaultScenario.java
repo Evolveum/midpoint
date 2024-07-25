@@ -78,14 +78,6 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
 
         public static final ObjectClassName OBJECT_CLASS_NAME = legacyCustom("privilege");
 
-        public static class AttributeNames {
-            // TODO
-        }
-
-        public static class LinkNames {
-            public static final AssocName HOLDERS_INVISIBLE = AssocName.ri("holders-invisible"); // name is not important
-        }
-
         @Override
         public @NotNull ObjectClassName getObjectClassName() {
             return OBJECT_CLASS_NAME;
@@ -142,8 +134,6 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
                                     .build())
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(Privilege.OBJECT_CLASS_NAME.local())
-                                    .withInvisibleLinkAttributeName(Privilege.LinkNames.HOLDERS_INVISIBLE.local())
-                                    .withMaxOccurs(-1)
                                     .build())
                             .build());
         }

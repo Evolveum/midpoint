@@ -73,22 +73,6 @@ public class LinkClassDefinition {
         return secondParticipant;
     }
 
-    public List<LinkDefinition> getLinkDefinitions(@NotNull String objectClassName, @NotNull String linkName) {
-        var first = firstParticipant.getLinkDefinition(objectClassName, linkName, this, FIRST);
-        var second = secondParticipant.getLinkDefinition(objectClassName, linkName, this, SECOND);
-        if (first != null) {
-            if (second != null) {
-                return List.of(first, second);
-            } else {
-                return List.of(first);
-            }
-        } else if (second != null) {
-            return List.of(second);
-        } else {
-            return List.of();
-        }
-    }
-
     public static class Participant {
 
         /** Names of object classes comprising this participant. Never empty. */
@@ -96,12 +80,9 @@ public class LinkClassDefinition {
 
         /**
          * Name of the link (~ attribute) under which this link is presented in the participating objects.
-         * Always not null, as we use even invisible links to define an association class.
+         * Null if the link is not visible on this participant.
          */
-        @NotNull private final String linkName;
-
-        /** If false, the link is not visible on this participant. */
-        private final boolean visible;
+        @Nullable private final String linkName;
 
         /** Is the link updatable from this side? Requires {@link #linkName} to be non-null. */
         private final boolean updatable;
@@ -123,16 +104,14 @@ public class LinkClassDefinition {
 
         Participant(
                 @NotNull Set<String> objectClassNames,
-                @NotNull String linkName,
-                boolean visible,
+                @Nullable String linkName,
                 boolean updatable,
                 boolean returnedByDefault,
                 boolean expandedByDefault,
                 int minOccurs,
                 int maxOccurs) {
             this.objectClassNames = Objects.requireNonNull(objectClassNames, "object class name");
-            this.linkName = Objects.requireNonNull(linkName, "link name");
-            this.visible = visible;
+            this.linkName = linkName;
             this.updatable = updatable;
             this.returnedByDefault = returnedByDefault;
             this.expandedByDefault = expandedByDefault;
@@ -144,8 +123,8 @@ public class LinkClassDefinition {
             return objectClassNames;
         }
 
-        public @NotNull String getLinkName() {
-            return linkName;
+        public @NotNull String getLinkNameRequired() {
+            return Objects.requireNonNull(linkName);
         }
 
         @SuppressWarnings("unused")
@@ -169,12 +148,9 @@ public class LinkClassDefinition {
             return maxOccurs;
         }
 
-        @Nullable LinkDefinition getLinkDefinition(
-                String objectClassName, String linkName,
-                LinkClassDefinition classDefinition, ParticipantIndex participantIndex) {
-            if (objectClassNames.contains(objectClassName)
-                    && this.linkName.equals(linkName)) {
-                return new LinkDefinition(classDefinition, participantIndex);
+        public String getSingleObjectClassNameIfApplicable() {
+            if (objectClassNames.size() == 1) {
+                return objectClassNames.iterator().next();
             } else {
                 return null;
             }
@@ -186,13 +162,12 @@ public class LinkClassDefinition {
         }
 
         public boolean isVisible() {
-            return visible;
+            return linkName != null;
         }
 
         public static final class ParticipantBuilder {
             private Set<String> objectClassNames;
             private String attributeName;
-            private boolean visible;
             private boolean updatable;
             private boolean returnedByDefault;
             private boolean expandedByDefault;
@@ -219,13 +194,6 @@ public class LinkClassDefinition {
 
             public ParticipantBuilder withLinkAttributeName(String name) {
                 this.attributeName = name;
-                this.visible = true;
-                return this;
-            }
-
-            public ParticipantBuilder withInvisibleLinkAttributeName(String name) {
-                this.attributeName = name;
-                this.visible = false;
                 return this;
             }
 
@@ -257,7 +225,7 @@ public class LinkClassDefinition {
 
             public Participant build() {
                 return new Participant(
-                        objectClassNames, attributeName, visible, updatable,
+                        objectClassNames, attributeName, updatable,
                         returnedByDefault, expandedByDefault, minOccurs, maxOccurs);
             }
         }

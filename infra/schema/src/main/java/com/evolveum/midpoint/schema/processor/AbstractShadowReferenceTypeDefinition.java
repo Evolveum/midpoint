@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * in legacy (pre-4.9) or modern (4.9+) format.
  *
  */
-public abstract class AbstractShadowReferenceTypeDefinition implements DebugDumpable, Serializable {
+abstract class AbstractShadowReferenceTypeDefinition implements DebugDumpable, Serializable {
 
     /** Name of this type, e.g. `membership`. */
     @NotNull private final String localName;
@@ -42,55 +42,9 @@ public abstract class AbstractShadowReferenceTypeDefinition implements DebugDump
     AbstractShadowReferenceTypeDefinition(
             @NotNull String localName,
             @NotNull ResourceObjectDefinition representativeObjectDefinition) {
-        //argCheck(NS_RI.equals(localClassName.getNamespaceURI()), "Wrong namespace in association class name: %s", localClassName);
         this.localName = localName;
         this.representativeObjectDefinition = representativeObjectDefinition;
     }
-
-//    static @NotNull ShadowAssociationClassDefinition fromAssociationType(
-//            @NotNull ShadowAssociationTypeDefinitionConfigItem definitionCI,
-//            @NotNull ShadowAssociationClassImplementation implementation,
-//            @NotNull ResourceSchema resourceSchema)
-//            throws ConfigurationException {
-//        return new ShadowAssociationClassDefinition(
-//                definitionCI.getAssociationClassName(),
-//                implementation,
-//                getParticipantRestrictions(
-//                        definitionCI.getObject(), implementation.getParticipatingObjects(), definitionCI, resourceSchema));
-//    }
-//
-//    static ShadowAssociationClassDefinition fromImplementation(@NotNull ShadowAssociationClassImplementation implementation) {
-//        return new ShadowAssociationClassDefinition(
-//                implementation.getQName(),
-//                implementation,
-//                implementation.getParticipatingObjects());
-//    }
-//
-//    private static Collection<AssociationParticipantType> getParticipantRestrictions(
-//            @Nullable ShadowAssociationTypeParticipantDefinitionConfigItem<?> participantCI,
-//            @NotNull Collection<AssociationParticipantType> fromImplementation,
-//            @NotNull ShadowAssociationTypeDefinitionConfigItem errorCtxCI,
-//            @NotNull ResourceSchema resourceSchema) throws ConfigurationException {
-//        Collection<? extends ResourceObjectTypeIdentification> typeIdentifiers =
-//                participantCI != null ? participantCI.getTypeIdentifiers() : List.of();
-//        if (!typeIdentifiers.isEmpty()) {
-//            // We use this information to override the one coming from the implementation.
-//            Collection<AssociationParticipantType> refinedParticipantRestrictions = new ArrayList<>();
-//            for (var typeIdentifier : typeIdentifiers) {
-//                var typeDef =
-//                        errorCtxCI.configNonNull(
-//                                resourceSchema.getObjectTypeDefinition(typeIdentifier),
-//                                "No definition for object type %s in %s as used in %s",
-//                                typeIdentifier, resourceSchema, DESC);
-//                refinedParticipantRestrictions.add(
-//                        new AssociationParticipantType(typeDef));
-//            }
-//            return refinedParticipantRestrictions;
-//        } else {
-//            // Just take information from the native/simulated definition
-//            return fromImplementation;
-//        }
-//    }
 
     public @NotNull String getLocalName() {
         return localName;

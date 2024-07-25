@@ -1350,9 +1350,11 @@ public class DummyResource implements DebugDumpable {
 
         // Put the links into respective object classes (for both participants).
         for (LinkDefinition linkDefinition : linkClassDefinition.getLinkDefinitions()) {
-            for (String objectClassName : linkDefinition.getObjectClassNames()) {
-                getStructuralObjectClass(objectClassName)
-                        .addLinkDefinition(linkDefinition);
+            if (linkDefinition.isVisible()) {
+                for (String objectClassName : linkDefinition.getObjectClassNames()) {
+                    getStructuralObjectClass(objectClassName)
+                            .addLinkDefinition(linkDefinition);
+                }
             }
         }
 

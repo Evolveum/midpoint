@@ -219,6 +219,15 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="embedded" type="xsd:boolean" default="false">
+        <xsd:annotation>
+            <xsd:documentation>
+                A flag that specifies whether this object class is an embedded one.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <!-- TODO other annotations -->
 </xsd:schema>
 
 

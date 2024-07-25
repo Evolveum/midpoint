@@ -91,13 +91,12 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
         }
 
         public static class LinkNames {
-            public static final AssocName PERSON = AssocName.ri("person"); // invisible
             public static final AssocName ORG = AssocName.ri("org");
             public static final AssocName COST_CENTER = AssocName.ri("costCenter");
         }
 
         void initialize() {
-            var oc = DummyObjectClass.association();
+            var oc = DummyObjectClass.embedded();
             controller.addAttrDef(oc, AttributeNames.VALID_FROM.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.VALID_TO.local(), ZonedDateTime.class, false, false);
             controller.addAttrDef(oc, AttributeNames.NOTE.local(), String.class, false, false);
@@ -176,9 +175,6 @@ public class DummyHrScenarioExtended extends AbstractDummyScenario {
                                     .build())
                             .withSecondParticipant(aParticipant()
                                     .withObjectClassNames(Contract.OBJECT_CLASS_NAME.local())
-                                    .withInvisibleLinkAttributeName(Contract.LinkNames.PERSON.local())
-                                    .withMinOccurs(1)
-                                    .withMaxOccurs(1)
                                     .build())
                             .build());
         }

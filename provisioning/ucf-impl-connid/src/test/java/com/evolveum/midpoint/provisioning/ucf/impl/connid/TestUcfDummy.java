@@ -565,15 +565,6 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         assertThat(orgDefN).as("contract.org ref attr definition").isNotNull();
         assertThat(orgDefN.getTypeName()).as("contract.org type").isEqualTo(ContractOrgUnit.NAME.xsd());
         assertThat(orgDefN.getReferenceParticipantRole()).as("role of contract in contract-org reference").isEqualTo(SUBJECT);
-        // contract-person; The item on the contract side is invisible, and serves just a information holder
-        // for the reference participant. This may change in the future, if we find a different way of represent that info.
-        var personItemDefN = contractClassDefN.findReferenceAttributeDefinition(Contract.LinkNames.PERSON.q());
-        assertThat(personItemDefN).as("contract.person definition").isNotNull();
-        assertThat(personItemDefN.getTypeName()).as("contract.person type").isEqualTo(PersonContract.NAME.xsd());
-        assertThat(personItemDefN.getReferenceParticipantRole()).as("role of contract in contract-org reference").isEqualTo(OBJECT);
-        assertThat(personItemDefN.canRead()).isFalse();
-        assertThat(personItemDefN.canModify()).isFalse();
-        assertThat(personItemDefN.canAdd()).isFalse();
 
         and("complete schema is OK");
         completeSchema.findDefinitionForObjectClassRequired(Contract.OBJECT_CLASS_NAME.xsd())

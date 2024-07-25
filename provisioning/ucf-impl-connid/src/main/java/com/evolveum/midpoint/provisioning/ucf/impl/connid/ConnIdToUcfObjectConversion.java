@@ -398,7 +398,7 @@ class ConnIdToUcfObjectConversion {
 
         private @NotNull ShadowReferenceAttributeValue convertReferenceToReferenceAttributeValue(ConnectorObjectReference reference)
                 throws SchemaException {
-            BaseConnectorObject targetObjectOrIdentification = reference.getReferencedValue();
+            BaseConnectorObject targetObjectOrIdentification = reference.getValue();
             var targetObjectClassName =
                     connIdObjectClassNameToUcf(targetObjectOrIdentification.getObjectClass(), isLegacySchema());
             var targetObjectDefinition = getResourceSchema().findDefinitionForObjectClassRequired(targetObjectClassName);
