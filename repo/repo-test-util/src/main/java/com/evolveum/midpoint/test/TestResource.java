@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -60,5 +61,11 @@ public class TestResource extends TestObject<ResourceType> {
                 .resourceRef(oid, ResourceType.COMPLEX_TYPE)
                 .kind(kind)
                 .intent(intent);
+    }
+
+    public @NotNull AssignmentType assignmentTo(ShadowKindType kind, String intent) {
+        return new AssignmentType()
+                .construction(
+                        construction(kind, intent));
     }
 }

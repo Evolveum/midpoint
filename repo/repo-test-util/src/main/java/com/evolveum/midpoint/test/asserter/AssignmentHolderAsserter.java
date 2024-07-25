@@ -120,6 +120,30 @@ public class AssignmentHolderAsserter<AH extends AssignmentHolderType, RA> exten
         return this;
     }
 
+    @Override
+    public AssignmentHolderAsserter<AH,RA> assertEffectiveMark(String oid) {
+        super.assertEffectiveMark(oid);
+        return this;
+    }
+
+    @Override
+    public AssignmentHolderAsserter<AH,RA> assertEffectiveMarks(String... oids) {
+        super.assertEffectiveMarks(oids);
+        return this;
+    }
+
+    @Override
+    public AssignmentHolderAsserter<AH,RA> assertNoEffectiveMark(String oid) {
+        super.assertNoEffectiveMark(oid);
+        return this;
+    }
+
+    @Override
+    public AssignmentHolderAsserter<AH,RA> assertNoEffectiveMarks() {
+        super.assertNoEffectiveMarks();
+        return this;
+    }
+
     public AssignmentsAsserter<AH, ? extends AssignmentHolderAsserter<AH,RA>, RA> assignments() {
         AssignmentsAsserter<AH,AssignmentHolderAsserter<AH,RA>,RA> asserter = new AssignmentsAsserter<>(this, getDetails());
         copySetupTo(asserter);

@@ -8,9 +8,8 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import java.util.Objects;
-import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
+import jakarta.persistence.*;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -21,6 +20,9 @@ import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * @author lazyman
@@ -46,11 +48,10 @@ public class ROExtReference extends ROExtBase<String> {
     public ROExtReference() {
     }
 
-    @Id
-    @ForeignKey(name = "fk_o_ext_reference_owner")
-    @MapsId("owner")
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumn(name = "owner_oid", foreignKey = @ForeignKey(name = "fk_o_ext_reference_owner"))
     public RObject getOwner() {
         return super.getOwner();
     }
@@ -62,6 +63,7 @@ public class ROExtReference extends ROExtBase<String> {
     }
 
     @Id
+    @JdbcType(IntegerJdbcType.class)
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {
@@ -79,6 +81,7 @@ public class ROExtReference extends ROExtBase<String> {
         return value;
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RObjectType getTargetType() {
         return targetType;
@@ -103,9 +106,9 @@ public class ROExtReference extends ROExtBase<String> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
+        if (!super.equals(o)) {return false;}
         ROExtReference that = (ROExtReference) o;
         return Objects.equals(value, that.value);
     }

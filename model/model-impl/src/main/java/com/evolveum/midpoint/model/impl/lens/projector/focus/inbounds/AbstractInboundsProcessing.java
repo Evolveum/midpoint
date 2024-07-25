@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.impl.expr.AssociationSynchronizationResult;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.DeltaSetTripleIvwoMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
@@ -35,13 +36,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Evaluation of inbound mappings from all available projections.
+ * Evaluation of inbound mappings from single projection or all available projections.
  *
  * Has two modes of operation:
  *
  * 1. *Full processing*: takes all the mappings, from all available projections, from all embedded shadows, evaluates them,
  * and consolidates them. Always executed under the clockwork. Always targeted to the focus object (user, role, and so on).
- * See {@link FullInboundsProcessing}.
+ * Treats issues like loading the full shadow, if necessary. See {@link FullInboundsProcessing}.
  *
  * 2. *Limited processing*: converts just a single shadow into a (fragment of) the target value. This is used for correlation
  * purposes. May execute within or outside the clockwork. May target any object: user, role, but also specific assignment
@@ -60,13 +61,14 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     private static final Trace LOGGER = TraceManager.getTrace(AbstractInboundsProcessing.class);
     private static final String OP_EVALUATE_MAPPINGS = AbstractInboundsProcessing.class.getName() + ".evaluateMappings";
 
+    /** Context description, time, task. */
     @NotNull final MappingEvaluationEnvironment env;
 
-    /** All evaluation requests (i.e., mappings prepared for evaluation). */
-    final MappingEvaluationRequests evaluationRequests = new MappingEvaluationRequests();
+    /** All evaluation requests (i.e., mappings prepared for evaluation), indexed by the target item path. */
+    @NotNull final MappingEvaluationRequestsMap evaluationRequestsMap = new MappingEvaluationRequestsMap();
 
-    /** Here we cache definitions for both regular and identity target items. */
-    final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap = new PathKeyedMap<>();
+    /** Here we cache definitions for both regular and identity *target* items. */
+    @NotNull final PathKeyedMap<ItemDefinition<?>> itemDefinitionMap = new PathKeyedMap<>();
 
     /**
      * Output triples for individual target paths. This is the actual result of mapping evaluation.
@@ -74,21 +76,21 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
      */
     @NotNull private final DeltaSetTripleIvwoMap outputTripleMap = new DeltaSetTripleIvwoMap();
 
-    final AssignmentsProcessingContext assignmentsProcessingContext = new AssignmentsProcessingContext();
-
     @NotNull final ModelBeans beans = ModelBeans.get();
 
     AbstractInboundsProcessing(@NotNull MappingEvaluationEnvironment env) {
         this.env = env;
     }
 
-    public void executeCompletely(OperationResult result)
+    /** Full processing, resulting in deltas being applied (to focus context or target object). */
+    public void executeToDeltas(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         executeToTriples(result);
         consolidateTriples(result);
     }
 
+    /** Partial processing that stops after triples are computed, i.e. just prepares and evaluates the mappings. */
     void executeToTriples(OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -115,7 +117,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
         OperationResult result = parentResult.subresult(OP_EVALUATE_MAPPINGS)
                 .build();
         try {
-            for (var entry : evaluationRequests.entrySet()) {
+            for (var entry : List.copyOf(evaluationRequestsMap.entrySet())) {
                 List<MappingEvaluationRequest<?, ?>> mappings = entry.getValue();
                 assert !mappings.isEmpty();
                 for (var mapping : mappings) {
@@ -149,21 +151,33 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     private <V extends PrismValue, D extends ItemDefinition<?>> void mergeMappingOutput(
             MappingImpl<V, D> mapping, ItemPath targetPath, boolean allToDelete) {
 
-        DeltaSetTriple<ItemValueWithOrigin<V, D>> ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+        var ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping);
         LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}",
                 DebugUtil.shortDumpLazily(mapping.getDefaultSource()), DebugUtil.debugDumpLazily(ivwoTriple, 1));
 
-        if (ivwoTriple != null) {
-            if (allToDelete) {
-                LOGGER.trace("Projection is going to be deleted, setting values from this projection to minus set");
-                DeltaSetTriple<ItemValueWithOrigin<V, D>> convertedTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
-                convertedTriple.addAllToMinusSet(ivwoTriple.getPlusSet());
-                convertedTriple.addAllToMinusSet(ivwoTriple.getZeroSet());
-                convertedTriple.addAllToMinusSet(ivwoTriple.getMinusSet());
-                outputTripleMap.putOrMerge(targetPath, convertedTriple);
-            } else {
-                outputTripleMap.putOrMerge(targetPath, ivwoTriple);
-            }
+        if (ivwoTriple == null) {
+            return;
+        }
+        if (allToDelete) {
+            LOGGER.trace("Projection is going to be deleted, setting values from this projection to minus set");
+            DeltaSetTriple<ItemValueWithOrigin<V, D>> convertedTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
+            convertedTriple.addAllToMinusSet(ivwoTriple.getPlusSet());
+            convertedTriple.addAllToMinusSet(ivwoTriple.getZeroSet());
+            convertedTriple.addAllToMinusSet(ivwoTriple.getMinusSet());
+            outputTripleMap.putOrMerge(targetPath, convertedTriple);
+            return; // ignoring embedded triple maps
+        }
+
+        outputTripleMap.putOrMerge(targetPath, ivwoTriple);
+
+        // Let's also treat inner triples and additional data, if there are any
+        if (mapping.getOutputTriple() instanceof AssociationSynchronizationResult<V> associationSynchronizationResult) {
+            outputTripleMap.putOrMergeAll(
+                    associationSynchronizationResult.getInnerDeltaSetTriplesMap());
+            itemDefinitionMap.putAll(
+                    associationSynchronizationResult.getInnerItemDefinitionsMap());
+            evaluationRequestsMap.putAll(
+                    associationSynchronizationResult.getInnerMappingEvaluationRequestsMap());
         }
     }
 
@@ -190,11 +204,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
                 result);
         consolidation.computeItemDeltas();
 
-        var consolidatedDeltas =
-                new AssignmentsConsolidation(assignmentsProcessingContext, consolidation.getItemDeltas(), getTarget())
-                        .consolidate();
-
-        applyComputedDeltas(consolidatedDeltas);
+        applyComputedDeltas(consolidation.getItemDeltas());
     }
 
     @NotNull private ItemDefinition<?> getItemDefinition(@NotNull ItemPath itemPath) {
@@ -204,7 +214,7 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
     }
 
     private boolean rangeIsCompletelyDefined(ItemPath itemPath) {
-        return evaluationRequests.get(itemPath).stream()
+        return evaluationRequestsMap.getRequired(itemPath).stream()
                 .allMatch(m -> m.getMapping().hasTargetRange());
     }
 
@@ -222,8 +232,15 @@ abstract class AbstractInboundsProcessing<T extends Containerable> {
 
     abstract void applyComputedDeltas(Collection<? extends ItemDelta<?,?>> itemDeltas) throws SchemaException;
 
-    @NotNull
-    DeltaSetTripleIvwoMap getOutputTripleMap() {
+    public @NotNull DeltaSetTripleIvwoMap getOutputTripleMap() {
         return outputTripleMap;
+    }
+
+    public @NotNull PathKeyedMap<ItemDefinition<?>> getItemDefinitionMap() {
+        return itemDefinitionMap;
+    }
+
+    public @NotNull MappingEvaluationRequestsMap getEvaluationRequestsMap() {
+        return evaluationRequestsMap;
     }
 }

@@ -13,6 +13,10 @@ import java.util.List;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Holds all mappings waiting for their evaluation.
  *
@@ -20,10 +24,16 @@ import com.evolveum.midpoint.prism.path.PathKeyedMap;
  *
  * NOTE: Actually, we do not utilize the fact that it is a map. It could be a plain list of mappings.
  */
-public class MappingEvaluationRequests extends PathKeyedMap<List<MappingEvaluationRequest<?, ?>>> {
+public class MappingEvaluationRequestsMap extends PathKeyedMap<List<MappingEvaluationRequest<?, ?>>> {
 
     public void add(ItemPath targetPath, MappingEvaluationRequest<?, ?> request) {
         computeIfAbsent(targetPath, k -> new ArrayList<>())
                 .add(request);
+    }
+
+    @NotNull List<MappingEvaluationRequest<?, ?>> getRequired(@NotNull ItemPath key) {
+        return MiscUtil.stateNonNull(
+                super.get(key),
+                "No mapping evaluation requests for %s", key);
     }
 }

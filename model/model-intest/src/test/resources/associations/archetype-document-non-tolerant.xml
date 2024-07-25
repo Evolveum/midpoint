@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="737dc161-2df6-45b3-8201-036745f9e51a">
+    <name>document-non-tolerant</name>
+    <inducement>
+        <documentation>
+            This induces the account on dms-non-tolerant resource.
+            The associations will be provisioned thanks to the association type configuration in the resource definition.
+        </documentation>
+        <construction>
+            <resourceRef oid="204871af-6a87-4d93-a23e-34bdc1a89196"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <order>2</order>
+    </inducement>
+</archetype>

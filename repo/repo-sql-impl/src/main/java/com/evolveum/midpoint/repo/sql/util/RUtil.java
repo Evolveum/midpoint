@@ -20,13 +20,16 @@ import java.util.zip.GZIPOutputStream;
 import javax.xml.namespace.QName;
 
 import com.google.common.base.Strings;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.NonUniqueResultException;
+import jakarta.persistence.Query;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.metamodel.MappingMetamodel;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
@@ -294,8 +297,8 @@ public final class RUtil {
         return sb.toString();
     }
 
-    public static String getTableName(Class<?> hqlType, Session session) {
-        SessionFactory factory = session.getSessionFactory();
+    public static String getTableName(Class<?> hqlType, EntityManager entityManager) {
+        EntityManagerFactory factory = entityManager.getEntityManagerFactory();
         MappingMetamodel model = (MappingMetamodel) factory.getMetamodel();
         EntityPersister ep = model.getEntityDescriptor(hqlType); // model.entityPersister(hqlType);
         if (ep instanceof Joinable joinable) {
@@ -419,5 +422,18 @@ public final class RUtil {
         if (value.getSchemaValue() != null) {
             ENUM_MAPPINGS.put(value.getSchemaValue(), value);
         }
+    }
+
+    public static <T> T getSingleResultOrNull(Query query) {
+        List<?> results = query.getResultList();
+        if (results.isEmpty()) {
+            return null;
+        }
+
+        if (results.size() > 1) {
+            throw new NonUniqueResultException("Expected single result, but got " + results.size());
+        }
+
+        return (T) results.get(0);
     }
 }

@@ -10,10 +10,10 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequests;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
 
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
@@ -39,32 +39,37 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Collection of {@link MappedItem}s: they will produce prepared {@link MappingImpl}s.
+ * Collection of {@link MappedSourceItem}s: they will produce prepared {@link MappingImpl}s.
  */
-class MappedItems<T extends Containerable> {
+class MappedSourceItems<T extends Containerable> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MappedItems.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappedSourceItems.class);
 
-    @NotNull private final MappingSource source;
+    @NotNull private final InboundsSource inboundsSource;
 
-    @NotNull private final MappingTarget<T> target;
+    @NotNull private final InboundsTarget<T> inboundsTarget;
 
-    @NotNull private final MappingContext context;
+    @NotNull private final InboundsContext inboundsContext;
 
-    @NotNull private final List<MappedItem<?, ?, T>> mappedItems = new ArrayList<>();
+    @NotNull private final List<MappedSourceItem<?, ?, T>> mappedSourceItems = new ArrayList<>();
 
     /**
      * Definition of `auxiliaryObjectClass` property in shadows.
      */
     private final Lazy<PrismPropertyDefinition<QName>> lazyAuxiliaryObjectClassPropertyDefinition =
-            Lazy.from(() -> PrismContext.get().getSchemaRegistry()
-                    .findObjectDefinitionByCompileTimeClass(ShadowType.class)
-                    .findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS));
+            Lazy.from(() ->
+                    Objects.requireNonNull(
+                            PrismContext.get().getSchemaRegistry()
+                                    .findObjectDefinitionByCompileTimeClass(ShadowType.class)
+                                    .findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS)));
 
-    MappedItems(@NotNull MappingSource source, @NotNull MappingTarget<T> target, @NotNull MappingContext context) {
-        this.source = source;
-        this.target = target;
-        this.context = context;
+    MappedSourceItems(
+            @NotNull InboundsSource inboundsSource,
+            @NotNull InboundsTarget<T> inboundsTarget,
+            @NotNull InboundsContext inboundsContext) {
+        this.inboundsSource = inboundsSource;
+        this.inboundsTarget = inboundsTarget;
+        this.inboundsContext = inboundsContext;
     }
 
     /**
@@ -74,33 +79,33 @@ class MappedItems<T extends Containerable> {
      */
     void collectMappedItems() throws SchemaException, ConfigurationException {
 
-        var sourceInboundDefinition = source.getInboundDefinition();
+        var sourceInboundDefinition = inboundsSource.getInboundDefinition();
 
-        for (var simpleAttributeDef : source.getSimpleAttributeDefinitions()) {
+        for (var simpleAttributeDef : inboundsSource.getSimpleAttributeDefinitions()) {
             createMappedItemForSimpleAttribute(
                     simpleAttributeDef,
                     sourceInboundDefinition.getSimpleAttributeInboundDefinition(simpleAttributeDef.getItemName()));
         }
 
-        for (var refAttributeDef : source.getObjectReferenceAttributeDefinitions()) {
+        for (var refAttributeDef : inboundsSource.getObjectReferenceAttributeDefinitions()) {
             createMappedItemForReferenceAttribute(
                     refAttributeDef,
                     sourceInboundDefinition.getReferenceAttributeInboundDefinition(refAttributeDef.getItemName()));
         }
 
-        for (var assocDef : source.getAssociationDefinitions()) {
+        for (var assocDef : inboundsSource.getAssociationDefinitions()) {
             createMappedItemForAssociation(assocDef);
         }
 
         // Note that associations are treated later
 
         // FIXME Remove this temporary check
-        if (!source.isClockwork()) {
+        if (!inboundsSource.isClockwork()) {
             LOGGER.trace("Skipping processing of aux object classes mappings because of limited stage");
             return;
         }
 
-        if (!source.isProjectionBeingDeleted()) {
+        if (!inboundsSource.isProjectionBeingDeleted()) {
             createMappedItemForAuxObjectClasses();
         } else {
             // TODO why we are skipping evaluation of aux OCs below?
@@ -116,7 +121,7 @@ class MappedItems<T extends Containerable> {
      * @see #createMappedItemForAuxObjectClasses()
      */
     private <TA> void createMappedItemForSimpleAttribute(
-            ShadowSimpleAttributeDefinition<TA> attributeDefinition,
+            @NotNull ShadowSimpleAttributeDefinition<TA> attributeDefinition,
             ItemInboundDefinition attributeInboundDefinition)
             throws SchemaException, ConfigurationException {
 
@@ -132,10 +137,10 @@ class MappedItems<T extends Containerable> {
 
         var attributeName = attributeDefinition.getItemName();
         List<InboundMappingConfigItem> applicableMappings = // [EP:M:IM] DONE beans are really from the resource
-                source.selectMappingBeansForEvaluationPhase(
+                inboundsSource.selectMappingBeansForEvaluationPhase(
                         createMappingCIs(inboundMappingBeans),
                         attributeInboundDefinition.getCorrelatorDefinition() != null,
-                        context.getCorrelationItemPaths());
+                        inboundsContext.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;
@@ -147,15 +152,15 @@ class MappedItems<T extends Containerable> {
         // 2. Values
 
         ItemDelta<PrismPropertyValue<TA>, PrismPropertyDefinition<TA>> attributeAPrioriDelta =
-                source.sourceData.getItemAPrioriDelta(attributePath);
+                inboundsSource.sourceData.getItemAPrioriDelta(attributePath);
 
         // 3. Processing source
 
-        ProcessingMode processingMode = source.getItemProcessingMode(
+        var processingMode = inboundsSource.getItemProcessingMode(
                 itemDescription,
                 attributeAPrioriDelta,
                 applicableMappings,
-                attributeDefinition.isVisible(context.getTaskExecutionMode()),
+                attributeDefinition.isVisible(inboundsContext),
                 attributeDefinition.isIgnored(LayerType.MODEL),
                 attributeDefinition.getLimitations(LayerType.MODEL));
         if (processingMode == ProcessingMode.NONE) {
@@ -164,30 +169,28 @@ class MappedItems<T extends Containerable> {
 
         // 4. Mapped item
 
-        mappedItems.add(
-                new MappedItem<>(
-                        source,
-                        target,
-                        context,
+        mappedSourceItems.add(
+                new MappedSourceItem<>(
+                        inboundsSource,
+                        inboundsTarget,
+                        inboundsContext,
                         applicableMappings, // [EP:M:IM] DONE beans are from the resource
                         attributePath,
                         itemDescription,
                         attributeAPrioriDelta,
                         attributeDefinition,
-                        () -> source.sourceData.getSimpleAttribute(attributeName),
-                        null, // postprocessor
-                        null, // variable producer
-                        processingMode));
+                        () -> inboundsSource.sourceData.getSimpleAttribute(attributeName),
+                        processingMode.triggersFullShadowLoading(), processingMode.requiresFullShadowForEvaluation()));
     }
 
     /**
-     * Creates a {@link MappedItem} for given association.
+     * Creates a {@link MappedSourceItem} for given association.
      *
      * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
     private void createMappedItemForReferenceAttribute(
-            ShadowReferenceAttributeDefinition refAttrDef,
+            @NotNull ShadowReferenceAttributeDefinition refAttrDef,
             ItemInboundDefinition attributeInboundDefinition)
             throws SchemaException, ConfigurationException {
 
@@ -206,10 +209,10 @@ class MappedItems<T extends Containerable> {
         ItemPath itemPath = ShadowType.F_ATTRIBUTES.append(refAttrName);
         String itemDescription = "reference attribute " + refAttrName;
         List<InboundMappingConfigItem> applicableMappings =
-                source.selectMappingBeansForEvaluationPhase(
+                inboundsSource.selectMappingBeansForEvaluationPhase(
                         createMappingCIs(inboundMappingBeans),
                         attributeInboundDefinition.getCorrelatorDefinition() != null,
-                        context.getCorrelationItemPaths());
+                        inboundsContext.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;
@@ -218,15 +221,15 @@ class MappedItems<T extends Containerable> {
         // 2. Values
 
         ItemDelta<ShadowReferenceAttributeValue, ShadowReferenceAttributeDefinition> refAttrAPrioriDelta =
-                source.sourceData.getItemAPrioriDelta(itemPath);
+                inboundsSource.sourceData.getItemAPrioriDelta(itemPath);
 
         // 3. Processing source
 
-        ProcessingMode processingMode = source.getItemProcessingMode(
+        ProcessingMode processingMode = inboundsSource.getItemProcessingMode(
                 itemDescription,
                 refAttrAPrioriDelta,
                 applicableMappings,
-                refAttrDef.isVisible(context),
+                refAttrDef.isVisible(inboundsContext),
                 refAttrDef.isIgnored(LayerType.MODEL),
                 refAttrDef.getLimitations(LayerType.MODEL));
         if (processingMode == ProcessingMode.NONE) {
@@ -236,29 +239,27 @@ class MappedItems<T extends Containerable> {
         // 4. Mapped item
 
         //noinspection rawtypes,unchecked
-        mappedItems.add(
-                new MappedItem<>(
-                        source,
-                        target,
-                        context,
+        mappedSourceItems.add(
+                new MappedSourceItem<>(
+                        inboundsSource,
+                        inboundsTarget,
+                        inboundsContext,
                         applicableMappings, // [EP:M:IM] DONE mappings are from the resource
                         itemPath, // source path (cannot point to specified association name!)
                         itemDescription,
                         refAttrAPrioriDelta,
                         refAttrDef,
-                        () -> (Item) source.sourceData.getReferenceAttribute(refAttrName),
-                        null,
-                        null,
-                        processingMode));
+                        () -> (Item) inboundsSource.sourceData.getReferenceAttribute(refAttrName),
+                        processingMode.triggersFullShadowLoading(), processingMode.requiresFullShadowForEvaluation()));
     }
 
     /**
-     * Creates a {@link MappedItem} for given (legacy) association.
+     * Creates a {@link MappedSourceItem} for given (legacy) association.
      *
      * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
      * @see #createMappedItemForAuxObjectClasses()
      */
-    private void createMappedItemForAssociation(ShadowAssociationDefinition assocDef)
+    private void createMappedItemForAssociation(@NotNull ShadowAssociationDefinition assocDef)
             throws SchemaException, ConfigurationException {
 
         // 1. Definitions
@@ -272,10 +273,10 @@ class MappedItems<T extends Containerable> {
         ItemPath itemPath = ShadowType.F_ASSOCIATIONS.append(assocName);
         String itemDescription = "association " + assocName;
         List<InboundMappingConfigItem> applicableMappings =
-                source.selectMappingBeansForEvaluationPhase(
+                inboundsSource.selectMappingBeansForEvaluationPhase(
                         createMappingCIs(inboundMappingBeans),
                         false, // association cannot be a correlator (currently)
-                        context.getCorrelationItemPaths());
+                        inboundsContext.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;
@@ -284,29 +285,21 @@ class MappedItems<T extends Containerable> {
         // 2. Values
 
         ItemDelta<ShadowAssociationValue, ShadowAssociationDefinition> assocAPrioriDelta =
-                source.sourceData.getItemAPrioriDelta(itemPath);
+                inboundsSource.sourceData.getItemAPrioriDelta(itemPath);
 
-        MappedItem.ItemProvider<ShadowAssociationValue, ShadowAssociationDefinition>
+        MappedSourceItem.ItemProvider<ShadowAssociationValue, ShadowAssociationDefinition>
                 associationProvider = () -> {
                     //noinspection unchecked,rawtypes
-                    return (Item) MappedItems.this.source.sourceData.getAssociation(assocName);
-                };
-        MappedItem.PostProcessor<ShadowAssociationValue, ShadowAssociationDefinition> associationPostProcessor =
-                (aPrioriDelta, currentItem) -> {
-                    // FIXME remove this ugly hacking
-                    //noinspection unchecked,rawtypes
-                    source.resolveInputEntitlements(
-                            (ContainerDelta<ShadowAssociationValueType>) (ContainerDelta) aPrioriDelta,
-                            (ShadowAssociation) (Item) currentItem);
+                    return (Item) MappedSourceItems.this.inboundsSource.sourceData.getAssociation(assocName);
                 };
 
         // 3. Processing source
 
-        ProcessingMode processingMode = source.getItemProcessingMode(
+        ProcessingMode processingMode = inboundsSource.getItemProcessingMode(
                 itemDescription,
                 assocAPrioriDelta,
                 applicableMappings,
-                assocDef.isVisible(context),
+                assocDef.isVisible(inboundsContext),
                 assocDef.getReferenceAttributeDefinition().isIgnored(LayerType.MODEL),
                 assocDef.getReferenceAttributeDefinition().getLimitations(LayerType.MODEL));
         if (processingMode == ProcessingMode.NONE) {
@@ -315,31 +308,29 @@ class MappedItems<T extends Containerable> {
 
         // 4. Mapped item
 
-        mappedItems.add(
-                new MappedItem<>(
-                        source,
-                        target,
-                        context,
+        mappedSourceItems.add(
+                new MappedSourceItem<>(
+                        inboundsSource,
+                        inboundsTarget,
+                        inboundsContext,
                         applicableMappings, // [EP:M:IM] DONE mappings are from the resource
                         itemPath, // source path (cannot point to specified association name!)
                         itemDescription,
                         assocAPrioriDelta,
                         assocDef,
                         associationProvider,
-                        associationPostProcessor,
-                        source::getEntitlementVariableProducer, // so-called variable producer
-                        processingMode));
+                        processingMode.triggersFullShadowLoading(), processingMode.requiresFullShadowForEvaluation()));
     }
 
     private List<InboundMappingConfigItem> createMappingCIs(Collection<InboundMappingType> inboundMappingBeans) {
         return InboundMappingConfigItem.ofList(
                 List.copyOf(inboundMappingBeans),
-                item -> ConfigurationItemOrigin.inResourceOrAncestor(source.getResource()),
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(inboundsSource.getResource()),
                 InboundMappingConfigItem.class);
     }
 
     /**
-     * Creates a {@link MappedItem} for "auxiliary object classes" property.
+     * Creates a {@link MappedSourceItem} for "auxiliary object classes" property.
      *
      * @see #createMappedItemForSimpleAttribute(ShadowSimpleAttributeDefinition, ItemInboundDefinition)
      * @see #createMappedItemForReferenceAttribute(ShadowReferenceAttributeDefinition, ItemInboundDefinition)
@@ -351,7 +342,7 @@ class MappedItems<T extends Containerable> {
         ItemName itemPath = ShadowType.F_AUXILIARY_OBJECT_CLASS;
         String itemDescription = "auxiliary object classes";
 
-        var auxiliaryObjectClassMappings = source.inboundDefinition.getAuxiliaryObjectClassMappings();
+        var auxiliaryObjectClassMappings = inboundsSource.inboundDefinition.getAuxiliaryObjectClassMappings();
         if (auxiliaryObjectClassMappings == null) {
             return;
         }
@@ -363,20 +354,20 @@ class MappedItems<T extends Containerable> {
 
         var mappings = MappingConfigItem.ofList(
                 mappingBeans,
-                item -> ConfigurationItemOrigin.inResourceOrAncestor(source.getResource()),
+                item -> ConfigurationItemOrigin.inResourceOrAncestor(inboundsSource.getResource()),
                 MappingConfigItem.class);
 
         // 2. Values
 
         ItemDelta<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> itemAPrioriDelta =
-                source.sourceData.getItemAPrioriDelta(itemPath);
+                inboundsSource.sourceData.getItemAPrioriDelta(itemPath);
 
-        MappedItem.ItemProvider<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> itemProvider =
-                () -> source.sourceData.getAuxiliaryObjectClasses();
+        MappedSourceItem.ItemProvider<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>> itemProvider =
+                () -> inboundsSource.sourceData.getAuxiliaryObjectClasses();
 
         // 3. Processing source
 
-        ProcessingMode processingMode = source.getItemProcessingMode(
+        ProcessingMode processingMode = inboundsSource.getItemProcessingMode(
                 itemDescription,
                 itemAPrioriDelta,
                 mappings,
@@ -397,37 +388,35 @@ class MappedItems<T extends Containerable> {
         //
         // TODO reconsider these irregularities in behavior (comparing with attribute/association mappings).
 
-        mappedItems.add(
-                new MappedItem<>(
-                        source,
-                        target,
-                        context,
+        mappedSourceItems.add(
+                new MappedSourceItem<>(
+                        inboundsSource,
+                        inboundsTarget,
+                        inboundsContext,
                         mappings, // [EP:M:IM] DONE mappings are from the resource
                         itemPath,
                         itemDescription,
                         null, // ignoring a priori delta
                         lazyAuxiliaryObjectClassPropertyDefinition.get(),
                         itemProvider,
-                        null, // postprocessor
-                        null, // variable producer
-                        ProcessingMode.ABSOLUTE_STATE));
+                        true, true));
     }
 
-    boolean isFullStateRequired() {
-        for (MappedItem<?, ?, ?> mappedItem : mappedItems) {
-            if (mappedItem.doesRequireAbsoluteState()) {
+    boolean isFullShadowLoadingTriggered() {
+        for (var mappedSourceItem : mappedSourceItems) {
+            if (mappedSourceItem.doesTriggerFullShadowLoading()) {
                 LOGGER.trace("The mapping(s) for {} require the absolute state, we'll load it if it will be necessary",
-                        mappedItem.itemDescription);
+                        mappedSourceItem.itemDescription);
                 return true;
             }
         }
         return false;
     }
 
-    void createMappings(MappingEvaluationRequests evaluationRequestsBeingCollected, OperationResult result)
+    void createMappings(MappingEvaluationRequestsMap evaluationRequestsBeingCollected, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        for (var mappedItem : mappedItems) {
+        for (var mappedItem : mappedSourceItems) {
             mappedItem.createMappings(evaluationRequestsBeingCollected, result);
         }
     }

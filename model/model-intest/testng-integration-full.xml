@@ -76,7 +76,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestAssignmentsProcessing"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
-            <class name="com.evolveum.midpoint.model.intest.rbac.TestRequirement"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestPolicyRules"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>

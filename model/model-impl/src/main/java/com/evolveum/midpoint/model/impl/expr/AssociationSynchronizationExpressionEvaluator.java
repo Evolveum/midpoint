@@ -39,7 +39,6 @@ import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -69,7 +68,7 @@ class AssociationSynchronizationExpressionEvaluator
     }
 
     @Override
-    public ExpressionEvaluatorResult<PrismContainerValue<AssignmentType>> evaluate(
+    public AssociationSynchronizationResult<PrismContainerValue<AssignmentType>> evaluate(
             ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -94,8 +93,8 @@ class AssociationSynchronizationExpressionEvaluator
     class Evaluation {
 
         @NotNull private final PrismValueDeltaSetTriple<?> inputTriple;
-        @NotNull private final ExpressionEvaluatorResult<PrismContainerValue<AssignmentType>> evaluatorResult =
-                new ExpressionEvaluatorResult<>();
+        @NotNull private final AssociationSynchronizationResult<PrismContainerValue<AssignmentType>> evaluatorResult =
+                new AssociationSynchronizationResult<>();
         @NotNull private final ShadowAssociationDefinition associationDefinition;
         @NotNull private final ExpressionEvaluationContext context;
 
@@ -123,7 +122,7 @@ class AssociationSynchronizationExpressionEvaluator
             this.candidateAssignments = getCandidateAssignments();
         }
 
-        public ExpressionEvaluatorResult<PrismContainerValue<AssignmentType>> process(OperationResult result)
+        public AssociationSynchronizationResult<PrismContainerValue<AssignmentType>> process(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
 
@@ -339,10 +338,13 @@ class AssociationSynchronizationExpressionEvaluator
                     throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                     ConfigurationException, ObjectNotFoundException {
                 var targetAssignment = Objects.requireNonNull((AssignmentType) correlationResult.getOwner());
-                var tripleMap = SingleShadowInboundsProcessing.evaluateToTripleMap(
+                var innerProcessing = SingleShadowInboundsProcessing.evaluateToTripleMap(
                         createShadowProcessingContext(targetAssignment, result),
                         result);
-                evaluatorResult.mergeIntoOtherTriples(tripleMap);
+                var assignmentPath = AssignmentHolderType.F_ASSIGNMENT.append(Objects.requireNonNull(targetAssignment.getId()));
+                evaluatorResult.mergeIntoOtherTriples(assignmentPath, innerProcessing.getOutputTripleMap());
+                evaluatorResult.mergeIntoItemDefinitionsMap(assignmentPath, innerProcessing.getItemDefinitionMap());
+                evaluatorResult.mergeIntoMappingEvaluationRequestsMap(assignmentPath, innerProcessing.getEvaluationRequestsMap());
             }
 
             private @NotNull DefaultSingleShadowInboundsProcessingContextImpl<AssignmentType> createShadowProcessingContext(

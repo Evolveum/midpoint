@@ -101,9 +101,9 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.0.10</version>
+        <version>3.3.2</version>
         <!-- This parent also declares dependencies listed here:
-        https://docs.spring.io/spring-boot/docs/2.7.3/reference/html/dependency-versions.html#dependency-versions
+        https://docs.spring.io/spring-boot/docs/3.3.0/reference/html/dependency-versions.html#dependency-versions
         Or for current version of Spring Boot:
         https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
         -->
@@ -229,7 +229,7 @@
         197 is the last version that does not require code changes, but self-corrupts DB sometimes (MID-6510).
         193 was used for 4 years with few problems, so it's still here to stay.
         -->
-        <h2.version>1.4.193</h2.version>
+        <h2.version>2.3.230</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
@@ -238,8 +238,8 @@
         <wicket.version>10.1.0</wicket.version>
         <wicketstuff.version>10.1.1</wicketstuff.version>
         <wicket.chartjs.version>0.6-SNAPSHOT</wicket.chartjs.version>
-        <!-- Groovy 4.0.11 is also default for Spring Boot 3.0.6 -->
-        <groovy.version>4.0.11</groovy.version>
+        <!-- Groovy 4.0.21 is also default for Spring Boot 3.3.0 -->
+        <groovy.version>4.0.21</groovy.version>
         <xmlsec.version>2.2.6</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
         <connid.version>1.5.3.0-M1</connid.version>
@@ -250,7 +250,7 @@
         <guava.version>32.1.2-jre</guava.version>
         <jcommander.version>1.82</jcommander.version>
         <qpid-broker.version>8.0.4</qpid-broker.version>
-        <artemis.version>2.30.0</artemis.version> <!-- name matches property from Boot parent -->
+        <artemis.version>2.33.0</artemis.version> <!-- name matches property from Boot parent -->
         <asm.version>9.5</asm.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <checkstyle.version>3.1.2</checkstyle.version>

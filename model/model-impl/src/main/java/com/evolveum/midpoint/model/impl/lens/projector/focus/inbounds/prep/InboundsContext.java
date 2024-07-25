@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.AssignmentsProcessingContext;
 import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -25,21 +24,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 /**
- * Overall context of the mappings preparation: system configuration, environment (time, task), operation result, and the like.
+ * Overall context of the inbounds processing: system configuration, environment (time, task), operation result, and the like.
  */
-public abstract class MappingContext implements ExecutionModeProvider {
+public abstract class InboundsContext implements ExecutionModeProvider {
 
     /** The environment: context description, now (the clock), task. */
     @NotNull protected final MappingEvaluationEnvironment env;
 
-    @NotNull final AssignmentsProcessingContext assignmentsProcessingContext;
-
     /** Useful Spring beans. */
     @NotNull final ModelBeans beans = ModelBeans.get();
 
-    MappingContext(@NotNull MappingEvaluationEnvironment env, @NotNull AssignmentsProcessingContext assignmentsProcessingContext) {
+    InboundsContext(@NotNull MappingEvaluationEnvironment env) {
         this.env = env;
-        this.assignmentsProcessingContext = assignmentsProcessingContext;
     }
 
     abstract String getOperation();
@@ -64,7 +60,8 @@ public abstract class MappingContext implements ExecutionModeProvider {
      */
     public abstract @NotNull PathSet getCorrelationItemPaths();
 
-    @NotNull TaskExecutionMode getTaskExecutionMode() {
+    @Override
+    public @NotNull TaskExecutionMode getExecutionMode() {
         return env.task.getExecutionMode();
     }
 

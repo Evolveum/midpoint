@@ -677,14 +677,16 @@ public class DummyResource implements DebugDumpable {
         return allObjects.stream();
     }
 
-    public synchronized void addLinkValue(@NotNull String linkClassName, @NotNull DummyObject first, @NotNull DummyObject second) {
+    public synchronized void addLinkValue(
+            @NotNull String linkClassName, @NotNull DummyObject first, @NotNull DummyObject second) {
         // todo breaking, recording, etc
 
         getLinkStore(linkClassName)
                 .addLink(first, second);
     }
 
-    synchronized void deleteLinkValue(@NotNull String linkClassName, @NotNull DummyObject first, @NotNull DummyObject second) {
+    public synchronized void deleteLinkValue(
+            @NotNull String linkClassName, @NotNull DummyObject first, @NotNull DummyObject second) {
         // todo breaking, recording, etc
 
         getLinkStore(linkClassName)

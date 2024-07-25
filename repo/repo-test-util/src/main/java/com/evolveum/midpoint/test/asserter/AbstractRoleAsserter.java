@@ -109,6 +109,30 @@ public class AbstractRoleAsserter<F extends AbstractRoleType, RA> extends FocusA
     }
 
     @Override
+    public AbstractRoleAsserter<F,RA> assertEffectiveMark(String oid) {
+        super.assertEffectiveMark(oid);
+        return this;
+    }
+
+    @Override
+    public AbstractRoleAsserter<F,RA> assertEffectiveMarks(String... oids) {
+        super.assertEffectiveMarks(oids);
+        return this;
+    }
+
+    @Override
+    public AbstractRoleAsserter<F,RA> assertNoEffectiveMark(String oid) {
+        super.assertNoEffectiveMark(oid);
+        return this;
+    }
+
+    @Override
+    public AbstractRoleAsserter<F,RA> assertNoEffectiveMarks() {
+        super.assertNoEffectiveMarks();
+        return this;
+    }
+
+    @Override
     public AbstractRoleAsserter<F,RA> display() {
         super.display();
         return this;

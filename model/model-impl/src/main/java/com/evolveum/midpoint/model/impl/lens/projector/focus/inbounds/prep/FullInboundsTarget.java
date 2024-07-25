@@ -21,11 +21,11 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Target in the "full mode". It is always the focal object, e.g., a user.
  */
-public class FullTarget<F extends FocusType> extends MappingTarget<F> {
+public class FullInboundsTarget<F extends FocusType> extends InboundsTarget<F> {
 
     @NotNull private final LensContext<F> lensContext;
 
-    public FullTarget(
+    public FullInboundsTarget(
             @NotNull LensContext<F> lensContext,
             @Nullable PrismObject<F> focus,
             @NotNull PrismObjectDefinition<F> focusDefinition,
@@ -40,9 +40,9 @@ public class FullTarget<F extends FocusType> extends MappingTarget<F> {
         return lensContext.getFocusContext().isDelete();
     }
 
-    FullTarget<F> withTargetPathPrefix(ItemPath targetPathPrefix) {
+    FullInboundsTarget<F> withTargetPathPrefix(ItemPath targetPathPrefix) {
         //noinspection unchecked
-        return new FullTarget<>(
+        return new FullInboundsTarget<>(
                 lensContext,
                 (PrismObject<F>) targetPcv.asContainerable().asPrismObject(),
                 (PrismObjectDefinition<F>) targetDefinition,
