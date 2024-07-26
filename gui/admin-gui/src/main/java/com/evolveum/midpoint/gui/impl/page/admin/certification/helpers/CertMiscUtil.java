@@ -15,9 +15,11 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.gui.impl.component.action.ConfirmAction;
 import com.evolveum.midpoint.gui.impl.component.action.GuiActionDto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -400,7 +402,9 @@ public class CertMiscUtil {
         }
         actions.forEach(action -> {
             AbstractGuiAction<AccessCertificationWorkItemType> actionInstance = createAction(action, pageBase);
-            addOrReplaceAction(availableActions, actionInstance);
+            if (actionInstance != null) {
+                addOrReplaceAction(availableActions, actionInstance);
+            }
         });
         return availableActions;
     }
@@ -441,38 +445,7 @@ public class CertMiscUtil {
             pageBase.error("Unable to find action for identifier: " + guiAction.getIdentifier());
             return null;
         }
-        return instantiateAction(actionClass, createActionDto(guiAction, pageBase), pageBase);
-    }
-
-    private static GuiActionDto<AccessCertificationWorkItemType> createActionDto(GuiActionType guiAction, PageBase pageBase) {
-        GuiActionDto<AccessCertificationWorkItemType> actionDto = new GuiActionDto<>();
-
-        GuiActionType preAction = guiAction.getPreAction();
-        String preActionIdentifier = preAction != null ? preAction.getIdentifier() : null;
-        if (StringUtils.isNotEmpty(preActionIdentifier)) {
-            Class<? extends AbstractGuiAction<?>> preActionClass = pageBase.findGuiAction(preActionIdentifier);
-            if (preActionClass != null) {
-                GuiActionDto<AccessCertificationWorkItemType> preActionDto = createActionDto(preAction, pageBase);
-                AbstractGuiAction<AccessCertificationWorkItemType> preActionInstance = instantiateAction(preActionClass,
-                        preActionDto, pageBase);
-                actionDto.setPreAction(preActionInstance);
-            }
-        }
-
-        List<GuiParameterType> actionParameters = guiAction.getParameter();
-        if (actionParameters != null) {
-            actionDto.setActionParameters(actionParameters);
-        }
-
-        if (guiAction.getVisibility() != null) {
-            actionDto.setVisible(WebComponentUtil.getElementVisibility(guiAction.getVisibility()));
-        }
-
-        if (guiAction.getDisplay() != null) {
-            actionDto.setDisplay(guiAction.getDisplay());
-        }
-
-        return actionDto;
+        return instantiateAction(actionClass, guiAction, pageBase);
     }
 
     private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
@@ -481,8 +454,8 @@ public class CertMiscUtil {
     }
 
     private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
-            Class<? extends AbstractGuiAction<?>> actionClass, GuiActionDto<AccessCertificationWorkItemType> actionDto,
-            PageBase pageBase) {
+            Class<? extends AbstractGuiAction<?>> actionClass, GuiActionType actionDto, PageBase pageBase) {
+
         ActionType actionType = actionClass.getAnnotation(ActionType.class);
         Class<?> applicableFor = actionType.applicableForType();
         if (!applicableFor.isAssignableFrom(AccessCertificationWorkItemType.class)) {

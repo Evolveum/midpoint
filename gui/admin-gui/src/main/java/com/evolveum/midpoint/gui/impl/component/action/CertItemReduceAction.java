@@ -11,6 +11,7 @@ import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
 
 @ActionType(
         identifier = "certItemReduce",
@@ -22,7 +23,7 @@ public class CertItemReduceAction extends AbstractCertItemDecisionAction {
         super();
     }
 
-    public CertItemReduceAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+    public CertItemReduceAction(GuiActionType actionDto) {
         super(actionDto);
     }
 

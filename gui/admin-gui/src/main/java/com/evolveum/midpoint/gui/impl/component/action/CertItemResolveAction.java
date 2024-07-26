@@ -17,6 +17,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.component.Resolve
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.io.Serial;
@@ -35,7 +37,7 @@ public class CertItemResolveAction extends AbstractGuiAction<AccessCertification
         super();
     }
 
-    public CertItemResolveAction(GuiActionDto<AccessCertificationWorkItemType> actionDto) {
+    public CertItemResolveAction(GuiActionType actionDto) {
         super(actionDto);
     }
 

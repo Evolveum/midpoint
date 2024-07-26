@@ -15,6 +15,8 @@ import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -22,6 +24,7 @@ import org.apache.wicket.model.Model;
 import java.io.Serial;
 import java.util.List;
 
+//TODO maybe not needed? or need a refactoring?
 @ActionType(
         identifier = "confirm")
 public class ConfirmAction<C extends Containerable, AGA extends AbstractGuiAction<C>> extends AbstractGuiAction<C>
@@ -31,7 +34,7 @@ public class ConfirmAction<C extends Containerable, AGA extends AbstractGuiActio
         super();
     }
 
-    public ConfirmAction(GuiActionDto<C> actionDto) {
+    public ConfirmAction(GuiActionType actionDto) {
         super(actionDto);
     }
 

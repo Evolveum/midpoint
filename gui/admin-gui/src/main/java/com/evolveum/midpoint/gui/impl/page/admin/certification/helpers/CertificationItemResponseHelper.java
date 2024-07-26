@@ -78,11 +78,19 @@ public class CertificationItemResponseHelper implements Serializable {
     }
 
     private String getIconCssClass() {
+        // TODO what to do if no response was made?
+        if (response == null) {
+            return GuiStyleConstants.CLASS_CERT_OUTCOME_ICON_NO_RESPONSE;
+        }
         CertificationItemResponse itemResponse = RESPONSES_MAP.get(response);
         return itemResponse.iconCssClass + " " + itemResponse.textColorCssClass;
     }
 
     public String getTextCssClass() {
+        // TODO what to do if no response was made?
+        if (response == null) {
+            return "";
+        }
         CertificationItemResponse itemResponse = RESPONSES_MAP.get(response);
         return itemResponse.textColorCssClass;
     }

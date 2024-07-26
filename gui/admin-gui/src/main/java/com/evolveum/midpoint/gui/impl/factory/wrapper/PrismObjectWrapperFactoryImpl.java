@@ -37,6 +37,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
+import java.util.List;
+
 /**
  * @author katka
  */
@@ -45,8 +47,6 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperFactoryImpl.class);
 
-    private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
-    private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
 
     public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status, WrapperContext context) throws SchemaException {
 
@@ -124,67 +124,9 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             return objectValueWrapper;
         }
 
-        for (VirtualContainersSpecificationType virtualContainer : context.getVirtualContainers()) {
 
-            if (virtualContainer.getPath() != null) {
-                continue;
-            }
-
-            ComplexTypeDefinition mCtd = getPrismContext().definitionFactory().newComplexTypeDefinition(VIRTUAL_CONTAINER_COMPLEX_TYPE);
-            DisplayType display = virtualContainer.getDisplay();
-
-            //TODO: support full polystring -> translations could be defined directly there.
-            if (display == null || display.getLabel() == null) {
-                mCtd.mutator().setDisplayName("N/A");
-            } else {
-                mCtd.mutator().setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
-                mCtd.mutator().setHelp(WebComponentUtil.getOrigStringFromPoly(display.getHelp()));
-            }
-
-            mCtd.mutator().setRuntimeSchema(true);
-
-            PrismContainerDefinition<?> def =
-                    getPrismContext().definitionFactory().newContainerDefinition(VIRTUAL_CONTAINER, mCtd);
-            def.mutator().setMaxOccurs(1);
-            if (display != null && display.getLabel() != null) {
-                if (display.getLabel().getTranslation() != null && StringUtils.isNotEmpty(display.getLabel().getTranslation().getKey())) {
-                    def.mutator().setDisplayName(display.getLabel().getTranslation().getKey());
-                } else {
-                    def.mutator().setDisplayName(WebComponentUtil.getTranslatedPolyString(display.getLabel()));
-                }
-            }
-            def.mutator().setDynamic(true);
-            def.mutator().setRuntimeSchema(true);
-
-            ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def, null);
-            if (factory == null) {
-                LOGGER.warn("Cannot find factory for {}. Skipping wrapper creation.", def);
-                continue;
-            }
-
-            WrapperContext ctx = context.clone();
-            ctx.setVirtualItemSpecification(virtualContainer.getItem());
-
-            PrismContainer<?> virtualPrismContainer = def.instantiate();
-            ItemStatus virtualContainerStatus = context.getObjectStatus() != null ? context.getObjectStatus() : ItemStatus.NOT_CHANGED;
-
-            ItemWrapper<?, ?> iw = factory.createWrapper(objectValueWrapper, virtualPrismContainer, virtualContainerStatus, ctx);
-            if (iw == null) {
-                continue;
-            }
-
-            if (iw instanceof PrismContainerWrapper<?> cw) {
-                cw.setIdentifier(virtualContainer.getIdentifier());
-                cw.setVirtual(true);
-                if (virtualContainer.isExpanded() != null) {
-                    cw.getValues().forEach(vw -> vw.setExpanded(virtualContainer.isExpanded()));
-                }
-            }
-            iw.setVisibleOverwrite(virtualContainer.getVisibility());
-
-            objectValueWrapper.addItem(iw);
-
-        }
+        List<ItemWrapper<?, ?>> virtualWrappers = createVirtualWrappers(objectValueWrapper, context);
+        objectValueWrapper.addItems(virtualWrappers);
 
         return objectValueWrapper;
     }

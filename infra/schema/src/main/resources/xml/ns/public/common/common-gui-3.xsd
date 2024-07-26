@@ -1971,6 +1971,13 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="checkbox" type="tns:GuiCheckboxColumnType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiObjectListViewType.column</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="includeDefaultColumns" type="xsd:boolean" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
@@ -2878,6 +2885,30 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="GuiCheckboxColumnType">
+        <xsd:annotation>
+            <xsd:documentation>
+                checkbox column and its behavior TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GuiObjectColumnType">
+                <xsd:sequence>
+                    <xsd:element name="multiselect" type="tns:MultiselectOptionType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                if header chckbox is shown
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiObjectColumnType.name</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
     <xsd:complexType name="GuiObjectColumnType">
         <xsd:annotation>
@@ -4037,7 +4068,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Reference to task template. The template will be used to start a new task
@@ -4050,7 +4081,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="target" type="tns:RedirectionTargetType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="target" type="tns:RedirectionTargetType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specifies the target (page/panel/url) for redirect action.
@@ -4060,7 +4091,8 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="preAction" type="tns:GuiActionType" minOccurs="0" maxOccurs="1">
+
+                    <xsd:element name="confirmation" type="tns:GuiConfirmationActionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -4079,6 +4111,47 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+
+                    <xsd:element name="actionType" type="tns:GuiActionTypeType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Defines the additional action which should be executed before the current action.
+                                    Can be used for example to define a confirmation dialog or adding a comment.
+                                </p>
+                                <p>
+                                    For now, pre-action is implemented only for certification items collection view
+                                    when the view is defined within certification definition.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.preAction</a:displayName>
+                                <a:elaborate>true</a:elaborate>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <!--<xsd:element name="preAction" type="tns:GuiActionType" minOccurs="0" maxOccurs="1">-->
+                    <!--    <xsd:annotation>-->
+                    <!--        <xsd:documentation>-->
+                    <!--            <p>-->
+                    <!--                Defines the additional action which should be executed before the current action.-->
+                    <!--                Can be used for example to define a confirmation dialog or adding a comment.-->
+                    <!--            </p>-->
+                    <!--            <p>-->
+                    <!--                For now, pre-action is implemented only for certification items collection view-->
+                    <!--                when the view is defined within certification definition.-->
+                    <!--            </p>-->
+                    <!--        </xsd:documentation>-->
+                    <!--        <xsd:appinfo>-->
+                    <!--            <a:displayName>GuiActionType.preAction</a:displayName>-->
+                    <!--            <a:elaborate>true</a:elaborate>-->
+                    <!--            <a:since>4.9</a:since>-->
+                    <!--        </xsd:appinfo>-->
+                    <!--    </xsd:annotation>-->
+                    <!--</xsd:element>-->
+
                     <xsd:element name="parameter" type="tns:GuiParameterType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4095,6 +4168,77 @@
             <!--<xsd:attribute name="id" type="xsd:long"/>-->
         </xsd:complexContent>
     </xsd:complexType>
+
+    <xsd:complexType name="GuiConfirmationActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Action that requires confirmation before it is executed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <!-- TODO maybe extend user interface feature type -->
+        <xsd:sequence>
+            <xsd:element name="message" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message as shown in confirmation popup
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message as shown in confirmation popup
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO later ok/cancel button behavior + label?-->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="GuiActionTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Depth parameter for collection interpretations that allow distinction between direct and indirect relation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="inline">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Action for each row in table. Applicable for specific row.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INLINE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="header">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Header action - applicable for all selected objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HEADER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="footer">
+                <!-- TODO maybe better name. later those actions might be show in the header or the table-->
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Action show in the table footer. Usually global action not considering selected objects.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FOOTER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="RedirectionTargetType">
         <xsd:annotation>
@@ -4847,6 +4991,30 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!--<xsd:complexType name="GuiParametersType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:documentation>-->
+    <!--            Parameters which are used in GUI, e.g. when an action runs.-->
+    <!--        </xsd:documentation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:container>true</a:container>-->
+    <!--            <a:since>4.9</a:since>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:sequence>-->
+    <!--        <xsd:element name="parameter" type="tns:GuiParameterType" minOccurs="0" maxOccurs="unbounded">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    TODO: documentation-->
+    <!--                </xsd:documentation>-->
+    <!--                <xsd:appinfo>-->
+    <!--                    <a:displayName>GuiParameterType.parameter</a:displayName>-->
+    <!--                </xsd:appinfo>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:element>-->
+    <!--    </xsd:sequence>-->
+    <!--</xsd:complexType>-->
+
     <xsd:complexType name="GuiParameterType">
         <xsd:annotation>
             <xsd:documentation>
@@ -4881,9 +5049,63 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines path to the attribute.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.path</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="manual" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines if the parameter is requested to be set by user
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiParameterType.manual</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+
+    <!--<xsd:simpleType name="GuiParameterTypeType">-->
+    <!--    <xsd:annotation>-->
+    <!--        <xsd:documentation>-->
+    <!--            if the parameter is request from user, or if it is derived from other parameters.-->
+    <!--        </xsd:documentation>-->
+    <!--        <xsd:appinfo>-->
+    <!--            <a:since>4.9</a:since>-->
+    <!--        </xsd:appinfo>-->
+    <!--    </xsd:annotation>-->
+    <!--    <xsd:restriction base="xsd:string">-->
+    <!--        <xsd:enumeration value="manual">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Requires user input-->
+    <!--                </xsd:documentation>-->
+    <!--                <xsd:appinfo>-->
+    <!--                    <jaxb:typesafeEnumMember name="MANUAL"/>-->
+    <!--                </xsd:appinfo>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:enumeration>-->
+    <!--        <xsd:enumeration value="automatic">-->
+    <!--            <xsd:annotation>-->
+    <!--                <xsd:documentation>-->
+    <!--                    Gives the possibility to select individual items without possibility to select all at once.-->
+    <!--                </xsd:documentation>-->
+    <!--                <xsd:appinfo>-->
+    <!--                    <jaxb:typesafeEnumMember name="AUTOMATIC"/>-->
+    <!--                </xsd:appinfo>-->
+    <!--            </xsd:annotation>-->
+    <!--        </xsd:enumeration>-->
+    <!--    </xsd:restriction>-->
+    <!--</xsd:simpleType>-->
+
 
 </xsd:schema>
