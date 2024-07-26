@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = PageAdminCertification.AUTZ_CERTIFICATION_CAMPAIGN_DECISIONS_URL,
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_URL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION)})
 public class PageActiveCampaigns extends PageAdminCertification {
