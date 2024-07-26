@@ -315,7 +315,7 @@ public class OutlierPatternResolver implements Serializable {
         //TODO proof
         //there we identify all intersections that can be found in the data (this is true if remainsOperation is disabled)
         boolean calculate = true;
-        int remainsOperation = 10;
+        int remainsOperation = 3;
         while (calculate && remainsOperation > 0) {
             result = new ArrayList<>(innerPatternDetection(
                     result,
