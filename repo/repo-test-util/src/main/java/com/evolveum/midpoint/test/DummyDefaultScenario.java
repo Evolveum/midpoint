@@ -19,10 +19,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DummyDefaultScenario extends AbstractDummyScenario {
 
-    DummyDefaultScenario(@NotNull DummyResourceContoller controller) {
+    private DummyDefaultScenario(@NotNull DummyResourceContoller controller) {
         super(controller);
     }
 
+    public final Account account = new Account();
+    public final Group group = new Group();
     public final GroupMembership groupMembership = new GroupMembership();
     public final AccountPrivilege accountPrivilege = new AccountPrivilege();
 
@@ -106,6 +108,7 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
                                     .withLinkAttributeName(Group.LinkNames.MEMBER_REF.local()) // visible because of tests
                                     .withReturnedByDefault(false)
                                     .withExpandedByDefault(false)
+                                    //.withProvidingUnclassifiedReferences(true) // We are not ready for this yet
                                     .withMaxOccurs(-1)
                                     .build())
                             .build());

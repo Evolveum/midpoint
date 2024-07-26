@@ -94,6 +94,12 @@ public class LinkClassDefinition {
         private final boolean expandedByDefault;
 
         /**
+         * If `true`, the references provided by the connector through this link have no object class information.
+         * This is to test this situation e.g. in LDAP groups.
+         */
+        private final boolean providingUnclassifiedReferences;
+
+        /**
          * Minimal cardinality of the link from this side. It can be set regardless of whether {@link #linkName} is present.
          * It is interpreted of the required number of values of that attribute, should it be visible on the participant.
          */
@@ -108,6 +114,7 @@ public class LinkClassDefinition {
                 boolean updatable,
                 boolean returnedByDefault,
                 boolean expandedByDefault,
+                boolean providingUnclassifiedReferences,
                 int minOccurs,
                 int maxOccurs) {
             this.objectClassNames = Objects.requireNonNull(objectClassNames, "object class name");
@@ -115,6 +122,7 @@ public class LinkClassDefinition {
             this.updatable = updatable;
             this.returnedByDefault = returnedByDefault;
             this.expandedByDefault = expandedByDefault;
+            this.providingUnclassifiedReferences = providingUnclassifiedReferences;
             this.minOccurs = minOccurs;
             this.maxOccurs = maxOccurs;
         }
@@ -138,6 +146,10 @@ public class LinkClassDefinition {
 
         public boolean isExpandedByDefault() {
             return expandedByDefault;
+        }
+
+        public boolean isProvidingUnclassifiedReferences() {
+            return providingUnclassifiedReferences;
         }
 
         public int getMinOccurs() {
@@ -171,6 +183,7 @@ public class LinkClassDefinition {
             private boolean updatable;
             private boolean returnedByDefault;
             private boolean expandedByDefault;
+            private boolean providingUnclassifiedReferences;
             private int minOccurs;
             private int maxOccurs;
 
@@ -213,6 +226,11 @@ public class LinkClassDefinition {
                 return this;
             }
 
+            public ParticipantBuilder withProvidingUnclassifiedReferences(boolean providingUnclassifiedReferences) {
+                this.providingUnclassifiedReferences = providingUnclassifiedReferences;
+                return this;
+            }
+
             public ParticipantBuilder withMinOccurs(int minOccurs) {
                 this.minOccurs = minOccurs;
                 return this;
@@ -226,7 +244,8 @@ public class LinkClassDefinition {
             public Participant build() {
                 return new Participant(
                         objectClassNames, attributeName, updatable,
-                        returnedByDefault, expandedByDefault, minOccurs, maxOccurs);
+                        returnedByDefault, expandedByDefault, providingUnclassifiedReferences,
+                        minOccurs, maxOccurs);
             }
         }
     }

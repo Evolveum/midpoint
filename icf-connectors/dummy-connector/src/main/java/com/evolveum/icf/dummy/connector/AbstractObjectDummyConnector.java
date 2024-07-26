@@ -1041,7 +1041,7 @@ public abstract class AbstractObjectDummyConnector
                 throw new InvalidAttributeValueException("Unknown account attribute '"+name+"'");
             }
             if (!attrDef.isReturnedByDefault()) {
-                if (attributesToGet != null && !attributesToGet.contains(name)) {
+                if (attributesToGet == null || !attributesToGet.contains(name)) {
                     continue;
                 }
             }
@@ -1091,7 +1091,7 @@ public abstract class AbstractObjectDummyConnector
             builder.addAttribute(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, dummyObject.getAuxiliaryObjectClassNames());
         }
 
-        addLinks(builder, dummyObject);
+        addLinks(builder, dummyObject, attributesToGet);
 
         addAdditionalCommonAttributes(builder, dummyObject);
 
@@ -1119,7 +1119,8 @@ public abstract class AbstractObjectDummyConnector
         }
     }
 
-    private void addLinks(ConnectorObjectBuilder builder, DummyObject dummyObject) throws SchemaViolationException {
+    private void addLinks(ConnectorObjectBuilder builder, DummyObject dummyObject, Collection<String> attributesToGet)
+            throws SchemaViolationException {
         for (LinkDefinition linkDefinition : dummyObject.getStructuralObjectClass().getLinkDefinitions()) {
             if (!linkDefinition.isVisible()) {
                 continue;
@@ -1127,16 +1128,28 @@ public abstract class AbstractObjectDummyConnector
             LOG.info("Processing link definition: {0}", linkDefinition);
             var participant = linkDefinition.getParticipant();
             var linkName = participant.getLinkNameRequired();
-            // in the future, returned/expanded-by-default will be overridable by "get options"
             if (!participant.isReturnedByDefault()) {
-                continue;
+                if (attributesToGet == null || !attributesToGet.contains(linkName)) {
+                    continue;
+                }
             }
             Set<Object> convertedLinkValues = new HashSet<>();
 
             for (DummyObject linkedObject : dummyObject.getLinkedObjects(linkName)) {
                 var convertedLinkedObject = convertToConnectorObject(linkedObject, null);
-                convertedLinkValues.add(new ConnectorObjectReference(
-                        participant.isExpandedByDefault() ? convertedLinkedObject : convertedLinkedObject.getIdentification()));
+                BaseConnectorObject refValue;
+                // in the future, expanded-by-default will be overridable by "get options"
+                if (participant.isExpandedByDefault()) {
+                    refValue = convertedLinkedObject;
+                } else {
+                    var identification = convertedLinkedObject.getIdentification();
+                    if (participant.isProvidingUnclassifiedReferences()) {
+                        refValue = new ConnectorObjectIdentification(null, identification.getAttributes());
+                    } else {
+                        refValue = identification;
+                    }
+                }
+                convertedLinkValues.add(new ConnectorObjectReference(refValue));
             }
             builder.addAttribute(linkName, convertedLinkValues);
         }

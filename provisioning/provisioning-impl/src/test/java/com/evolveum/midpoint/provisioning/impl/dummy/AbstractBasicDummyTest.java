@@ -1315,7 +1315,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         List<String> expectedValues = new ArrayList<>(List.of("uid", "name", "description", "cc"));
         if (areReferencesSupportedNatively()) {
             expectedValues.add(DummyDefaultScenario.Group.LinkNames.GROUP.local());
-            expectedValues.add(DummyDefaultScenario.Group.LinkNames.MEMBER_REF.local());
         }
         PrismAsserts.assertSets("Wrong attribute to return", attrsToGet, expectedValues);
 
