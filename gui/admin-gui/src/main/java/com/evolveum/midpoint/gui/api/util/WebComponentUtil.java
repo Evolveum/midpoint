@@ -2204,6 +2204,11 @@ public final class WebComponentUtil {
         return filter;
     }
 
+    /**
+     * This seems to be just invalid piece of JS code.
+     * die() function not really defined, and there's no use of about="XXX" attribute in html for jquery to find.
+     */
+    @Deprecated
     public static Behavior getSubmitOnEnterKeyDownBehavior(String submitButtonAboutAttribute) {
         return new Behavior() {
 
