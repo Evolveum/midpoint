@@ -108,7 +108,7 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
                                     .withLinkAttributeName(Group.LinkNames.MEMBER_REF.local()) // visible because of tests
                                     .withReturnedByDefault(false)
                                     .withExpandedByDefault(false)
-                                    //.withProvidingUnclassifiedReferences(true) // We are not ready for this yet
+                                    .withProvidingUnclassifiedReferences(true)
                                     .withMaxOccurs(-1)
                                     .build())
                             .build());

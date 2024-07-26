@@ -4786,8 +4786,12 @@
             <xsd:enumeration value="implicit">
                 <xsd:annotation>
                     <xsd:documentation>
-                        MidPoint expects that the attribute will be implicitly returned by the connector
-                        in each fetch request and there is no need to explicitly request the attribute.
+                        The decision whether to return an attribute is left to the connector.
+
+                        If the attribute is returned by default, midPoint won't try to explicitly request it.
+                        (Unless midPoint needs to block returning default attributes, for some reason.)
+
+                        If the attribute is not returned by default, midPoint won't request it either.
 
                         This is the default. This strategy will be used if no other strategy is specified.
                     </xsd:documentation>

@@ -401,6 +401,11 @@ class ConnIdToUcfObjectConversion {
             BaseConnectorObject targetObjectOrIdentification = reference.getValue();
             var targetObjectClassName =
                     connIdObjectClassNameToUcf(targetObjectOrIdentification.getObjectClass(), isLegacySchema());
+            if (targetObjectClassName == null) {
+                throw new UnsupportedOperationException(
+                        "Reference attribute values without object class information are currently not supported: "
+                                + targetObjectOrIdentification);
+            }
             var targetObjectDefinition = getResourceSchema().findDefinitionForObjectClassRequired(targetObjectClassName);
 
             var embeddedConversion =
