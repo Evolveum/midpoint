@@ -285,6 +285,11 @@ public class UserAsserter<RA> extends FocusAsserter<UserType, RA> {
         return this;
     }
 
+    public UserAsserter<RA> assertHonorificPrefix(String expectedOrig) {
+        assertPolyStringProperty(UserType.F_HONORIFIC_PREFIX, expectedOrig);
+        return this;
+    }
+
     public UserAsserter<RA> assertEmployeeNumber(String expected) {
         assertEquals("Wrong employeeNumber in " + desc(), expected, getObject().asObjectable().getEmployeeNumber());
         return this;

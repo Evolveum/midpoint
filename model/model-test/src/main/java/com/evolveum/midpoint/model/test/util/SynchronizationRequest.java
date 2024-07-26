@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
@@ -81,6 +82,8 @@ public class SynchronizationRequest {
     private final Collection<String> tracingAccounts;
     @NotNull private final TaskExecutionMode taskExecutionMode;
     private final ShadowClassificationModeType classificationMode;
+    private final Consumer<TaskType> taskCustomizer; // only for background execution
+    private final boolean noFetchWhenSynchronizing; // limited support for now
 
     private SynchronizationRequest(
             @NotNull SynchronizationRequest.SynchronizationRequestBuilder builder) {
@@ -96,6 +99,8 @@ public class SynchronizationRequest {
         this.tracingAccounts = builder.tracingAccounts;
         this.taskExecutionMode = Objects.requireNonNullElse(builder.taskExecutionMode, TaskExecutionMode.PRODUCTION);
         this.classificationMode = builder.classificationMode;
+        this.taskCustomizer = builder.taskCustomizer;
+        this.noFetchWhenSynchronizing = builder.noFetchWhenSynchronizing;
     }
 
     public String execute(OperationResult result) throws CommonException, IOException {
@@ -152,6 +157,9 @@ public class SynchronizationRequest {
                 .name(synchronizationStyle.taskName)
                 .executionState(TaskExecutionStateType.RUNNABLE)
                 .activity(activityDefinition);
+        if (taskCustomizer != null) {
+            taskCustomizer.accept(syncTask);
+        }
         String taskOid = test.addObject(syncTask, task, result);
         test.waitForTaskCloseOrSuspend(taskOid, timeout);
 
@@ -164,13 +172,10 @@ public class SynchronizationRequest {
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> createGetOperationOptions() {
-        if (classificationMode != null) {
-            return GetOperationOptionsBuilder.create()
-                    .shadowClassificationMode(classificationMode)
-                    .build();
-        } else {
-            return null;
-        }
+        return GetOperationOptionsBuilder.create()
+                .shadowClassificationMode(classificationMode)
+                .noFetch(noFetchWhenSynchronizing)
+                .build();
     }
 
     private @NotNull ExecutionModeType getBackgroundTaskExecutionMode() {
@@ -365,6 +370,8 @@ public class SynchronizationRequest {
         private Task task;
         private TaskExecutionMode taskExecutionMode;
         private ShadowClassificationModeType classificationMode;
+        private Consumer<TaskType> taskCustomizer;
+        private boolean noFetchWhenSynchronizing;
 
         public SynchronizationRequestBuilder(@NotNull AbstractModelIntegrationTest test) {
             this.test = test;
@@ -483,6 +490,17 @@ public class SynchronizationRequest {
 
         public SynchronizationRequestBuilder withClassificationMode(ShadowClassificationModeType classificationMode) {
             this.classificationMode = classificationMode;
+            return this;
+        }
+
+        /** Only for background execution. */
+        public SynchronizationRequestBuilder withTaskCustomizer(Consumer<TaskType> taskCustomizer) {
+            this.taskCustomizer = taskCustomizer;
+            return this;
+        }
+
+        public SynchronizationRequestBuilder withNoFetchWhenSynchronizing() {
+            this.noFetchWhenSynchronizing = true;
             return this;
         }
 
