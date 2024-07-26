@@ -1561,6 +1561,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO mandatory settings-->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -4153,6 +4154,17 @@
                     <!--</xsd:element>-->
 
                     <xsd:element name="parameter" type="tns:GuiParameterType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the parameter which should be processed while executing the action.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.parameter</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specifies the parameter which should be processed while executing the action.
