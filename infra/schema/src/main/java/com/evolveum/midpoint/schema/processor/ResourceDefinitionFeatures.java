@@ -55,15 +55,15 @@ class ResourceDefinitionFeatures {
                         NativeObjectClassUcfDefinition::isAuxiliary,
                         XsdSerializers.aBoolean(MidPointConstants.RA_AUXILIARY));
 
-        static final DefinitionFeature<Boolean, NativeObjectClassDefinitionBuilder, Object, ?> DF_ASSOCIATION_OBJECT =
+        static final DefinitionFeature<Boolean, NativeObjectClassDefinitionBuilder, Object, ?> DF_EMBEDDED =
                 DefinitionFeature.of(
                         Boolean.class,
                         NativeObjectClassDefinitionBuilder.class,
-                        NativeObjectClassDefinitionBuilder::setAssociationObject,
-                        XsomParsers.marker(MidPointConstants.RA_ASSOCIATION_OBJECT),
+                        NativeObjectClassDefinitionBuilder::setEmbedded,
+                        XsomParsers.marker(MidPointConstants.RA_EMBEDDED),
                         NativeObjectClassUcfDefinition.class,
-                        NativeObjectClassUcfDefinition::isAssociationObject,
-                        XsdSerializers.aBoolean(MidPointConstants.RA_ASSOCIATION_OBJECT));
+                        NativeObjectClassUcfDefinition::isEmbedded,
+                        XsdSerializers.aBoolean(MidPointConstants.RA_EMBEDDED));
 
         static final DefinitionFeature<QName, NativeObjectClassDefinitionBuilder, Object, ?> DF_NAMING_ATTRIBUTE_NAME =
                 DefinitionFeature.of(
@@ -161,14 +161,24 @@ class ResourceDefinitionFeatures {
                         NativeShadowAttributeDefinition::getReturnedByDefault,
                         XsdSerializers.aBoolean(MidPointConstants.RA_RETURNED_BY_DEFAULT_NAME));
 
-        static final DefinitionFeature<ShadowReferenceParticipantRole, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_ASSOCIATION_PARTICIPANT_ROLE =
+        static final DefinitionFeature<ShadowReferenceParticipantRole, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_ROLE_IN_REFERENCE =
                 DefinitionFeature.of(
                         ShadowReferenceParticipantRole.class,
                         NativeShadowAttributeDefinitionBuilder.class,
                         NativeShadowAttributeDefinitionBuilder::setReferenceParticipantRole,
-                        XsomParsers.enumBased(ShadowReferenceParticipantRole.class, MidPointConstants.RA_ASSOCIATION_PARTICIPANT_ROLE, ShadowReferenceParticipantRole::getValue),
+                        XsomParsers.enumBased(ShadowReferenceParticipantRole.class, MidPointConstants.RA_ROLE_IN_REFERENCE, ShadowReferenceParticipantRole::getValue),
                         NativeShadowAttributeDefinition.class,
                         NativeShadowAttributeDefinition::getReferenceParticipantRoleIfPresent,
-                        XsdSerializers.enumBased(ShadowReferenceParticipantRole.class, MidPointConstants.RA_ASSOCIATION_PARTICIPANT_ROLE, ShadowReferenceParticipantRole::getValue));
+                        XsdSerializers.enumBased(ShadowReferenceParticipantRole.class, MidPointConstants.RA_ROLE_IN_REFERENCE, ShadowReferenceParticipantRole::getValue));
+
+        static final DefinitionFeature<QName, NativeShadowAttributeDefinitionBuilder, Object, ?> DF_REFERENCED_OBJECT_CLASS_NAME =
+                DefinitionFeature.of(
+                        QName.class,
+                        NativeShadowAttributeDefinitionBuilder.class,
+                        NativeShadowAttributeDefinitionBuilder::setReferencedObjectClassName,
+                        XsomParsers.qName(MidPointConstants.RA_REFERENCED_OBJECT_CLASS_NAME),
+                        NativeShadowAttributeDefinition.class,
+                        NativeShadowAttributeDefinition::getReferencedObjectClassName,
+                        XsdSerializers.qName(MidPointConstants.RA_REFERENCED_OBJECT_CLASS_NAME));
     }
 }

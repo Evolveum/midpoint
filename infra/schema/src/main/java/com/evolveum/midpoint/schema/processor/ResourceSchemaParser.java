@@ -380,32 +380,6 @@ class ResourceSchemaParser {
         }
     }
 
-//    /**
-//     * Creates {@link AbstractShadowAssociationClassDefinition} objects in {@link ResourceSchemaImpl#associationTypeDefinitionsMap}.
-//     * These are based on native or simulated association classes.
-//     *
-//     * Legacy simulated associations are not dealt with here.
-//     */
-//    private void parseAssociationTypesDefinitions() throws ConfigurationException {
-//        // Explicitly defined types
-//        for (var assocTypeDefCI : schemaHandling.getAssociationTypes()) {
-//            String className = assocTypeDefCI.getAssociationClassLocalName();
-//            var implementation = assocTypeDefCI.configNonNull(
-//                    resourceSchema.getAssociationClassImplementation(className),
-//                    "No association class '%s' in %s", className, DESC);
-//            resourceSchema.addAssociationTypeDefinition(
-//                    ShadowAssociationClassDefinition.fromAssociationType(assocTypeDefCI, implementation, resourceSchema));
-//        }
-//
-//        // Types from association classes
-//        for (var associationClassImplementation : resourceSchema.getAssociationClassImplementations()) {
-//            if (resourceSchema.getAssociationClassDefinition(associationClassImplementation.getName()) == null) {
-//                resourceSchema.addAssociationTypeDefinition(
-//                        ShadowAssociationClassDefinition.fromImplementation(associationClassImplementation));
-//            }
-//        }
-//    }
-
     private void forAllObjects(SpecificFeatureParser parser) throws ConfigurationException {
         for (var objectDef : resourceSchema.getResourceObjectDefinitions()) {
             parser.execute(new ResourceObjectDefinitionParser(objectDef));

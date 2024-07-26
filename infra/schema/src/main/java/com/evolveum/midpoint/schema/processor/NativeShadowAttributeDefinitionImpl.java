@@ -71,6 +71,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
 
     // for references
     private ShadowReferenceParticipantRole referenceParticipantRole;
+    private QName referencedObjectClassName;
 
     NativeShadowAttributeDefinitionImpl(@NotNull ItemName itemName, @NotNull QName typeName) {
         this.prismItemBasicData = new PrismItemBasicDefinition.Data(itemName, typeName);
@@ -406,6 +407,14 @@ public class NativeShadowAttributeDefinitionImpl<T>
         this.referenceParticipantRole = value;
     }
 
+    public QName getReferencedObjectClassName() {
+        return referencedObjectClassName;
+    }
+
+    public void setReferencedObjectClassName(QName value) {
+        this.referencedObjectClassName = value;
+    }
+
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append(this);
@@ -417,7 +426,8 @@ public class NativeShadowAttributeDefinitionImpl<T>
                 ResourceDefinitionFeatures.ForItem.DF_NATIVE_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForItem.DF_FRAMEWORK_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForItem.DF_RETURNED_BY_DEFAULT,
-                ResourceDefinitionFeatures.ForItem.DF_ASSOCIATION_PARTICIPANT_ROLE);
+                ResourceDefinitionFeatures.ForItem.DF_ROLE_IN_REFERENCE,
+                ResourceDefinitionFeatures.ForItem.DF_REFERENCED_OBJECT_CLASS_NAME);
     }
 
     @Override
@@ -554,6 +564,7 @@ public class NativeShadowAttributeDefinitionImpl<T>
 
     @Override
     public int hashCode() {
-        return Objects.hash(prismItemBasicData, prismItemAccessData, prismItemMiscData, prismPresentationData, ucfData, prismItemValues, prismItemMatching, referenceParticipantRole);
+        return Objects.hash(prismItemBasicData, prismItemAccessData, prismItemMiscData, prismPresentationData, ucfData,
+                prismItemValues, prismItemMatching, referenceParticipantRole);
     }
 }

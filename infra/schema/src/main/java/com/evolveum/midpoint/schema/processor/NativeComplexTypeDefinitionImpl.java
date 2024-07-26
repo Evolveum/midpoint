@@ -67,12 +67,12 @@ public class NativeComplexTypeDefinitionImpl
     @NotNull private final List<NativeShadowAttributeDefinitionImpl<?>> attributeDefinitions = new ArrayList<>();
     //endregion
 
-    //region The following applies to ASSOCIATION classes
+    //region The following applies to reference types
     /** See {@link NativeReferenceTypeDefinition#getSubjects()}. */
-    @NotNull private final Set<NativeReferenceTypeDefinition.NativeParticipant> subjects = new HashSet<>();
+    @NotNull private final Set<NativeParticipant> subjects = new HashSet<>();
 
     /** See {@link NativeReferenceTypeDefinition#getObjects()}. */
-    @NotNull private final Set<NativeReferenceTypeDefinition.NativeParticipant> objects = new HashSet<>();
+    @NotNull private final Set<NativeParticipant> objects = new HashSet<>();
     //endregion
 
     /** False for object classes, true for reference types. */
@@ -184,19 +184,26 @@ public class NativeComplexTypeDefinitionImpl
     @Override
     public void addParticipant(
             @NotNull String objectClassName,
-            @NotNull ItemName associationName,
+            @Nullable ItemName referenceAttributeName,
             @NotNull ShadowReferenceParticipantRole role) {
-        switch (role) {
-            case SUBJECT:
-                subjects.add(new NativeReferenceTypeDefinition.NativeParticipant(objectClassName, associationName));
-                break;
-            case OBJECT:
-                objects.add(new NativeReferenceTypeDefinition.NativeParticipant(objectClassName, associationName));
-                break;
-            default:
-                throw new AssertionError(role);
+        getParticipantsSet(role)
+                .add(new NativeParticipant(objectClassName, referenceAttributeName));
+    }
+
+    @Override
+    public void addParticipantIfNotThere(@NotNull String objectClassName, @NotNull ShadowReferenceParticipantRole role) {
+        if (getParticipantsSet(role).stream().noneMatch(p -> p.objectClassName().equals(objectClassName))) {
+            addParticipant(objectClassName, null, role);
         }
     }
+
+    private Set<NativeParticipant> getParticipantsSet(@NotNull ShadowReferenceParticipantRole role) {
+        return switch (role) {
+            case SUBJECT -> subjects;
+            case OBJECT -> objects;
+        };
+    }
+
     //endregion
 
     @Override
@@ -248,7 +255,7 @@ public class NativeComplexTypeDefinitionImpl
                 ResourceDefinitionFeatures.ForClass.DF_NATIVE_OBJECT_CLASS_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DEFAULT_ACCOUNT_DEFINITION,
                 ResourceDefinitionFeatures.ForClass.DF_AUXILIARY,
-                ResourceDefinitionFeatures.ForClass.DF_ASSOCIATION_OBJECT,
+                ResourceDefinitionFeatures.ForClass.DF_EMBEDDED,
                 ResourceDefinitionFeatures.ForClass.DF_NAMING_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DISPLAY_NAME_ATTRIBUTE_NAME,
                 ResourceDefinitionFeatures.ForClass.DF_DESCRIPTION_ATTRIBUTE_NAME,

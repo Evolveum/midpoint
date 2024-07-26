@@ -38,8 +38,7 @@ public interface ShadowAssociationDefinition
     /** True if this is a "rich" association (with association object), false if it's a trivial one. */
     default boolean hasAssociationObject() {
         return getReferenceAttributeDefinition()
-                .getTargetObjectClassDefinition()
-                .isAssociationObject();
+                .isTargetingSingleEmbeddedObjectClass();
     }
 
     /**

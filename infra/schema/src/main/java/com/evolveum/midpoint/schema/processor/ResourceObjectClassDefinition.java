@@ -49,7 +49,7 @@ public interface ResourceObjectClassDefinition
     boolean isAuxiliary();
 
     /** TODO */
-    boolean isAssociationObject();
+    boolean isEmbedded();
 
     /**
      * Indicates whether definition is the default account definition.

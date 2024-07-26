@@ -56,4 +56,9 @@ public class ObjectClassName {
     public QName xsd() {
         return xsdName;
     }
+
+    @Override
+    public String toString() {
+        return localName;
+    }
 }
