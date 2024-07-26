@@ -27,7 +27,7 @@ public class NoEmptyValueContainerWrapperFactoryImpl<C extends Containerable> ex
     @Override
     public boolean match(ItemDefinition<?> def) {
         return def instanceof PrismContainerDefinition && def.isMultiValue()
-                || AbstractWorkItemOutputType.COMPLEX_TYPE.equals(def.getTypeName())
+//                || AbstractWorkItemOutputType.COMPLEX_TYPE.equals(def.getTypeName())
                 || ApprovalSchemaType.COMPLEX_TYPE.equals(def.getTypeName())
                 || (def.getTypeClass() != null
                     && AbstractPredefinedActivationMappingType.class.isAssignableFrom(def.getTypeClass()));

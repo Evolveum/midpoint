@@ -9,11 +9,8 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import jakarta.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Persister;
-import org.hibernate.annotations.Type;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.*;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -30,6 +27,10 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 @Entity
 @Table(name = "m_shadow", indexes = {
@@ -82,7 +83,7 @@ public class RShadow extends RObject implements ROperationResult {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column
+    @JdbcType(IntegerJdbcType.class)
     public RShadowKind getKind() {
         return kind;
     }
@@ -108,7 +109,7 @@ public class RShadow extends RObject implements ROperationResult {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column
+    @JdbcType(IntegerJdbcType.class)
     public RFailedOperationType getFailedOperationType() {
         return failedOperationType;
     }
@@ -128,6 +129,7 @@ public class RShadow extends RObject implements ROperationResult {
         this.nameCopy = nameCopy;
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated(EnumType.ORDINAL)
     public RSynchronizationSituation getSynchronizationSituation() {
         return synchronizationSituation;
@@ -153,6 +155,7 @@ public class RShadow extends RObject implements ROperationResult {
 
     @Override
     @Enumerated(EnumType.ORDINAL)
+    @JdbcType(IntegerJdbcType.class)
     public ROperationResultStatus getStatus() {
         return status;
     }

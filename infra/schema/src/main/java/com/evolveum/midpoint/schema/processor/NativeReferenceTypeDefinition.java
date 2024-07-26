@@ -15,6 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DebugDumpable;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Definition of an association class as seen by the connector (or defined in the simulated associations capability).
  */
@@ -35,9 +37,11 @@ public interface NativeReferenceTypeDefinition
 
     void addParticipant(
             @NotNull String objectClassName,
-            @NotNull ItemName associationName,
+            @NotNull ItemName referenceAttributeName,
             @NotNull ShadowReferenceParticipantRole role);
 
-    record NativeParticipant(@NotNull String objectClassName, @NotNull ItemName associationName) implements Serializable {
+    void addParticipantIfNotThere(@NotNull String objectClassName, @NotNull ShadowReferenceParticipantRole role);
+
+    record NativeParticipant(@NotNull String objectClassName, @Nullable ItemName referenceAttributeName) implements Serializable {
     }
 }

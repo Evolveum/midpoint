@@ -161,6 +161,10 @@
                 <ref>ri:members</ref>
                 <fetchStrategy>minimal</fetchStrategy>
             </attribute>
+            <attribute>
+                <ref>ri:memberRef</ref>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
         </objectType>
         <objectType>
             <kind>entitlement</kind>

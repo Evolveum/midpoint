@@ -11,14 +11,15 @@ import java.sql.Timestamp;
 import java.util.Objects;
 import jakarta.persistence.*;
 
-import org.hibernate.annotations.ForeignKey;
-
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtDateId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 /**
  * @author lazyman
@@ -40,11 +41,10 @@ public class ROExtDate extends ROExtBase<Timestamp> {
         this.value = value;
     }
 
-    @Id
-    @ForeignKey(name = "fk_o_ext_date_owner")
-    @MapsId("owner")
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumn(name="owner_oid", foreignKey = @ForeignKey(name = "fk_o_ext_date_owner"))
     public RObject getOwner() {
         return super.getOwner();
     }
@@ -56,6 +56,7 @@ public class ROExtDate extends ROExtBase<Timestamp> {
     }
 
     @Id
+    @JdbcType(IntegerJdbcType.class)
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
     public RObjectExtensionType getOwnerType() {

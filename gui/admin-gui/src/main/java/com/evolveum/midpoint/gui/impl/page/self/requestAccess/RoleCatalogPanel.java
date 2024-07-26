@@ -1089,7 +1089,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private void addAllItemsPerformed(AjaxRequestTarget target) {
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tiles
-                = (TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>>) get(ID_TILES);
+                = (TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>>) getTileTable();
         List<CatalogTile<SelectableBean<ObjectType>>> tilesModel = tiles.getTilesModel().getObject();
         List<ObjectType> objects = tilesModel
                 .stream()

@@ -413,7 +413,7 @@ public abstract class AbstractModernObjectDummyConnector
         if (!(value instanceof ConnectorObjectReference reference)) {
             throw new SchemaViolationException("Trying to delete non-reference link value: " + value);
         }
-        for (var icfAttribute : reference.getReferencedValue().getAttributes()) {
+        for (var icfAttribute : reference.getValue().getAttributes()) {
             var attrName = icfAttribute.getName();
             if (icfAttribute.is(Uid.NAME)) {
                 var currentUidValue = createUid(object).getUidValue();

@@ -9,14 +9,16 @@ package com.evolveum.midpoint.repo.sql;
 import java.util.Properties;
 import javax.sql.DataSource;
 
-import org.hibernate.SessionFactory;
+import jakarta.persistence.EntityManagerFactory;
+import org.hibernate.cfg.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.TransactionManager;
 
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
@@ -98,49 +100,37 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
-    public MidPointImplicitNamingStrategy midPointImplicitNamingStrategy() {
-        return new MidPointImplicitNamingStrategy();
-    }
-
-    @Bean
-    public MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy() {
-        return new MidPointPhysicalNamingStrategy();
-    }
-
-    @Bean
-    public EntityStateInterceptor entityStateInterceptor() {
-        return new EntityStateInterceptor();
-    }
-
-    @Bean
     @ConditionalOnMissingBean
-    public LocalSessionFactoryBean sessionFactory(
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(
             DataSource dataSource,
-            SqlRepositoryConfiguration configuration,
-            MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
-            MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
-            EntityStateInterceptor entityStateInterceptor) {
-        LocalSessionFactoryBean bean = new LocalSessionFactoryBean();
+            SqlRepositoryConfiguration configuration) {
+
+        LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
+
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        bean.setJpaVendorAdapter(vendorAdapter);
 
         // While dataSource == dataSourceFactory.getDataSource(), we're using dataSource as
         // parameter to assure, that Spring already called the factory method. Explicit is good.
         bean.setDataSource(dataSource);
 
-        Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty("hibernate.dialect", configuration.getHibernateDialect());
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", configuration.getHibernateHbm2ddl());
-        hibernateProperties.setProperty("hibernate.id.new_generator_mappings", "true");
-        hibernateProperties.setProperty("hibernate.jdbc.batch_size", "20");
-        hibernateProperties.setProperty("jakarta.persistence.validation.mode", "none");
-        hibernateProperties.setProperty("hibernate.transaction.coordinator_class", "jdbc");
-        hibernateProperties.setProperty("hibernate.hql.bulk_id_strategy",
+        Properties jpaProperties = new Properties();
+        jpaProperties.setProperty(JdbcSettings.DIALECT, configuration.getHibernateDialect());
+        jpaProperties.setProperty(SchemaToolingSettings.HBM2DDL_AUTO, configuration.getHibernateHbm2ddl());
+        jpaProperties.setProperty("hibernate.id.new_generator_mappings", "true");
+        jpaProperties.setProperty(BatchSettings.STATEMENT_BATCH_SIZE, "20");
+        jpaProperties.setProperty(ValidationSettings.JAKARTA_VALIDATION_MODE, "none");
+        jpaProperties.setProperty(TransactionSettings.TRANSACTION_COORDINATOR_STRATEGY, "jdbc");
+        jpaProperties.setProperty("hibernate.hql.bulk_id_strategy",
                 "org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy");
+        jpaProperties.setProperty(SessionEventSettings.INTERCEPTOR, EntityStateInterceptor.class.getName());
 
-        bean.setHibernateProperties(hibernateProperties);
-        bean.setImplicitNamingStrategy(midPointImplicitNamingStrategy);
-        bean.setPhysicalNamingStrategy(midPointPhysicalNamingStrategy);
-        bean.setAnnotatedPackages("com.evolveum.midpoint.repo.sql.type");
+        jpaProperties.setProperty(MappingSettings.IMPLICIT_NAMING_STRATEGY, MidPointImplicitNamingStrategy.class.getName());
+        jpaProperties.setProperty(MappingSettings.PHYSICAL_NAMING_STRATEGY, MidPointPhysicalNamingStrategy.class.getName());
+
+        bean.setJpaProperties(jpaProperties);
         bean.setPackagesToScan(
+                "com.evolveum.midpoint.repo.sql.type",
                 "com.evolveum.midpoint.repo.sql.data.common",
                 "com.evolveum.midpoint.repo.sql.data.common.any",
                 "com.evolveum.midpoint.repo.sql.data.common.container",
@@ -150,17 +140,16 @@ public class SqlRepositoryBeanConfig {
                 "com.evolveum.midpoint.repo.sql.data.common.other",
                 "com.evolveum.midpoint.repo.sql.data.common.type",
                 "com.evolveum.midpoint.repo.sql.data.audit");
-        bean.setEntityInterceptor(entityStateInterceptor);
 
         return bean;
     }
 
     @Bean
-    public TransactionManager transactionManager(SessionFactory sessionFactory) {
-        HibernateTransactionManager htm = new HibernateTransactionManager();
-        htm.setSessionFactory(sessionFactory);
+    public TransactionManager transactionManager(EntityManagerFactory emf) {
+        JpaTransactionManager jtm = new JpaTransactionManager(emf);
+        jtm.setEntityManagerFactory(emf);
 
-        return htm;
+        return jtm;
     }
 
     @Bean
@@ -170,8 +159,7 @@ public class SqlRepositoryBeanConfig {
             PrismContext prismContext,
             RelationRegistry relationRegistry) {
 
-        return new SqlRepositoryServiceImpl(
-                baseHelper, matchingRuleRegistry, prismContext, relationRegistry);
+        return new SqlRepositoryServiceImpl(baseHelper, matchingRuleRegistry, prismContext, relationRegistry);
     }
 
     @Bean

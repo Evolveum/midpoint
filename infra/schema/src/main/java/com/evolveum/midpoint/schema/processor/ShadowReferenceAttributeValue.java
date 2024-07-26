@@ -77,17 +77,14 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
 
     private ShadowReferenceAttributeValue() {
         this(null, null);
-        setTargetType(ShadowType.COMPLEX_TYPE); // FIXME is this correct?
     }
 
     private ShadowReferenceAttributeValue(OriginType type, Objectable source) {
         super(null, type, source);
-        setTargetType(ShadowType.COMPLEX_TYPE); // FIXME is this correct?
     }
 
     private ShadowReferenceAttributeValue(String oid, OriginType type, Objectable source) {
         super(oid, type, source);
-        setTargetType(ShadowType.COMPLEX_TYPE); // FIXME is this correct?
     }
 
     /**
@@ -102,6 +99,7 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
         }
 
         var newVal = new ShadowReferenceAttributeValue(refVal.getOid(), refVal.getOriginType(), refVal.getOriginObject());
+        newVal.setTargetType(refVal.getTargetType());
         var shadow = (ShadowType) refVal.getObjectable();
         if (shadow != null) {
             if (ShadowUtil.isRaw(shadow)) {
@@ -272,6 +270,10 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
         } else {
             return valueAttr.getValue();
         }
+    }
+
+    public @NotNull String getOidRequired() {
+        return stateNonNull(getOid(), "No OID in %s", this);
     }
 
     @Override

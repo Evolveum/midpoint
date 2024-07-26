@@ -17,6 +17,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.component.Comment
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -24,6 +26,7 @@ import org.apache.wicket.model.Model;
 import java.io.Serial;
 import java.util.List;
 
+//TODO probably not needed anymore. should be more generic -> confirmation popup + list of attributes to fill
 @ActionType(
         identifier = "comment",
         parameterName = {"comment"},
@@ -35,7 +38,7 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
         super();
     }
 
-    public CommentAction(GuiActionDto<C> actionDto) {
+    public CommentAction(GuiActionType actionDto) {
         super(actionDto);
     }
 
@@ -55,7 +58,7 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
 
             @Override
             protected void savePerformed(AjaxRequestTarget target, String comment) {
-                addParameterValue("comment", comment);
+//                addParameterValue("comment", comment);
                 commentActionPerformed(objectsToProcess, comment, target);
                 if (mainAction != null) {
                     mainAction.onActionPerformed(objectsToProcess, false, pageBase, target);
@@ -69,7 +72,8 @@ public class CommentAction<C extends Containerable, AGA extends AbstractGuiActio
             }
 
             protected boolean isCommentRequired() {
-                return CommentAction.this.isParameterMandatory("comment");
+                return false;
+//                return CommentAction.this.isParameterMandatory("comment");
             }
         };
         pageBase.showMainPopup(commentPanel, target);

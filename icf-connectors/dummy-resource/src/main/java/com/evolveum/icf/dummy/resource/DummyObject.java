@@ -551,10 +551,10 @@ public abstract class DummyObject implements DebugDumpable {
         DebugUtil.debugDumpWithLabel(sb, "Attributes", attributes, indent + 1);
         if (resource != null) {
             for (var linkDefinition : getStructuralObjectClass().getLinkDefinitions()) {
-                var linkName = linkDefinition.getParticipant().getLinkName();
                 if (!linkDefinition.getParticipant().isVisible()) {
                     continue;
                 }
+                var linkName = linkDefinition.getParticipant().getLinkNameRequired();
                 sb.append("\n");
                 var label = "Linked objects (" + linkName + ")";
                 var linkedObjects = getLinkedObjects(linkName);

@@ -1,0 +1,22 @@
+<!--
+  ~ Copyright (c) 2015-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="3d6b0864-499c-11ef-bce7-d376c0ac2e64"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Brig guard</name>
+    <description>Information security role, it has information security responsibility classification.</description>
+    <assignment>
+        <!-- Business role archetype -->
+        <targetRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/>
+    </assignment>
+    <assignment>
+        <!-- Information security responsibility classification -->
+        <targetRef oid="00000000-0000-0000-0000-000000000333" type="PolicyType"/>
+    </assignment>
+</role>

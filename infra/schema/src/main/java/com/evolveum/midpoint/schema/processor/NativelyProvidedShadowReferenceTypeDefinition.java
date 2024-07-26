@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.schema.processor.NativeReferenceTypeDefinition.NativeParticipant;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -44,7 +46,7 @@ public class NativelyProvidedShadowReferenceTypeDefinition extends AbstractShado
 
     @NotNull
     private static Collection<ShadowRelationParticipantType> convertParticipants(
-            @NotNull Collection<NativeReferenceTypeDefinition.NativeParticipant> nativeParticipants, @NotNull ResourceSchema schema) {
+            @NotNull Collection<NativeParticipant> nativeParticipants, @NotNull ResourceSchema schema) {
         return nativeParticipants.stream()
                 .map(nativeParticipant ->
                         ShadowRelationParticipantType.forObjectClass(

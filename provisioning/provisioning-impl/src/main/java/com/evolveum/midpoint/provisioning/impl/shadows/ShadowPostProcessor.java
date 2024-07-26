@@ -74,7 +74,7 @@ class ShadowPostProcessor {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, EncryptionException {
 
-        classifyIfNeeded(result);
+        classifyIfNeededAndApplyTheDefinition(result);
         postProcessReferenceValues(result);
         updateShadowInRepository(result);
         createCombinedObject(result);
@@ -83,30 +83,39 @@ class ShadowPostProcessor {
     }
 
     /** Classifies the object if needed. */
-    private void classifyIfNeeded(OperationResult result)
+    private void classifyIfNeededAndApplyTheDefinition(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        if (!b.classificationHelper.shouldClassify(ctx, repoShadow.getBean())) {
-            return;
-        }
 
-        // TODO is it OK that the classification helper updates the repository (and determines the tag)?
-        //  Shouldn't we do that only during shadow update?
-        //  Probably that's ok, because that's the place where we can redirect the delta to the simulation result.
-        //  As part of general shadow update it is hidden among other deltas.
-        newClassification = b.classificationHelper.classify(ctx, repoShadow, resourceObject, result);
-        if (newClassification.isKnown()) {
-            ResourceObjectTypeDefinition newTypeDefinition = newClassification.getDefinitionRequired();
-            LOGGER.debug("Classified {} as {}", repoShadow, newTypeDefinition);
+        if (b.classificationHelper.shouldClassify(ctx, repoShadow.getBean())) {
+            // TODO is it OK that the classification helper updates the repository (and determines the tag)?
+            //  Shouldn't we do that only during shadow update?
+            //  Probably that's ok, because that's the place where we can redirect the delta to the simulation result.
+            //  As part of general shadow update it is hidden among other deltas.
+            newClassification = b.classificationHelper.classify(ctx, repoShadow, resourceObject, result);
+            if (newClassification.isKnown()) {
+                ResourceObjectTypeDefinition newTypeDefinition = newClassification.getDefinitionRequired();
+                LOGGER.debug("Classified {} as {}", repoShadow, newTypeDefinition);
+                var compositeDefinition =
+                        ctx.computeCompositeObjectDefinition(
+                                newTypeDefinition, resourceObject.getBean().getAuxiliaryObjectClass());
+                ctx = ctx.spawnForDefinition(compositeDefinition);
+
+                ProvisioningUtil.removeExtraLegacyReferenceAttributes(resourceObject, compositeDefinition);
+                resourceObject.applyDefinition(compositeDefinition);
+
+                ProvisioningUtil.removeExtraLegacyReferenceAttributes(repoShadow, compositeDefinition);
+                repoShadow.applyDefinition(compositeDefinition);
+            }
+        } else {
+            // The classification was not changed; but we still should apply the correct definition to the resource object.
             var compositeDefinition =
-                    ctx.computeCompositeObjectDefinition(newTypeDefinition, resourceObject.getBean().getAuxiliaryObjectClass());
+                    ctx.computeCompositeObjectDefinition(
+                            repoShadow.getObjectDefinition(), resourceObject.getBean().getAuxiliaryObjectClass());
             ctx = ctx.spawnForDefinition(compositeDefinition);
 
             ProvisioningUtil.removeExtraLegacyReferenceAttributes(resourceObject, compositeDefinition);
             resourceObject.applyDefinition(compositeDefinition);
-
-            ProvisioningUtil.removeExtraLegacyReferenceAttributes(repoShadow, compositeDefinition);
-            repoShadow.applyDefinition(compositeDefinition);
         }
     }
 

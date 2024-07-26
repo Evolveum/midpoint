@@ -7,13 +7,11 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper.*;
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdTypeMapper.connIdTypeToXsdTypeInfo;
 import static com.evolveum.midpoint.schema.processor.ObjectFactory.createNativeAttributeDefinition;
 
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdTypeMapper.XsdTypeInformation;
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema.NativeResourceSchemaBuilder;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 
@@ -162,9 +160,7 @@ class ConnIdSchemaParser {
                 }
                 var xsdAttrName = connIdAttributeNameToUcf(
                         connIdAttrInfo.getName(), connIdAttrInfo.getNativeName(), this::resolveFrameworkName);
-                var xsdTypeInfo =
-                        connIdTypeToXsdTypeInfo(connIdAttrInfo.getType(), connIdAttrInfo.getSubtype(), false);
-                parseAttributeInfo(xsdAttrName, xsdTypeInfo, connIdAttrInfo);
+                parseAttributeInfo(xsdAttrName, connIdAttrInfo);
             }
 
             completeObjectClassDefinition();
@@ -204,7 +200,7 @@ class ConnIdSchemaParser {
                 ocDefBuilder.setNamingAttributeName(nameDefinition.getItemName());
             }
             ocDefBuilder.setAuxiliary(connIdClassInfo.isAuxiliary());
-            ocDefBuilder.setAssociationObject(connIdClassInfo.isAssociated());
+            ocDefBuilder.setEmbedded(connIdClassInfo.isEmbedded());
 
             // The __ACCOUNT__ objectclass in ConnId is a default account objectclass. So mark it appropriately.
             if (ObjectClass.ACCOUNT_NAME.equals(connIdClassInfo.getType())) {
@@ -221,21 +217,27 @@ class ConnIdSchemaParser {
             return null;
         }
 
-        private void parseAttributeInfo(ItemName xsdItemName, XsdTypeInformation xsdTypeInfo, AttributeInfo connIdAttrInfo) {
-            String connIdAttrName = connIdAttrInfo.getName();
+        private void parseAttributeInfo(ItemName xsdItemName, AttributeInfo connIdAttrInfo) throws SchemaException {
+            var connIdAttrName = connIdAttrInfo.getName();
 
-            QName xsdTypeName = xsdTypeInfo.xsdTypeName();
+            // Here we require subtype (reference type name) be defined for reference attributes.
+            // One day, we will generate it if missing.
+            var xsdTypeName = ConnIdTypeMapper.connIdTypeToXsdTypeName(
+                    connIdAttrName, connIdAttrInfo.getType(), connIdAttrInfo.getSubtype(), false);
 
-            NativeShadowAttributeDefinitionImpl<?> mpItemDef = createNativeAttributeDefinition(xsdItemName, xsdTypeName);
+            var mpItemDef = createNativeAttributeDefinition(xsdItemName, xsdTypeName);
 
-            var participantRole = xsdTypeInfo.referenceParticipantRole();
-            if (participantRole == null) {
+            if (!connIdAttrInfo.isReference()) {
                 LOGGER.trace("  simple attribute conversion: ConnId: {}({}) -> XSD: {}({})",
                         connIdAttrName, connIdAttrInfo.getType().getSimpleName(),
                         PrettyPrinter.prettyPrintLazily(xsdItemName),
                         PrettyPrinter.prettyPrintLazily(xsdTypeName));
             } else {
-                mpItemDef.setReferenceParticipantRole(participantRole);
+                mpItemDef.setReferencedObjectClassName(
+                        ConnIdNameMapper.connIdObjectClassNameToUcf(connIdAttrInfo.getReferencedObjectClassName(), legacySchema));
+                // Currently we require the role in reference; later, we may try to derive it (or let provide it by engineer).
+                mpItemDef.setReferenceParticipantRole(
+                        determineParticipantRole(connIdAttrInfo));
                 LOGGER.trace("  reference attribute conversion: ConnId: {} ({}) -> XSD: {}",
                         connIdAttrName, connIdAttrInfo.getSubtype(), PrettyPrinter.prettyPrintLazily(xsdItemName));
             }
@@ -292,6 +294,20 @@ class ConnIdSchemaParser {
                 parsedItemDefinitions.put(mpItemDef.getItemName(), mpItemDef);
             } else {
                 LOGGER.trace("-> UID will be added after parsing all attributes");
+            }
+        }
+
+        private @NotNull ShadowReferenceParticipantRole determineParticipantRole(AttributeInfo connIdAttrInfo)
+                throws SchemaException {
+            var stringValue = connIdAttrInfo.getRoleInReference();
+            if (AttributeInfo.RoleInReference.SUBJECT.toString().equals(stringValue)) {
+                return ShadowReferenceParticipantRole.SUBJECT;
+            } else if (AttributeInfo.RoleInReference.OBJECT.toString().equals(stringValue)) {
+                return ShadowReferenceParticipantRole.OBJECT;
+            } else if (stringValue == null) {
+                throw new SchemaException("Missing role in reference in %s".formatted(connIdAttrInfo));
+            } else {
+                throw new SchemaException("Unsupported role in reference: '%s' in %s".formatted(stringValue, connIdAttrInfo));
             }
         }
 

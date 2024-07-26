@@ -597,4 +597,10 @@ public interface ResourceObjectDefinition
     default @NotNull S_FilterEntryOrEmpty queryFor() {
         return PrismContext.get().queryFor(ShadowType.class, new Resource.ResourceItemDefinitionResolver(this));
     }
+
+    default Collection<? extends ShadowAssociationDefinition> getAssociationDefinitionsFor(@NotNull ItemName refAttrName) {
+        return getAssociationDefinitions().stream()
+                .filter(assocDef -> assocDef.getReferenceAttributeDefinition().getItemName().equals(refAttrName))
+                .toList();
+    }
 }

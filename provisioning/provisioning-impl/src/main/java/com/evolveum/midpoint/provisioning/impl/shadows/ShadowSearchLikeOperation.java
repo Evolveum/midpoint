@@ -85,8 +85,7 @@ class ShadowSearchLikeOperation {
         return new ShadowSearchLikeOperation(
                 createContext(query, options, context, task, result),
                 query,
-                options
-        );
+                options);
     }
 
     private static ProvisioningContext createContext(
@@ -313,7 +312,7 @@ class ShadowSearchLikeOperation {
             OperationResult lResult = result.createMinorSubresult(ShadowsFacade.OP_HANDLE_OBJECT);
             boolean cont;
             try {
-                processRepoShadow(shadow, lResult);
+                shadow = processRepoShadow(shadow, lResult);
                 cont = upstreamHandler == null || upstreamHandler.handle(shadow, lResult);
             } catch (CommonException e) {
                 lResult.recordException(e);
@@ -333,13 +332,13 @@ class ShadowSearchLikeOperation {
         };
     }
 
-    private void processRepoShadow(PrismObject<ShadowType> rawRepoShadow, OperationResult result)
+    private PrismObject<ShadowType> processRepoShadow(PrismObject<ShadowType> rawRepoShadow, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
 
         if (isRaw()) {
             ctx.applyDefinitionInNewCtx(rawRepoShadow); // TODO is this really OK?
-            return;
+            return rawRepoShadow;
         }
 
         // We don't need to keep the raw repo shadow. (At least not now.)
@@ -356,6 +355,11 @@ class ShadowSearchLikeOperation {
                 result.recordFatalError("Requested cached data but no cached data are available in the shadow");
             }
         }
+
+        b.associationsHelper.convertReferenceAttributesToAssociations(
+                ctx, repoShadow.getBean(), ctx.getObjectDefinitionRequired(), result);
+
+        return repoShadow.getPrismObject();
     }
 
     private void unwrapAndThrowSearchingTunnelException(TunnelException e) throws ObjectNotFoundException, SchemaException,

@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,6 +25,8 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.test.DummyDefaultScenario;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,6 +41,8 @@ public class TestDummyNativeAssociations extends TestDummy {
 
     public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy-native-associations.xml");
 
+    private DummyDefaultScenario dummyScenario;
+
     @Override
     protected File getResourceDummyFile() {
         return RESOURCE_DUMMY_FILE;
@@ -43,7 +51,7 @@ public class TestDummyNativeAssociations extends TestDummy {
     @Override
     protected void extraDummyResourceInit() throws Exception {
         super.extraDummyResourceInit();
-        DummyDefaultScenario.on(dummyResourceCtl)
+        dummyScenario = DummyDefaultScenario.on(dummyResourceCtl)
                 .initialize();
     }
 
@@ -98,6 +106,36 @@ public class TestDummyNativeAssociations extends TestDummy {
         return dummyAccount.getLinkedObjects(DummyDefaultScenario.Account.LinkNames.PRIV.local()).stream()
                 .map(member -> member.getName())
                 .collect(Collectors.toSet());
+    }
+
+    /** Tests the treatment of reference values without object class information (currently disabled). */
+    @Test
+    public void test980UnclassifiedReferenceValues() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
+
+        given("there is a new pirate");
+        var account = dummyScenario.account.add(accountName);
+        var group = dummyScenario.group.getByNameRequired(GROUP_PIRATES_NAME);
+        dummyScenario.groupMembership.add(account, group);
+
+        displayDumpable("pirates on resource", group);
+
+        when("pirates are retrieved");
+        var groupShadow = provisioningService.getShadow(
+                GROUP_PIRATES_OID,
+                GetOperationOptionsBuilder.create()
+                        .item(ShadowType.F_ATTRIBUTES.append(DummyDefaultScenario.Group.LinkNames.MEMBER_REF.q()))
+                        .retrieve()
+                        .build(),
+                task, result);
+
+        then("everything is OK");
+        assertSuccess(result);
+        displayDumpable("pirates", groupShadow);
+
+        // TODO some asserts here
     }
 
     @Override

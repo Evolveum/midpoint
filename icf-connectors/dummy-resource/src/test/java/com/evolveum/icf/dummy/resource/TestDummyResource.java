@@ -28,7 +28,6 @@ public class TestDummyResource {
     private static final String ATTR_CONTRACT = "contract";
 
     private static final String OC_CONTRACT = "contract";
-    private static final String ATTR_PERSON = "person";
     private static final String ATTR_ORG = "org";
 
     private static final String LC_PERSON_CONTRACT = "personContract";
@@ -47,7 +46,7 @@ public class TestDummyResource {
         addAttrDef(personOC, ATTR_LAST_NAME, String.class, false, false);
         dummyResource.addStructuralObjectClass(OC_PERSON, personOC);
 
-        var contractOC = DummyObjectClass.association();
+        var contractOC = DummyObjectClass.embedded();
         dummyResource.addStructuralObjectClass(OC_CONTRACT, contractOC);
 
         dummyResource.addLinkClassDef(
@@ -60,8 +59,7 @@ public class TestDummyResource {
                                 .build())
                         .withSecondParticipant(aParticipant()
                                 .withObjectClassNames(OC_CONTRACT)
-                                .withInvisibleLinkAttributeName(ATTR_PERSON)
-                                .withMinOccurs(1)
+                                .withMinOccurs(1) // necessary for cascading deletion operations
                                 .withMaxOccurs(1)
                                 .build())
                         .build());
@@ -70,7 +68,7 @@ public class TestDummyResource {
                         .withName(LC_CONTRACT_ORG)
                         .withFirstParticipant(aParticipant()
                                 .withObjectClassNames(OC_CONTRACT)
-                                .withInvisibleLinkAttributeName(ATTR_ORG)
+                                .withLinkAttributeName(ATTR_ORG)
                                 .withMinOccurs(1)
                                 .withMaxOccurs(1)
                                 .build())

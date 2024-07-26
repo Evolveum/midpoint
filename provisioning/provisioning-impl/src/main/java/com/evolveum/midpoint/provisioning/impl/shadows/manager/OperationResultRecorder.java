@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.MetadataUtil.addCreationMetadata;
 import static com.evolveum.midpoint.provisioning.impl.shadows.manager.MetadataUtil.addModificationMetadataDeltas;
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.ArrayList;
 import javax.xml.datatype.Duration;
@@ -162,13 +163,16 @@ public class OperationResultRecorder {
     public void recordModifyResult(ShadowModifyOperation operation, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
-        ProvisioningContext ctx = operation.getCtx();
-        ModifyOperationState opState = operation.getOpState();
-        RepoShadow repoShadow = opState.getRepoShadowRequired();
+        var ctx = operation.getCtx();
+        var opState = operation.getOpState();
+        var repoShadow = opState.getRepoShadowRequired();
 
-        RepoShadowModifications allModifications = new RepoShadowModifications();
+        var allModifications = new RepoShadowModifications();
         if (opState.isCompleted()) {
-            allModifications.addAll(operation.getEffectiveModifications(), ctx.getObjectDefinitionRequired());
+            allModifications.addAll(operation.getRequestedNonResourceModifications());
+            allModifications.addAll(
+                    emptyIfNull(operation.getEffectiveResourceLevelModifications()),
+                    ctx.getObjectDefinitionRequired());
         }
         allModifications.addAll(computePendingOperationsAndLifecycleStateModifications(operation));
         if (shouldApplyModifyMetadata()) {

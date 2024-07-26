@@ -24,4 +24,8 @@ public enum ShadowReferenceParticipantRole {
     public @NotNull String getValue() {
         return value;
     }
+
+    public @NotNull ShadowReferenceParticipantRole other() {
+        return this == SUBJECT ? OBJECT : SUBJECT;
+    }
 }

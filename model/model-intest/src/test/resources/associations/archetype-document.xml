@@ -9,5 +9,16 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="ce92f877-9f22-44cf-9ef1-f55675760eb0">
     <name>document</name>
-    <!-- TODO -->
+    <inducement>
+        <documentation>
+            This induces the account on dms resource.
+            The associations will be provisioned thanks to the association type configuration in the resource definition.
+        </documentation>
+        <construction>
+            <resourceRef oid="d77da617-ee78-46f7-8a15-cde88193308d"/>
+            <kind>account</kind>
+            <intent>default</intent>
+        </construction>
+        <order>2</order>
+    </inducement>
 </archetype>

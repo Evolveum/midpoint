@@ -142,7 +142,7 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createActionsColumn() {
         List<AbstractGuiAction<AccessCertificationWorkItemType>> actions = getCertItemActions();
         if (CollectionUtils.isNotEmpty(actions)) {
-            return new GuiActionColumn<>(actions, getPageBase()) {
+            return new GuiActionColumn<>(actions) {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override
@@ -310,8 +310,6 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
             //TODO handle properly
             throw new RuntimeException(e);
         }
-
-//        WebComponentUtil.getCompiledObjectCollectionView(existingGlobalView, new ContainerPanelConfigurationType(), getPageBase());
 
     }
 

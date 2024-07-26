@@ -7,10 +7,9 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.io.Serializable;
-import jakarta.persistence.*;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RFocusPhotoId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
@@ -32,11 +31,10 @@ public class RFocusPhoto implements Serializable, EntityState {
 
     private byte[] photo;
 
-    @Id
-    @ForeignKey(name = "fk_focus_photo")
-    @MapsId("owner")
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumn(name = "owner_oid", referencedColumnName = "oid", foreignKey = @ForeignKey(name = "fk_focus_photo"))
     public RFocus getOwner() {
         return owner;
     }
@@ -79,8 +77,8 @@ public class RFocusPhoto implements Serializable, EntityState {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
 
         RFocusPhoto photo = (RFocusPhoto) o;
 

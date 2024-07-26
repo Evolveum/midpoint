@@ -38,8 +38,7 @@ public interface ShadowAssociationDefinition
     /** True if this is a "rich" association (with association object), false if it's a trivial one. */
     default boolean hasAssociationObject() {
         return getReferenceAttributeDefinition()
-                .getTargetObjectClassDefinition()
-                .isAssociationObject();
+                .isTargetingSingleEmbeddedObjectClass();
     }
 
     /**
@@ -93,11 +92,15 @@ public interface ShadowAssociationDefinition
     @Override
     @NotNull ShadowAssociation instantiate() throws SchemaException;
 
-    default ShadowAssociationValue createValueFromFullDefaultObject(@NotNull AbstractShadow object)
+    default ShadowAssociationValue createValueFromFullDefaultObject(@NotNull AbstractShadow object) throws SchemaException {
+        return createValueFromDefaultObject(object, true);
+    }
+
+    default ShadowAssociationValue createValueFromDefaultObject(@NotNull AbstractShadow object, boolean full)
             throws SchemaException {
         var newValue = instantiate().createNewValue();
         newValue.getOrCreateObjectsContainer()
-                .addReferenceAttribute(getItemName(), object, true);
+                .addReferenceAttribute(getItemName(), object, full);
         return newValue.clone(); // to make it parent-less
     }
 

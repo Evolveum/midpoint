@@ -76,12 +76,11 @@ public class DummyDmsScenario extends AbstractDummyScenario {
         }
 
         public static class LinkNames {
-            public static final AssocName ACCOUNT = AssocName.ri("account");
             public static final AssocName DOCUMENT = AssocName.ri("document");
         }
 
         void initialize() {
-            var oc = DummyObjectClass.association();
+            var oc = DummyObjectClass.embedded();
             controller.addAttrDef(oc, AttributeNames.LEVEL.local(), String.class, false, false);
             controller.getDummyResource().addStructuralObjectClass(OBJECT_CLASS_NAME.local(), oc);
         }
@@ -98,10 +97,6 @@ public class DummyDmsScenario extends AbstractDummyScenario {
 
         public static class AttributeNames {
             public static final AttrName NAME = icfsName();
-        }
-
-        public static class LinkNames {
-            public static final AssocName ACCESS = AssocName.ri("access"); // invisible
         }
 
         void initialize() {
@@ -131,8 +126,7 @@ public class DummyDmsScenario extends AbstractDummyScenario {
                             .build())
                     .withSecondParticipant(aParticipant()
                             .withObjectClassNames(Access.OBJECT_CLASS_NAME.local())
-                            .withInvisibleLinkAttributeName(Access.LinkNames.ACCOUNT.local())
-                            .withMinOccurs(1)
+                            .withMinOccurs(1) // necessary for cascading deletion operations
                             .withMaxOccurs(1)
                             .build())
                     .build());
@@ -161,10 +155,6 @@ public class DummyDmsScenario extends AbstractDummyScenario {
                             .build())
                     .withSecondParticipant(aParticipant()
                             .withObjectClassNames(Document.OBJECT_CLASS_NAME.local())
-                            .withInvisibleLinkAttributeName(Document.LinkNames.ACCESS.local())
-                            .withMaxOccurs(-1)
-                            .withReturnedByDefault(false)
-                            .withExpandedByDefault(false)
                             .build())
                     .build());
         }

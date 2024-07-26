@@ -123,8 +123,8 @@ class ShadowGetOperation {
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException, EncryptionException {
-        RawRepoShadow rawRepoShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result);
-        ProvisioningContext ctx = createProvisioningContext(rawRepoShadow, options, context, task, result);
+        var rawRepoShadow = obtainRepositoryShadow(oid, providedRepositoryShadow, options, result);
+        var ctx = createProvisioningContext(rawRepoShadow, options, context, task, result);
         var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
         return new ShadowGetOperation(ctx, repoShadow, identifiersOverride, options)
                 .executeInternal(result);
@@ -139,26 +139,26 @@ class ShadowGetOperation {
         if (isNoFetch()) {
             // Even here we want to delete expired pending operations; and delete the shadow if needed.
             doQuickShadowRefresh(parentResult);
-            return returnCached("noFetch option");
+            return returnCached("noFetch option", parentResult);
         }
 
         ctx.checkForCapability(ReadCapabilityType.class);
 
         if (ctx.isInMaintenance()) {
             parentResult.setPartialError("Resource is in maintenance mode");
-            return returnCached("maintenance mode");
+            return returnCached("maintenance mode", parentResult);
         }
 
         refreshBeforeReading(parentResult);
 
         String returnCachedReason = getReasonForReturningCachedShadow();
         if (returnCachedReason != null) {
-            return returnCached(returnCachedReason);
+            return returnCached(returnCachedReason, parentResult);
         }
 
         var identification = getPrimaryIdentification();
         if (identification == null) {
-            return returnCached("no primary identifier but can return repository shadow");
+            return returnCached("no primary identifier but can return repository shadow", parentResult);
         }
 
         ExistingResourceObjectShadow resourceObject;
@@ -170,7 +170,7 @@ class ShadowGetOperation {
         } catch (ReturnCachedException e) {
             result.muteAllSubresultErrors();
             result.recordSuccess();
-            return returnCached(e.reason);
+            return returnCached(e.reason, result);
         } catch (Exception ex) {
             result.recordException(ex);
             result.close(); // This is necessary before invoking the error handler
@@ -178,7 +178,7 @@ class ShadowGetOperation {
                 invokeErrorHandler(ex, result, parentResult);
                 if (!repoShadow.isDeleted()) {
                     return returnCached(
-                            "(handled) exception during resource object retrieval: " + formatExceptionMessage(ex));
+                            "(handled) exception during resource object retrieval: " + formatExceptionMessage(ex), result);
                 } else {
                     throw ex;
                 }
@@ -436,9 +436,11 @@ class ShadowGetOperation {
      *
      * TODO shouldn't we try to set the "protected" flag here (like we do in the search-like operation)?
      */
-    private @NotNull Shadow returnCached(String reason) throws SchemaException, ConfigurationException {
+    private @NotNull Shadow returnCached(String reason, OperationResult result) throws SchemaException, ConfigurationException {
         LOGGER.trace("Returning cached (repository) version of shadow {} because of: {}", repoShadow, reason);
         ctx.applyCurrentDefinition(repoShadow.getBean());
+        b.associationsHelper.convertReferenceAttributesToAssociations(
+                ctx, repoShadow.getBean(), ctx.getObjectDefinitionRequired(), result);
         var futurized =
                 ProvisioningUtil.isFuturePointInTime(options) ?
                         futurizeRepoShadow(ctx, repoShadow, now) :

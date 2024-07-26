@@ -2310,7 +2310,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         String uid = provisioningShadowAsserter
                 .attributes()
-                .getValue(getPrimaryIdentifierQName());
+                .getSimpleAttributeValue(getPrimaryIdentifierQName());
         assertNotNull(uid);
 
         Entry accountEntry = openDJController.searchAndAssertByEntryUuid(uid);
@@ -2359,7 +2359,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         String uid = provisioningShadowAsserter
                 .attributes()
-                .getValue(getPrimaryIdentifierQName());
+                .getSimpleAttributeValue(getPrimaryIdentifierQName());
         assertNotNull(uid);
 
         Entry accountEntry = openDJController.searchAndAssertByEntryUuid(uid);
@@ -2389,8 +2389,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
         String uid = assertShadowNew(provisioningShadow.asObjectable())
                 .assertName(GROUP_SWASHBUCKLERS_DN_ORIG)
                 .attributes()
-                .assertNoAttribute(GROUP_MEMBER_ATTR_QNAME)
-                .getValue(getPrimaryIdentifierQName());
+                .assertNoSimpleAttribute(GROUP_MEMBER_ATTR_QNAME)
+                .getSimpleAttributeValue(getPrimaryIdentifierQName());
 
         assertThat(uid).as("uid").isNotNull();
 
@@ -2739,7 +2739,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertProvisioningShadowNew(GROUP_SPECIALISTS_OID)
                 .assertName(GROUP_SPECIALISTS_DN_ORIG)
                 .attributes()
-                .assertNoAttribute(GROUP_MEMBER_ATTR_QNAME);
+                .assertNoSimpleAttribute(GROUP_MEMBER_ATTR_QNAME);
 
         Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP group", ldapEntry);

@@ -10,6 +10,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +44,7 @@ class ShadowComputerUtil {
         return shouldStoreAttributeInShadow(ctx, objectDefinition, attrDef);
     }
 
-    public static boolean shouldStoreReferenceAttributeInShadow(
+    static boolean shouldStoreReferenceAttributeInShadow(
             @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull ShadowReferenceAttributeDefinition attrDef) {
@@ -77,7 +79,7 @@ class ShadowComputerUtil {
     /** Returns null if the reference cannot be stored in the repository. */
     static @Nullable ObjectReferenceType toRepoFormat(
             @NotNull ProvisioningContext ctx,
-            @NotNull ShadowReferenceAttributeValue refAttrValue) {
+            @NotNull PrismReferenceValue refAttrValue) {
         String oid = refAttrValue.getOid();
         if (oid != null) {
             return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.SHADOW);
