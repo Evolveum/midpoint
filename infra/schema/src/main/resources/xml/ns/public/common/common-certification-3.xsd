@@ -1497,6 +1497,15 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="enableCertItemsCollectionView" minOccurs="0" type="xsd:boolean" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines if the certification items collection view can be reached directly through
+                        navigation menu. If not, the certification items collection view can be reached only
+                        through the active campaigns panel.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

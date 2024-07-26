@@ -717,6 +717,17 @@ public final class WebComponentUtil {
         return isAuthorized(actionUris);
     }
 
+    public static boolean isCertItemsViewEnabled(ModelServiceLocator serviceLocator) {
+        try {
+            OperationResult result = new OperationResult("loadingCertificationConfiguration");
+            AccessCertificationConfigurationType config =
+                    serviceLocator.getModelInteractionService().getCertificationConfiguration(result);
+            return config != null && Boolean.TRUE.equals(config.getEnableCertItemsCollectionView());
+        } catch (SchemaException | ObjectNotFoundException e) {
+            return false;
+        }
+    }
+
     // TODO: move to util component
     public static Integer safeLongToInteger(Long l) {
         if (l == null) {
