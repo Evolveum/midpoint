@@ -72,6 +72,13 @@ public class WrapperContext {
 
     private boolean isDeprecatedItemAllowed = false;
 
+    /**
+     * usually virtual containers are created only whtn the whole object wrapper is created
+     * however, there are situations, when we need to create those virtual containers even
+     * when a concrete container wrapper is beeing created.
+     */
+    private boolean forceCreateVirtualContainers;
+
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
         this.result = result != null ? result : new OperationResult("temporary");       // TODO !!!
@@ -290,6 +297,15 @@ public class WrapperContext {
         isDeprecatedItemAllowed = deprecatedItemAllowed;
     }
 
+    public void forceCreateVirtualContainer(List<VirtualContainersSpecificationType> virtualContainers) {
+        this.virtualContainers.addAll(virtualContainers);
+        this.forceCreateVirtualContainers = true;
+    }
+
+    public boolean isForceCreateVirtualContainers() {
+        return forceCreateVirtualContainers;
+    }
+
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -311,4 +327,5 @@ public class WrapperContext {
         ctx.setShowedByWizard(isShowedByWizard);
         return ctx;
     }
+
 }

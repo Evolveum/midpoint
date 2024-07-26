@@ -17,10 +17,8 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -58,45 +56,21 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
             return;
         }
 
-        List<GuiParameterType> actionParameter = guiActionType.getParameter().stream()
-                .filter(param -> BooleanUtils.isNotFalse(param.isManual()))
-                .toList();
-
-        if (!actionParameter.isEmpty()) {
-            runCollectAttributes(actionParameter, objectsToProcess, pageBase, target);
-            return;
-        }
-
         GuiConfirmationActionType confirmation = guiActionType.getConfirmation();
         if (confirmation != null) {
-            runConfirmation(confirmation, objectsToProcess, guiActionType, pageBase, target);
+            runConfirmation(confirmation, objectsToProcess, pageBase, target);
             return;
         }
         executeAction(objectsToProcess, pageBase, target);
 
     }
 
-    private void runConfirmation(GuiConfirmationActionType confirmation, List<C> objectsToProcess, GuiActionType actionType, PageBase pageBase, AjaxRequestTarget target) {
+    private void runConfirmation(GuiConfirmationActionType confirmation, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
 
-        ConfirmationPanel confirmationPanel = new ConfirmationPanel(pageBase.getMainPopupBodyId(), getConfirmationModel(confirmation)) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                executeAction(objectsToProcess, pageBase, target);
-                pageBase.hideMainPopup(target);
-            }
-
-            @Override
-            public void noPerformed(AjaxRequestTarget target) {
-                pageBase.hideMainPopup(target);
-            }
-        };
-        pageBase.showMainPopup(confirmationPanel, target);
-    }
-
-    private void runCollectAttributes(List<GuiParameterType> actionParameter, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
-        ConfirmationPanelWithComment requestAttributes = new ConfirmationPanelWithComment(pageBase.getMainPopupBodyId(), getConfirmationModel(guiActionType.getConfirmation()), actionParameter, objectsToProcess) {
+        ConfirmationPanelWithComment confirmationPanel = new ConfirmationPanelWithComment(pageBase.getMainPopupBodyId(),
+                getConfirmationModel(confirmation),
+                () -> confirmation,
+                (List<Containerable>) objectsToProcess) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -112,9 +86,15 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
 
                 executeAction(objectsToProcess, pageBase, target);
                 pageBase.hideMainPopup(target);
+
+            }
+
+            @Override
+            public void noPerformed(AjaxRequestTarget target) {
+                pageBase.hideMainPopup(target);
             }
         };
-        pageBase.showMainPopup(requestAttributes, target);
+        pageBase.showMainPopup(confirmationPanel, target);
     }
 
     private IModel<String> getConfirmationModel(GuiConfirmationActionType confirmation) {

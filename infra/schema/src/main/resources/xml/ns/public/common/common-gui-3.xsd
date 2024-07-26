@@ -4151,6 +4151,7 @@
                     <!--        </xsd:appinfo>-->
                     <!--    </xsd:annotation>-->
                     <!--</xsd:element>-->
+
                     <xsd:element name="parameter" type="tns:GuiParameterType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -4181,6 +4182,13 @@
         <!-- TODO maybe extend user interface feature type -->
         <xsd:sequence>
             <xsd:element name="message" type="t:PolyStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Message as shown in confirmation popup
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Message as shown in confirmation popup

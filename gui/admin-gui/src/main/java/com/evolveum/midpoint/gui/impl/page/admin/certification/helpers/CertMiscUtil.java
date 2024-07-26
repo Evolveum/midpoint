@@ -445,7 +445,7 @@ public class CertMiscUtil {
             pageBase.error("Unable to find action for identifier: " + guiAction.getIdentifier());
             return null;
         }
-        return instantiateAction(actionClass, guiAction, pageBase); 
+        return instantiateAction(actionClass, guiAction, pageBase);
     }
 
     private static AbstractGuiAction<AccessCertificationWorkItemType> instantiateAction(
