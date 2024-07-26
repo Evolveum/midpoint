@@ -51,7 +51,6 @@ public class FulltextSearchPanel extends BasePanel<FulltextQueryWrapper> {
             protected void onUpdate(AjaxRequestTarget target) {
             }
         });
-        fullTextInput.add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
         fullTextInput.setOutputMarkupId(true);
         fullTextInput.add(new AttributeAppender("placeholder",
                 createStringResource("SearchPanel.fullTextSearch")));
