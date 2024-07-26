@@ -108,14 +108,22 @@ public interface ShadowAttributeDefinition<
         }
 
         var scope = cachingPolicy.getScope();
-        var attributesScope = Objects.requireNonNullElse(
-                scope != null ? scope.getAttributes() : null,
-                ShadowItemsCachingScopeType.MAPPED);
+
+        ShadowItemsCachingScopeType attributesScope;
+        if (this instanceof ShadowSimpleAttributeDefinition) {
+            attributesScope = Objects.requireNonNullElse(
+                    scope != null ? scope.getAttributes() : null,
+                    ShadowItemsCachingScopeType.MAPPED);
+        } else {
+            attributesScope = Objects.requireNonNullElse(
+                    scope != null ? scope.getAssociations() : null,
+                    ShadowItemsCachingScopeType.ALL);
+        }
 
         return switch (attributesScope) {
             case ALL -> true;
             case NONE -> false;
-            case MAPPED -> hasOutboundMapping() || getInboundMappingBeans().isEmpty();
+            case MAPPED -> hasOutboundMapping() || !getInboundMappingBeans().isEmpty();
         };
     }
 
