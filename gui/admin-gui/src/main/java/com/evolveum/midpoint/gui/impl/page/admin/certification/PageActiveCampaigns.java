@@ -57,6 +57,8 @@ public class PageActiveCampaigns extends PageAdminCertification {
     private void initLayout() {
         ActiveCampaignsPanel campaignsPanel = new ActiveCampaignsPanel(ID_CAMPAIGNS_PANEL) {
 
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void showCertItems(String campaignOid, AjaxRequestTarget target) {
                 PageParameters params = new PageParameters();

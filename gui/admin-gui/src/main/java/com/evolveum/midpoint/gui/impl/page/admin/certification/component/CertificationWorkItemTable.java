@@ -284,7 +284,9 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         } else {
             List<CompiledObjectCollectionView> compiledObjectCollectionViews = WebComponentUtil.getCompiledGuiProfile().findAllApplicableObjectCollectionViews(AccessCertificationWorkItemType.COMPLEX_TYPE);
             if (compiledObjectCollectionViews.size() > 1) {
-                //TODO warning and skip, we can't decide which one to use
+                String message = "Found more than one collection view definition for certification work items, skipping them";
+                LOGGER.warn(message);
+                result.recordWarning(message);
             } else if (compiledObjectCollectionViews.size() == 1) {
                 existingGlobalView = compiledObjectCollectionViews.get(0);
             }
@@ -304,10 +306,9 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
             getPageBase().getModelInteractionService().compileView(mergedView, view, task, result);
             return mergedView;
         } catch (Exception e) {
-            //TODO handle properly
-            throw new RuntimeException(e);
+            LOGGER.error("Couldn't load certification work items view, ", e);
         }
-
+        return null;
     }
 
     private GuiObjectListViewType getCollectionViewConfigurationFromCampaignDefinition(Task task, OperationResult result) {
