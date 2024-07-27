@@ -61,6 +61,7 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     private static final String DOT_CLASS = CertificationWorkItemTable.class.getName() + ".";
     private static final String OPERATION_LOAD_ACCESS_CERT_DEFINITION = DOT_CLASS + "loadAccessCertificationDefinition";
     private static final String OPERATION_RECORD_COMMENT = DOT_CLASS + "recordComment";
+    private static final String OPERATION_LOAD_MULTISELECT_CONFIG = DOT_CLASS + "loadMultiselectConfig";
 
     public CertificationWorkItemTable(String id) {
         super(id, AccessCertificationWorkItemType.class);
@@ -95,7 +96,25 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     @Override
     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createCheckboxColumn() {
         if (!isPreview()) {
-            return new CheckBoxHeaderColumn<>();
+            try {
+                OperationResult result = new OperationResult(OPERATION_LOAD_MULTISELECT_CONFIG);
+                var accessCertConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(result);
+                if (accessCertConfig == null) {
+                    return new CheckBoxColumn<>(null);
+                }
+                MultiselectOptionType multiselect = accessCertConfig.getMultiselect();
+                if (multiselect == null) {
+                    return new CheckBoxColumn<>(null);
+                }
+                return switch (multiselect) {
+                    case NO_SELECT -> null;
+                    case SELECT_ALL -> new CheckBoxHeaderColumn<>();
+                    case SELECT_INDIVIDUAL_ITEMS -> new CheckBoxColumn<>(null);
+                };
+            } catch (Exception e) {
+                LOGGER.error("Couldn't load multiselect configuration for certification items", e);
+                return new CheckBoxHeaderColumn<>();
+            }
         }
         return null;
     }

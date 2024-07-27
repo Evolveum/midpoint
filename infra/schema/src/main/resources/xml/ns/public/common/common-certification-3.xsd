@@ -1506,8 +1506,63 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="multiselect" type="tns:MultiselectOptionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configures the possibility of selecting multiple objects in the table or view
+                        (in case this table or view provides item selection functionality).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>GuiObjectListPanelConfigurationType.multiselect</a:displayName>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="MultiselectOptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines the possibility to select multiple items.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="selectAll">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Gives the possibility to select all items at once.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECT_ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="selectIndividualItems">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Gives the possibility to select individual items without possibility to select all at once.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELECT_INDIVIDUAL_ITEMS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="noSelect">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No possibility to select any items.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NO_SELECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>
