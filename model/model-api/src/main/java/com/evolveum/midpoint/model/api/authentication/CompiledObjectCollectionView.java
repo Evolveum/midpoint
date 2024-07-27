@@ -382,7 +382,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         return getOid(getArchetypeRef());
     }
 
-    //TODO check and implement properly
     public CompiledObjectCollectionView clone() {
         CompiledObjectCollectionView clone = new CompiledObjectCollectionView(containerType, viewIdentifier);
         clone.actions = CloneUtil.cloneCollectionMembers(actions);

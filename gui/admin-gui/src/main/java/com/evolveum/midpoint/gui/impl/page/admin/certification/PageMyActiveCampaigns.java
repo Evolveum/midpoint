@@ -11,30 +11,30 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
+import java.io.Serial;
+
+//TODO better name
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/certification/decisions", matchUrlForSecurity = "/admin/certification/decisions")
+                @Url(mountUrl = "/admin/certification/myActiveCampaigns", matchUrlForSecurity = "/admin/certification/myActiveCampaigns")
         },
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS,
-                        label = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_LABEL,
-                        description = PageAdminCertification.AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION) })
-public class PageMyCertItems extends PageCertItems {
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_URL,
+                        label = PageAdminCertification.AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL,
+                        description = PageAdminCertification.AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION)})
+public class PageMyActiveCampaigns extends PageActiveCampaigns {
 
-    public PageMyCertItems() {
-        super();
+    @Serial private static final long serialVersionUID = 1L;
+
+    public PageMyActiveCampaigns() {
     }
 
     @Override
-    boolean showOnlyNotDecidedItems() {
+    boolean isDisplayingAllItems() {
         return true;
     }
 
-    @Override
-    protected boolean isMyCertItems() {
-        return true;
-    }
 }

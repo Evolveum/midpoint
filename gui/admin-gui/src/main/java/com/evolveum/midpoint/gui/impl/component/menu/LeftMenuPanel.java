@@ -476,11 +476,20 @@ public class LeftMenuPanel extends BasePanel<Void> {
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
         //TODO think about better names, how to differentiate between cert items per campaign vs. tile view for all active campaigns
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationItems", PageCertItems.class));
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationActiveCampaigns", PageActiveCertItems.class));
+
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationActiveCampaigns", PageActiveCampaigns.class));
+
+        boolean certItemsViewEnabled = WebComponentUtil.isCertItemsViewEnabled(getPageBase());
+        if (certItemsViewEnabled) {
+            certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationItems", PageCertItems.class));
+        }
 
 //        }
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationItems", PageMyCertItems.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationActiveCampaigns", PageMyActiveCampaigns.class));
+
+        if (certItemsViewEnabled) {
+            certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationItems", PageMyCertItems.class));
+        }
 
         MenuItem newCertificationMenu = new MenuItem("PageAdmin.menu.top.certification.newDefinition", GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCertDefinition.class);
         certificationMenu.addMenuItem(newCertificationMenu);

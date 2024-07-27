@@ -9,12 +9,11 @@
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  oid="00000000-0000-0000-0001-000000000351">
-    <name>Security understaffing</name>
-    <description>Security responsibilities that are not properly staffed.</description>
-    <type>c:AbstractRoleType</type>
+                  oid="00000000-0000-0000-0001-000000000357">
+    <name>Suspicious roles</name>
+    <type>RoleType</type>
     <filter>
-        <q:text>effectiveMarkRef matches ( oid = "00000000-0000-0000-0000-000000000831" )</q:text>
+        <q:text>effectiveMarkRef matches ( oid = "00000000-0000-0000-0000-000000000830" )</q:text>
     </filter>
     <domain>
     </domain>
