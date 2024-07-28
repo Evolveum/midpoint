@@ -10,10 +10,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 import java.awt.*;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
 import com.evolveum.midpoint.prism.PrismContainer;
 
@@ -88,12 +90,14 @@ public class ConfirmationPanelWithComment extends ConfirmationPanel implements P
 
                 IModel<PrismContainerWrapper<Containerable>> virtualContainerModel = createVirtualContainerModel(model, item.getModelObject());
 
-                ItemPanelSettings settings = new ItemPanelSettingsBuilder().visibilityHandler((wrapper) -> ItemVisibility.AUTO).build();
+                ItemPanelSettings settings = new ItemPanelSettingsBuilder()
+                        .visibilityHandler((wrapper) -> ItemVisibility.AUTO)
+                        .mandatoryHandler((wrapper) -> isMandatoryItem(item.getModelObject(), wrapper))
+                        .build();
 
                 VerticalFormPrismContainerPanel<Containerable> panel = new VerticalFormPrismContainerPanel<>(ID_ITEM, virtualContainerModel, settings);
                 item.add(panel);
 
-//                ItemPanel panel = createItemPanel(wrapper, item);
                 item.add(panel);
             }
         };
@@ -154,4 +158,19 @@ public class ConfirmationPanelWithComment extends ConfirmationPanel implements P
         // to be overridden
     }
 
+    private boolean isMandatoryItem(VirtualContainersSpecificationType container, ItemWrapper<?, ?> wrapper) {
+        GuiConfirmationActionType confirmation = confirmationModel.getObject();
+        if (confirmation == null) {
+            return false;
+        }
+        VirtualContainerItemSpecificationType virtItem = container.getItem()
+                .stream()
+                .filter(item -> item.getPath() != null && wrapper.getPath().equivalent(item.getPath().getItemPath()))
+                .findFirst()
+                .orElse(null);
+        if (virtItem == null) {
+            return false;
+        }
+        return Boolean.TRUE.equals(virtItem.isMandatory());
+    }
 }

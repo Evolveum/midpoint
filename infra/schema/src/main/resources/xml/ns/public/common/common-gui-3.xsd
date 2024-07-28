@@ -1561,7 +1561,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO mandatory settings-->
+            <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -4073,16 +4073,11 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Defines the additional action which should be executed before the current action.
-                                    Can be used for example to define a confirmation dialog or adding a comment.
-                                </p>
-                                <p>
-                                    For now, pre-action is implemented only for certification items collection view
-                                    when the view is defined within certification definition.
+                                    Defines the type of the action.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>GuiActionType.preAction</a:displayName>
+                                <a:displayName>GuiActionType.actionType</a:displayName>
                                 <a:elaborate>true</a:elaborate>
                                 <a:since>4.9</a:since>
                             </xsd:appinfo>
@@ -4147,24 +4142,27 @@
                 <a:since>4.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <!-- TODO maybe extend user interface feature type -->
-        <xsd:sequence>
-            <xsd:element name="message" type="t:PolyStringType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Message as shown in confirmation popup
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Message as shown in confirmation popup
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <!-- TODO later ok/cancel button behavior + label?-->
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="message" type="t:PolyStringType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Message as shown in confirmation popup
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Message as shown in confirmation popup
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- TODO later ok/cancel button behavior + label?-->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:simpleType name="GuiActionTypeType">
