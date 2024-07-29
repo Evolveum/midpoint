@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
-import com.evolveum.midpoint.model.intest.associations.DummyAdTrivialScenario;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
@@ -151,7 +150,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        rememberSteadyResources();
+        rememberShadowOperations();
 
         when("persons are imported");
         var taskOid = importAccountsRequest()
@@ -185,7 +184,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                 .end();
         // @formatter:on
 
-        and("there were no resource operations");
+        and("there were no shadow fetch operations");
         var taskProvisioningStats = assertTask(taskOid, "import task after")
                 .display()
                 .getObjectable()
@@ -196,7 +195,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         displayValue("Provisioning statistics", ProvisioningStatistics.format(taskProvisioningStats));
         assertThat(taskProvisioningStats.getEntry()).as("provisioning statistics entry").isEmpty();
 
-        assertSteadyResources();
+        assertNoShadowFetchOperations();
     }
 
     /** We modify the user, and re-run the import. */
@@ -213,7 +212,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
         refreshHrPersons(task, result);
 
-        rememberSteadyResources();
+        rememberShadowOperations();
 
         when("persons are re-imported");
         importAccountsRequest()
@@ -232,8 +231,8 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                 .assertHonorificPrefix("Ing.")
                 .assertAssignments(3);
 
-        and("there were no resource operations");
-        assertSteadyResources();
+        and("there were no shadow fetch operations");
+        assertNoShadowFetchOperations();
     }
 
     /** We modify the user, and now run the recomputation task. */
@@ -250,7 +249,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
         refreshHrPersons(task, result);
 
-        rememberSteadyResources();
+        rememberShadowOperations();
 
         when("users are recomputed");
 
@@ -264,8 +263,44 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                 .assertHonorificPrefix("Ing. Mgr.")
                 .assertAssignments(3);
 
-        and("there were no resource operations");
-        assertSteadyResources();
+        and("there were no shadow fetch operations");
+        assertNoShadowFetchOperations();
+    }
+
+    /** We modify the user, and now run the reconciliation task. */
+    @Test(enabled = false) // not ready yet
+    public void test140ReconcilingWithChangedData() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("john's data are changed and the cache is refreshed");
+
+        hrScenario.person.getByNameRequired(PERSON_JOHN_NAME)
+                .replaceAttributeValues(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Doe-140");
+
+        refreshHrPersons(task, result);
+
+        rememberShadowOperations();
+
+        when("users are reconciled");
+
+        reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_HR.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
+                .withProcessingAllAccounts()
+                .withNoFetchWhenSynchronizing()
+                .execute(result);
+
+        then("data are changed in midPoint");
+
+        assertUserAfterByUsername(PERSON_JOHN_NAME)
+                .assertGivenName("John")
+                .assertFamilyName("Doe-140")
+                .assertHonorificPrefix("Ing. Mgr.")
+                .assertAssignments(3);
+
+        and("there were no shadow fetch operations");
+        assertNoShadowFetchOperations();
     }
 
     private @NotNull SearchResultList<? extends AbstractShadow> refreshHrPersons(Task task, OperationResult result)

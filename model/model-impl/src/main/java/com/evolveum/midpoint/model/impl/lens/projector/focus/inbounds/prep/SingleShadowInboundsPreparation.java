@@ -14,6 +14,8 @@ import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachedShadowsUseType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.exception.*;
@@ -100,8 +102,11 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
             MappedSourceItems<T> mappedSourceItems = new MappedSourceItems<>(inboundsSource, inboundsTarget, inboundsContext);
             mappedSourceItems.collectMappedItems();
 
-            // Now we load the full shadow, if we need to. We no longer do that at other places.
-            inboundsSource.loadFullShadowIfNeeded(mappedSourceItems.isFullShadowLoadingTriggered(), inboundsContext, result);
+            // Load the shadow if needed. Note that we no longer do the loading at other inbounds-related places.
+            // This is where the cache state and usage policy is evaluated.
+            if (needsFullShadowLoad(mappedSourceItems)) {
+                inboundsSource.loadFullShadow(inboundsContext, result);
+            }
 
             // Let's create the mappings and put them to `evaluationRequestsBeingCollected`
             mappedSourceItems.createMappings(evaluationRequestsBeingCollected, result);
@@ -118,6 +123,42 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
             throw t;
         } finally {
             result.close();
+        }
+    }
+
+    private boolean needsFullShadowLoad(MappedSourceItems<T> mappedSourceItems) throws SchemaException, ConfigurationException {
+        if (inboundsSource.isFullShadowAvailable()) {
+            LOGGER.trace("Full shadow is available, we don't need to load anything");
+            return false;
+        }
+        if (inboundsSource.isShadowGone()) {
+            LOGGER.trace("Shadow is gone, there's no point in loading it");
+            return false;
+        }
+        var itemsRequiringCurrentValue = mappedSourceItems.getItemsRequiringCurrentValue();
+        LOGGER.trace("Items requiring current value: {}", itemsRequiringCurrentValue);
+        if (itemsRequiringCurrentValue.isEmpty()) {
+            LOGGER.trace("No items requiring current value, no need to load anything");
+            return false;
+        }
+        var cachedShadowsUse = inboundsContext.getCachedShadowsUse();
+        if (cachedShadowsUse == CachedShadowsUseType.USE_FRESH) {
+            LOGGER.trace("Loading the shadow because fresh inbound data is needed (pre-4.9 default behavior)");
+            return true;
+        }
+        var itemsRequiringCurrentValueAndNotHavingIt = mappedSourceItems.getItemsRequiringCurrentValueAndNotHavingIt();
+        LOGGER.trace("Items requiring current value and not having it: {}", itemsRequiringCurrentValueAndNotHavingIt);
+        if (itemsRequiringCurrentValueAndNotHavingIt.isEmpty()) {
+            LOGGER.trace("No items requiring current value and not having it, no need to load anything");
+            return false;
+        }
+        if (cachedShadowsUse == CachedShadowsUseType.USE_CACHED_OR_FRESH) {
+            LOGGER.trace("Loading the shadow because some items require current value and it's not available");
+            return true;
+        } else {
+            // The distinction between various options is treated when mappings are to be created.
+            LOGGER.trace("Will not load the shadow because the current policy is not to do so");
+            return false;
         }
     }
 

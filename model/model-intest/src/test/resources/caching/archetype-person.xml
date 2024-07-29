@@ -9,4 +9,14 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="c4b26c78-b7ac-42b8-9a7c-9bdb0c1e2bbd">
     <name>Person</name>
+    <!--<inducement>-->
+    <!--    <construction>-->
+    <!--        <resourceRef oid="e26d279d-6552-45e6-a3ca-a288910c885a">-->
+    <!--            &lt;!&ndash; the resource is added later during the test &ndash;&gt;-->
+    <!--            <referentialIntegrity>lax</referentialIntegrity>-->
+    <!--        </resourceRef>-->
+    <!--        <kind>account</kind>-->
+    <!--        <intent>default</intent>-->
+    <!--    </construction>-->
+    <!--</inducement>-->
 </archetype>

@@ -7,16 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import java.util.List;
-
 import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.model.api.identities.IdentityItemConfiguration;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessingContext;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAssociation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -66,8 +63,23 @@ public class LimitedInboundsSource extends InboundsSource {
     }
 
     @Override
-    boolean isAbsoluteStateAvailable() {
-        return true; // We hope so ;)
+    public boolean isAttributeLoaded(ItemName itemName) {
+        return true; // FIXME TEMPORARY
+    }
+
+    @Override
+    public boolean isFullShadowAvailable() {
+        return true; // TODO reconsider
+    }
+
+    @Override
+    public boolean isShadowGone() {
+        return false; // TODO what about associations being deleted?
+    }
+
+    @Override
+    public boolean isAuxiliaryObjectClassPropertyLoaded() {
+        return true; // FIXME TEMPORARY
     }
 
     @Override
@@ -82,21 +94,7 @@ public class LimitedInboundsSource extends InboundsSource {
     }
 
     @Override
-    @NotNull ProcessingMode getItemProcessingMode(
-            String itemDescription,
-            ItemDelta<?, ?> itemAPrioriDelta,
-            List<? extends AbstractMappingConfigItem<?>> mappings,
-            boolean executionModeVisible,
-            boolean ignored,
-            PropertyLimitations limitations) {
-        if (shouldBeMappingSkipped(itemDescription, executionModeVisible, ignored, limitations)) {
-            return ProcessingMode.NONE;
-        }
-        return ProcessingMode.ABSOLUTE_STATE_IF_KNOWN; // TODO
-    }
-
-    @Override
-    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull InboundsContext context, OperationResult result) {
+    void loadFullShadow(@NotNull InboundsContext context, OperationResult result) {
         // Nothing to do here
     }
 

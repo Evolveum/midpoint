@@ -246,6 +246,10 @@ abstract class ShadowItemMapper
         return mapper.getStrength();
     }
 
+    public @NotNull ItemName getItemName() {
+        return itemName;
+    }
+
     /** Abstract mapper. */
     private interface Mapper extends Serializable {
 

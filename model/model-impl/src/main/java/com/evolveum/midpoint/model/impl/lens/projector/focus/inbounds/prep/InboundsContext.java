@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachedShadowsUseType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -67,5 +69,10 @@ public abstract class InboundsContext implements ExecutionModeProvider {
 
     public @NotNull MappingEvaluationEnvironment getEnv() {
         return env;
+    }
+
+    /** Only for full processing. */
+    @NotNull CachedShadowsUseType getCachedShadowsUse() {
+        throw new UnsupportedOperationException("Not implemented for " + this);
     }
 }

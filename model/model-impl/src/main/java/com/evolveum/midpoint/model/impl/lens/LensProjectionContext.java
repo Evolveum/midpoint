@@ -10,9 +10,11 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
@@ -25,6 +27,7 @@ import com.evolveum.midpoint.model.impl.sync.action.DeleteResourceObjectAction;
 import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -851,6 +854,49 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public boolean isFullShadow() {
         return fullShadow;
+    }
+
+    public boolean isActivationLoaded() throws SchemaException, ConfigurationException {
+        return hasFullShadow()
+                || ShadowUtil.isActivationCached(
+                getObjectCurrent(),
+                getCompositeObjectDefinitionRequired(),
+                getCurrentTime());
+    }
+
+    public boolean isPasswordValueLoaded() throws SchemaException, ConfigurationException {
+        return hasFullShadow()
+                || ShadowUtil.isPasswordValueLoaded(
+                getObjectCurrent(),
+                getCompositeObjectDefinitionRequired(),
+                getCurrentTime());
+    }
+
+    public boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException {
+        return hasFullShadow()
+                || ShadowUtil.isAuxiliaryObjectClassPropertyLoaded(
+                getObjectCurrent(),
+                getCompositeObjectDefinitionRequired(),
+                getCurrentTime());
+    }
+
+    private static XMLGregorianCalendar getCurrentTime() {
+        return ModelBeans.get().clock.currentTimeXMLGregorianCalendar();
+    }
+
+    // TODO also for associations
+    public boolean isAttributeLoaded(QName attrName) throws SchemaException, ConfigurationException {
+        return hasFullShadow()
+                || ShadowUtil.isAttributeLoaded(
+                ItemName.fromQName(attrName),
+                getObjectCurrent(),
+                getCompositeObjectDefinitionRequired(),
+                getCurrentTime());
+    }
+
+    public Collection<QName> getCachedAttributesNames() throws SchemaException, ConfigurationException {
+        return ShadowUtil.getCachedAttributesNames(
+                getObjectCurrent(), getCompositeObjectDefinitionRequired(), getCurrentTime());
     }
 
     /**

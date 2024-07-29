@@ -20,6 +20,7 @@ public enum InternalCounters {
 
     RESOURCE_SCHEMA_FETCH_COUNT("resourceSchemaFetchCount", "resource schema fetch count", InternalOperationClasses.REPOSITORY_OPERATIONS),
 
+    /** Resource definition is fetched from the repository (in ResourceManager; not necessarily in other places). */
     RESOURCE_REPOSITORY_READ_COUNT("resourceRepositoryReadCount", "resource repository read count", InternalOperationClasses.REPOSITORY_OPERATIONS),
 
     RESOURCE_REPOSITORY_MODIFY_COUNT("resourceRepositoryModifyCount", "resource repository modify count", InternalOperationClasses.REPOSITORY_OPERATIONS),

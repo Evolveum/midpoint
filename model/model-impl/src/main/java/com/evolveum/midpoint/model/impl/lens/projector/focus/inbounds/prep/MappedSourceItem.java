@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.LoadedStateProvider;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -67,10 +68,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
     @NotNull private final Collection<? extends AbstractMappingConfigItem<?>> mappingsCIs;
 
     /** Path of the source item, like `attributes/ri:firstName`. */
-    @NotNull private final ItemPath itemPath;
-
-    /** Human-readable description of the source item, like "attribute firstName". */
-    @NotNull final String itemDescription;
+    @NotNull final ItemPath itemPath;
 
     /**
      * A-priori delta for the source item, if present: sync delta or previously computed one.
@@ -92,11 +90,11 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
      */
     @NotNull private final ItemProvider<V, D> itemProvider;
 
-    /** Value of `true` means that we will load the shadow because of this item (if it's not already loaded). */
-    private final boolean triggersFullShadowLoading;
+    /** Tells if the item is currently loaded, i.e., ready for being used in mapping evaluation. */
+    @NotNull private final LoadedStateProvider loadedStateProvider;
 
-    /** Value of `true` means that we will skip this item if the full shadow is not available (regardless of the reason). */
-    private final boolean ignoreIfNoFullShadow;
+    /** Does the situation require that the (fresh or cached) value for this item be known? */
+    private final boolean requiringCurrentValue;
 
     @NotNull private final ModelBeans beans = ModelBeans.get();
 
@@ -106,23 +104,44 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
             @NotNull InboundsContext inboundsContext,
             @NotNull Collection<? extends AbstractMappingConfigItem<?>> mappingsCIs,
             @NotNull ItemPath itemPath,
-            @NotNull String itemDescription,
-            @Nullable ItemDelta<V, D> itemAPrioriDelta,
             @NotNull D itemDefinition,
             @NotNull ItemProvider<V, D> itemProvider,
-            boolean triggersFullShadowLoading,
-            boolean ignoreIfNoFullShadow) {
+            @NotNull LoadedStateProvider loadedStateProvider) {
         this.inboundsSource = inboundsSource;
         this.inboundsTarget = inboundsTarget;
         this.inboundsContext = inboundsContext;
         this.mappingsCIs = mappingsCIs;
         this.itemPath = itemPath;
-        this.itemDescription = itemDescription;
-        this.itemAPrioriDelta = itemAPrioriDelta;
+        this.itemAPrioriDelta = inboundsSource.sourceData.getItemAPrioriDelta(itemPath);
         this.itemDefinition = itemDefinition;
         this.itemProvider = itemProvider;
-        this.triggersFullShadowLoading = triggersFullShadowLoading;
-        this.ignoreIfNoFullShadow = ignoreIfNoFullShadow;
+        this.loadedStateProvider = loadedStateProvider;
+        this.requiringCurrentValue = computeRequiringCurrentValue();
+    }
+
+    boolean isRequiringCurrentValue() {
+        return requiringCurrentValue;
+    }
+
+    private boolean computeRequiringCurrentValue() {
+        if (itemAPrioriDelta != null) {
+            // This is the legacy (pre-4.9) behavior.
+            // TODO is it still valid? Maybe we should try to get the value even if we have a-priori delta?
+            LOGGER.trace("A priori delta existence for {} indicates that we do not need to know the current value", itemPath);
+            return false;
+        }
+        for (var mappingsCI : mappingsCIs) {
+            if (mappingsCI.isStrong()) {
+                LOGGER.trace("Strong inbound mapping {} for {} indicates that we need to know its current value (fresh or cached,"
+                                + " depending on other options)", mappingsCI.getName(), itemPath);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean hasCurrentValue() throws SchemaException, ConfigurationException {
+        return loadedStateProvider.isLoaded();
     }
 
     /**
@@ -132,9 +151,23 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        if (ignoreIfNoFullShadow && !inboundsSource.isAbsoluteStateAvailable()) {
-            LOGGER.trace("Skipping inbound mapping(s) for {} as we don't have the full shadow", itemDescription);
-            return;
+        if (!loadedStateProvider.isLoaded()) {
+            if (itemAPrioriDelta != null) {
+                LOGGER.trace(
+                        "Item {} is not loaded; but proceeding with its inbound mapping(s) because of the a priori delta",
+                        itemPath);
+            } else {
+                var cachedShadowsUse = inboundsContext.getCachedShadowsUse();
+                if (cachedShadowsUse == CachedShadowsUseType.USE_CACHED_OR_FAIL) {
+                    throw new ExpressionEvaluationException(
+                            "Inbound mapping(s) for %s could not be evaluated, because the item is not loaded".formatted(
+                                    itemPath));
+                } else {
+                    // The loading might not be requested, or it could simply fail
+                    LOGGER.trace("Item {} is not loaded; its inbound mapping(s) evaluation will be skipped", itemPath);
+                    return;
+                }
+            }
         }
 
         Item<V, D> currentProjectionItem = itemProvider.provide();
@@ -148,15 +181,14 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
         }
 
         LOGGER.trace("""
-                        Creating {} inbound mapping(s) for {} in {} (ignore-if-no-full-shadow: {}). Relevant values are:
+                        Creating {} inbound mapping(s) for {} in {}. Relevant values are:
                         - a priori item delta:
                         {}
                         - current item:
                         {}""",
                 mappingsCIs.size(),
-                itemDescription,
+                itemPath,
                 inboundsSource.getProjectionHumanReadableName(),
-                ignoreIfNoFullShadow,
                 DebugUtil.debugDumpLazily(itemAPrioriDelta, 1),
                 DebugUtil.debugDumpLazily(currentProjectionItem, 1));
 
@@ -197,7 +229,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                 continue;
             }
 
-            String contextDescription = "inbound expression for " + itemDescription + " in " + resource;
+            String contextDescription = "inbound expression for " + itemPath + " in " + resource;
 
             ItemPath targetFullPath = getTargetFullPath(mappingBean, contextDescription); // without variable, with prefix
 
@@ -339,10 +371,6 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
         }
     }
 
-    boolean doesTriggerFullShadowLoading() {
-        return triggersFullShadowLoading;
-    }
-
     private void rememberItemDefinition(MappingImpl<V, D> mapping, ItemPath declaredTargetPath, ItemPath targetPathOverride)
             throws ConfigurationException {
         D outputDefinition =
@@ -355,6 +383,14 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
             clone.mutator().setDynamic(true); // To serialize xsi:type along with the values.
             inboundsTarget.addItemDefinition(targetPathOverride, clone);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "MappedSourceItem{" +
+                "itemPath=" + itemPath +
+                ", mappings: " + mappingsCIs.size() +
+                '}';
     }
 
     @FunctionalInterface

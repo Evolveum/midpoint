@@ -984,6 +984,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
+    public @NotNull CachedShadowsUseType getCachedShadowsUse() {
+        return ModelExecuteOptions.getCachedShadowsUseType(options);
+    }
+
     boolean isForce() {
         return ModelExecuteOptions.isForce(options);
     }

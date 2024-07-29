@@ -20,9 +20,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -83,51 +83,24 @@ public class FullInboundsSource extends InboundsSource {
     }
 
     @Override
-    boolean isEligibleForInboundProcessing(OperationResult result) throws SchemaException, ConfigurationException {
-        LOGGER.trace("Starting determination if we should process inbound mappings. Full shadow: {}. A priori delta present: {}.",
-                projectionContext.isFullShadow(), aPrioriDelta != null);
+    boolean isEligibleForInboundProcessing(OperationResult result) {
+        LOGGER.trace("Starting determination if we should process inbound mappings. A priori delta present: {}.",
+                aPrioriDelta != null);
 
         if (projectionContext.isInboundSyncDisabled(result)) {
             LOGGER.trace("Skipping processing of inbound mappings because shadow policy marked shadow inbound disabled.");
             return false;
         }
-
         if (projectionContext.isBroken()) {
             LOGGER.trace("Skipping processing of inbound mappings because the context is broken");
             return false;
         }
-        if (aPrioriDelta != null) {
-            LOGGER.trace("A priori delta present, we'll do the inbound processing");
-            return true;
-        }
-        if (projectionContext.getObjectCurrent() == null) {
+        if (projectionContext.getObjectCurrent() == null && aPrioriDelta == null) {
             LOGGER.trace("No current projection object and no apriori delta: skipping the inbounds (there's nothing to process)");
             return false;
         }
-        if (projectionContext.isFullShadow()) {
-            LOGGER.trace("Full shadow is present, we'll do the inbound processing (it should be cheap)");
-            return true;
-        }
-        if (projectionContext.isDoReconciliation()) {
-            LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
-                    + " projection reconciliation is requested");
-            return true;
-        }
-        if (projectionContext.hasDependentContext()) {
-            LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
-                    + " projection has a dependent projection context");
-            return true;
-        }
-        if (projectionContext.isDelete()) {
-            // TODO what's the exact reason for this behavior?
-            LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
-                    + " projection is being deleted");
-            return true;
-        }
-        LOGGER.trace("Skipping processing of inbound mappings: no a priori delta, no full shadow,"
-                        + " no reconciliation, no dependent context, and it's not a delete operation:\n{}",
-                projectionContext.debugDumpLazily());
-        return false;
+        LOGGER.trace("No reason to skip inbounds, so let's do that");
+        return true;
     }
 
     @Override
@@ -137,8 +110,23 @@ public class FullInboundsSource extends InboundsSource {
     }
 
     @Override
-    boolean isAbsoluteStateAvailable() {
+    public boolean isAttributeLoaded(ItemName itemName) throws SchemaException, ConfigurationException {
+        return projectionContext.isAttributeLoaded(itemName);
+    }
+
+    @Override
+    public boolean isFullShadowAvailable() {
         return projectionContext.isFullShadow();
+    }
+
+    @Override
+    public boolean isShadowGone() {
+        return projectionContext.isGone();
+    }
+
+    @Override
+    public boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException {
+        return projectionContext.isAuxiliaryObjectClassPropertyLoaded();
     }
 
     @Override
@@ -164,68 +152,9 @@ public class FullInboundsSource extends InboundsSource {
     }
 
     @Override
-    @NotNull ProcessingMode getItemProcessingMode(
-            String itemDescription,
-            ItemDelta<?, ?> itemAPrioriDelta,
-            List<? extends AbstractMappingConfigItem<?>> mappings,
-            boolean executionModeVisible,
-            boolean ignored,
-            PropertyLimitations limitations) throws SchemaException, ConfigurationException {
-
-        if (shouldBeMappingSkipped(itemDescription, executionModeVisible, ignored, limitations)) {
-            return ProcessingMode.NONE;
-        }
-
-        if (itemAPrioriDelta != null) {
-            LOGGER.trace("Mapping(s) for {}: Item a priori delta exists, we'll use it for the evaluation", itemDescription);
-            return ProcessingMode.A_PRIORI_DELTA;
-        }
-
-        if (sourceData.isEmpty()) {
-            // We have no chance of loading the shadow - we have no information about it.
-            LOGGER.trace("Mapping(s) for {}: No item a priori delta, and no shadow (not even repo version) -> skipping them",
-                    itemDescription);
-            return ProcessingMode.NONE;
-        }
-
-        if (projectionContext.isFullShadow()) {
-            LOGGER.trace("Mapping(s) for {}: No item a priori delta present, but we have the full shadow."
-                    + " We'll use it for the evaluation.", itemDescription);
-            return ProcessingMode.ABSOLUTE_STATE;
-        }
-
-        if (projectionContext.hasDependentContext()) {
-            LOGGER.trace("Mapping(s) for {}: A dependent context is present. We'll load the shadow.", itemDescription);
-            return ProcessingMode.ABSOLUTE_STATE;
-        }
-
-        if (mappings.stream().anyMatch(mapping -> mapping.isStrong())) {
-            LOGGER.trace("Mapping(s) for {}: A strong mapping is present. We'll load the shadow.", itemDescription);
-            return ProcessingMode.ABSOLUTE_STATE;
-        }
-
-        LOGGER.trace("Mapping(s) for {}: There is no special reason for loading the shadow. We'll apply them if the shadow"
-                + " is loaded for another reason.", itemDescription);
-        return ProcessingMode.ABSOLUTE_STATE_IF_KNOWN;
-    }
-
-    @Override
-    void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull InboundsContext context, OperationResult result)
+    void loadFullShadow(@NotNull InboundsContext context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException {
-        if (projectionContext.isFullShadow()) { // FIXME BEWARE, we may deal with a different shadow!
-            return;
-        }
-        if (projectionContext.isGone()) {
-            LOGGER.trace("Not loading {} because the resource object is gone", humanReadableName);
-        }
-        if (fullStateRequired) {
-            LOGGER.trace("Loading {} because full state is required", humanReadableName);
-            doLoad(context, result);
-        }
-    }
-
-    private void doLoad(@NotNull InboundsContext context, OperationResult result)
-            throws SchemaException, StopProcessingProjectionException {
+        LOGGER.trace("Loading {} because full state is required", humanReadableName);
         try {
             beans.contextLoader.loadFullShadow(projectionContext, "inbound", context.env.task, result);
             sourceData = InboundSourceData.forShadow(

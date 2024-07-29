@@ -1383,12 +1383,26 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         lastCountMap.put(counter, currentCount);
     }
 
+    protected void rememberShadowOperations() {
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+        rememberCounter(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
+    }
+
+    protected void assertNoShadowOperations() {
+        assertShadowFetchOperations(0);
+        assertShadowChangeOperations(0);
+    }
+
     protected void assertNoShadowFetchOperations() {
         assertShadowFetchOperations(0);
     }
 
     protected void assertShadowFetchOperations(int expected) {
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, expected);
+    }
+
+    protected void assertShadowChangeOperations(int expected) {
+        assertCounterIncrement(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT, expected);
     }
 
     protected void rememberResourceCacheStats() {

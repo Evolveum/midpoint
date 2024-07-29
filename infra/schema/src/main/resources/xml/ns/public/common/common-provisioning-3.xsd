@@ -6953,6 +6953,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="timeToLive" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                For how long do we consider cached data as usable?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

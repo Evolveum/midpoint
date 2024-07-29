@@ -220,5 +220,6 @@
     <caching>
         <cachingStrategy>passive</cachingStrategy>
         <!-- default scope -->
+        <timeToLive>PT1M</timeToLive>
     </caching>
 </resource>
