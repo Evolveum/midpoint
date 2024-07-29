@@ -5181,6 +5181,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="mappingAlias" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Short alias of the mapping. Used for provenance metadata management and debugging purposes.
+                        Alias is usually previous name of the mapping and it is used to identify mapping values which
+                        were emitted in previous version of the mapping.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MappingType.mappingAlias</a:displayName>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element ref="tns:description" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -5681,6 +5695,9 @@
             </xsd:element>
             <xsd:element name="additionalMappingSpecification" type="c:MappingSpecificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
                     <xsd:documentation>
                         Specification of additional mappings, which are considered as part of value set. Ideal for migration
                         after rename of mapping.

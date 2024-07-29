@@ -399,6 +399,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Value metadata computer to be used when expression is evaluated.
      */
     transient private TransformationValueMetadataComputer valueMetadataComputer;
+    private MappingSpecificationType mappingAliasSpecification;
     //endregion
 
     //region Constructors and (relatively) simple getters
@@ -431,11 +432,14 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         targetItemName = builder.targetItemName;
         mappingSpecification = builder.getMappingSpecification() != null ?
                 builder.getMappingSpecification() : createDefaultSpecification();
+        mappingAliasSpecification = createMappingAliasSpecification(mappingSpecification,mappingBean.getMappingAlias());
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
         valueMetadataDefinition = SchemaRegistry.get().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class);
     }
+
+
 
     private MappingSpecificationType createDefaultSpecification() {
         MappingSpecificationType specification = new MappingSpecificationType();
@@ -973,12 +977,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 ModelCommonBeans.get().expressionFactory,
                 name,
                 mappingSpecification,
+                mappingAliasSpecification,
                 "range",
                 "range of " + name + " in " + getMappingContextDescription(),
                 task, result);
         rangeSetDef.init();
         rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
+            // FIXME: Migrate legacy to new?
+            
             if (rangeSetDef.contains(originalValue)) {
                 addToMinusIfNecessary(originalValue, rangeSetDef);
             }
@@ -1663,5 +1670,14 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     boolean shouldUseMatchingProvenance() {
         return getOutputDefinition() != null && getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
+    }
+
+    private static MappingSpecificationType createMappingAliasSpecification(MappingSpecificationType spec, String alias) {
+        if (spec == null || alias == null || alias.isEmpty()) {
+            return null;
+        }
+        return new MappingSpecificationType()
+                .definitionObjectRef(spec.getDefinitionObjectRef().clone())
+                .mappingName(alias);
     }
 }

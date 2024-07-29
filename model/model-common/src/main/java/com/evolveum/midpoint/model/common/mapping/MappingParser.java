@@ -201,6 +201,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                     ModelCommonBeans.get().expressionFactory,
                     variableName,
                     null, // FIXME: Why?
+                    null,
                     "domain of " + variableName,
                     "domain of " + variableName + " in " + m.getMappingContextDescription(),
                     m.getTask(),
