@@ -100,10 +100,10 @@ public class RoleAnalysisTableCellFillResolver {
      * @param rowModel The row model (properties to compare).
      * @param colModel The column model (members to compare).
      */
-    public static <T extends MiningBaseTypeChunk> Status resolveCellTypeUserTable(@NotNull String componentId,
-            Item<ICellPopulator<MiningRoleTypeChunk>> cellItem,
-            @NotNull MiningRoleTypeChunk rowModel,
-            @NotNull MiningUserTypeChunk colModel,
+    public static <B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> Status resolveCellTypeUserTable(@NotNull String componentId,
+            Item<ICellPopulator<A>> cellItem,
+            @NotNull A rowModel,
+            @NotNull B colModel,
             @NotNull LoadableDetachableModel<Map<String, String>> colorLoadableMap) {
         Map<String, String> colorMap = colorLoadableMap.getObject();
         RoleAnalysisObjectStatus rowObjectStatus = rowModel.getObjectStatus();
