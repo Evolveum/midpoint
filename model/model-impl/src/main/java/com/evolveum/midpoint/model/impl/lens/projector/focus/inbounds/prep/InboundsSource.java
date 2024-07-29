@@ -258,4 +258,9 @@ public abstract class InboundsSource implements DebugDumpable {
     public @NotNull InboundSourceData getSourceData() {
         return sourceData;
     }
+
+    /** FIXME ugly hack */
+    boolean hasDependentContext() throws SchemaException, ConfigurationException {
+        return false;
+    }
 }

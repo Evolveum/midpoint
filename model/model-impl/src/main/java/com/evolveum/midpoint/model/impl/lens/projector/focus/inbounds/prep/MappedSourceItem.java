@@ -106,7 +106,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
             @NotNull ItemPath itemPath,
             @NotNull D itemDefinition,
             @NotNull ItemProvider<V, D> itemProvider,
-            @NotNull LoadedStateProvider loadedStateProvider) {
+            @NotNull LoadedStateProvider loadedStateProvider) throws SchemaException, ConfigurationException {
         this.inboundsSource = inboundsSource;
         this.inboundsTarget = inboundsTarget;
         this.inboundsContext = inboundsContext;
@@ -123,7 +123,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
         return requiringCurrentValue;
     }
 
-    private boolean computeRequiringCurrentValue() {
+    private boolean computeRequiringCurrentValue() throws SchemaException, ConfigurationException {
         if (itemAPrioriDelta != null) {
             // This is the legacy (pre-4.9) behavior.
             // TODO is it still valid? Maybe we should try to get the value even if we have a-priori delta?
@@ -136,6 +136,11 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                                 + " depending on other options)", mappingsCI.getName(), itemPath);
                 return true;
             }
+        }
+        if (inboundsSource.hasDependentContext()) {
+            // TODO reconsider this ugly hack
+            LOGGER.trace("There is a depending context, we need to know the current value of {}", itemPath);
+            return true;
         }
         return false;
     }

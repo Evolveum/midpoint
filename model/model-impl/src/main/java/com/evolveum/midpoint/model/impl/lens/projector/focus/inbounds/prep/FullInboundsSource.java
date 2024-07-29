@@ -83,7 +83,7 @@ public class FullInboundsSource extends InboundsSource {
     }
 
     @Override
-    boolean isEligibleForInboundProcessing(OperationResult result) {
+    boolean isEligibleForInboundProcessing(OperationResult result) throws SchemaException, ConfigurationException {
         LOGGER.trace("Starting determination if we should process inbound mappings. A priori delta present: {}.",
                 aPrioriDelta != null);
 
@@ -95,12 +95,42 @@ public class FullInboundsSource extends InboundsSource {
             LOGGER.trace("Skipping processing of inbound mappings because the context is broken");
             return false;
         }
-        if (projectionContext.getObjectCurrent() == null && aPrioriDelta == null) {
+        if (aPrioriDelta != null) {
+            LOGGER.trace("A priori delta present, we'll do the inbound processing");
+            return true;
+        }
+        if (projectionContext.getObjectCurrent() == null) {
             LOGGER.trace("No current projection object and no apriori delta: skipping the inbounds (there's nothing to process)");
             return false;
         }
-        LOGGER.trace("No reason to skip inbounds, so let's do that");
-        return true;
+        // === TEMPORARY CODE BELOW ===
+        // It is here to provide the same behavior (regarding whether to allow inbounds or not) as it was in 4.8.
+        // After the tests pass with this code, we could try to gradually allow starting inbounds with cached data,
+        // while blocking auto-loading shadows for the cases where (in 4.8) the inbounds would not be started in the first place.
+        if (projectionContext.isFullShadow()) {
+            LOGGER.trace("Full shadow is present, we'll do the inbound processing (it should be cheap)");
+            return true;
+        }
+        if (projectionContext.isDoReconciliation()) {
+            LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
+                    + " projection reconciliation is requested");
+            return true;
+        }
+        if (projectionContext.hasDependentContext()) {
+            LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
+                    + " projection has a dependent projection context");
+            return true;
+        }
+        if (projectionContext.isDelete()) {
+            // TODO what's the exact reason for this behavior?
+            LOGGER.trace("We'll do the inbounds even we have no apriori delta nor full shadow, because the"
+                    + " projection is being deleted");
+            return true;
+        }
+        LOGGER.trace("Skipping processing of inbound mappings: no a priori delta, no full shadow,"
+                        + " no reconciliation, no dependent context, and it's not a delete operation:\n{}",
+                projectionContext.debugDumpLazily());
+        return false;
     }
 
     @Override
@@ -360,5 +390,10 @@ public class FullInboundsSource extends InboundsSource {
     private FocusType createNewFocus() throws SchemaException {
         return (FocusType) PrismContext.get().createObjectable(
                 getFocusContext().getObjectTypeClass());
+    }
+
+    @Override
+    boolean hasDependentContext() throws SchemaException, ConfigurationException {
+        return projectionContext.hasDependentContext();
     }
 }
