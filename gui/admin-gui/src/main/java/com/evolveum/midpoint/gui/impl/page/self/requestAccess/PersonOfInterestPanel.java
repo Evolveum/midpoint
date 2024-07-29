@@ -585,7 +585,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             ObjectReferenceType poi = new ObjectReferenceType()
                     .oid(user.getOid())
                     .type(UserType.COMPLEX_TYPE)
-                    .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject()));
+                    .targetName(getDefaultUserDisplayName(user.asPrismObject()));
 
             List<ObjectReferenceType> refs = user.getRoleMembershipRef().stream()
                     .map(this::cloneObjectReference)
@@ -650,7 +650,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 ObjectReferenceType ref = new ObjectReferenceType()
                         .oid(principal.getOid())
                         .type(UserType.COMPLEX_TYPE)
-                        .targetName(principal.getName());
+                        .targetName(getDefaultUserDisplayName((PrismObject<UserType>) principal.getFocusPrismObject()));
 
                 List<ObjectReferenceType> memberships = principal.getFocus().getRoleMembershipRef()
                         .stream().map(this::cloneObjectReference).collect(Collectors.toList());
