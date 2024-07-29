@@ -130,7 +130,7 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
     }
 
     private boolean isConfiguredVisibility() {
-        return guiActionType != null || WebComponentUtil.getElementVisibility(guiActionType.getVisibility());
+        return guiActionType == null || WebComponentUtil.getElementVisibility(guiActionType.getVisibility());
     }
 
     protected boolean isVisibleForRow(C rowObject) {
