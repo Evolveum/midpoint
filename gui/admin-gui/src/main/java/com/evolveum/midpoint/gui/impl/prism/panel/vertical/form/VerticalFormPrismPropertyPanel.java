@@ -46,7 +46,7 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
                 target.add(VerticalFormPrismPropertyPanel.this);
             }
         };
-        header.setRequiredTagVisibleInHeaderPanel(this.isRequiredTagVisibleInHeaderPanel);
+        header.setRequiredTagVisibleInHeaderPanel(isRequired());
         return header;
     }
 
@@ -69,5 +69,14 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
 
     public void setRequiredTagVisibleInHeaderPanel(boolean requiredTagVisibleInHeaderPanel) {
         isRequiredTagVisibleInHeaderPanel = requiredTagVisibleInHeaderPanel;
+    }
+
+    private boolean isRequired() {
+        return isRequiredTagVisibleInHeaderPanel || isMandatory();
+    }
+
+    private boolean isMandatory() {
+        return getSettings() != null && getSettings().getMandatoryHandler() != null
+                && getSettings().getMandatoryHandler().isMandatory(getModelObject());
     }
 }

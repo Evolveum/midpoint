@@ -7,26 +7,21 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
-import java.awt.*;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerPanel;
-import com.evolveum.midpoint.prism.PrismContainer;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -34,15 +29,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormDefaultContainerablePanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -84,6 +75,8 @@ public class ConfirmationPanelWithComment extends ConfirmationPanel implements P
     protected void initLayout() {
         super.initLayout();
 
+        setOutputMarkupId(true);
+
         ListView<VirtualContainersSpecificationType> items = new ListView<>(ID_ITEMS, () -> confirmationModel.getObject().getContainer()) {
             @Override
             protected void populateItem(ListItem<VirtualContainersSpecificationType> item) {
@@ -96,14 +89,36 @@ public class ConfirmationPanelWithComment extends ConfirmationPanel implements P
                         .build();
 
                 VerticalFormPrismContainerPanel<Containerable> panel = new VerticalFormPrismContainerPanel<>(ID_ITEM, virtualContainerModel, settings);
-                item.add(panel);
-
+                panel.setOutputMarkupId(true);
                 item.add(panel);
             }
         };
+//        items.setReuseItems(true);
+        items.setOutputMarkupId(true);
         add(items);
+    }
 
+    private Component getItemsComponent() {
+        return get(ID_ITEMS);
+    }
 
+    protected Component createYesButton() {
+        return new AjaxSubmitButton(ID_YES, createYesLabel()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                getPageBase().hideMainPopup(target);
+                yesPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getItemsComponent().getParent());
+            }
+
+        };
     }
 
     //TODO copied from single container model
