@@ -113,11 +113,11 @@ public class DataAccessProcessor {
             AccessDecision valueDecision = valueConstraints.getDecision();
             if (valueDecision == AccessDecision.ALLOW) {
                 // OK, keeping it untouched
-                applyReadConstraintsToMetadata(value, readConstraints);
             } else if (valueDecision == AccessDecision.DENY) {
                 valuesToRemove.add(value);
             } else {
                 assert valueDecision == AccessDecision.DEFAULT;
+                applyReadConstraintsToMetadata(value, valueConstraints);
                 if (value instanceof PrismContainerValue<?>) {
                     applyReadConstraintsToMutablePcv((PrismContainerValue<?>) value, valueConstraints);
                 } else {
@@ -135,24 +135,23 @@ public class DataAccessProcessor {
     }
 
     private <V extends PrismValue> V  applyReadConstraintsToMetadata(
-            V value, PrismEntityOpConstraints.ForItemContent readConstraints) {
-        // FIXME: Here we should check and process value metadata
-        return value;
-    }
-
-    private <V extends PrismValue> V  applyReadConstraintsToMetadata(
             V value, PrismEntityOpConstraints.ForValueContent readConstraints) {
-        // FIXME: Here we should check and process value metadata
         if (!value.hasValueMetadata()) {
+            // Value does not have metadata no need to do any changes.
             return value;
         }
         var itemConstraints = readConstraints.getItemConstraints(InfraItemName.METADATA);
         var decision = itemConstraints.getDecision();
         switch (decision) {
-            case ALLOW, DEFAULT -> {
+            case ALLOW -> {
                 return value;
 
                 //throw new UnsupportedOperationException("Unsupported decision {}" + decision);
+            }
+            case DEFAULT -> {
+                value = (V) value.cloneIfImmutable();
+                applyReadConstraintsToMutableValues(value.getValueMetadataAsContainer(), itemConstraints);
+                return value;
             }
             case DENY -> {
                 V ret = (V) value.cloneIfImmutable();
