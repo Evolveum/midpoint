@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.action;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -20,7 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<AccessCertificationWorkItemType> {
 
@@ -63,4 +63,14 @@ public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<A
     }
 
     protected abstract AccessCertificationResponseType getResponse();
+
+    @Override
+    public boolean isVisibleForRow(AccessCertificationWorkItemType certItem) {
+        AccessCertificationResponseType response = getResponse();
+        String certItemResponseUri = certItem != null && certItem.getOutput() != null ?
+                certItem.getOutput().getOutcome() : null;
+        AccessCertificationResponseType certItemResponse = OutcomeUtils.fromUri(certItemResponseUri);
+
+        return certItemResponse == null || certItemResponse != response;
+    }
 }

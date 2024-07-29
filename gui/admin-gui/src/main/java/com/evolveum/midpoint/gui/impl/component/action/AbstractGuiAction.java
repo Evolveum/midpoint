@@ -125,8 +125,16 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
                         .cssClass(display.icon()));
     }
 
-    public boolean isVisible() {
-        return guiActionType == null ? true : WebComponentUtil.getElementVisibility(guiActionType.getVisibility());
+    public boolean isVisible(C rowObject) {
+        return isConfiguredVisibility() && isVisibleForRow(rowObject);
+    }
+
+    private boolean isConfiguredVisibility() {
+        return guiActionType != null || WebComponentUtil.getElementVisibility(guiActionType.getVisibility());
+    }
+
+    protected boolean isVisibleForRow(C rowObject) {
+        return true;
     }
 
     public List<String> getParameterNameList() {
