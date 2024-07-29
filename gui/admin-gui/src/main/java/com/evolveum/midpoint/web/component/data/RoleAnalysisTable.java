@@ -14,6 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental.RoleAnalysisTableSettingPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.RoleAnalysisMatrixTable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,9 +35,11 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
@@ -76,7 +83,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     private final boolean showAsCard = true;
     private final UserProfileStorage.TableId tableId;
     private String additionalBoxCssClasses = null;
-    int columnCount;
+//    int columnCount;
     static boolean isRoleMining = false;
 
     LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
@@ -87,10 +94,10 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         super(id);
         this.tableId = tableId;
         RoleAnalysisTable.isRoleMining = isRoleMining;
-        this.columnCount = columnCount;
+//        this.columnCount = columnCount;
         this.displayValueOptionModel = displayValueOptionModel;
 
-        initLayout(columns, provider, columnCount);
+        initLayout(columns, provider);
     }
 
     @Override
@@ -99,7 +106,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                 .forScript("MidPointTheme.initResponsiveTable(); MidPointTheme.initScaleResize('#tableScaleContainer');"));
     }
 
-    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T, ?> provider, int colSize) {
+    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T, ?> provider) {
         setOutputMarkupId(true);
         add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
         add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
@@ -108,6 +115,8 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         tableContainer.setOutputMarkupId(true);
 
         int pageSize = getItemsPerPage(tableId);
+
+
         DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, pageSize) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -116,6 +125,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                 Item<T> item = super.newRowItem(id, index, rowModel);
                 return customizeNewRowItem(item);
             }
+
         };
         table.setOutputMarkupId(true);
         tableContainer.add(table);
@@ -138,8 +148,9 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
 
                 @Override
                 protected void refreshTable(AjaxRequestTarget target) {
-                    super.refreshTable(target);
-                    target.add(getFooter());
+//                    super.refreshTable(target);
+                    resetTable(target);
+//                    target.add(getFooter());
                 }
             };
 
@@ -152,7 +163,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
 
         WebMarkupContainer footer2 = createHeaderPaging();
-        footer2.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || colSize > pageSize));
+        footer2.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || getColumnCount() > pageSize));
         add(footer2);
         add(footer);
     }
@@ -287,7 +298,84 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     }
 
     protected WebMarkupContainer createButtonToolbar(String id) {
-        return new WebMarkupContainer(id);
+        RepeatingView repeatingView = new RepeatingView(id);
+        repeatingView.setOutputMarkupId(true);
+
+        //Shouldn't it be reset?
+        CompositedIconBuilder refreshIconBuilder = new CompositedIconBuilder().setBasicIcon(
+                GuiStyleConstants.CLASS_REFRESH, LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton refreshIcon = buildRefreshTableButton(repeatingView, refreshIconBuilder);
+        refreshIcon.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
+        repeatingView.add(refreshIcon);
+
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                "fa fa-cog", LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton tableSetting = buildTableSettingButton(repeatingView, iconBuilder,
+                displayValueOptionModel);
+        tableSetting.add(AttributeAppender.replace("class", "btn btn-default btn-sm"));
+        repeatingView.add(tableSetting);
+
+        return repeatingView;
+
+//        return new WebMarkupContainer(id);
+    }
+
+    @NotNull
+    private AjaxCompositedIconSubmitButton buildRefreshTableButton(
+            @NotNull RepeatingView repeatingView,
+            @NotNull CompositedIconBuilder refreshIconBuilder ) {
+//            @NotNull PrismObject<RoleAnalysisClusterType> cluster) {
+        AjaxCompositedIconSubmitButton refreshIcon = new AjaxCompositedIconSubmitButton(
+                repeatingView.newChildId(), refreshIconBuilder.build(), createStringResource("Refresh")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                resetTable(target);
+            }
+
+        };
+
+        refreshIcon.titleAsLabel(true);
+        return refreshIcon;
+    }
+
+    @NotNull
+    private AjaxCompositedIconSubmitButton buildTableSettingButton(@NotNull RepeatingView repeatingView,
+            @NotNull CompositedIconBuilder iconBuilder,
+            @NotNull LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
+        AjaxCompositedIconSubmitButton tableSetting = new AjaxCompositedIconSubmitButton(
+                repeatingView.newChildId(), iconBuilder.build(), createStringResource("Table settings")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                RoleAnalysisTableSettingPanel selector = new RoleAnalysisTableSettingPanel(
+                        ((PageBase) getPage()).getMainPopupBodyId(),
+                        createStringResource("RoleAnalysisPathTableSelector.title"),
+                        displayValueOptionModel) {
+
+                    @Override
+                    public void performAfterFinish(AjaxRequestTarget target) {
+//                        displayValueOptionModel.detach();
+                        resetTable(target);
+//                        target.add();
+//                            resetTable(target, displayValueOptionModel.getObject());
+                    }
+                };
+                ((PageBase) getPage()).showMainPopup(selector, target);
+            }
+
+        };
+
+        tableSetting.titleAsLabel(true);
+        return tableSetting;
+    }
+
+    protected void resetTable(AjaxRequestTarget target) {
+
     }
 
     private static class PagingFooter extends Fragment {
@@ -468,6 +556,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             String separator = " - ";
             List<String> navigation = new ArrayList<>();
 
+            int columnCount = getColumnCount();
             if (columnCount <= to) {
                 navigation.add(from + separator + columnCount);
             } else {
@@ -537,7 +626,12 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     protected void onChangeSize(int value, AjaxRequestTarget target) {
     }
 
+    protected int getColumnCount() {
+        return 100;
+    }
+
     protected String getColumnPagingTitle() {
+        int columnCount = getColumnCount();
         if (columnCount < getColumnPageCount()) {
             return "0 - " + columnCount;
         }

@@ -2813,5 +2813,59 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
     }
 
+    @Override
+    public List<DetectedPattern> findDetectedPatterns(RoleAnalysisClusterType cluster, List<String> candidateRoleContainerId, Task task, OperationResult result) {
+        List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
+        List<DetectedPattern> detectedPatterns = new ArrayList<>();
+        for (RoleAnalysisCandidateRoleType candidateRole : candidateRoles) {
+
+            for (String candidateRoleId : candidateRoleContainerId) {
+
+                if (candidateRoleId.equals(candidateRole.getId().toString())) {
+                    String roleOid = candidateRole.getCandidateRoleRef().getOid();
+                    PrismObject<RoleType> rolePrismObject = getRoleTypeObject(
+                            roleOid, task, result);
+                    List<String> rolesOidInducements;
+                    if (rolePrismObject == null) {
+                        return detectedPatterns;
+                    }
+                    rolesOidInducements = getRolesOidInducements(rolePrismObject);
+                    List<String> rolesOidAssignment = getRolesOidAssignment(rolePrismObject.asObjectable());
+
+                    Set<String> accessOidSet = new HashSet<>(rolesOidInducements);
+                    accessOidSet.addAll(rolesOidAssignment);
+
+                    ListMultimap<String, String> mappedMembers = extractUserTypeMembers(new HashMap<>(),
+                            null,
+                            Collections.singleton(roleOid),
+                            task,
+                            result);
+
+                    List<ObjectReferenceType> candidateMembers = candidateRole.getCandidateMembers();
+                    Set<String> membersOidSet = new HashSet<>();
+                    for (ObjectReferenceType candidateMember : candidateMembers) {
+                        String oid = candidateMember.getOid();
+                        if (oid != null) {
+                            membersOidSet.add(oid);
+                        }
+                    }
+
+                    membersOidSet.addAll(mappedMembers.get(roleOid));
+                    double clusterMetric = (accessOidSet.size() * membersOidSet.size()) - membersOidSet.size();
+
+                    DetectedPattern pattern = new DetectedPattern(
+                            accessOidSet,
+                            membersOidSet,
+                            clusterMetric,
+                            null);
+                    pattern.setIdentifier(rolePrismObject.getName().getOrig());
+                    pattern.setId(candidateRole.getId());
+
+                    detectedPatterns.add(pattern);
+                }
+            }
+        }
+        return detectedPatterns;
+    }
 }
 

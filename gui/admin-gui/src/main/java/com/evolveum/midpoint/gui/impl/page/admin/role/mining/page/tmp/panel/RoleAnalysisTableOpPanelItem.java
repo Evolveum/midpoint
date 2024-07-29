@@ -23,9 +23,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
-public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
+public class RoleAnalysisTableOpPanelItem extends BasePanel<OperationPanelModel> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -37,12 +38,18 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
     private static final String ID_DESCRIPTION_TEXT = "description-text";
     RepeatingView descriptionText;
 
-    public RoleAnalysisTableOpPanelItem(String id, OperationPanelModel operationPanelModel) {
-        super(id);
-        initLayout(operationPanelModel);
+    public RoleAnalysisTableOpPanelItem(String id, IModel<OperationPanelModel> operationPanelModel) {
+        super(id, operationPanelModel);
+//        initLayout(operationPanelModel);
     }
 
-    private void initLayout(OperationPanelModel operationPanelModel) {
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
 
         add(new Behavior() {
             @Override
@@ -97,7 +104,7 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<String> {
         descriptionPanel.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return operationPanelModel.getDisplayValueOption().isPanelExpanded();
+                return getModelObject().isPanelExpanded();
             }
         });
         container.add(descriptionPanel);

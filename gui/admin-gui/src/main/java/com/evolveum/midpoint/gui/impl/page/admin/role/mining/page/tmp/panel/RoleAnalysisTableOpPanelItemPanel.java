@@ -123,7 +123,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     private void addCompareButtonItem(
             @NotNull RepeatingView subHeaderItems) {
-        RoleAnalysisTableOpPanelItem compareButtonItem = new RoleAnalysisTableOpPanelItem(subHeaderItems.newChildId(), getModelObject()) {
+        RoleAnalysisTableOpPanelItem compareButtonItem = new RoleAnalysisTableOpPanelItem(subHeaderItems.newChildId(), getModel()) {
             @Serial
             private static final long serialVersionUID = 1L;
 
@@ -163,7 +163,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     private void addToggleModeItem(
             @NotNull RepeatingView subHeaderItems) {
-        RoleAnalysisTableOpPanelItem toggleModeItem = new RoleAnalysisTableOpPanelItem(subHeaderItems.newChildId(), getModelObject()) {
+        RoleAnalysisTableOpPanelItem toggleModeItem = new RoleAnalysisTableOpPanelItem(subHeaderItems.newChildId(), getModel()) {
             @Serial
             private static final long serialVersionUID = 1L;
 
@@ -215,7 +215,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
             int patternIndex = i;
 
             int finalI = i;
-            RoleAnalysisTableOpPanelItem bodyItem = new RoleAnalysisTableOpPanelItem(bodyItems.newChildId(), getModelObject()) {
+            RoleAnalysisTableOpPanelItem bodyItem = new RoleAnalysisTableOpPanelItem(bodyItems.newChildId(), getModel()) {
                 @Override
                 protected void onConfigure() {
                     super.onConfigure();
@@ -363,7 +363,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     private @NotNull RoleAnalysisTableOpPanelItem addFooterButtonItem(
             @NotNull RepeatingView footerItems) {
-        return new RoleAnalysisTableOpPanelItem(footerItems.newChildId(), getModelObject()) {
+        return new RoleAnalysisTableOpPanelItem(footerItems.newChildId(), getModel()) {
             @Override
             protected void performOnClick(AjaxRequestTarget ajaxRequestTarget) {
                 handleExpandedStateClick(ajaxRequestTarget);
@@ -377,7 +377,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
             @Override
             public String replaceIconCssClass() {
                 return RoleAnalysisTableOpPanelItemPanel.this.getModelObject()
-                        .getDisplayValueOption().isPanelExpanded()
+                        .isPanelExpanded()
                         ? "fa-2x fa fa-align-justify text-dark"
                         : "fa-2x fa fa-columns text-dark";
             }
@@ -442,9 +442,9 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     private void handleExpandedStateClick(
             @NotNull AjaxRequestTarget ajaxRequestTarget) {
-        DisplayValueOption displayValueOption = getModelObject().getDisplayValueOption();
-        boolean panelExpanded = displayValueOption.isPanelExpanded();
-        displayValueOption.setPanelExpanded(!panelExpanded);
+        OperationPanelModel modelObject = getModelObject();
+        boolean panelExpanded = modelObject.isPanelExpanded();
+        modelObject.setPanelExpanded(!panelExpanded);
         ajaxRequestTarget.add(this);
         ajaxRequestTarget.add(container);
     }

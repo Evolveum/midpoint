@@ -149,9 +149,10 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                option.getObject().setSortMode(sortMode);
-                option.getObject().setChunkMode(selectedTableMode);
-                option.getObject().setChunkAction(chunkAction);
+                DisplayValueOption displayOption = option.getObject();
+                displayOption.setSortMode(sortMode);
+                displayOption.setChunkMode(selectedTableMode);
+                displayOption.setChunkAction(chunkAction);
                 performAfterFinish(target);
                 onClose(target);
             }

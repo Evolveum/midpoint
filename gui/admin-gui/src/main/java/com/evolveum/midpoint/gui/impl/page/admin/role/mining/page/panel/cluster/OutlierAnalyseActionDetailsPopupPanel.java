@@ -146,7 +146,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
             }
         }
 
-        RoleAnalysisMatrixTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadTable(miningOperationChunk, displayValueOption, cluster);
+        RoleAnalysisMatrixTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadTable(displayValueOption, cluster);
         add(table);
 
         RepeatingView headerItems = new RepeatingView("header-items");
@@ -158,7 +158,6 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
 
     @NotNull
     private RoleAnalysisMatrixTable<MiningUserTypeChunk, MiningRoleTypeChunk> loadTable(
-            MiningOperationChunk miningOperationChunk,
             DisplayValueOption displayValueOption,
             @NotNull RoleAnalysisClusterType cluster) {
 
@@ -170,10 +169,9 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         };
         RoleAnalysisMatrixTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = new RoleAnalysisMatrixTable<>(
                 "table",
-                miningOperationChunk,
-                new ArrayList<>(),
+//                new ArrayList<>(),
                 option,
-                cluster.asPrismObject(),
+                cluster::asPrismObject,
                 false) {
 
             @Override
@@ -188,6 +186,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
                 return markObjects;
             }
         };
+
 
         table.setOutputMarkupId(true);
         return table;

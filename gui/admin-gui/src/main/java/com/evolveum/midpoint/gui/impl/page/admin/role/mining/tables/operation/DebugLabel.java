@@ -7,6 +7,14 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation;
 
 import java.io.Serial;
+import java.util.*;
+
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -32,7 +40,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Role
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
-public class DebugLabel extends BasePanel<String> implements Popupable {
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformPatternWithAttributes;
+
+public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -42,8 +52,14 @@ public class DebugLabel extends BasePanel<String> implements Popupable {
     private static final String ID_CARD_TITLE = "card-title";
     private static final String ID_EXPLORE_PATTERN_BUTTON = "explore-pattern-button";
 
-    public DebugLabel(String id) {
-        super(id);
+    public DebugLabel(String id, IModel<PatternStatistics<?>> model) {
+        super(id, model);
+//        initLayout();
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
@@ -131,8 +147,10 @@ public class DebugLabel extends BasePanel<String> implements Popupable {
         }
     }
 
+
+
     public DetectedPattern getPattern() {
-        return null;
+        return getModelObject().getDetectedPattern();
     }
 
     @Override
@@ -167,14 +185,9 @@ public class DebugLabel extends BasePanel<String> implements Popupable {
 
     private void initRoleMiningHeaders(RepeatingView headerItems) {
 
-        int detectedPatternCount = getDetectedPatternCount();
-        int topPatternRelations = getTopPatternRelations();
-        int totalRelations = getTotalRelations();
-        double maxCoverage = getMaxCoverage();
-
         InfoBoxModel infoBoxReduction = new InfoBoxModel(GuiStyleConstants.ARROW_LONG_DOWN + " text-white",
                 "Detected patterns",
-                String.valueOf(detectedPatternCount),
+                String.valueOf(getModelObject().getDetectedPatternCount()),
                 100,
                 "Number of detected patterns");
 
@@ -191,7 +204,7 @@ public class DebugLabel extends BasePanel<String> implements Popupable {
 
         InfoBoxModel infoBoxOutliers = new InfoBoxModel(GuiStyleConstants.EVO_ASSIGNMENT_ICON + " text-white",
                 "Top pattern relations",
-                String.valueOf(topPatternRelations),
+                String.valueOf(getModelObject().getTopPatternRelations()),
                 100,
                 "Number of top pattern relations");
 
@@ -209,7 +222,7 @@ public class DebugLabel extends BasePanel<String> implements Popupable {
         InfoBoxModel infoBoxResolvedPattern = new InfoBoxModel(
                 GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " text-white",
                 "Max coverage",
-                String.format("%.2f", maxCoverage),
+                String.format("%.2f", getModelObject().getMaxCoverage()),
                 100,
                 "Max coverage of the detected pattern");
 
@@ -224,7 +237,7 @@ public class DebugLabel extends BasePanel<String> implements Popupable {
         resolvedPatternLabel.setOutputMarkupId(true);
         headerItems.add(resolvedPatternLabel);
 
-        double averageRelationPerPattern = detectedPatternCount > 0 ? (double) totalRelations / detectedPatternCount : 0;
+        double averageRelationPerPattern = getModelObject().getDetectedPatternCount() > 0 ? (double) getModelObject().getTotalRelations() / getModelObject().getDetectedPatternCount() : 0;
 
         InfoBoxModel infoBoxCandidateRoles = new InfoBoxModel(
                 GuiStyleConstants.EVO_ASSIGNMENT_ICON + " text-white",
@@ -275,19 +288,4 @@ public class DebugLabel extends BasePanel<String> implements Popupable {
 
     }
 
-    protected int getDetectedPatternCount() {
-        return 0;
-    }
-
-    protected int getTopPatternRelations() {
-        return 0;
-    }
-
-    protected int getTotalRelations() {
-        return 0;
-    }
-
-    protected double getMaxCoverage() {
-        return 0;
-    }
 }

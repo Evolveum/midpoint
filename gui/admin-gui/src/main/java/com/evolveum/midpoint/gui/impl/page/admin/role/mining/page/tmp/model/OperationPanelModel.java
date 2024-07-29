@@ -9,26 +9,27 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model;
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
 public class OperationPanelModel implements Serializable {
 
-    @NotNull List<DetectedPattern> selectedPatterns = new ArrayList<>();
-    Map<String, String> palletColors = new HashMap<>();
-    String patternIconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " fa-2x text-primary";
-    String candidateRoleIconClass = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " fa-2x text-success";
-    String bgIconClass;
-    List<DetectedPattern> patterns = new ArrayList<>();
-    String selectedButtonColor = "#627383";
-    List<DetectedPattern> candidatesRoles = new ArrayList<>();
-    boolean isCompareMode = false;
-    boolean isCandidateRoleView = false;
-    DisplayValueOption displayValueOption;
+    private @NotNull List<DetectedPattern> selectedPatterns = new ArrayList<>();
+    private Map<String, String> palletColors = new HashMap<>();
+    private String patternIconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " fa-2x text-primary";
+    private String candidateRoleIconClass = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " fa-2x text-success";
+    private String bgIconClass;
+    private List<DetectedPattern> patterns = new ArrayList<>();
+    private String selectedButtonColor = "#627383";
+    private List<DetectedPattern> candidatesRoles = new ArrayList<>();
+    private boolean isCompareMode = false;
+    private boolean isCandidateRoleView = false;
+    private DisplayValueOption displayValueOption;
+    private boolean isPanelExpanded = false;
+
 
     public OperationPanelModel() {
     }
@@ -220,11 +221,12 @@ public class OperationPanelModel implements Serializable {
         return objectColorMap;
     }
 
-    public DisplayValueOption getDisplayValueOption() {
-        return displayValueOption;
+    public boolean isPanelExpanded() {
+        return isPanelExpanded;
     }
 
-    public void setDisplayValueOption(DisplayValueOption displayValueOption) {
-        this.displayValueOption = displayValueOption;
+    public void setPanelExpanded(boolean panelExpanded) {
+        isPanelExpanded = panelExpanded;
     }
+
 }

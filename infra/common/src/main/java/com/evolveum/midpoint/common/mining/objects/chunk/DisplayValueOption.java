@@ -26,7 +26,6 @@ public class DisplayValueOption implements Serializable {
     boolean isPatternToolsPanelMode = true;
     boolean isToolsPanelExpanded = false;
     boolean isFullPage = false;
-    boolean isPanelExpanded = false;
 
     public DisplayValueOption() {
     }
@@ -103,15 +102,7 @@ public class DisplayValueOption implements Serializable {
     public void setToolsPanelExpanded(boolean toolsPanelExpanded) {
         isToolsPanelExpanded = toolsPanelExpanded;
     }
-
-    public boolean isPanelExpanded() {
-        return isPanelExpanded;
-    }
-
-    public void setPanelExpanded(boolean panelExpanded) {
-        isPanelExpanded = panelExpanded;
-    }
-
+    
     public RoleAnalysisChunkAction getChunkAction() {
         return chunkAction;
     }
