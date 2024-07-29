@@ -77,6 +77,7 @@ public class ResolveItemPanel extends BasePanel implements Popupable {
                         return getItemPanelAdditionalStyle(response);
                     }
                 };
+                widget.add(new VisibleBehaviour(() -> isResponseVisible(item.getModelObject())));
                 item.add(widget);
             }
         };
@@ -171,7 +172,7 @@ public class ResolveItemPanel extends BasePanel implements Popupable {
         return response != null && response.equals(selectedResponse);
     }
 
-    private List<AccessCertificationResponseType> getResponses() {
+    protected List<AccessCertificationResponseType> getResponses() {
         return Arrays.stream(AccessCertificationResponseType.values())
                 .filter(response -> response != AccessCertificationResponseType.DELEGATE)
                 .toList();
@@ -180,6 +181,12 @@ public class ResolveItemPanel extends BasePanel implements Popupable {
     private String getComment() {
         TextArea<String> comment = (TextArea<String>) get(ID_COMMENT);
         return comment.getModelObject();
+    }
+
+    private boolean isResponseVisible(AccessCertificationResponseType response) {
+        return getResponses()
+                .stream()
+                .anyMatch(r -> r.equals(response));
     }
 
 }

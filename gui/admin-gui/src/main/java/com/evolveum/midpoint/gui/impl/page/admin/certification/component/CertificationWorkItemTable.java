@@ -144,7 +144,12 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
             availableResponses = Arrays.stream(values()).filter(r -> r != DELEGATE).collect(Collectors.toList());
         }
         List<GuiActionType> actions = getCertItemsViewActions();
-        return CertMiscUtil.mergeCertItemsResponses(availableResponses, actions, getPageBase());
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> actionsList =
+                CertMiscUtil.mergeCertItemsResponses(availableResponses, actions, getPageBase());
+        return actionsList
+                .stream()
+                .sorted(Comparator.comparingInt(AbstractGuiAction::getOrder))
+                .toList();
     }
 
     private List<GuiActionType> getCertItemsViewActions() {

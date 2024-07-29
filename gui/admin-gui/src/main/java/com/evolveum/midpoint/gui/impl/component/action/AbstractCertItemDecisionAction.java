@@ -66,11 +66,17 @@ public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<A
 
     @Override
     public boolean isVisibleForRow(AccessCertificationWorkItemType certItem) {
+        if (certItem == null) {
+            return true;
+        }
         AccessCertificationResponseType response = getResponse();
-        String certItemResponseUri = certItem != null && certItem.getOutput() != null ?
-                certItem.getOutput().getOutcome() : null;
-        AccessCertificationResponseType certItemResponse = OutcomeUtils.fromUri(certItemResponseUri);
+        AccessCertificationResponseType certItemResponse = getCertItemResponse(certItem);
 
         return certItemResponse == null || certItemResponse != response;
+    }
+
+    protected AccessCertificationResponseType getCertItemResponse(AccessCertificationWorkItemType certItem) {
+        return certItem != null && certItem.getOutput() != null ?
+                OutcomeUtils.fromUri(certItem.getOutput().getOutcome()) : null;
     }
 }

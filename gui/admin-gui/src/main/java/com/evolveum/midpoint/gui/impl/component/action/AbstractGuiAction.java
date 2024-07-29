@@ -150,4 +150,9 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
         return actionType != null && actionType.bulkAction();
     }
 
+    public int getOrder() {
+        ActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(ActionType.class);
+        PanelDisplay display = actionType != null ? actionType.display() : null;
+        return display != null ? display.order() : 0;
+    }
 }

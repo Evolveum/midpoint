@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.component.action;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.ActionType;
@@ -23,6 +25,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.io.Serial;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @ActionType(
         identifier = "certItemResolve",
@@ -61,8 +64,39 @@ public class CertItemResolveAction extends AbstractGuiAction<AccessCertification
                 result.computeStatus();
                 target.add(pageBase);
             }
+
+            @Override
+            protected List<AccessCertificationResponseType> getResponses() {
+                return CertItemResolveAction.this.getResponses(workItems, pageBase);
+            }
         };
         pageBase.showMainPopup(resolveItemPanel, target);
+    }
+
+    private List<AccessCertificationResponseType> getResponses(List<AccessCertificationWorkItemType> certItems, PageBase pageBase) {
+        if (certItems != null && certItems.size() == 1) {
+            AccessCertificationWorkItemType certItem = certItems.get(0);
+            return getAvailableResponsesForCertItem(certItem, pageBase);
+        }
+        return loadAvailableResponses(pageBase);
+    }
+
+    protected List<AccessCertificationResponseType> getAvailableResponsesForCertItem(AccessCertificationWorkItemType certItem,
+            PageBase pageBase) {
+        AccessCertificationResponseType certItemResponse = getCertItemResponse(certItem);
+        return loadAvailableResponses(pageBase)
+                .stream()
+                .filter(response -> certItemResponse != response)
+                .collect(Collectors.toList());
+    }
+
+    private List<AccessCertificationResponseType> loadAvailableResponses(PageBase pageBase) {
+        return new AvailableResponses(pageBase).getResponseValues();
+    }
+
+    private AccessCertificationResponseType getCertItemResponse(AccessCertificationWorkItemType certItem) {
+        return certItem != null && certItem.getOutput() != null ?
+                OutcomeUtils.fromUri(certItem.getOutput().getOutcome()) : null;
     }
 
 }
