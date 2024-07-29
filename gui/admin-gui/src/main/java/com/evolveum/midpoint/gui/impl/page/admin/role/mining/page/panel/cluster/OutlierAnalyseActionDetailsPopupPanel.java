@@ -11,7 +11,9 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.LOGGER
 
 import java.util.*;
 
-import com.google.common.collect.ListMultimap;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.RoleAnalysisMatrixTable;
+
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -36,7 +38,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.InfoBoxModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoBox;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.RoleAnalysisUserBasedTable;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -145,7 +146,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
             }
         }
 
-        RoleAnalysisUserBasedTable table = loadTable(miningOperationChunk, displayValueOption, cluster);
+        RoleAnalysisMatrixTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadTable(miningOperationChunk, displayValueOption, cluster);
         add(table);
 
         RepeatingView headerItems = new RepeatingView("header-items");
@@ -156,20 +157,24 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
     }
 
     @NotNull
-    private RoleAnalysisUserBasedTable loadTable(
+    private RoleAnalysisMatrixTable<MiningUserTypeChunk, MiningRoleTypeChunk> loadTable(
             MiningOperationChunk miningOperationChunk,
             DisplayValueOption displayValueOption,
             @NotNull RoleAnalysisClusterType cluster) {
-        RoleAnalysisUserBasedTable table = new RoleAnalysisUserBasedTable(
+
+        LoadableDetachableModel<DisplayValueOption> option = new LoadableDetachableModel<>() {
+            @Override
+            protected DisplayValueOption load() {
+                return displayValueOption;
+            }
+        };
+        RoleAnalysisMatrixTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = new RoleAnalysisMatrixTable<>(
                 "table",
                 miningOperationChunk,
                 new ArrayList<>(),
-                new LoadableDetachableModel<>() {
-                    @Override
-                    protected DisplayValueOption load() {
-                        return displayValueOption;
-                    }
-                }, cluster.asPrismObject()) {
+                option,
+                cluster.asPrismObject(),
+                false) {
 
             @Override
             public boolean isOutlierDetection() {
