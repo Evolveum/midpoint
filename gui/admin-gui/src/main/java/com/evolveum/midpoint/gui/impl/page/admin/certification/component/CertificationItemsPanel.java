@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -65,8 +67,6 @@ public class CertificationItemsPanel extends BasePanel<String> {
     private static final Trace LOGGER = TraceManager.getTrace(CertificationItemsPanel.class);
     private static final String DOT_CLASS = CertificationItemsPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_CAMPAIGN = DOT_CLASS + "loadCampaign";
-    private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadCertItemsReport";
-    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runCertItemsReport";
 
 
     private static final String ID_NAVIGATION_PANEL = "navigationPanel";
@@ -128,26 +128,31 @@ public class CertificationItemsPanel extends BasePanel<String> {
             }
 
             @Override
-            protected Component createNextButton(String id, IModel<String> nextTitle) {
-                AjaxIconButton button = new AjaxIconButton(id, Model.of("fa fa-chart-pie"),
-                        createStringResource("PageCertDecisions.button.createReport")) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        onNextPerformed(target);
-                    }
-                };
-                button.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getCampaignOid())));
-                button.showTitleAsLabel(true);
-                button.add(AttributeModifier.append("class", "btn btn-secondary"));
-                return button;
+            protected @NotNull VisibleEnableBehaviour getNextVisibilityBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
             }
 
-            @Override
-            protected void onNextPerformed(AjaxRequestTarget target) {
-                runCertItemsReport(target);
-            }
+//            @Override
+//            protected Component createNextButton(String id, IModel<String> nextTitle) {
+//                AjaxIconButton button = new AjaxIconButton(id, Model.of("fa fa-chart-pie"),
+//                        createStringResource("PageCertDecisions.button.createReport")) {
+//                    @Serial private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public void onClick(AjaxRequestTarget target) {
+//                        onNextPerformed(target);
+//                    }
+//                };
+//                button.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getCampaignOid())));
+//                button.showTitleAsLabel(true);
+//                button.add(AttributeModifier.append("class", "btn btn-secondary"));
+//                return button;
+//            }
+
+//            @Override
+//            protected void onNextPerformed(AjaxRequestTarget target) {
+//                runCertItemsReport(target);
+//            }
 
         };
         add(navigationPanel);
@@ -457,73 +462,6 @@ public class CertificationItemsPanel extends BasePanel<String> {
             XMLGregorianCalendar startDate = campaign.getStartTimestamp();
             return WebComponentUtil.getLocalizedDate(startDate, DateLabelComponent.SHORT_NOTIME_STYLE);
         };
-    }
-
-    private void runCertItemsReport(AjaxRequestTarget target) {
-        Task task = getPageBase().createSimpleTask(OPERATION_RUN_REPORT);
-        OperationResult result = task.getResult();
-
-        try {
-            PrismObject<ReportType> report = loadCertItemsReport();
-            PrismContainer<ReportParameterType> params = createParameters();
-            getPageBase().getReportManager().runReport(report, params, task, result);
-        } catch (Exception ex) {
-            result.recordFatalError(ex);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-
-        showResult(result);
-        target.add(getFeedbackPanel());
-    }
-
-    private PrismContainer<ReportParameterType> createParameters() {
-        PrismContainerValue<ReportParameterType> reportParamValue;
-        @NotNull PrismContainer<ReportParameterType> parameterContainer;
-        try {
-            PrismContainerDefinition<ReportParameterType> paramContainerDef = getPrismContext().getSchemaRegistry()
-                    .findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
-            parameterContainer = paramContainerDef.instantiate();
-
-            ReportParameterType reportParam = new ReportParameterType();
-
-            String campaignOid = getCampaignOid();
-            ObjectReferenceType campaignRef = new ObjectReferenceType()
-                    .oid(campaignOid)
-                    .type(AccessCertificationCampaignType.COMPLEX_TYPE);
-            ReportParameterTypeUtil.addParameter(reportParam, "campaignRef", campaignRef);
-
-            AccessCertificationCampaignType campaign = campaignModel.getObject();
-            int stageNumber = campaign.getStageNumber();
-            ReportParameterTypeUtil.addParameter(reportParam, "stageNumber", stageNumber);
-
-            int iteration = campaign.getIteration();
-            ReportParameterTypeUtil.addParameter(reportParam, "iteration", iteration);
-
-            reportParamValue = reportParam.asPrismContainerValue();
-            reportParamValue.revive(getPrismContext());
-            parameterContainer.add(reportParamValue);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't create container for report parameters");
-            return null;
-        }
-        return parameterContainer;
-    }
-
-    private PrismObject<ReportType> loadCertItemsReport() {
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REPORT);
-        OperationResult result = task.getResult();
-        PrismObject<ReportType> report = null;
-        try {
-            String certItemsReportOid = "00000000-0000-0000-0000-000000000160";
-            report = getPageBase().getModelService().getObject(ReportType.class, certItemsReportOid, null, task, result);
-        } catch (Exception ex) {
-            LOGGER.error("Couldn't load certification work items report", ex);
-            result.recordFatalError(ex);
-        } finally {
-            result.computeStatusIfUnknown();
-        }
-        return report;
     }
 
     boolean isDisplayingAllItems() {
