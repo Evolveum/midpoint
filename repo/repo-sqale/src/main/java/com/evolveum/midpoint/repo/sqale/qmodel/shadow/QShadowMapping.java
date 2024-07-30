@@ -321,4 +321,12 @@ public class QShadowMapping
             partitionManager.ensurePartitionExists(row,jdbcSession);
         }
     }
+
+    public void setCreatePartitionOnInsert(boolean value) {
+        this.createPartitionOnInsert = value;
+    }
+
+    public ShadowPartitionManager getPartitionManager() {
+        return partitionManager;
+    }
 }

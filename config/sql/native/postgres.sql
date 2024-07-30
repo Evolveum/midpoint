@@ -1157,8 +1157,8 @@ CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
         EXECUTE format('DELETE FROM %I
             where resourceRefTargetOid = ''%s''', sourceTable, new.resourceOid);
       ELSE
-        EXECUTE format('DELETE FROM m_shadow_default
-            where resourceRefTargetOid = ''%s'' AND objectClassId = %s', new.resourceOid, new.objectClassId);
+        EXECUTE format('DELETE FROM %I
+            where resourceRefTargetOid = ''%s'' AND objectClassId = %s', sourceTable, new.resourceOid, new.objectClassId);
       END IF;
       /* Reenable triggers in original table */
       EXECUTE format('ALTER TABLE %I ENABLE TRIGGER ALL;', sourceTable);

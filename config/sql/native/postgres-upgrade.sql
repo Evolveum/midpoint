@@ -872,8 +872,8 @@ call apply_change(43,$aa$
             EXECUTE format('DELETE FROM %I
                 where resourceRefTargetOid = ''%s''', sourceTable, new.resourceOid);
           ELSE
-            EXECUTE format('DELETE FROM m_shadow_default
-                where resourceRefTargetOid = ''%s'' AND objectClassId = %s', new.resourceOid, new.objectClassId);
+            EXECUTE format('DELETE FROM %I
+                where resourceRefTargetOid = ''%s'' AND objectClassId = %s', sourceTable, new.resourceOid, new.objectClassId);
           END IF;
           /* Reenable triggers in original table */
           EXECUTE format('ALTER TABLE %I ENABLE TRIGGER ALL;', sourceTable);
@@ -885,9 +885,6 @@ call apply_change(43,$aa$
             EXECUTE FORMAT ('ALTER TABLE %I ATTACH PARTITION %I FOR VALUES IN (%s)', partitionParent, new."table", new.objectClassId);
             /* Attach table as objectClass partiion */
           END IF;
-
-
-
           RETURN new;
         END;
       $BODY$
@@ -932,9 +929,9 @@ call apply_change(43,$aa$
         attached boolean NOT NULL
     ) WITH (oids = false);
 
-    CREATE TRIGGER "m_shadow_partition_def_bi" BEFORE INSERT ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_create_partition();;
-    CREATE TRIGGER "m_shadow_partition_def_bu" BEFORE UPDATE ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_update_partition();;
-    CREATE TRIGGER "m_shadow_partition_def_bd" BEFORE DELETE ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_delete_partition();;
+    CREATE TRIGGER "m_shadow_partition_def_bi" BEFORE INSERT ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_create_partition();
+    CREATE TRIGGER "m_shadow_partition_def_bu" BEFORE UPDATE ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_update_partition();
+    CREATE TRIGGER "m_shadow_partition_def_bd" BEFORE DELETE ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_delete_partition();
 $aa$);
 
 
