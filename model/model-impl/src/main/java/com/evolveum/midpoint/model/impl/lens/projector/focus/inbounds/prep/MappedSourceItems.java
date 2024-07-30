@@ -269,7 +269,7 @@ class MappedSourceItems<T extends Containerable> {
                         itemPath, // source path (cannot point to specified association name!)
                         assocDef,
                         associationProvider,
-                        () -> inboundsSource.isFullShadowAvailable())); // TODO finer grained!
+                        () -> inboundsSource.isAssociationAvailable(assocName)));
     }
 
     private List<InboundMappingConfigItem> createMappingCIs(Collection<InboundMappingType> inboundMappingBeans) {

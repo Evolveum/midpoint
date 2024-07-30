@@ -1327,6 +1327,20 @@ public class ShadowUtil {
                 .isEffectivelyCached(definition);
     }
 
+    public static boolean isAssociationLoaded(
+            @NotNull ItemName assocName,
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) throws SchemaException {
+        if (!isShadowFresh(shadow, definition, now)) {
+            return false;
+        }
+        return definition
+                .findAssociationDefinitionRequired(assocName)
+                .getReferenceAttributeDefinition()
+                .isEffectivelyCached(definition);
+    }
+
     public static Collection<QName> getCachedAttributesNames(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull CompositeObjectDefinition definition,

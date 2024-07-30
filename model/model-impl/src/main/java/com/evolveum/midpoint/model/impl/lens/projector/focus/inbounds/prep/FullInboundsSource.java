@@ -145,6 +145,11 @@ public class FullInboundsSource extends InboundsSource {
     }
 
     @Override
+    public boolean isAssociationAvailable(ItemName itemName) throws SchemaException, ConfigurationException {
+        return projectionContext.isAssociationLoaded(itemName);
+    }
+
+    @Override
     public boolean isFullShadowAvailable() {
         return projectionContext.isFullShadow();
     }

@@ -124,8 +124,8 @@ public abstract class InboundsSource implements DebugDumpable {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     abstract boolean isProjectionBeingDeleted();
 
-    // TODO associations
     public abstract boolean isAttributeAvailable(ItemName itemName) throws SchemaException, ConfigurationException;
+    public abstract boolean isAssociationAvailable(ItemName itemName) throws SchemaException, ConfigurationException;
     public abstract boolean isFullShadowAvailable();
     public abstract boolean isShadowGone();
     public abstract boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException;

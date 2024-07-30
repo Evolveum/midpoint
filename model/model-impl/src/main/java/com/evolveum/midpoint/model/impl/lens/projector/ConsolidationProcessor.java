@@ -126,10 +126,10 @@ public class ConsolidationProcessor {
         // Do not automatically load the full projection now. Even if we have weak mapping.
         // That may be a waste of resources if the weak mapping results in no change anyway.
         // Let's be very very lazy about fetching the account from the resource.
-        if (hasUnsatisfiedActiveWeakMapping(projCtx.getSqueezedAttributes(), projCtx)
-                || hasUnsatisfiedActiveWeakMapping(projCtx.getSqueezedAssociations(), projCtx)
-                || hasUnsatisfiedActiveStrongMapping(projCtx.getSqueezedAttributes(), projCtx)
-                || hasUnsatisfiedActiveStrongMapping(projCtx.getSqueezedAssociations(), projCtx)) {
+        if (hasUnsatisfiedActiveWeakMapping(projCtx, false)
+                || hasUnsatisfiedActiveWeakMapping(projCtx, true)
+                || hasUnsatisfiedActiveStrongMapping(projCtx, false)
+                || hasUnsatisfiedActiveStrongMapping(projCtx, true)) {
             // Full account was not yet loaded. This will cause problems as the weak mapping may be applied even though
             // it should not be applied and also same changes may be discarded because of unavailability of all
             // account's attributes. Therefore load the account now, but with doNotDiscovery options.
@@ -422,11 +422,17 @@ public class ConsolidationProcessor {
                     itemDesc, key, addUnchangedValues, forceAddUnchangedValues);
 
             ItemName itemName = itemDefinition.getItemName();
-            // The "isIdentifier" condition is a pre-4.9 legacy. At this place we consider identifiers to be always available
-            // (even if the cached shadows use policy is "fresh"). This is as it was before 4.9.
-            boolean existingItemKnown =
-                    projCtx.isAttributeLoaded(itemName)
-                            || objectDef.isIdentifier(itemDefinition.getItemName());
+            boolean existingItemKnown;
+            if (itemDefinition instanceof ShadowAttributeDefinition) {
+                // The "isIdentifier" condition is a pre-4.9 legacy. At this place we consider identifiers to be always available
+                // (even if the cached shadows use policy is "fresh"). This is as it was before 4.9.
+                existingItemKnown =
+                        projCtx.isAttributeLoaded(itemName) || objectDef.isIdentifier(itemDefinition.getItemName());
+            } else {
+                assert itemDefinition instanceof ShadowAssociationDefinition;
+                existingItemKnown = projCtx.isAssociationLoaded(itemName);
+            }
+
             ItemDelta<V, D> itemDelta;
             // Use the consolidator to do the computation. It does most of the work.
             try (IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidatorBuilder<V,D,ItemValueWithOrigin<V, D>>()
@@ -496,24 +502,23 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue,D extends ItemDefinition<?>> boolean hasUnsatisfiedActiveWeakMapping(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes, LensProjectionContext projCtx)
+    private boolean hasUnsatisfiedActiveWeakMapping(LensProjectionContext projCtx, boolean associations)
             throws SchemaException, ConfigurationException {
-        for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> entry : squeezedAttributes.entrySet()) {
-            if (projCtx.isAttributeLoaded(entry.getKey())) { // TODO associations
+        for (var entry : (associations ? projCtx.getSqueezedAssociations() : projCtx.getSqueezedAttributes()).entrySet()) {
+            if (associations ? projCtx.isAssociationLoaded(entry.getKey()) : projCtx.isAttributeLoaded(entry.getKey())) {
                 continue;
             }
             var ivwoTriple = entry.getValue();
             var hasWeak = false;
-            for (ItemValueWithOrigin<V,D> ivwo: ivwoTriple.getAllValues()) {
-                PrismValueDeltaSetTripleProducer<V,D> mapping = ivwo.getProducer();
+            for (var ivwo: ivwoTriple.getAllValues()) {
+                var mapping = ivwo.getProducer();
                 if (mapping.getStrength() == MappingStrengthType.WEAK) {
                     // We only care about mappings that change something. If the weak mapping is not
                     // changing anything then it will not be applied in this step anyway. Therefore
                     // there is no point in loading the real values just because there is such mapping.
                     // Note: we can be sure that we are NOT doing reconciliation. If we do reconciliation
                     // then we cannot get here in the first place (the projection is already loaded).
-                    PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
+                    var outputTriple = mapping.getOutputTriple();
                     if (outputTriple != null && !outputTriple.isEmpty() && !outputTriple.isZeroOnly()) {
                         return true;
                     }
@@ -527,28 +532,27 @@ public class ConsolidationProcessor {
                 // In that case we should apply the weak mapping. But we will not know this
                 // unless we fetch the real values.
                 if (ivwoTriple.hasMinusSet()) {
-                    for (ItemValueWithOrigin<V,D> ivwo: ivwoTriple.getMinusSet()) {
-                        PrismValueDeltaSetTripleProducer<V, D> mapping = ivwo.getProducer();
-                        PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
+                    for (var ivwo: ivwoTriple.getMinusSet()) {
+                        var outputTriple = ivwo.getProducer().getOutputTriple();
                         if (outputTriple != null && !outputTriple.isEmpty()) {
                             return true;
                         }
                     }
                 }
-                for (ItemValueWithOrigin<V,D> ivwo: ivwoTriple.getNonNegativeValues()) {
-                    PrismValueDeltaSetTripleProducer<V, D> mapping = ivwo.getProducer();
-                    PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
+                for (var ivwo: ivwoTriple.getNonNegativeValues()) {
+                    var outputTriple = ivwo.getProducer().getOutputTriple();
                     if (outputTriple != null && outputTriple.hasMinusSet()) {
                         return true;
                     }
                 }
-                ObjectDelta<ShadowType> projectionDelta = projCtx.getSummaryDelta(); // TODO check this
+                var projectionDelta = projCtx.getSummaryDelta(); // TODO check this
                 if (projectionDelta != null) {
-                    PropertyDelta<?> aPrioriAttributeDelta = projectionDelta.findPropertyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, entry.getKey()));
-                    if (aPrioriAttributeDelta != null && aPrioriAttributeDelta.isDelete()) {
+                    var aPrioriItemDelta = projectionDelta.findItemDelta(
+                            ItemPath.create(associations ? ShadowType.F_ASSOCIATIONS : ShadowType.F_ATTRIBUTES, entry.getKey()));
+                    if (aPrioriItemDelta != null && aPrioriItemDelta.isDelete()) {
                         return true;
                     }
-                    if (aPrioriAttributeDelta != null && aPrioriAttributeDelta.isReplace() && aPrioriAttributeDelta.getValuesToReplace().isEmpty()) {
+                    if (aPrioriItemDelta != null && aPrioriItemDelta.isReplace() && aPrioriItemDelta.getValuesToReplace().isEmpty()) {
                         return true;
                     }
                 }
@@ -557,11 +561,10 @@ public class ConsolidationProcessor {
         return false;
     }
 
-    private <V extends PrismValue,D extends ItemDefinition<?>> boolean hasUnsatisfiedActiveStrongMapping(
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedAttributes, LensProjectionContext projCtx)
+    private boolean hasUnsatisfiedActiveStrongMapping(LensProjectionContext projCtx, boolean associations)
             throws SchemaException, ConfigurationException {
-        for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> entry : squeezedAttributes.entrySet()) {
-            if (projCtx.isAttributeLoaded(entry.getKey())) { // TODO associations
+        for (var entry : (associations ? projCtx.getSqueezedAssociations() : projCtx.getSqueezedAttributes()).entrySet()) {
+            if (associations ? projCtx.isAssociationLoaded(entry.getKey()) : projCtx.isAttributeLoaded(entry.getKey())) {
                 continue;
             }
             var ivwoTriple = entry.getValue();

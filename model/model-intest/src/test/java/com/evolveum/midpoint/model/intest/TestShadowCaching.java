@@ -77,7 +77,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "resource-dummy-hr.xml", "c37ff87e-42f1-46d2-8c6f-36c780cd1193", "hr",
             c -> hrScenario = DummyHrScenario.on(c).initialize());
 
-    private static final DummyTestResource RESOURCE_DUMMY_AD = new DummyTestResource(
+    private static final DummyTestResource RESOURCE_DUMMY_TARGET = new DummyTestResource(
             TEST_DIR, "resource-dummy-target.xml", "e26d279d-6552-45e6-a3ca-a288910c885a", "target",
             c -> targetScenario = DummyDefaultScenario.on(c).initialize());
 
@@ -246,6 +246,8 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         hrScenario.person.getByNameRequired(PERSON_JOHN_NAME)
                 .replaceAttributeValues(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Big Doe")
                 .replaceAttributeValues(DummyHrScenarioExtended.Person.AttributeNames.TITLE.local(), "Ing. Mgr.");
+        hrScenario.contract.deleteById(
+                hrScenario.contract.getByNameRequired(JOHN_LAW_CONTRACT_ID).getId());
 
         refreshHrPersons(task, result);
 
@@ -261,7 +263,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                 .assertGivenName("John")
                 .assertFamilyName("Big Doe")
                 .assertHonorificPrefix("Ing. Mgr.")
-                .assertAssignments(3);
+                .assertAssignments(2);
 
         and("there were no shadow fetch operations");
         assertNoShadowFetchOperations();

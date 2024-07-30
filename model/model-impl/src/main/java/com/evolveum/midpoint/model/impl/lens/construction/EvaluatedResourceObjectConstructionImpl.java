@@ -306,7 +306,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
             LOGGER.trace("We will not load full shadow, because we have no projection context");
             return null;
         }
-        if (projectionContext.isAttributeLoaded(itemMapper.getItemName())) {
+        if (itemMapper.isItemLoaded(projectionContext)) {
             LOGGER.trace("We will not load full shadow, because we already have sufficient information");
             return null;
         }

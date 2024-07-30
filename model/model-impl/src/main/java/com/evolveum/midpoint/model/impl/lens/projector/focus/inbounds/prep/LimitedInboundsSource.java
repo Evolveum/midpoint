@@ -68,6 +68,11 @@ public class LimitedInboundsSource extends InboundsSource {
     }
 
     @Override
+    public boolean isAssociationAvailable(ItemName itemName) {
+        return false; // associations are not supported in limited processing anyway
+    }
+
+    @Override
     public boolean isFullShadowAvailable() {
         return true; // TODO reconsider
     }

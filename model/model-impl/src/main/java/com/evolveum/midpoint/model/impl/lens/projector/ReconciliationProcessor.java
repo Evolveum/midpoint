@@ -583,7 +583,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 //                }
 //            }
 
-            if (!projCtx.isAttributeLoaded(assocName)) {
+            if (!projCtx.isAssociationLoaded(assocName)) {
                 if (!loadIfPossible(projCtx, "association " + assocName, task, result)) {
                     return;
                 }

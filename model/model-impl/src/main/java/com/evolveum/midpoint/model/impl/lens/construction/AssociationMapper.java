@@ -7,12 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationOutboundMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
@@ -50,23 +53,6 @@ class AssociationMapper<AH extends AssignmentHolderType>
                 mappingKind);
     }
 
-    /**
-     * Evaluation of the association based on association type definition. Unlike the other constructor, this one is expected
-     * to be invoked only during plain outbound processing. However, it is strongly connected to assignment processing:
-     * it needs magic assignments as its source.
-     */
-    AssociationMapper(
-            @NotNull ConstructionEvaluation<AH, ?> constructionEvaluation,
-            @NotNull ShadowAssociationDefinition associationDefinition,
-            @NotNull AssociationOutboundMappingType outboundBean) {
-        super(
-                constructionEvaluation,
-                associationDefinition.getItemName(),
-                ShadowType.F_ASSOCIATIONS.append(associationDefinition.getItemName()),
-                associationDefinition,
-                outboundBean);
-    }
-
     @Override
     protected String getItemType() {
         return "association";
@@ -75,5 +61,10 @@ class AssociationMapper<AH extends AssignmentHolderType>
     @Override
     ShadowAssociationDefinition getAssociationDefinition() {
         return itemDefinition;
+    }
+
+    @Override
+    boolean isItemLoaded(LensProjectionContext projectionContext) throws SchemaException, ConfigurationException {
+        return projectionContext.isAssociationLoaded(getItemName());
     }
 }

@@ -909,8 +909,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ModelBeans.get().clock.currentTimeXMLGregorianCalendar();
     }
 
-    // TODO also for associations
-
     /**
      * Returns {@code true} if the attribute is available for processing. It must either be freshly loaded
      * (in the {@link #hasFullShadow()} sense) or it must be cached *and* the use of cache for computations
@@ -923,6 +921,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         } else {
             return ShadowUtil.isAttributeLoaded(
                     ItemName.fromQName(attrName),
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
+    }
+
+    /** @see #isAttributeLoaded(QName) */
+    public boolean isAssociationLoaded(QName assocName) throws SchemaException, ConfigurationException {
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isAssociationLoaded(
+                    ItemName.fromQName(assocName),
                     getObjectCurrent(),
                     getCompositeObjectDefinitionRequired(),
                     getCurrentTime());
