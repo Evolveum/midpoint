@@ -62,8 +62,7 @@ public final class ResourceObjectsReconciliationActivityRun
                 processingScope.getPostSearchFilter(),
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_RECON,
-                false,
-                getWorkDefinition().isNoFetchMode());
+                false);
     }
 
     // Ignoring configured search options. TODO ok?

@@ -141,7 +141,7 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
             LOGGER.trace("No items requiring current value, no need to load anything");
             return false;
         }
-        var cachedShadowsUse = inboundsContext.getCachedShadowsUse();
+        var cachedShadowsUse = inboundsSource.getCachedShadowsUse();
         if (cachedShadowsUse == CachedShadowsUseType.USE_FRESH) {
             LOGGER.trace("Loading the shadow because fresh inbound data is needed (pre-4.9 default behavior)");
             return true;

@@ -53,6 +53,7 @@ public interface ResourceObjectSetSpecificationProvider
         return getResourceObjectSetSpecification().getFailedObjectsSelector();
     }
 
+    // TODO consider removing this method
     default boolean isNoFetchMode() {
         return GetOperationOptions.isNoFetch(
                 GetOperationOptionsUtil.optionsBeanToOptions(

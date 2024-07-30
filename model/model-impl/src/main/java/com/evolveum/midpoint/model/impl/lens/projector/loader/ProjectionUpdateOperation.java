@@ -13,7 +13,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.isNoFetch;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang3.Validate;
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -394,7 +394,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
     }
 
     private void checkLoadedShadowConsistency(PrismObject<ShadowType> object) {
-        Validate.notNull(object.getOid());
+        Preconditions.checkNotNull(object.getOid());
         if (InternalsConfig.consistencyChecks) {
             String resourceOid = projectionContext.getResourceOid();
             if (resourceOid != null) {
@@ -410,7 +410,8 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         }
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions() {
+    private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions()
+            throws SchemaException, ConfigurationException {
         GetOperationOptionsBuilder builder = beans.schemaService.getOperationOptionsBuilder()
                 //.readOnly() [not yet]
                 .futurePointInTime()
@@ -423,7 +424,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         if (projectionContext.isInMaintenance()) {
             LOGGER.trace("Using 'no fetch' mode because of resource maintenance (to avoid errors being reported)");
             builder = builder.noFetch();
-        } else if (reconciliation && !projectionContext.getLensContext().isCachedShadowsUseAllowed()) {
+        } else if (reconciliation && !projectionContext.isCachedShadowsUseAllowed()) {
             builder = builder.forceRefresh();
 
             // We force operation retry "in hard way" only if we do full-scale reconciliation AND we are starting the clockwork.

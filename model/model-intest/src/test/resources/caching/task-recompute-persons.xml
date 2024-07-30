@@ -16,10 +16,6 @@
                     <type>UserType</type>
                     <archetypeRef oid="c4b26c78-b7ac-42b8-9a7c-9bdb0c1e2bbd"/>
                 </objects>
-                <executionOptions>
-                    <cachedShadowsUse>useCachedOrIgnore</cachedShadowsUse>
-                    <reconcile>true</reconcile>
-                </executionOptions>
             </recomputation>
         </work>
         <!--<reporting>-->

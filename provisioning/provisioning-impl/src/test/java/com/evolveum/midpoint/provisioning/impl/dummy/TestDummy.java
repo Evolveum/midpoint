@@ -518,7 +518,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             foundObjects.add(shadow);
 
             try {
-                checkCachedAccountShadow(shadow, parentResult, false, null, startTs);
+                checkCachedAccountShadow(shadow, parentResult);
             } catch (ConfigurationException | SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
@@ -4692,13 +4692,10 @@ public class TestDummy extends AbstractBasicDummyTest {
     // test999 shutdown in the superclass
 
     @SuppressWarnings("SameParameterValue")
-    protected void checkCachedAccountShadow(
+    private void checkCachedAccountShadow(
             AbstractShadow shadow,
-            OperationResult parentResult,
-            boolean fullShadow,
-            XMLGregorianCalendar startTs,
-            XMLGregorianCalendar endTs) throws SchemaException, ConfigurationException {
-        checkAccountShadow(shadow, parentResult, fullShadow);
+            OperationResult parentResult) throws SchemaException, ConfigurationException {
+        checkAccountShadow(shadow, parentResult, false);
     }
 
     private void checkGroupShadow(AbstractShadow shadow, OperationResult parentResult)

@@ -37,6 +37,8 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE;
+
 /**
  * A synchronization action that involves clockwork processing.
  *
@@ -182,7 +184,7 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
         // This will set both old and current object: and that's how it should be.
         projectionContext.setInitialObject(shadow.asPrismObject());
 
-        if (!tombstone && !containsIncompleteItems(shadow)) {
+        if (!tombstone && !containsIncompleteItems(shadow) && shadow.getContentDescription() == FROM_RESOURCE_COMPLETE) {
             projectionContext.setFullShadow(true);
         }
         projectionContext.setFresh(true);

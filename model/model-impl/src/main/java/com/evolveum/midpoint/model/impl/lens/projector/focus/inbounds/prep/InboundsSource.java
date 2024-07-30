@@ -263,4 +263,9 @@ public abstract class InboundsSource implements DebugDumpable {
     boolean hasDependentContext() throws SchemaException, ConfigurationException {
         return false;
     }
+
+    /** Only for full processing. */
+    @NotNull CachedShadowsUseType getCachedShadowsUse() throws SchemaException, ConfigurationException {
+        throw new UnsupportedOperationException("Not implemented for " + this);
+    }
 }

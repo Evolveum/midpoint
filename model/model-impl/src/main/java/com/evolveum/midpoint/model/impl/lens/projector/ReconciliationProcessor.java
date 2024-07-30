@@ -90,7 +90,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         // Reconcile even if it was not explicitly requested and if we have full shadow
         // reconciliation is cheap if the shadow is already fetched therefore just do it
-        boolean avoidCachedShadows = !projCtx.getLensContext().isCachedShadowsUseAllowed();
+        boolean avoidCachedShadows = !projCtx.isCachedShadowsUseAllowed();
         if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow() && avoidCachedShadows) {
             LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow (and cache use disallowed)",
                     projCtx.getHumanReadableName());
@@ -307,7 +307,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
 
-        boolean useCachedShadows = projCtx.getLensContext().isCachedShadowsUseAllowed();
+        boolean useCachedShadows = projCtx.isCachedShadowsUseAllowed();
 
         var squeezedAttributes = projCtx.getSqueezedAttributes();
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
@@ -1012,7 +1012,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                     projCtx.getHumanReadableName());
             return false;
         }
-        switch (projCtx.getLensContext().getCachedShadowsUse()) {
+        switch (projCtx.getCachedShadowsUse()) {
             case USE_CACHED_OR_FAIL:
                 throw new ExpressionEvaluationException(
                         "%s could not be reconciled, because the item is not loaded".formatted(desc));

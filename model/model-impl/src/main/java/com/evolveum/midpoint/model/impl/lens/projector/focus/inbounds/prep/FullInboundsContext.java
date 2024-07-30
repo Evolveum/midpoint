@@ -9,8 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachedShadowsUseType;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -68,10 +66,5 @@ public class FullInboundsContext extends InboundsContext {
     @Override
     public @NotNull PathSet getCorrelationItemPaths() {
         return new PathSet();
-    }
-
-    @Override
-    @NotNull CachedShadowsUseType getCachedShadowsUse() {
-        return lensContext.getCachedShadowsUse();
     }
 }

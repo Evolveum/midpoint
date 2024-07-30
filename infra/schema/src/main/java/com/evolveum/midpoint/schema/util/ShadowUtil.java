@@ -1355,7 +1355,7 @@ public class ShadowUtil {
     }
 
     /**
-     * Assuming that the shadow was obtained from the repository (but has the correct definition),
+     * Assuming that the shadow was obtained from the repository (cache), and has the correct definition,
      * this method tells the client if the cached data can be considered fresh enough regarding the caching TTL.
      */
     public static boolean isShadowFresh(
@@ -1389,6 +1389,10 @@ public class ShadowUtil {
         }
         var retrievalTimestamp = cachingMetadata.getRetrievalTimestamp();
         if (retrievalTimestamp == null) {
+            return false;
+        }
+        var invalidationTimestamp = definition.getBasicResourceInformation().cacheInvalidationTimestamp();
+        if (invalidationTimestamp != null && retrievalTimestamp.compare(invalidationTimestamp) != DatatypeConstants.GREATER) {
             return false;
         }
         return !XmlTypeConverter.isAfterInterval(retrievalTimestamp, timeToLive, now);

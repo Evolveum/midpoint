@@ -70,9 +70,4 @@ public abstract class InboundsContext implements ExecutionModeProvider {
     public @NotNull MappingEvaluationEnvironment getEnv() {
         return env;
     }
-
-    /** Only for full processing. */
-    @NotNull CachedShadowsUseType getCachedShadowsUse() {
-        throw new UnsupportedOperationException("Not implemented for " + this);
-    }
 }

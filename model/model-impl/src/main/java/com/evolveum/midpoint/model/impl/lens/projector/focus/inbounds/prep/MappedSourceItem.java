@@ -162,7 +162,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                         "Item {} is not loaded; but proceeding with its inbound mapping(s) because of the a priori delta",
                         itemPath);
             } else {
-                var cachedShadowsUse = inboundsContext.getCachedShadowsUse();
+                var cachedShadowsUse = inboundsSource.getCachedShadowsUse();
                 if (cachedShadowsUse == CachedShadowsUseType.USE_CACHED_OR_FAIL) {
                     throw new ExpressionEvaluationException(
                             "Inbound mapping(s) for %s could not be evaluated, because the item is not loaded".formatted(

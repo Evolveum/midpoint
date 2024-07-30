@@ -401,4 +401,9 @@ public class FullInboundsSource extends InboundsSource {
     boolean hasDependentContext() throws SchemaException, ConfigurationException {
         return projectionContext.hasDependentContext();
     }
+
+    @Override
+    @NotNull CachedShadowsUseType getCachedShadowsUse() throws SchemaException, ConfigurationException {
+        return projectionContext.getCachedShadowsUse();
+    }
 }

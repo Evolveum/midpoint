@@ -50,7 +50,6 @@ public class ImportFromResourceLauncher {
     @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;
 
-    /** Assumes the shadow comes really from the repository, not from the shadow cache. */
     public boolean importSingleShadow(String shadowOid, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
@@ -65,8 +64,7 @@ public class ImportFromResourceLauncher {
                     new NullPostSearchFilterImpl(),
                     eventDispatcher,
                     SchemaConstants.CHANNEL_IMPORT,
-                    true,
-                    false);
+                    true);
             synchronizer.synchronize(shadow.asPrismObject(), null, task, result);
             result.computeStatusIfUnknown();
             return !result.isError();

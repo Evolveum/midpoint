@@ -74,8 +74,7 @@ public abstract class AbstractImportActivityRun<WD extends ResourceSetTaskWorkDe
                 processingScope.getPostSearchFilter(),
                 getModelBeans().eventDispatcher,
                 getSourceChannel(),
-                true,
-                getWorkDefinition().isNoFetchMode());
+                true);
     }
 
     protected abstract QName getSourceChannel();

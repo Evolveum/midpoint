@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,6 +30,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_REPOSITORY;
 
 /**
  * Synchronizes a single resource object. Works both for reconciliation and import from resource
@@ -48,25 +49,16 @@ public class Synchronizer {
     @NotNull private final QName sourceChannel;
     private final boolean forceAdd;
 
-    /**
-     * Are we executing in "no fetch" mode, i.e., shadows to be synchronized are taken from the repository?
-     * We need this information to distinguish between shadows from resource and shadows from the cache;
-     * until this information is available right in the shadow.
-     */
-    private final boolean noFetch;
-
     public Synchronizer(@NotNull ResourceType resource,
             @NotNull PostSearchFilter postSearchFilter,
             @NotNull ResourceObjectChangeListener objectChangeListener,
             @NotNull QName sourceChannel,
-            boolean forceAdd,
-            boolean noFetch) {
+            boolean forceAdd) {
         this.resource = resource;
         this.postSearchFilter = postSearchFilter;
         this.objectChangeListener = objectChangeListener;
         this.sourceChannel = sourceChannel;
         this.forceAdd = forceAdd;
-        this.noFetch = noFetch;
     }
 
     /**
@@ -88,16 +80,18 @@ public class Synchronizer {
             Throwable fetchResultException = RepoCommonUtils.getResultException(fetchResult);
             throw new SystemException("Skipped malformed resource object: " + fetchResultException.getMessage(), fetchResultException);
         }
-        // TODO I think that "is shadow unknown" condition can be removed. All shadows should be classified by provisioning.
+        // TODO I think that "is shadow classified" condition can be removed. All shadows should be classified by provisioning.
         //  And, if any one is not, and the filter requires classification, we should not pass it.
-        if (!isShadowUnknown(shadow) && !postSearchFilter.matches(shadowObject)) {
+        if (ShadowUtil.isClassified(shadow) && !postSearchFilter.matches(shadowObject)) {
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
             workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK);
             result.recordNotApplicable("Skipped because it does not match objectClass/kind/intent");
             return;
         }
-        if (noFetch && !ShadowUtil.isShadowFresh(shadowObject, ModelBeans.get().clock.currentTimeXMLGregorianCalendar())) {
-            LOGGER.trace("Skipping {} because it was obtained from the repository and is not fresh enough", shadowObject);
+        // TODO later, we may start requiring contentDescription presence
+        if (shadowObject.asObjectable().getContentDescription() == FROM_REPOSITORY
+                && !ShadowUtil.isShadowFresh(shadowObject, ModelBeans.get().clock.currentTimeXMLGregorianCalendar())) {
+            LOGGER.trace("Skipping {} because it was obtained from the cache and is not fresh enough", shadowObject);
             workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.EXPIRED);
             result.recordNotApplicable("Skipped because it's expired");
             return;
@@ -105,8 +99,8 @@ public class Synchronizer {
         handleObjectInternal(shadowObject, itemProcessingIdentifier, workerTask, result);
     }
 
-    private void handleObjectInternal(PrismObject<ShadowType> shadowObject, String itemProcessingIdentifier, Task workerTask,
-            OperationResult result) {
+    private void handleObjectInternal(
+            PrismObject<ShadowType> shadowObject, String itemProcessingIdentifier, Task workerTask, OperationResult result) {
         // We are going to pretend that all of the objects were just created.
         // That will effectively import them to the repository
 
@@ -143,10 +137,5 @@ public class Synchronizer {
         LOGGER.debug("#### notify change finished");
 
         // No exception thrown here. The error is indicated in the result. Will be processed by superclass.
-    }
-
-    private boolean isShadowUnknown(ShadowType shadowType) {
-        return ShadowKindType.UNKNOWN == shadowType.getKind()
-                || SchemaConstants.INTENT_UNKNOWN.equals(shadowType.getIntent());
     }
 }

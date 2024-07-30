@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
@@ -876,10 +877,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.fullShadow = fullShadow;
     }
 
-    private Boolean getGenericItemLoadedAnswer() {
+    private Boolean getGenericItemLoadedAnswer() throws SchemaException, ConfigurationException {
         if (isFullShadow()) {
             return true;
-        } else if (!lensContext.isCachedShadowsUseAllowed()) {
+        } else if (!isCachedShadowsUseAllowed()) {
             return false; // The attribute may or may not be cached; but we want to use fresh version anyway
         } else {
             return null; // Let's look at the status of the specific item
@@ -2205,5 +2206,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             }
         }
         return false;
+    }
+
+    public boolean isCachedShadowsUseAllowed() throws SchemaException, ConfigurationException {
+        return getCachedShadowsUse() != CachedShadowsUseType.USE_FRESH;
+    }
+
+    public @NotNull CachedShadowsUseType getCachedShadowsUse() throws SchemaException, ConfigurationException {
+        var fromOptions = ModelExecuteOptions.getCachedShadowsUse(lensContext.getOptions());
+        if (fromOptions != null) {
+            return fromOptions;
+        }
+        var fromResource = getStructuralObjectDefinitionRequired().getEffectiveShadowCachingPolicy().getDefaultCacheUse();
+        if (fromResource != null) {
+            return fromResource;
+        }
+        return CachedShadowsUseType.USE_FRESH;
     }
 }
