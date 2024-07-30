@@ -898,7 +898,11 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     public void redirectBackToBreadcrumb(Breadcrumb breadcrumb) {
-        removeAllAfterBreadcrumb(breadcrumb);
+        // we're preparing list of breadcrumbs for next page - we're still on "current" page and don't want to
+        // change breadcrumbs on current page, so we have to copy the list
+        List<Breadcrumb> copied = new ArrayList<>(getBreadcrumbs());
+
+        removeAllAfterBreadcrumb(copied, breadcrumb);
 
         WebPage page = breadcrumb.redirect();
         if (page == null) {
@@ -907,19 +911,22 @@ public abstract class PageBase extends PageAdminLTE {
 
         if (page instanceof PageBase) {
             PageBase base = (PageBase) page;
-            base.setBreadcrumbs(breadcrumbs);
+            base.setBreadcrumbs(copied);
         }
 
         setResponsePage(page);
     }
 
     private void removeAllAfterBreadcrumb(Breadcrumb breadcrumb) {
+        removeAllAfterBreadcrumb(getBreadcrumbs(), breadcrumb);
+    }
+
+    private void removeAllAfterBreadcrumb(List<Breadcrumb> breadcrumbs, Breadcrumb breadcrumb) {
         Validate.notNull(breadcrumb, "Breadcrumb must not be null");
 
         boolean found = false;
 
         //we remove all breadcrumbs that are after "breadcrumb"
-        List<Breadcrumb> breadcrumbs = getBreadcrumbs();
         Iterator<Breadcrumb> iterator = breadcrumbs.iterator();
         while (iterator.hasNext()) {
             Breadcrumb b = iterator.next();
