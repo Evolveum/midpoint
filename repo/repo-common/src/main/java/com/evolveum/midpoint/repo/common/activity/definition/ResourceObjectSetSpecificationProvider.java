@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.repo.common.activity.definition;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.util.GetOperationOptionsUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -26,7 +28,7 @@ import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 public interface ResourceObjectSetSpecificationProvider
         extends AffectedObjectSetProvider, FailedObjectsSelectorProvider {
 
-    ResourceObjectSetType getResourceObjectSetSpecification();
+    @NotNull ResourceObjectSetType getResourceObjectSetSpecification();
 
     /** Provided here to avoid code duplication in individual work definition implementations. */
     @Override
@@ -48,7 +50,12 @@ public interface ResourceObjectSetSpecificationProvider
 
     @Override
     default FailedObjectsSelectorType getFailedObjectsSelector() {
-        ResourceObjectSetType set = getResourceObjectSetSpecification();
-        return set != null ? set.getFailedObjectsSelector() : null;
+        return getResourceObjectSetSpecification().getFailedObjectsSelector();
+    }
+
+    default boolean isNoFetchMode() {
+        return GetOperationOptions.isNoFetch(
+                GetOperationOptionsUtil.optionsBeanToOptions(
+                        getResourceObjectSetSpecification().getSearchOptions()));
     }
 }

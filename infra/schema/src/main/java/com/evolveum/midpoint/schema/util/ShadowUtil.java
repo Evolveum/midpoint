@@ -1354,6 +1354,18 @@ public class ShadowUtil {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Assuming that the shadow was obtained from the repository (but has the correct definition),
+     * this method tells the client if the cached data can be considered fresh enough regarding the caching TTL.
+     */
+    public static boolean isShadowFresh(
+            @NotNull PrismObject<ShadowType> shadow, @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(
+                shadow,
+                getResourceObjectDefinition(shadow),
+                now);
+    }
+
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean isShadowFresh(
             @Nullable PrismObject<ShadowType> shadow,

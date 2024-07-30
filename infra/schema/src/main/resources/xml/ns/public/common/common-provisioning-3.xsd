@@ -4424,6 +4424,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="expired">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object (presumably obtained from shadow cache) is not considered fresh enough, i.e., its
+                        time to live in the cache already passed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPIRED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

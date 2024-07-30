@@ -10,13 +10,16 @@ package com.evolveum.midpoint.model.intest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.IOException;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.statistics.ProvisioningStatistics;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -29,9 +32,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * Comprehensive test for shadow caching. Its main goal is to ensure that caching works both ways:
@@ -54,14 +54,20 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
     private static final TestTask TASK_RECOMPUTE_PERSONS = TestTask.file(
             TEST_DIR, "task-recompute-persons.xml", "d791f072-1be3-4da0-a0d5-9da2ae5589c6");
+    private static final TestTask TASK_RECONCILE_PERSONS = TestTask.file(
+            TEST_DIR, "task-reconcile-persons.xml", "007c5ef2-3d1f-4688-a799-b735bbb9d934");
 
     private static final String INTENT_PERSON = "person";
 
     private static final String ORG_SCIENCES_NAME = "sciences";
     private static final String ORG_LAW_NAME = "law";
     private static final String ORG_MEDICINE_NAME = "medicine";
+    private static final int INITIAL_ORGS_COUNT = 3;
 
     private static final String PERSON_JOHN_NAME = "john";
+    private static final String PERSON_ALEX_NAME = "alex";
+    private static final String PERSON_BOB_NAME = "bob";
+    private static final int INITIAL_PERSONS_COUNT = 2; // Alex is not counted here
 
     private static final String JOHN_SCIENCES_CONTRACT_ID = "10703321";
     private static final String JOHN_SCIENCES_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_SCIENCES_CONTRACT_ID;
@@ -69,6 +75,9 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
     private static final String JOHN_LAW_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_LAW_CONTRACT_ID;
     private static final String JOHN_MEDICINE_CONTRACT_ID = "10104921";
     private static final String JOHN_MEDICINE_CONTRACT_ASSIGNMENT_ID = "contract:" + JOHN_MEDICINE_CONTRACT_ID;
+
+    /** Cache TTL is a couple of minutes. So one day is much larger than that. */
+    private static final String EXPIRY_INTERVAL = "-P1D";
 
     private static DummyHrScenario hrScenario;
     private static DummyDefaultScenario targetScenario;
@@ -91,7 +100,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         initTestObjects(initTask, initResult,
-                ARCHETYPE_PERSON, TASK_RECOMPUTE_PERSONS);
+                ARCHETYPE_PERSON, TASK_RECOMPUTE_PERSONS, TASK_RECONCILE_PERSONS);
 
         RESOURCE_DUMMY_HR.initAndTest(this, initTask, initResult);
         createCommonHrObjects();
@@ -118,6 +127,16 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
         hrScenario.personContract.add(john, johnContractLaw);
         hrScenario.contractOrgUnit.add(johnContractLaw, law);
+
+        // Alex will be deleted soon after the import
+        hrScenario.person.add(PERSON_ALEX_NAME)
+                .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.FIRST_NAME.local(), "Alex")
+                .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Foo");
+
+        // Bob will be deleted, but later on
+        hrScenario.person.add(PERSON_BOB_NAME)
+                .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.FIRST_NAME.local(), "Bob")
+                .addAttributeValue(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Red");
     }
 
     /**
@@ -128,14 +147,26 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         var task = getTestTask();
         var result = task.getResult();
 
-        when("searching for all HR objects");
+        when("searching for org units in HR");
         var orgUnits = refreshHrOrgUnits(task, result);
-        assertThat(orgUnits).as("org units").hasSize(3);
+        assertThat(orgUnits).as("org units").hasSize(INITIAL_ORGS_COUNT);
+
+        when("searching for persons in HR (with Alex; simulating an earlier time)");
+        clock.overrideDuration(EXPIRY_INTERVAL);
 
         var persons = refreshHrPersons(task, result);
-        assertThat(persons).as("persons").hasSize(1);
+        assertThat(persons).as("persons").hasSize(INITIAL_PERSONS_COUNT + 1);
 
-        then("they are cached in the repository");
+        and("deleting Alex");
+        hrScenario.person.deleteById(
+                hrScenario.person.getByNameRequired(PERSON_ALEX_NAME).getId());
+
+        when("searching for persons in HR (without Alex, in current time)");
+        clock.resetOverride();
+        var personsAfter = refreshHrPersons(task, result);
+        assertThat(personsAfter).as("persons").hasSize(INITIAL_PERSONS_COUNT);
+
+        then("everything is cached in the repository");
         dumpCachedShadows(result);
     }
 
@@ -152,13 +183,10 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
         rememberShadowOperations();
 
+        var usersBefore = getObjectCount(UserType.class);
+
         when("persons are imported");
-        var taskOid = importAccountsRequest()
-                .withResourceOid(RESOURCE_DUMMY_HR.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
-                .withProcessingAllAccounts()
-                .withNoFetchWhenSynchronizing()
-                .execute(result);
+        var taskOid = importHrPersons(result);
 
         then("orgs are there (they were created on demand)");
         var orgSciencesOid = assertOrgByName(ORG_SCIENCES_NAME, "after").getOid();
@@ -183,6 +211,17 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .end();
         // @formatter:on
+
+        assertUserAfterByUsername(PERSON_BOB_NAME)
+                .assertGivenName("Bob")
+                .assertFamilyName("Red");
+
+        and("alex is not there (as well as no other persons)");
+        assertNoUserByUsername(PERSON_ALEX_NAME);
+
+        assertThat(getObjectCount(UserType.class) - usersBefore)
+                .as("users created")
+                .isEqualTo(INITIAL_PERSONS_COUNT);
 
         and("there were no shadow fetch operations");
         var taskProvisioningStats = assertTask(taskOid, "import task after")
@@ -215,13 +254,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         rememberShadowOperations();
 
         when("persons are re-imported");
-        importAccountsRequest()
-                .withResourceOid(RESOURCE_DUMMY_HR.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
-                .withProcessingAllAccounts()
-                .withNoFetchWhenSynchronizing()
-                .withTracing()
-                .execute(result);
+        importHrPersons(result);
 
         then("data are changed in midPoint");
 
@@ -235,9 +268,45 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         assertNoShadowFetchOperations();
     }
 
-    /** We modify the user, and now run the recomputation task. */
+    /**
+     * Bob is modified, retrieved, and deleted right after that. The modified data will get into the cache.
+     * We make sure that the import will *not* process Bob.
+     */
     @Test
-    public void test130RecomputingWithChangedData() throws Exception {
+    public void test130ModifyAndDeleteBobAndImport() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        when("bob is modified");
+        hrScenario.person.getByNameRequired(PERSON_BOB_NAME)
+                .replaceAttributeValues(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "RED");
+
+        refreshHrPersons(task, result);
+
+        rememberShadowOperations();
+
+        and("bob is deleted and his account made expired");
+
+        hrScenario.person.deleteById(
+                hrScenario.person.getByNameRequired(PERSON_BOB_NAME).getId());
+
+        var bobShadow = findShadowByPrismName(PERSON_BOB_NAME, RESOURCE_DUMMY_HR.get(), result);
+        expireShadow(bobShadow, result);
+
+        and("HR persons are imported");
+        importHrPersons(result);
+
+        then("bob is unchanged");
+        assertUserAfterByUsername(PERSON_BOB_NAME)
+                .assertFamilyName("Red");
+
+        and("there were no shadow fetch operations");
+        assertNoShadowFetchOperations();
+    }
+
+    /** We modify john, and now run the recomputation task. */
+    @Test
+    public void test140RecomputingWithChangedData() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
@@ -257,13 +326,16 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
         TASK_RECOMPUTE_PERSONS.rerun(result);
 
-        then("data are changed in midPoint");
-
+        then("john's data are changed in midPoint");
         assertUserAfterByUsername(PERSON_JOHN_NAME)
                 .assertGivenName("John")
                 .assertFamilyName("Big Doe")
                 .assertHonorificPrefix("Ing. Mgr.")
                 .assertAssignments(2);
+
+        and("but bob's data are not changed");
+        assertUserAfterByUsername(PERSON_BOB_NAME)
+                .assertFamilyName("Red");
 
         and("there were no shadow fetch operations");
         assertNoShadowFetchOperations();
@@ -271,14 +343,16 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
     /** We modify the user, and now run the reconciliation task. */
     @Test
-    public void test140ReconcilingWithChangedData() throws Exception {
+    public void test150ReconcilingWithChangedData() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
         given("john's data are changed and the cache is refreshed");
 
+        var newName = "Doe-150";
+
         hrScenario.person.getByNameRequired(PERSON_JOHN_NAME)
-                .replaceAttributeValues(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Doe-140");
+                .replaceAttributeValues(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), newName);
 
         refreshHrPersons(task, result);
 
@@ -286,23 +360,28 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
         when("users are reconciled");
 
-        reconcileAccountsRequest()
-                .withResourceOid(RESOURCE_DUMMY_HR.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
-                .withProcessingAllAccounts()
-                .withNoFetchWhenSynchronizing()
-                .execute(result);
+        TASK_RECONCILE_PERSONS.rerun(result);
 
-        then("data are changed in midPoint");
+        then("john's data are changed in midPoint");
 
         assertUserAfterByUsername(PERSON_JOHN_NAME)
                 .assertGivenName("John")
-                .assertFamilyName("Doe-140")
+                .assertFamilyName(newName)
                 .assertHonorificPrefix("Ing. Mgr.")
                 .assertAssignments(2);
 
-        and("there were no shadow fetch operations");
-        assertNoShadowFetchOperations();
+        and("bob is gone");
+        assertNoUserByUsername(PERSON_BOB_NAME);
+
+        and("there were two shadow fetch operations (checking for non-existent accounts)");
+        assertShadowFetchOperations(2);
+
+        var provisioningStatistics = TASK_RECONCILE_PERSONS.assertAfter()
+                .getObjectable()
+                .getOperationStats()
+                .getEnvironmentalPerformanceInformation()
+                .getProvisioningStatistics();
+        displayValue("Provisioning statistics", ProvisioningStatistics.format(provisioningStatistics));
     }
 
     private @NotNull SearchResultList<? extends AbstractShadow> refreshHrPersons(Task task, OperationResult result)
@@ -321,5 +400,27 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                         .queryFor(DummyHrScenario.OrgUnit.OBJECT_CLASS_NAME.xsd())
                         .build(),
                 null, task, result);
+    }
+
+    private String importHrPersons(OperationResult result) throws CommonException, IOException {
+        return importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_HR.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
+                .withProcessingAllAccounts()
+                .withNoFetchWhenSynchronizing()
+                .execute(result);
+    }
+
+    private void expireShadow(PrismObject<ShadowType> bobShadow, OperationResult result) throws CommonException {
+        repositoryService.modifyObject(
+                ShadowType.class,
+                bobShadow.getOid(),
+                deltaFor(ShadowType.class)
+                        .item(ShadowType.F_CACHING_METADATA)
+                        .replace(
+                                bobShadow.asObjectable().getCachingMetadata().clone()
+                                        .retrievalTimestamp(XmlTypeConverter.fromNow(EXPIRY_INTERVAL)))
+                        .asItemDeltas(),
+                result);
     }
 }

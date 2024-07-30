@@ -6,21 +6,25 @@
   -->
 
 <task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="d791f072-1be3-4da0-a0d5-9da2ae5589c6">
-    <name>recompute-persons</name>
+    oid="007c5ef2-3d1f-4688-a799-b735bbb9d934">
+    <name>reconcile-persons</name>
     <executionState>closed</executionState> <!-- run on demand -->
     <activity>
         <work>
-            <recomputation>
-                <objects>
-                    <type>UserType</type>
-                    <archetypeRef oid="c4b26c78-b7ac-42b8-9a7c-9bdb0c1e2bbd"/>
-                </objects>
-                <executionOptions>
-                    <cachedShadowsUse>useCachedOrIgnore</cachedShadowsUse>
-                    <reconcile>true</reconcile>
-                </executionOptions>
-            </recomputation>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="c37ff87e-42f1-46d2-8c6f-36c780cd1193"/>
+                    <kind>account</kind>
+                    <intent>person</intent>
+                    <searchOptions>
+                        <option>
+                            <options>
+                                <noFetch>true</noFetch>
+                            </options>
+                        </option>
+                    </searchOptions>
+                </resourceObjects>
+            </reconciliation>
         </work>
         <!--<reporting>-->
         <!--    <tracing>-->

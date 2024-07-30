@@ -8,7 +8,10 @@ package com.evolveum.midpoint.model.impl.sync.tasks;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.PrismContext;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +24,6 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -46,16 +48,25 @@ public class Synchronizer {
     @NotNull private final QName sourceChannel;
     private final boolean forceAdd;
 
+    /**
+     * Are we executing in "no fetch" mode, i.e., shadows to be synchronized are taken from the repository?
+     * We need this information to distinguish between shadows from resource and shadows from the cache;
+     * until this information is available right in the shadow.
+     */
+    private final boolean noFetch;
+
     public Synchronizer(@NotNull ResourceType resource,
             @NotNull PostSearchFilter postSearchFilter,
             @NotNull ResourceObjectChangeListener objectChangeListener,
             @NotNull QName sourceChannel,
-            boolean forceAdd) {
+            boolean forceAdd,
+            boolean noFetch) {
         this.resource = resource;
         this.postSearchFilter = postSearchFilter;
         this.objectChangeListener = objectChangeListener;
         this.sourceChannel = sourceChannel;
         this.forceAdd = forceAdd;
+        this.noFetch = noFetch;
     }
 
     /**
@@ -82,10 +93,15 @@ public class Synchronizer {
         if (!isShadowUnknown(shadow) && !postSearchFilter.matches(shadowObject)) {
             LOGGER.trace("Skipping {} because it does not match objectClass/kind/intent", shadowObject);
             workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.NOT_APPLICABLE_FOR_TASK);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
+            result.recordNotApplicable("Skipped because it does not match objectClass/kind/intent");
             return;
         }
-
+        if (noFetch && !ShadowUtil.isShadowFresh(shadowObject, ModelBeans.get().clock.currentTimeXMLGregorianCalendar())) {
+            LOGGER.trace("Skipping {} because it was obtained from the repository and is not fresh enough", shadowObject);
+            workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.EXPIRED);
+            result.recordNotApplicable("Skipped because it's expired");
+            return;
+        }
         handleObjectInternal(shadowObject, itemProcessingIdentifier, workerTask, result);
     }
 
