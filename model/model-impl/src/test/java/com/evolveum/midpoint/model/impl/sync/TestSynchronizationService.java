@@ -897,6 +897,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
+        // This is needed to avoid fetching the full shadow right after starting the synchronization
+        accountShadowLimitedJackBefore.asObjectable().setContentDescription(ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE);
         change.setShadowedResourceObject(accountShadowLimitedJackBefore);
         change.setResource(getDummyResourceObject(RESOURCE_DUMMY_LIMITED.name));
         change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
