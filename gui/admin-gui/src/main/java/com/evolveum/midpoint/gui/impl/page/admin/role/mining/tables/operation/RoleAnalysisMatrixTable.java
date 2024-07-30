@@ -18,6 +18,9 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 
 import java.io.Serial;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
@@ -1052,103 +1055,96 @@ public class RoleAnalysisMatrixTable<B extends MiningBaseTypeChunk, A extends Mi
         }
 
 
+        private <F extends FocusType, CH extends MiningBaseTypeChunk> void fillCandidateList(Class<F> type,
+                Set<PrismObject<F>> candidateList,
+                List<CH> miningSimpleChunk,
+                Task task,
+                OperationResult result) {
+            for (CH roleChunk : miningSimpleChunk) {
+                if (roleChunk.getStatus().equals(RoleAnalysisOperationMode.INCLUDE)) {
+                    for (String roleOid : roleChunk.getRoles()) {
+                        PrismObject<F> roleObject = WebModelServiceUtils.loadObject(type, roleOid, getPageBase(), task, result);
+                        if (roleObject != null) {
+                            candidateList.add(roleObject);
+                        }
+                    }
+                }
+            }
+        }
 
     private void onSubmitCandidateRolePerform(@NotNull AjaxRequestTarget target,
                 @NotNull PrismObject<RoleAnalysisClusterType> cluster) {
-            if (miningOperationChunk == null) {
-                warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
-                target.add(getPageBase().getFeedbackPanel());
-                return;
-            }
+        if (miningOperationChunk == null) {
+            warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
 
-            Task task = getPageBase().createSimpleTask(OP_PROCESS_CANDIDATE_ROLE);
-            OperationResult result = task.getResult();
-
-            Set<RoleType> candidateInducements = new HashSet<>();
+        Task task = getPageBase().createSimpleTask(OP_PROCESS_CANDIDATE_ROLE);
+        OperationResult result = task.getResult();
 
         MiningOperationChunk chunk = miningOperationChunk.getObject();
-            List<MiningRoleTypeChunk> simpleMiningRoleTypeChunks = chunk.getSimpleMiningRoleTypeChunks();
-            for (MiningRoleTypeChunk roleChunk : simpleMiningRoleTypeChunks) {
-                if (roleChunk.getStatus().equals(RoleAnalysisOperationMode.INCLUDE)) {
-                    for (String roleOid : roleChunk.getRoles()) {
-                        PrismObject<RoleType> roleObject = getPageBase().getRoleAnalysisService()
-                                .getRoleTypeObject(roleOid, task, result);
-                        if (roleObject != null) {
-                            candidateInducements.add(roleObject.asObjectable());
-                        }
-                    }
-                }
-            }
-            List<MiningUserTypeChunk> simpleMiningUserTypeChunks = chunk.getSimpleMiningUserTypeChunks();
-            Set<PrismObject<UserType>> candidateMembers = new HashSet<>();
-            for (MiningUserTypeChunk userChunk : simpleMiningUserTypeChunks) {
-                if (userChunk.getStatus().equals(RoleAnalysisOperationMode.INCLUDE)) {
-                    for (String userOid : userChunk.getUsers()) {
-                        PrismObject<UserType> userObject = getPageBase().getRoleAnalysisService()
-                                .getUserTypeObject(userOid, task, result);
-                        if (userObject != null) {
-                            candidateMembers.add(userObject);
-                        }
-                    }
-                }
-            }
 
-            Set<RoleAnalysisCandidateRoleType> candidateRoleToPerform = getCandidateRoleToPerform(cluster.asObjectable());
-            if (candidateRoleToPerform != null) {
-                @Nullable List<RoleAnalysisCandidateRoleType> candidateRole = new ArrayList<>(candidateRoleToPerform);
-                if (candidateRole.size() == 1) {
-                    PageBase pageBase = getPageBase();
-                    RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Set<PrismObject<RoleType>> candidateInducements = new HashSet<>();
+        fillCandidateList(RoleType.class, candidateInducements, chunk.getSimpleMiningRoleTypeChunks(), task, result);
 
-                    Set<AssignmentType> assignmentTypeSet = new HashSet<>();
-                    for (RoleType candidateInducement : candidateInducements) {
-                        assignmentTypeSet.add(ObjectTypeUtil.createAssignmentTo(candidateInducement.getOid(), ObjectTypes.ROLE));
-                    }
+        Set<PrismObject<UserType>> candidateMembers = new HashSet<>();
+        fillCandidateList(UserType.class, candidateMembers, chunk.getSimpleMiningUserTypeChunks(), task, result);
 
-                    executeChangesOnCandidateRole(roleAnalysisService, pageBase, target,
-                            cluster,
-                            candidateRole,
-                            candidateMembers,
-                            assignmentTypeSet,
-                            task,
-                            result
-                    );
+        Set<RoleAnalysisCandidateRoleType> candidateRoleToPerform = getCandidateRoleToPerform(cluster.asObjectable());
+        if (candidateRoleToPerform != null) {
+            @Nullable List<RoleAnalysisCandidateRoleType> candidateRole = new ArrayList<>(candidateRoleToPerform);
+            if (candidateRole.size() == 1) {
+                PageBase pageBase = getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
-                    result.computeStatus();
-                    getPageBase().showResult(result);
-                    navigateToClusterCandidateRolePanel(cluster);
-                    return;
-                }
-            }
+                Set<AssignmentType> assignmentTypeSet = candidateInducements.stream()
+                        .map(candidateInducement -> ObjectTypeUtil.createAssignmentTo(candidateInducement.getOid(), ObjectTypes.ROLE))
+                        .collect(Collectors.toSet());
 
-            PrismObject<RoleType> businessRole = getPageBase().getRoleAnalysisService()
-                    .generateBusinessRole(new HashSet<>(), PolyStringType.fromOrig(""));
+                executeChangesOnCandidateRole(roleAnalysisService, pageBase, target,
+                        cluster,
+                        candidateRole,
+                        candidateMembers,
+                        assignmentTypeSet,
+                        task,
+                        result
+                );
 
-            List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
-
-            for (PrismObject<UserType> member : candidateMembers) {
-                BusinessRoleDto businessRoleDto = new BusinessRoleDto(member,
-                        businessRole, candidateInducements, getPageBase());
-                roleApplicationDtos.add(businessRoleDto);
-            }
-
-            BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
-                    cluster, businessRole, roleApplicationDtos, candidateInducements);
-
-            if (!getSelectedPatterns().isEmpty() && getSelectedPatterns().get(0).getId() != null) {
-                operationData.setPatternId(getSelectedPatterns().get(0).getId());
-            }
-
-            List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
-            Set<RoleType> inducement = operationData.getCandidateRoles();
-            if (!inducement.isEmpty() && !businessRoleDtos.isEmpty()) {
-                PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
-                setResponsePage(pageRole);
-            } else {
-                warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
-                target.add(getPageBase().getFeedbackPanel());
+                result.computeStatus();
+                getPageBase().showResult(result);
+                navigateToClusterCandidateRolePanel(cluster);
+                return;
             }
         }
+
+        PrismObject<RoleType> businessRole = new RoleType().asPrismObject();
+
+        List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
+
+        for (PrismObject<UserType> member : candidateMembers) {
+            BusinessRoleDto businessRoleDto = new BusinessRoleDto(member,
+                    businessRole, candidateInducements, getPageBase());
+            roleApplicationDtos.add(businessRoleDto);
+        }
+
+        BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
+                cluster, businessRole, roleApplicationDtos, candidateInducements);
+
+        if (!getSelectedPatterns().isEmpty() && getSelectedPatterns().get(0).getId() != null) {
+            operationData.setPatternId(getSelectedPatterns().get(0).getId());
+        }
+
+        List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
+        Set<PrismObject<RoleType>> inducement = operationData.getCandidateRoles();
+        if (!inducement.isEmpty() && !businessRoleDtos.isEmpty()) {
+            PageRole pageRole = new PageRole(operationData.getBusinessRole(), operationData);
+            setResponsePage(pageRole);
+        } else {
+            warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
+            target.add(getPageBase().getFeedbackPanel());
+        }
+    }
 
         public List<String> getPatternIdentifiers() {
             List<String> patternIds = new ArrayList<>();
@@ -1170,75 +1166,6 @@ public class RoleAnalysisMatrixTable<B extends MiningBaseTypeChunk, A extends Mi
             return transformDefaultPattern(clusterType);
         }
 
-        private List<DetectedPattern> getClusterCandidateRoles() {
-            RoleAnalysisClusterType clusterType = getModelObject().asObjectable();
-            return loadAllCandidateRoles(clusterType);
-        }
-
-    private @NotNull List<DetectedPattern> loadAllCandidateRoles(@NotNull RoleAnalysisClusterType cluster) {
-        List<RoleAnalysisCandidateRoleType> clusterCandidateRoles = cluster.getCandidateRoles();
-        List<DetectedPattern> candidateRoles = new ArrayList<>();
-        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS); //TODO task name?
-        OperationResult result = task.getResult();
-        for (RoleAnalysisCandidateRoleType candidateRole : clusterCandidateRoles) {
-
-            RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
-            boolean isMigrated = operationStatus != null
-                    && operationStatus.getOperationChannel() != null
-                    && operationStatus.getOperationChannel().equals(RoleAnalysisOperation.MIGRATION);
-
-            if (isMigrated) {
-                continue;
-            }
-
-
-            String roleOid = candidateRole.getCandidateRoleRef().getOid();
-            //TODO does it make sense to create subresult for each iteration?
-            PrismObject<RoleType> rolePrismObject = getPageBase().getRoleAnalysisService().getRoleTypeObject(
-                    roleOid, task, result);
-            List<String> rolesOidInducements;
-            if (rolePrismObject == null) {
-                return new ArrayList<>();
-            }
-
-            rolesOidInducements = getRolesOidInducements(rolePrismObject);
-            List<String> rolesOidAssignment = getRolesOidAssignment(rolePrismObject.asObjectable());
-
-            Set<String> accessOidSet = new HashSet<>(rolesOidInducements);
-            accessOidSet.addAll(rolesOidAssignment);
-
-            ListMultimap<String, String> mappedMembers = getPageBase().getRoleAnalysisService().extractUserTypeMembers(new HashMap<>(),
-                    null,
-                    Collections.singleton(roleOid),
-                    getPageBase().createSimpleTask(OP_PREPARE_OBJECTS),
-                    result);
-
-            List<ObjectReferenceType> candidateMembers = candidateRole.getCandidateMembers();
-            Set<String> membersOidSet = new HashSet<>();
-            for (ObjectReferenceType candidateMember : candidateMembers) {
-                String oid = candidateMember.getOid();
-                if (oid != null) {
-                    membersOidSet.add(oid);
-                }
-            }
-
-            membersOidSet.addAll(mappedMembers.get(roleOid));
-            double clusterMetric = (accessOidSet.size() * membersOidSet.size()) - membersOidSet.size();
-
-            DetectedPattern pattern = new DetectedPattern(
-                    accessOidSet,
-                    membersOidSet,
-                    clusterMetric,
-                    null,
-                    roleOid);
-            pattern.setIdentifier(rolePrismObject.getName().getOrig());
-            pattern.setId(candidateRole.getId());
-            pattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
-
-            candidateRoles.add(pattern);
-        }
-        return candidateRoles;
-    }
 
         @SuppressWarnings("rawtypes")
         protected void toggleDetailsNavigationPanelVisibility(AjaxRequestTarget target) {
@@ -1326,6 +1253,78 @@ public class RoleAnalysisMatrixTable<B extends MiningBaseTypeChunk, A extends Mi
             return Arrays.asList(split);
         }
         return null;
+    }
+
+
+    private List<DetectedPattern> getClusterCandidateRoles() {
+        RoleAnalysisClusterType clusterType = getModelObject().asObjectable();
+        return loadAllCandidateRoles(clusterType);
+    }
+
+    private @NotNull List<DetectedPattern> loadAllCandidateRoles(@NotNull RoleAnalysisClusterType cluster) {
+        List<RoleAnalysisCandidateRoleType> clusterCandidateRoles = cluster.getCandidateRoles();
+        List<DetectedPattern> candidateRoles = new ArrayList<>();
+        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS); //TODO task name?
+        OperationResult result = task.getResult();
+        for (RoleAnalysisCandidateRoleType candidateRole : clusterCandidateRoles) {
+
+            RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
+            boolean isMigrated = operationStatus != null
+                    && operationStatus.getOperationChannel() != null
+                    && operationStatus.getOperationChannel().equals(RoleAnalysisOperation.MIGRATION);
+
+            if (isMigrated) {
+                continue;
+            }
+
+
+            String roleOid = candidateRole.getCandidateRoleRef().getOid();
+            //TODO does it make sense to create subresult for each iteration?
+            PrismObject<RoleType> rolePrismObject = getPageBase().getRoleAnalysisService().getRoleTypeObject(
+                    roleOid, task, result);
+            List<String> rolesOidInducements;
+            if (rolePrismObject == null) {
+                return new ArrayList<>();
+            }
+
+            //TODO what is this?
+            rolesOidInducements = getRolesOidInducements(rolePrismObject);
+            List<String> rolesOidAssignment = getRolesOidAssignment(rolePrismObject.asObjectable());
+
+            Set<String> accessOidSet = new HashSet<>(rolesOidInducements);
+            accessOidSet.addAll(rolesOidAssignment);
+
+            ListMultimap<String, String> mappedMembers = getPageBase().getRoleAnalysisService().extractUserTypeMembers(new HashMap<>(),
+                    null,
+                    Collections.singleton(roleOid),
+                    getPageBase().createSimpleTask(OP_PREPARE_OBJECTS),
+                    result);
+
+            List<ObjectReferenceType> candidateMembers = candidateRole.getCandidateMembers();
+            Set<String> membersOidSet = new HashSet<>();
+            for (ObjectReferenceType candidateMember : candidateMembers) {
+                String oid = candidateMember.getOid();
+                if (oid != null) {
+                    membersOidSet.add(oid);
+                }
+            }
+
+            membersOidSet.addAll(mappedMembers.get(roleOid));
+            double clusterMetric = (accessOidSet.size() * membersOidSet.size()) - membersOidSet.size();
+
+            DetectedPattern pattern = new DetectedPattern(
+                    accessOidSet,
+                    membersOidSet,
+                    clusterMetric,
+                    null,
+                    roleOid);
+            pattern.setIdentifier(rolePrismObject.getName().getOrig());
+            pattern.setId(candidateRole.getId());
+            pattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
+
+            candidateRoles.add(pattern);
+        }
+        return candidateRoles;
     }
 
 

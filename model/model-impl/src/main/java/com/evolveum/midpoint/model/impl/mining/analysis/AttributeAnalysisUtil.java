@@ -359,22 +359,6 @@ public class AttributeAnalysisUtil {
         attributeAnalysisStructure.setMultiValue(isMultiValue);
     }
 
-    public static @NotNull Set<PrismObject<UserType>> fetchPrismUsers(@NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull Set<String> objectOid,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        Set<PrismObject<UserType>> prismUsers = new HashSet<>();
-
-        objectOid.forEach(userOid -> {
-            PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
-            if (userTypeObject != null) {
-                prismUsers.add(userTypeObject);
-            }
-        });
-
-        return prismUsers;
-    }
-
     public static @NotNull Set<PrismObject<RoleType>> fetchPrismRoles(@NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Set<String> objectOid,
             @NotNull Task task,

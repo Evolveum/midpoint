@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ListMultimap;
@@ -354,7 +355,7 @@ public class RoleAnalysisTableCellFillResolver {
                     roleAnalysisService, candidateRoleId, detectedPatternUsers, detectedPatternRoles, users,
                     roles,
                     task,
-                    result);
+                    result, pageBase);
         });
     }
 
@@ -472,7 +473,7 @@ public class RoleAnalysisTableCellFillResolver {
                     roleAnalysisService, candidateRoleId, detectedPatternUsers, detectedPatternRoles, users,
                     roles,
                     task,
-                    result);
+                    result, pageBase);
         });
     }
 
@@ -484,7 +485,7 @@ public class RoleAnalysisTableCellFillResolver {
             @NotNull List<MiningUserTypeChunk> users,
             @NotNull List<MiningRoleTypeChunk> roles,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result, PageBase pageBase) {
 
         RoleAnalysisObjectStatus roleAnalysisObjectStatus = new RoleAnalysisObjectStatus(RoleAnalysisOperationMode.INCLUDE);
         roleAnalysisObjectStatus.setContainerId(Collections.singleton(candidateRoleId));
@@ -520,7 +521,8 @@ public class RoleAnalysisTableCellFillResolver {
 
         if (!detectedPatternUsers.isEmpty()) {
             for (String detectedPatternUser : detectedPatternUsers) {
-                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(detectedPatternUser, task, result);
+                PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, detectedPatternUser, pageBase, task, result);
+//                        roleAnalysisService.getUserTypeObject(detectedPatternUser, task, result);
                 List<String> properties = new ArrayList<>();
                 String chunkName = "Unknown";
                 String iconColor = null;

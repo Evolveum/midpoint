@@ -10,9 +10,11 @@ package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -55,6 +57,7 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
 
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask("Load object");
+        OperationResult result = task.getResult();
 
         ObjectReferenceType ref = descriptionType.getTargetObjectRef();
         QName type = ref.getType();
@@ -65,10 +68,12 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         }
 
         ObjectReferenceType targetObjectRef = outlierParent.getTargetObjectRef();
-        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
-                targetObjectRef.getOid(), task, task.getResult());
+        PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, targetObjectRef.getOid(), pageBase, task, result);
+//        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
+//                targetObjectRef.getOid(), task, task.getResult());
 
         if (userTypeObject == null) {
+            //TODO show result ? it userTypeObject is null then probably there was a error during loading
             return;
         }
 

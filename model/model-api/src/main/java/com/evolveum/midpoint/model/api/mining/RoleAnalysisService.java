@@ -43,7 +43,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 
 public interface RoleAnalysisService {
 
-    ModelService getModelService();
+//    ModelService getModelService();
 
     /**
      * Retrieves a PrismObject of UserType object based on its OID.
@@ -53,6 +53,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      * @return The PrismObject of UserType object, or null if not found.
      */
+    //TODO this is redundant, remove
     @Nullable PrismObject<UserType> getUserTypeObject(
             @NotNull String oid,
             @NotNull Task task,
@@ -66,6 +67,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      * @return The PrismObject of FocusType object, or null if not found.
      */
+    //TODO this is redundant, remove
     @Nullable PrismObject<FocusType> getFocusTypeObject(
             @NotNull String oid,
             @NotNull Task task,
@@ -79,6 +81,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      * @return The PrismObject of RoleType object, or null if not found.
      */
+    //TODO this is redundant, remove
     @Nullable PrismObject<RoleType> getRoleTypeObject(
             @NotNull String oid,
             @NotNull Task task,
@@ -92,6 +95,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      * @return The PrismObject of RoleAnalysisClusterType object, or null if not found.
      */
+    //TODO this is redundant, remove
     @Nullable PrismObject<RoleAnalysisClusterType> getClusterTypeObject(
             @NotNull String oid,
             @NotNull Task task,
@@ -105,6 +109,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      * @return The PrismObject of RoleAnalysisSessionType object, or null if not found.
      */
+    //TODO this is redundant, remove
     @Nullable PrismObject<RoleAnalysisSessionType> getSessionTypeObject(
             @NotNull String oid,
             @NotNull Task task,
@@ -118,6 +123,7 @@ public interface RoleAnalysisService {
      * @param result The operation result.
      * @return The PrismObject of object, or null if not found.
      */
+    //TODO this is redundant, remove
     @Nullable <T extends ObjectType> PrismObject<T> getObject(
             @NotNull Class<T> objectTypeClass,
             @NotNull String oid,
@@ -277,16 +283,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    /**
-     * Retrieves a RoleType object that represents a business role.
-     *
-     * @param assignmentTypes The assignment types that represent inducements of the business role.
-     * @param name The name of the business role.
-     * @return The PrismObject of RoleType object.
-     */
-    @NotNull PrismObject<RoleType> generateBusinessRole(
-            @NotNull Set<AssignmentType> assignmentTypes,
-            @NotNull PolyStringType name);
 
     /**
      * Deletes a single RoleAnalysisSessionType object.
@@ -742,6 +738,7 @@ public interface RoleAnalysisService {
      * @return List of PrismObject<RoleAnalysisClusterType> containing the clusters associated with the session.
      * If the search operation fails or no clusters are found, null is returned.
      */
+    //TODO this is redundant, remove
     List<PrismObject<RoleAnalysisClusterType>> searchSessionClusters(
             @NotNull RoleAnalysisSessionType session,
             @NotNull Task task,
@@ -771,6 +768,7 @@ public interface RoleAnalysisService {
      * @param parentResult OperationResult containing the result of the search operation.
      * @return RoleAnalysisAttributeDef containing the attribute definition for the specified attribute path.
      */
+    //TODO this is redundant, remove
     <T extends ObjectType> Integer countObjects(
             @NotNull Class<T> type,
             @Nullable ObjectQuery query,

@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -81,8 +83,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<RoleAnalysisOutlierPartitionType> {
 
     private static final String ID_DATATABLE = "datatable";
-    PageBase pageBase;
+//    PageBase pageBase;
     IModel<List<Toggle<ViewToggle>>> items;
+    private RoleAnalysisOutlierType outlierParent; //TODO should be model
 
     public RoleAnalysisOutlierPropertyTileTable(
             @NotNull String id,
@@ -90,7 +93,8 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<RoleAnalysis
             @NotNull IModel<RoleAnalysisOutlierPartitionType> outlierPartition,
             @NotNull RoleAnalysisOutlierType outlierParent) {
         super(id, outlierPartition);
-        this.pageBase = pageBase;
+        this.outlierParent = outlierParent;
+//        this.pageBase = pageBase;
         this.items = new LoadableModel<>(false) {
 
             @Override
@@ -114,11 +118,17 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<RoleAnalysis
             }
         };
 
-        RoleAnalysisOutlierPartitionType object = outlierPartition.getObject();
-        List<DetectedAnomalyResult> detectedAnomalyResult = object.getDetectedAnomalyResult();
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
         add(initTable(new LoadableDetachableModel<>() {
             @Override
             protected List<DetectedAnomalyResult> load() {
+                RoleAnalysisOutlierPartitionType object = getModelObject();
+                List<DetectedAnomalyResult> detectedAnomalyResult = object.getDetectedAnomalyResult();
                 return detectedAnomalyResult;
             }
         }, outlierParent));
@@ -531,11 +541,15 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<RoleAnalysis
                         PrismObject<UserType> userTypeObject;
                         PrismObject<RoleType> roleTypeObject;
                         if (type.equals(RoleType.COMPLEX_TYPE)) {
-                            userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, task.getResult());
-                            roleTypeObject = roleAnalysisService.getRoleTypeObject(propertyObjectRef.getOid(), task, task.getResult());
+                            userTypeObject = WebModelServiceUtils.loadObject(UserType.class, targetObjectRef.getOid(), getPageBase(), task, task.getResult());
+                            roleTypeObject = WebModelServiceUtils.loadObject(RoleType.class, propertyObjectRef.getOid(), getPageBase(), task, task.getResult());
+//                            userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, task.getResult());
+//                            roleTypeObject = roleAnalysisService.getRoleTypeObject(propertyObjectRef.getOid(), task, task.getResult());
                         } else {
-                            userTypeObject = roleAnalysisService.getUserTypeObject(propertyObjectRef.getOid(), task, task.getResult());
-                            roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, task.getResult());
+                            userTypeObject = WebModelServiceUtils.loadObject(UserType.class, propertyObjectRef.getOid(), getPageBase(), task, task.getResult());
+                            roleTypeObject = WebModelServiceUtils.loadObject(RoleType.class, targetObjectRef.getOid(), getPageBase(), task, task.getResult());
+//                            userTypeObject = roleAnalysisService.getUserTypeObject(propertyObjectRef.getOid(), task, task.getResult());
+//                            roleTypeObject = roleAnalysisService.getRoleTypeObject(targetObjectRef.getOid(), task, task.getResult());
                         }
 
                         if (userTypeObject == null || roleTypeObject == null) {
@@ -697,8 +711,9 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<RoleAnalysis
 
                         ObjectReferenceType targetObjectRef = outlierParent.getTargetObjectRef();
 
-                        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
-                                targetObjectRef.getOid(), task, task.getResult());
+                        PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, targetObjectRef.getOid(), getPageBase(), task, task.getResult());
+//                                roleAnalysisService.getUserTypeObject(
+//                                targetObjectRef.getOid(), task, task.getResult());
 
                         if (userTypeObject == null) {
                             return;
@@ -834,7 +849,8 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<RoleAnalysis
                 }
 
                 ObjectReferenceType targetObjectRef = outlierParent.getTargetObjectRef();
-                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, task.getResult());
+                PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, targetObjectRef.getOid(), getPageBase(), task, task.getResult());
+//                        roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, task.getResult());
 
                 if (userTypeObject == null) {
                     return;
@@ -916,10 +932,10 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<RoleAnalysis
         return items;
     }
 
-    @Override
-    public PageBase getPageBase() {
-        return pageBase;
-    }
+//    @Override
+//    public PageBase getPageBase() {
+//        return pageBase;
+//    }
 
     protected void onRefresh(AjaxRequestTarget target) {
 

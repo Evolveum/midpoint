@@ -93,10 +93,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     transient @Autowired ModelService modelService;
     transient @Autowired RepositoryService repositoryService;
 
-    @Override
-    public ModelService getModelService() {
-        return modelService;
-    }
+//    @Override
+//    public ModelService getModelService() {
+//        return modelService;
+//    }
 
     @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
@@ -716,41 +716,44 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull OperationResult result,
             @Nullable RoleAnalysisCacheOption option) {
         PrismObject<UserType> user = userExistCache.get(userOid);
+        if (user != null) {
+            return user;
+        }
+
+        user = getUserTypeObject(userOid, task, result);
         if (user == null) {
-            user = getUserTypeObject(userOid, task, result);
-            if (user == null) {
-                return null;
-            }
+            return null;
+        }
 
-            if (option != null) {
-                try {
-                    PrismObject<UserType> cacheUser = new UserType().asPrismObject();
-                    List<RoleAnalysisAttributeDef> itemDef = option.getItemDef();
-                    for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
-                        ItemPath path = roleAnalysisAttributeDef.getPath();
-                        boolean isContainer = roleAnalysisAttributeDef.isContainer();
+        if (option != null) {
+            try {
+                PrismObject<UserType> cacheUser = new UserType().asPrismObject();
+                List<RoleAnalysisAttributeDef> itemDef = option.getItemDef();
+                for (RoleAnalysisAttributeDef roleAnalysisAttributeDef : itemDef) {
+                    ItemPath path = roleAnalysisAttributeDef.getPath();
+                    boolean isContainer = roleAnalysisAttributeDef.isContainer();
 
-                        if (isContainer) {
-                            PrismContainer<Containerable> container = user.findContainer(path);
-                            if (container != null) {
-                                cacheUser.add(container.clone());
-                            }
-                        } else {
-                            Item<PrismValue, ItemDefinition<?>> property = user.findItem(path);
-                            if (property != null) {
-                                cacheUser.add(property.clone());
-                            }
+                    if (isContainer) {
+                        PrismContainer<Containerable> container = user.findContainer(path);
+                        if (container != null) {
+                            cacheUser.add(container.clone());
+                        }
+                    } else {
+                        Item<PrismValue, ItemDefinition<?>> property = user.findItem(path);
+                        if (property != null) {
+                            cacheUser.add(property.clone());
                         }
                     }
-                    userExistCache.put(userOid, cacheUser);
-                    return cacheUser;
-                } catch (SchemaException e) {
-                    throw new RuntimeException("Couldn't prepare user for cache", e);
                 }
+                userExistCache.put(userOid, cacheUser);
+                return cacheUser;
+            } catch (SchemaException e) {
+                throw new RuntimeException("Couldn't prepare user for cache", e);
             }
-
-            userExistCache.put(userOid, user);
         }
+
+        userExistCache.put(userOid, user);
+
 
         return user;
     }
@@ -782,7 +785,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         return 0;
     }
 
-    @Override
+//    @Override
+    //TODO redundant, remove
     public @NotNull PrismObject<RoleType> generateBusinessRole(
             @NotNull Set<AssignmentType> assignmentTypes,
             @NotNull PolyStringType name) {
@@ -939,27 +943,55 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         List<MiningUserTypeChunk> miningUserTypeChunks;
         List<MiningRoleTypeChunk> miningRoleTypeChunks;
 
-        if (chunkMode.equals(RoleAnalysisChunkMode.EXPAND_ROLE)) {
-            miningRoleTypeChunks = new ExpandedMiningStructure()
-                    .executeOperation(this, cluster, true, processMode, result, task, option)
-                    .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
-            miningUserTypeChunks = new CompressedMiningStructure()
-                    .executeOperation(this, cluster, true, processMode, result, task)
-                    .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
-        } else if (chunkMode.equals(RoleAnalysisChunkMode.EXPAND_USER)) {
-            miningRoleTypeChunks = new CompressedMiningStructure()
-                    .executeOperation(this, cluster, true, processMode, result, task)
-                    .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
-            miningUserTypeChunks = new ExpandedMiningStructure()
-                    .executeOperation(this, cluster, true, processMode, result, task, option)
-                    .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
-        } else if (chunkMode.equals(RoleAnalysisChunkMode.COMPRESS)) {
-            return new CompressedMiningStructure()
-                    .executeOperation(this, cluster, true, processMode, result, task);
-        } else {
-            return new ExpandedMiningStructure()
-                    .executeOperation(this, cluster, true, processMode, result, task, option);
+        switch (chunkMode) {
+            case EXPAND_ROLE -> {
+                miningRoleTypeChunks = new ExpandedMiningStructure()
+                        .executeOperation(this, cluster, true, processMode, result, task, option)
+                        .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
+                miningUserTypeChunks = new CompressedMiningStructure()
+                        .executeOperation(this, cluster, true, processMode, result, task)
+                        .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
+            }
+            case EXPAND_USER -> {
+                miningRoleTypeChunks = new CompressedMiningStructure()
+                        .executeOperation(this, cluster, true, processMode, result, task)
+                        .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
+                miningUserTypeChunks = new ExpandedMiningStructure()
+                        .executeOperation(this, cluster, true, processMode, result, task, option)
+                        .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
+            }
+            case COMPRESS -> {
+                return new CompressedMiningStructure()
+                        .executeOperation(this, cluster, true, processMode, result, task);
+            }
+            default -> {
+                return new ExpandedMiningStructure()
+                        .executeOperation(this, cluster, true, processMode, result, task, option);
+            }
+
         }
+
+//        if (chunkMode.equals(RoleAnalysisChunkMode.EXPAND_ROLE)) {
+//            miningRoleTypeChunks = new ExpandedMiningStructure()
+//                    .executeOperation(this, cluster, true, processMode, result, task, option)
+//                    .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
+//            miningUserTypeChunks = new CompressedMiningStructure()
+//                    .executeOperation(this, cluster, true, processMode, result, task)
+//                    .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
+//        } else if (chunkMode.equals(RoleAnalysisChunkMode.EXPAND_USER)) {
+//            miningRoleTypeChunks = new CompressedMiningStructure()
+//                    .executeOperation(this, cluster, true, processMode, result, task)
+//                    .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
+//            miningUserTypeChunks = new ExpandedMiningStructure()
+//                    .executeOperation(this, cluster, true, processMode, result, task, option)
+//                    .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
+//        } else if (chunkMode.equals(RoleAnalysisChunkMode.COMPRESS)) {
+//            return new CompressedMiningStructure()
+//                    .executeOperation(this, cluster, true, processMode, result, task);
+//        } else {
+//            return new ExpandedMiningStructure()
+//                    .executeOperation(this, cluster, true, processMode, result, task, option);
+//        }
 
         return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
     }
@@ -1726,6 +1758,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             return Collections.emptyList();
         }
         List<String> rolesOidAssignment = getRolesOidAssignment(userTypeObject.asObjectable());
+        //TODO wouldn't search with inOid filter be more efficient?
         Set<PrismObject<RoleType>> prismRolesSet = fetchPrismRoles(this, new HashSet<>(rolesOidAssignment), task, result);
         return roleTypeAttributeAnalysis(prismRolesSet, 100.0, task, result, attributeRoleDefSet);
     }
@@ -2675,7 +2708,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
             @NotNull OperationResult result,
             @NotNull Task task) {
         ListMultimap<List<String>, String> listStringListMultimap = loadUserBasedMultimapData(
-                roleAnalysisService.getModelService(), minRolesOccupancy, maxRolesOccupancy, query, task, result);
+                modelService, minRolesOccupancy, maxRolesOccupancy, query, task, result);
 
         Iterator<Map.Entry<List<String>, String>> iterator = listStringListMultimap.entries().iterator();
         while (iterator.hasNext()) {

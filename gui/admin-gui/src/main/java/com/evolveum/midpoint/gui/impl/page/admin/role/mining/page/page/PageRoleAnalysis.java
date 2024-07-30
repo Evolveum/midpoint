@@ -315,7 +315,7 @@ public class PageRoleAnalysis extends PageAdmin {
                                 RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
                                 if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                                     outlierObjectModel = generateUserOutlierResultModel(
-                                            roleAnalysisService, outlierObject, task, task.getResult(), outlierPartition);
+                                            roleAnalysisService, outlierObject, task, task.getResult(), outlierPartition, PageRoleAnalysis.this);
                                 } else {
                                     //TODO
                                 }

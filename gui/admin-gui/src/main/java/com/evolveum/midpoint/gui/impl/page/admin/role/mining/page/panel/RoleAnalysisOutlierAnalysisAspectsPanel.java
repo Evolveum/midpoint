@@ -61,7 +61,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         Task task = pageBase.createSimpleTask("loadOutlierDetails");
         RoleAnalysisOutlierType outlierObject = getObjectDetailsModels().getObjectType();
 
-        outlierObjectModel = generateUserOutlierResultModelMain(roleAnalysisService, outlierObject, task, task.getResult());
+        outlierObjectModel = generateUserOutlierResultModelMain(roleAnalysisService, outlierObject, task, task.getResult(), getPageBase());
 
         if (outlierObjectModel == null) {
             Label label = new Label(ID_HEADER_ITEMS, "No outlier model found");

@@ -123,7 +123,7 @@ public class OutlierPartitionPanel extends AbstractObjectMainPanel<RoleAnalysisO
                     RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
                     Task task = pageBase.createSimpleTask("loadOutlierResult");
                     OutlierObjectModel outlierObjectModel = generateUserOutlierResultModel(
-                            roleAnalysisService, outlierParent, task, task.getResult(), outlierPartition);
+                            roleAnalysisService, outlierParent, task, task.getResult(), outlierPartition, getPageBase());
 
                     if (outlierObjectModel == null) {
                         return;

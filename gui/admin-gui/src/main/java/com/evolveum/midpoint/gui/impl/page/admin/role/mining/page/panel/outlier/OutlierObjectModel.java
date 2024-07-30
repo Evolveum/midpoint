@@ -10,6 +10,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,14 +82,15 @@ public class OutlierObjectModel implements Serializable {
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisOutlierType outlierResult,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            PageBase pageBase) {
 
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
         decimalFormat.setGroupingUsed(false);
         decimalFormat.setRoundingMode(RoundingMode.DOWN);
 
         ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
-        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
+        PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, targetObjectRef.getOid(), pageBase, task, result);//roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
         XMLGregorianCalendar createTimestamp = outlierResult.getMetadata().getCreateTimestamp();
         GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
         Date date = gregorianCalendar.getTime();
@@ -218,7 +222,7 @@ public class OutlierObjectModel implements Serializable {
             @NotNull RoleAnalysisOutlierType outlierResult,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull RoleAnalysisOutlierPartitionType partition) {
+            @NotNull RoleAnalysisOutlierPartitionType partition, PageBase pageBase) {
 
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
         List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
@@ -229,7 +233,7 @@ public class OutlierObjectModel implements Serializable {
         decimalFormat.setRoundingMode(RoundingMode.DOWN);
 
         ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
-        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
+        PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, targetObjectRef.getOid(), pageBase, task, result);//roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
         XMLGregorianCalendar createTimestamp = partition.getCreateTimestamp();
         GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
         Date date = gregorianCalendar.getTime();

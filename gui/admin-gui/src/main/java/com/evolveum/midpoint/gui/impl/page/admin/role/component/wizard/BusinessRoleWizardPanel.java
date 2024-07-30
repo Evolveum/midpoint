@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -68,17 +70,17 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
         if (isRoleMigration) {
             RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
             RoleType businessRole = patterns.getBusinessRole().asObjectable();
-            Set<RoleType> candidateRoles = patterns.getCandidateRoles();
+            Set<PrismObject<RoleType>> candidateRoles = patterns.getCandidateRoles();
 
 
             businessRole.getInducement().clear();
 
             IModel<List<AbstractMap.SimpleEntry<String, String>>> selectedItems = Model.ofList(new ArrayList<>());
-            for (RoleType role : candidateRoles) {
+            for (PrismObject<RoleType> role : candidateRoles) {
                 selectedItems.getObject().add(
                         new AbstractMap.SimpleEntry<>(
                                 role.getOid(),
-                                WebComponentUtil.getDisplayNameOrName(role.asPrismObject())));
+                                WebComponentUtil.getDisplayNameOrName(role)));
             }
 
             steps.add(new AccessApplicationRoleStepPanel(getHelper().getDetailsModel(), selectedItems) {
@@ -114,7 +116,8 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                 protected SelectableBeanObjectDataProvider<RoleType> createProvider(
                         SelectableBeanObjectDataProvider<RoleType> defaultProvider) {
 
-                    List<RoleType> prepareRoles = new ArrayList<>(candidateRoles);
+                    List<RoleType> prepareRoles = candidateRoles.stream()
+                            .map(candidateRole -> candidateRole.asObjectable()).toList();
                     ObjectQuery customQuery = getCustomQuery();
                     Task task = getPageBase().createSimpleTask("Load roles for migration");
 
@@ -123,7 +126,7 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                             RoleType.class, customQuery, null, prepareRoles, task, task.getResult());
 
                     return new SelectableBeanObjectDataProvider<>(
-                            BusinessRoleWizardPanel.this, new HashSet<>(candidateRoles)) {
+                            BusinessRoleWizardPanel.this, new HashSet<>(prepareRoles)) {
 
                         @Override
                         protected List<RoleType> searchObjects(Class type,

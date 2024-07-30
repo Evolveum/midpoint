@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -326,11 +328,15 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 PrismObject<UserType> userTypeObject;
                 PrismObject<RoleType> roleTypeObject;
                 if (type.equals(RoleType.COMPLEX_TYPE)) {
-                    userTypeObject = roleAnalysisService.getUserTypeObject(outlierParentObjectRef.getOid(), task, task.getResult());
-                    roleTypeObject = roleAnalysisService.getRoleTypeObject(propertyObjectRef.getOid(), task, task.getResult());
+                    userTypeObject = WebModelServiceUtils.loadObject(UserType.class, outlierParentObjectRef.getOid(), getPageBase(), task, task.getResult());
+                    roleTypeObject = WebModelServiceUtils.loadObject(RoleType.class, propertyObjectRef.getOid(), getPageBase(), task, task.getResult());
+//                    userTypeObject = roleAnalysisService.getUserTypeObject(outlierParentObjectRef.getOid(), task, task.getResult());
+//                    roleTypeObject = roleAnalysisService.getRoleTypeObject(propertyObjectRef.getOid(), task, task.getResult());
                 } else {
-                    userTypeObject = roleAnalysisService.getUserTypeObject(propertyObjectRef.getOid(), task, task.getResult());
-                    roleTypeObject = roleAnalysisService.getRoleTypeObject(outlierParentObjectRef.getOid(), task, task.getResult());
+                    userTypeObject = WebModelServiceUtils.loadObject(UserType.class, propertyObjectRef.getOid(), getPageBase(), task, task.getResult());
+                    roleTypeObject = WebModelServiceUtils.loadObject(RoleType.class, outlierParentObjectRef.getOid(), getPageBase(), task, task.getResult());
+//                    userTypeObject = roleAnalysisService.getUserTypeObject(propertyObjectRef.getOid(), task, task.getResult());
+//                    roleTypeObject = roleAnalysisService.getRoleTypeObject(outlierParentObjectRef.getOid(), task, task.getResult());
                 }
 
                 if (userTypeObject == null || roleTypeObject == null) {
@@ -488,10 +494,12 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                     return;
                 }
 
-                PrismObject<UserType> userTypeObject = roleAnalysisService
-                        .getUserTypeObject(parentRef.getOid(), task, task.getResult());
+                PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, parentRef.getOid(), getPageBase(), task, operationResult);
+//                        roleAnalysisService
+//                        .getUserTypeObject(parentRef.getOid(), task, task.getResult());
 
                 if (userTypeObject == null) {
+                    //TODO show result?
                     return;
                 }
 

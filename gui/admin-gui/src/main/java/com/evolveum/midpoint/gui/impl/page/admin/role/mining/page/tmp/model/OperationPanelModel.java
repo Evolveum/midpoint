@@ -9,11 +9,20 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model;
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidInducements;
 
 public class OperationPanelModel implements Serializable {
 
@@ -27,9 +36,7 @@ public class OperationPanelModel implements Serializable {
     private List<DetectedPattern> candidatesRoles = new ArrayList<>();
     private boolean isCompareMode = false;
     private boolean isCandidateRoleView = false;
-    private DisplayValueOption displayValueOption;
     private boolean isPanelExpanded = false;
-
 
     public OperationPanelModel() {
     }
@@ -228,5 +235,6 @@ public class OperationPanelModel implements Serializable {
     public void setPanelExpanded(boolean panelExpanded) {
         isPanelExpanded = panelExpanded;
     }
+
 
 }

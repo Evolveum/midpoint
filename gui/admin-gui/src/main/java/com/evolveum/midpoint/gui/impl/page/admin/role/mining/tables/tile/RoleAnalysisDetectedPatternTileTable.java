@@ -19,6 +19,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -628,24 +630,25 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                 Set<String> users = pattern.getUsers();
                 Long patternId = pattern.getId();
 
-                Set<RoleType> candidateInducements = new HashSet<>();
+                Set<PrismObject<RoleType>> candidateInducements = new HashSet<>();
 
                 for (String roleOid : roles) {
                     PrismObject<RoleType> roleObject = roleAnalysisService
                             .getRoleTypeObject(roleOid, task, result);
                     if (roleObject != null) {
-                        candidateInducements.add(roleObject.asObjectable());
+                        candidateInducements.add(roleObject);
                     }
                 }
 
-                PrismObject<RoleType> businessRole = roleAnalysisService
-                        .generateBusinessRole(new HashSet<>(), PolyStringType.fromOrig(""));
+                PrismObject<RoleType> businessRole = new RoleType().asPrismObject();
 
                 List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
 
                 for (String userOid : users) {
-                    PrismObject<UserType> userObject = roleAnalysisService
-                            .getUserTypeObject(userOid, task, result);
+                    PrismObject<UserType> userObject = WebModelServiceUtils.loadObject(UserType.class, userOid,
+                            getPageBase(), task, result);
+//                            roleAnalysisService
+//                            .getUserTypeObject(userOid, task, result);
                     if (userObject != null) {
                         roleApplicationDtos.add(new BusinessRoleDto(userObject,
                                 businessRole, candidateInducements, getPageBase()));

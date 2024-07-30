@@ -185,7 +185,9 @@ public class ClusteringActionExecutor extends BaseAction {
 
         }
 
-        ListMultimap<String, String> roleMembersMap = loadRoleMembersMap(roleAnalysisService.getModelService(), session.getUserModeOptions().getQuery(), task, result);
+
+        ModelService modelService = ModelBeans.get().modelService;
+        ListMultimap<String, String> roleMembersMap = loadRoleMembersMap(modelService, session.getUserModeOptions().getQuery(), task, result);
         attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
 
         //TODO not just basic it must be connected to in and out outlier analysis (experimental)
