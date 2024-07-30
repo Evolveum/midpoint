@@ -140,7 +140,7 @@ public class FullInboundsSource extends InboundsSource {
     }
 
     @Override
-    public boolean isAttributeLoaded(ItemName itemName) throws SchemaException, ConfigurationException {
+    public boolean isAttributeAvailable(ItemName itemName) throws SchemaException, ConfigurationException {
         return projectionContext.isAttributeLoaded(itemName);
     }
 

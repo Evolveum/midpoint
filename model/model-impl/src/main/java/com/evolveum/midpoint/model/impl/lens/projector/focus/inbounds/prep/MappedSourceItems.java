@@ -163,7 +163,7 @@ class MappedSourceItems<T extends Containerable> {
                         itemPath,
                         attributeDefinition,
                         () -> inboundsSource.sourceData.getSimpleAttribute(attributeName),
-                        () -> inboundsSource.isAttributeLoaded(attributeDefinition.getItemName())
+                        () -> inboundsSource.isAttributeAvailable(attributeDefinition.getItemName())
                 ));
     }
 
@@ -217,7 +217,7 @@ class MappedSourceItems<T extends Containerable> {
                         itemPath, // source path (cannot point to specified association name!)
                         refAttrDef,
                         () -> (Item) inboundsSource.sourceData.getReferenceAttribute(refAttrName),
-                        () -> inboundsSource.isAttributeLoaded(refAttrName)));
+                        () -> inboundsSource.isAttributeAvailable(refAttrName)));
     }
 
     /**

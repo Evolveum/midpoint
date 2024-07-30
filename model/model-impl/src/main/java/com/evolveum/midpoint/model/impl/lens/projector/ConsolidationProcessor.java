@@ -422,7 +422,11 @@ public class ConsolidationProcessor {
                     itemDesc, key, addUnchangedValues, forceAddUnchangedValues);
 
             ItemName itemName = itemDefinition.getItemName();
-            boolean existingItemKnown = projCtx.isAttributeLoaded(itemName);
+            // The "isIdentifier" condition is a pre-4.9 legacy. At this place we consider identifiers to be always available
+            // (even if the cached shadows use policy is "fresh"). This is as it was before 4.9.
+            boolean existingItemKnown =
+                    projCtx.isAttributeLoaded(itemName)
+                            || objectDef.isIdentifier(itemDefinition.getItemName());
             ItemDelta<V, D> itemDelta;
             // Use the consolidator to do the computation. It does most of the work.
             try (IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidatorBuilder<V,D,ItemValueWithOrigin<V, D>>()

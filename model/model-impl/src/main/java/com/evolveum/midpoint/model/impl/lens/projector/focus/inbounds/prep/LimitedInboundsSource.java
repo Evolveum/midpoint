@@ -63,7 +63,7 @@ public class LimitedInboundsSource extends InboundsSource {
     }
 
     @Override
-    public boolean isAttributeLoaded(ItemName itemName) {
+    public boolean isAttributeAvailable(ItemName itemName) {
         return true; // FIXME TEMPORARY
     }
 

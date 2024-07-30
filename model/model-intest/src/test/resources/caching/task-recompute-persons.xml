@@ -18,6 +18,7 @@
                 </objects>
                 <executionOptions>
                     <cachedShadowsUse>useCachedOrFresh</cachedShadowsUse>
+                    <reconcile>true</reconcile>
                 </executionOptions>
             </recomputation>
         </work>

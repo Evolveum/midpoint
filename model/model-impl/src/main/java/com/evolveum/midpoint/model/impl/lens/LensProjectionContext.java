@@ -856,28 +856,53 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return fullShadow;
     }
 
+    private Boolean getGenericItemLoadedAnswer() {
+        if (hasFullShadow()) {
+            return true;
+        } else if (!lensContext.isCachedShadowsUseAllowed()) {
+            return false; // The attribute may or may not be cached; but we want to use fresh version anyway
+        } else {
+            return null; // Let's look at the status of the specific item
+        }
+    }
+
+    /** @see #isAttributeLoaded(QName) */
     public boolean isActivationLoaded() throws SchemaException, ConfigurationException {
-        return hasFullShadow()
-                || ShadowUtil.isActivationCached(
-                getObjectCurrent(),
-                getCompositeObjectDefinitionRequired(),
-                getCurrentTime());
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isActivationCached(
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
     }
 
+    /** @see #isAttributeLoaded(QName) */
     public boolean isPasswordValueLoaded() throws SchemaException, ConfigurationException {
-        return hasFullShadow()
-                || ShadowUtil.isPasswordValueLoaded(
-                getObjectCurrent(),
-                getCompositeObjectDefinitionRequired(),
-                getCurrentTime());
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isPasswordValueLoaded(
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
     }
 
+    /** @see #isAttributeLoaded(QName) */
     public boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException {
-        return hasFullShadow()
-                || ShadowUtil.isAuxiliaryObjectClassPropertyLoaded(
-                getObjectCurrent(),
-                getCompositeObjectDefinitionRequired(),
-                getCurrentTime());
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isAuxiliaryObjectClassPropertyLoaded(
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
     }
 
     private static XMLGregorianCalendar getCurrentTime() {
@@ -885,13 +910,23 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     // TODO also for associations
+
+    /**
+     * Returns {@code true} if the attribute is available for processing. It must either be freshly loaded
+     * (in the {@link #hasFullShadow()} sense) or it must be cached *and* the use of cache for computations
+     * must be allowed.
+     */
     public boolean isAttributeLoaded(QName attrName) throws SchemaException, ConfigurationException {
-        return hasFullShadow()
-                || ShadowUtil.isAttributeLoaded(
-                ItemName.fromQName(attrName),
-                getObjectCurrent(),
-                getCompositeObjectDefinitionRequired(),
-                getCurrentTime());
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isAttributeLoaded(
+                    ItemName.fromQName(attrName),
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
     }
 
     public Collection<QName> getCachedAttributesNames() throws SchemaException, ConfigurationException {

@@ -88,7 +88,14 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        // TODO learn what items we need to reconcile, and check for their presence
+        // Reconcile even if it was not explicitly requested and if we have full shadow
+        // reconciliation is cheap if the shadow is already fetched therefore just do it
+        boolean avoidCachedShadows = !projCtx.getLensContext().isCachedShadowsUseAllowed();
+        if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow() && avoidCachedShadows) {
+            LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow (and cache use disallowed)",
+                    projCtx.getHumanReadableName());
+            return;
+        }
 
         SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
         if (policyDecision == DELETE || policyDecision == UNLINK) {
@@ -99,6 +106,16 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         if (projCtx.getObjectCurrent() == null) {
             LOGGER.warn("Can't do reconciliation. Projection context doesn't contain current version of resource object.");
             return;
+        }
+
+        if (avoidCachedShadows) {
+            // This is the pre-4.9 behavior, present here to improve compatible behavior
+            contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
+            if (!projCtx.isFullShadow()) {
+                LOGGER.trace("Full shadow is not available, skipping the reconciliation of {}", projCtx.getHumanReadableName());
+                result.recordNotApplicable("Full shadow is not available");
+                return;
+            }
         }
 
         LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
@@ -290,6 +307,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
 
+        boolean useCachedShadows = projCtx.getLensContext().isCachedShadowsUseAllowed();
+
         var squeezedAttributes = projCtx.getSqueezedAttributes();
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
@@ -297,7 +316,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         var attributeNames = MiscUtil.union(
                 squeezedAttributes != null ? squeezedAttributes.keySet() : null,
                 attributesContainer.getValue().getItemNames(),
-                projCtx.getCachedAttributesNames());
+                useCachedShadows ? projCtx.getCachedAttributesNames() : null);
 
         for (QName attrName : attributeNames) {
             reconcileProjectionAttribute(attrName, projCtx, squeezedAttributes, attributesContainer, task, result);

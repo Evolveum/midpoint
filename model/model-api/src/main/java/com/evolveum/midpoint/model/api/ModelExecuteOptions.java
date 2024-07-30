@@ -139,7 +139,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return is(options, ModelExecuteOptionsType.F_FORCE);
     }
 
-    public static @NotNull CachedShadowsUseType getCachedShadowsUseType(ModelExecuteOptions options) {
+    public static @NotNull CachedShadowsUseType getCachedShadowsUse(ModelExecuteOptions options) {
         var value = options != null ? options.content.getCachedShadowsUse() : null;
         return Objects.requireNonNullElse(value, CachedShadowsUseType.USE_FRESH);
     }
