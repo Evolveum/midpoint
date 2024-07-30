@@ -243,9 +243,9 @@ public class ConsolidationProcessor {
                     .itemDeltaExists(!ItemDelta.isEmpty(auxiliaryObjectClassAPrioriDelta)) // TODO
                     .itemContainer(projCtx.getObjectNew())
                     .equalsChecker(null)
-                    .addUnchangedValues(addUnchangedValues(projCtx))
+                    .addUnchangedValues(projCtx.isSynchronizationDecisionAdd())
                     .addUnchangedValuesExceptForNormalMappings(true) // todo
-                    .existingItemKnown(projCtx.isAuxiliaryObjectClassPropertyLoaded())
+                    .existingItemKnown(projCtx.isSynchronizationDecisionAdd() || projCtx.isAuxiliaryObjectClassPropertyLoaded())
                     .isExclusiveStrong(false)
                     .contextDescription(key.toHumanReadableDescription())
                     .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
@@ -267,10 +267,6 @@ public class ConsolidationProcessor {
         return CompositeObjectDefinition.of(
                 projCtx.getStructuralObjectDefinitionRequired(),
                 auxOcDefs);
-    }
-
-    private boolean addUnchangedValues(LensProjectionContext projCtx) {
-        return projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD;
     }
 
     private void consolidateAttributes(
@@ -417,20 +413,33 @@ public class ConsolidationProcessor {
             //noinspection UnnecessaryLocalVariable
             boolean forceAddUnchangedValues = aprioriDeltaIsReplace;
 
-            var addUnchangedValues = addUnchangedValues(projCtx);
+            var addUnchangedValues = projCtx.isSynchronizationDecisionAdd();
             LOGGER.trace("CONSOLIDATE {}\n  ({}) addUnchangedValues={}, forceAddUnchangedValues={}",
                     itemDesc, key, addUnchangedValues, forceAddUnchangedValues);
 
             ItemName itemName = itemDefinition.getItemName();
             boolean existingItemKnown;
+            // FIXME When determining whether we know the attribute value for accounts-to-be-created, the condition
+            //  "isSynchronizationDecisionAdd" is not precise enough! It works for attributes that are not played with
+            //  by the resource. But attributes that are created by the resource, like LDAP uid (determined from DN),
+            //  are not known at this point. The current solution continues with the pre-4.9 tradition (where hasFullShadow
+            //  was used), but it is not ideal. We should have a more precise way to determine whether the value is known.
+            //
+            // TODO What are we risking with the current solution?
+            //  If we have some (add/delete) deltas for uid-like attributes, they may produce duplicate operations (for
+            //  the "add" case) or they may be lost as phantom ones (for the "delete" case).
             if (itemDefinition instanceof ShadowAttributeDefinition) {
                 // The "isIdentifier" condition is a pre-4.9 legacy. At this place we consider identifiers to be always available
                 // (even if the cached shadows use policy is "fresh"). This is as it was before 4.9.
                 existingItemKnown =
-                        projCtx.isAttributeLoaded(itemName) || objectDef.isIdentifier(itemDefinition.getItemName());
+                        projCtx.isSynchronizationDecisionAdd()
+                                || projCtx.isAttributeLoaded(itemName)
+                                || objectDef.isIdentifier(itemDefinition.getItemName());
             } else {
                 assert itemDefinition instanceof ShadowAssociationDefinition;
-                existingItemKnown = projCtx.isAssociationLoaded(itemName);
+                existingItemKnown =
+                        projCtx.isSynchronizationDecisionAdd()
+                                || projCtx.isAssociationLoaded(itemName);
             }
 
             ItemDelta<V, D> itemDelta;

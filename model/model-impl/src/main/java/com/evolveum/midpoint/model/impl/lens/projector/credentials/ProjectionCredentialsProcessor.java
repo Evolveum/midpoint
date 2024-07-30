@@ -188,8 +188,9 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                         return false;
                     }
 
-                    boolean projectionIsNew = projDelta != null && (projDelta.getChangeType() == ChangeType.ADD
-                            || projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD);
+                    boolean projectionIsNew =
+                            projDelta != null
+                                    && (projDelta.getChangeType() == ChangeType.ADD || projCtx.isSynchronizationDecisionAdd());
 
                     Collection<PrismPropertyValue<ProtectedStringType>> newValues;
                     if (projectionIsNew) {

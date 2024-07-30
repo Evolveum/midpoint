@@ -830,6 +830,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         state.invalidate(); // policy decision is a parameter for current object adjuster
     }
 
+    public boolean isSynchronizationDecisionAdd() {
+        return synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD;
+    }
+
     public void setBroken() {
         setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
     }
@@ -865,10 +869,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * attributes may be missing in such cases! Like {@code uid} in case of LDAP. Inbound mappings could fail in such cases.
      */
     public boolean hasFullShadow() {
-        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
-            return true;
-        }
-        return isFullShadow();
+        return isSynchronizationDecisionAdd() || isFullShadow();
     }
 
     public void setFullShadow(boolean fullShadow) {
