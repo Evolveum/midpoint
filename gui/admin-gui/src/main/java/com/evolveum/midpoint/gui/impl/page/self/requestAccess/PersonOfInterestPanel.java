@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.checkerframework.checker.index.qual.SameLen;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2MultiChoice;
@@ -370,9 +371,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                Collection<ObjectReferenceType> refs = multiselect.getModel().getObject();
-                updateSelectedGroupOfUsers(refs);
-
+                // model of multiselect was already updated, just "refresh" next button
                 target.add(PersonOfInterestPanel.this.getNext());
             }
         });
@@ -399,6 +398,9 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         return fragment;
     }
 
+    /**
+     * @param poiRefs this is always absolute state of autocomplete text field - all items that are currently in the field
+     */
     private void updateSelectedGroupOfUsers(Collection<ObjectReferenceType> poiRefs) {
         if (poiRefs == null) {
             selectedGroupOfUsers.setObject(createPoiMembershipMap(null));
@@ -599,7 +601,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private void addUsersPerformed(AjaxRequestTarget target, List<UserType> users) {
         Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = createPoiMembershipMap(users);
-        selectedGroupOfUsers.setObject(userMemberships);
+        selectedGroupOfUsers.getObject().putAll(userMemberships);
 
         page.hideMainPopup(target);
         target.add(getWizard().getPanel());
