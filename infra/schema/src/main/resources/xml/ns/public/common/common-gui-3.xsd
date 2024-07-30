@@ -4049,60 +4049,28 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="confirmation" type="tns:GuiConfirmationActionType" minOccurs="0">
+                    <xsd:element name="panel" type="tns:ContainerPanelConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Defines the additional action which should be executed before the current action.
-                                    Can be used for example to define a confirmation dialog or adding a comment.
+                                    Defines the panel that will be presented to the user after action is fired
+                                    (but before action execution).
+                                    The panel can provide the interface to configure the action (setting the parameters
+                                    or other additional settings).
+                                    E.g.: confirmation panel before action execution, report parameters configuration
+                                    panel while running the report (not implemented yet), etc.
                                 </p>
                                 <p>
-                                    For now, pre-action is implemented only for certification items collection view
-                                    when the view is defined within certification definition.
+                                    For now, it is used only for the configuration of the menu item actions on the
+                                    certification items view panel.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>GuiActionType.preAction</a:displayName>
-                                <a:elaborate>true</a:elaborate>
+                                <a:displayName>GuiActionType.panel</a:displayName>
                                 <a:since>4.9</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
-                    <xsd:element name="actionType" type="tns:GuiActionTypeType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Defines the type of the action.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>GuiActionType.actionType</a:displayName>
-                                <a:elaborate>true</a:elaborate>
-                                <a:since>4.9</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <!--<xsd:element name="preAction" type="tns:GuiActionType" minOccurs="0" maxOccurs="1">-->
-                    <!--    <xsd:annotation>-->
-                    <!--        <xsd:documentation>-->
-                    <!--            <p>-->
-                    <!--                Defines the additional action which should be executed before the current action.-->
-                    <!--                Can be used for example to define a confirmation dialog or adding a comment.-->
-                    <!--            </p>-->
-                    <!--            <p>-->
-                    <!--                For now, pre-action is implemented only for certification items collection view-->
-                    <!--                when the view is defined within certification definition.-->
-                    <!--            </p>-->
-                    <!--        </xsd:documentation>-->
-                    <!--        <xsd:appinfo>-->
-                    <!--            <a:displayName>GuiActionType.preAction</a:displayName>-->
-                    <!--            <a:elaborate>true</a:elaborate>-->
-                    <!--            <a:since>4.9</a:since>-->
-                    <!--        </xsd:appinfo>-->
-                    <!--    </xsd:annotation>-->
-                    <!--</xsd:element>-->
 
                     <xsd:element name="parameter" type="tns:GuiParameterType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -4131,80 +4099,6 @@
             <!--<xsd:attribute name="id" type="xsd:long"/>-->
         </xsd:complexContent>
     </xsd:complexType>
-
-    <xsd:complexType name="GuiConfirmationActionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Action that requires confirmation before it is executed.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:UserInterfaceFeatureType">
-                <xsd:sequence>
-                    <xsd:element name="message" type="t:PolyStringType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Message as shown in confirmation popup
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Message as shown in confirmation popup
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <!-- TODO later ok/cancel button behavior + label?-->
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:simpleType name="GuiActionTypeType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Depth parameter for collection interpretations that allow distinction between direct and indirect relation.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="inline">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Action for each row in table. Applicable for specific row.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="INLINE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="header">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Header action - applicable for all selected objects.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="HEADER"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="footer">
-                <!-- TODO maybe better name. later those actions might be show in the header or the table-->
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Action show in the table footer. Usually global action not considering selected objects.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="FOOTER"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
 
     <xsd:complexType name="RedirectionTargetType">
         <xsd:annotation>

@@ -8,19 +8,20 @@
 package com.evolveum.midpoint.gui.impl.component.action;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.component.ConfirmationPanelWithComment;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.ActionConfigurationPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serial;
@@ -28,6 +29,8 @@ import java.io.Serializable;
 import java.util.*;
 
 public abstract class AbstractGuiAction<C extends Containerable> implements Serializable {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiAction.class);
 
     private GuiActionType guiActionType;
 
@@ -38,43 +41,35 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
         this.guiActionType = guiActionType;
     }
 
-    public void onActionPerformed(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
-        onActionPerformed(objectsToProcess, true, pageBase, target);
-    }
-
     /**
-     * Executes the action. If preAction is set, it will be executed first.
-     * This method should be called for main action with preActionPerform set to false (after pre-action was performed)
+     * Executes the action. In case panel is defined, it is shown in the main popup.
      * @param objectsToProcess
-     * @param preActionPerform
      * @param pageBase
      * @param target
      */
-    public void onActionPerformed(List<C> objectsToProcess, boolean preActionPerform, PageBase pageBase, AjaxRequestTarget target) {
+    public void onActionPerformed(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
         if (guiActionType == null) {
             executeAction(objectsToProcess, pageBase, target);
             return;
         }
 
-        GuiConfirmationActionType confirmation = guiActionType.getConfirmation();
-        if (confirmation != null) {
-            runConfirmation(confirmation, objectsToProcess, pageBase, target);
+        ContainerPanelConfigurationType panel = guiActionType.getPanel();
+        if (panel != null) {
+            showActionConfigurationPanel(panel, objectsToProcess, pageBase, target);
             return;
         }
         executeAction(objectsToProcess, pageBase, target);
 
     }
 
-    private void runConfirmation(GuiConfirmationActionType confirmation, List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
+    private void showActionConfigurationPanel(ContainerPanelConfigurationType panelConfig, List<C> objectsToProcess,
+            PageBase pageBase, AjaxRequestTarget target) {
+        ActionConfigurationPanel panel = new ActionConfigurationPanel(pageBase.getMainPopupBodyId(), Model.of(panelConfig)) {
 
-        ConfirmationPanelWithComment confirmationPanel = new ConfirmationPanelWithComment(pageBase.getMainPopupBodyId(),
-                getConfirmationModel(confirmation),
-                () -> confirmation,
-                (List<Containerable>) objectsToProcess) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected void yesPerformedWithComment(AjaxRequestTarget target, Collection<ItemDelta<?, ?>> deltas) {
+            protected void confirmPerformedWithDeltas(AjaxRequestTarget target, Collection<ItemDelta<?, ?>> deltas) {
                 for (C objectToProcess : objectsToProcess) {
                     try {
                         ItemDeltaCollectionsUtil.applyTo(deltas, objectToProcess.asPrismContainerValue());
@@ -86,19 +81,9 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
 
                 executeAction(objectsToProcess, pageBase, target);
                 pageBase.hideMainPopup(target);
-
-            }
-
-            @Override
-            public void noPerformed(AjaxRequestTarget target) {
-                pageBase.hideMainPopup(target);
             }
         };
-        pageBase.showMainPopup(confirmationPanel, target);
-    }
-
-    private IModel<String> getConfirmationModel(GuiConfirmationActionType confirmation) {
-        return () -> LocalizationUtil.translatePolyString(confirmation.getMessage());
+        pageBase.showMainPopup(panel, target);
     }
 
     protected abstract void executeAction(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target);
