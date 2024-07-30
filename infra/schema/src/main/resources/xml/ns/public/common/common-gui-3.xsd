@@ -4067,6 +4067,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiActionType.panel</a:displayName>
+                                <a:elaborate>true</a:elaborate>
                                 <a:since>4.9</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
