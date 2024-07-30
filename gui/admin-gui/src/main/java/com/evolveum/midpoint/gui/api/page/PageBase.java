@@ -882,10 +882,13 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     public void redirectBackToBreadcrumb(Breadcrumb breadcrumb) {
-
         removeAllAfterBreadcrumb(breadcrumb);
 
         WebPage page = breadcrumb.redirect();
+        if (page == null) {
+            throw new RestartResponseException(getApplication().getHomePage());
+        }
+
         if (page instanceof PageBase) {
             PageBase base = (PageBase) page;
             base.setBreadcrumbs(breadcrumbs);
