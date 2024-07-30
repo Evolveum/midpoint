@@ -114,6 +114,7 @@ final class RemainingShadowsActivityRun
     // Ignoring configured search options. TODO ok?
     @Override
     public void customizeSearchOptions(SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
+        // Actually, even the following options are ignored, because we are accessing the repository directly - TODO is that ok?!
         searchSpecification.setSearchOptions(
                 getBeans().schemaService.getOperationOptionsBuilder()
                         .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
@@ -153,6 +154,8 @@ final class RemainingShadowsActivityRun
             // For a long time, the forceRefresh option was turned off in dry run mode.
             // However, it looks like we should apply it each time, to (e.g.) force deletion of dead shadows
             // even in the dry run - see MID-7927.
+            //
+            // Note that we always go to the resource, even if shadow caching is enabled. This is a limitation in 4.9.
             Collection<SelectorOptions<GetOperationOptions>> options =
                     SchemaService.get().getOperationOptionsBuilder()
                             .doNotDiscovery() // We are doing "discovery" ourselves
@@ -204,7 +207,7 @@ final class RemainingShadowsActivityRun
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException, EncryptionException {
         if (!shadow.getOid().equals(e.getOid())) {
-            LOGGER.debug("Got unrelated ObjectNotFoundException, rethrowing: " + e.getMessage(), e);
+            LOGGER.debug("Got unrelated ObjectNotFoundException, rethrowing: {}", e.getMessage(), e);
             throw e;
         }
 

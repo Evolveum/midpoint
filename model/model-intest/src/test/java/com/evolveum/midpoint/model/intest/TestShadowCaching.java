@@ -270,7 +270,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
     }
 
     /** We modify the user, and now run the reconciliation task. */
-    @Test(enabled = false) // not ready yet
+    @Test
     public void test140ReconcilingWithChangedData() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -299,7 +299,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                 .assertGivenName("John")
                 .assertFamilyName("Doe-140")
                 .assertHonorificPrefix("Ing. Mgr.")
-                .assertAssignments(3);
+                .assertAssignments(2);
 
         and("there were no shadow fetch operations");
         assertNoShadowFetchOperations();
