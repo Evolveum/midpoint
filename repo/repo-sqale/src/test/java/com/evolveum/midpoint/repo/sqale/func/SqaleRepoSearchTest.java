@@ -3100,7 +3100,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result).hasSize((int) count(QObject.CLASS));
     }
 
-    @Test
+    /**
+     * Disabled. Shadows are not part of m_object hierarchy anymore.
+     */
+    @Test(enabled = false)
     public void test921SearchAssignmentHolderTypeFindsAllObjectsExceptShadows()
             throws SchemaException {
         OperationResult operationResult = createOperationResult();

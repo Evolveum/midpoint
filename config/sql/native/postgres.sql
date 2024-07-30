@@ -1005,9 +1005,40 @@ CREATE INDEX m_ref_resource_biz_config_approver_targetOidRelationId_idx
 -- Represents ShadowType, see https://docs.evolveum.com/midpoint/reference/resources/shadow/
 -- and also https://docs.evolveum.com/midpoint/reference/schema/focus-and-projections/
 CREATE TABLE m_shadow (
-    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('SHADOW') STORED
-        CHECK (objectType = 'SHADOW'),
+    oid UUID NOT NULL REFERENCES m_object_oid(oid),
+    objectType ObjectType
+            GENERATED ALWAYS AS ('SHADOW') STORED
+        CONSTRAINT m_shadow_objecttype_check
+            CHECK (objectType = 'SHADOW'),
+    nameOrig TEXT NOT NULL,
+    nameNorm TEXT NOT NULL,
+    fullObject BYTEA,
+    tenantRefTargetOid UUID,
+    tenantRefTargetType ObjectType,
+    tenantRefRelationId INTEGER REFERENCES m_uri(id),
+    lifecycleState TEXT,
+    cidSeq BIGINT NOT NULL DEFAULT 1, -- sequence for container id, next free cid
+    version INTEGER NOT NULL DEFAULT 1,
+    policySituations INTEGER[], -- soft-references m_uri, only EQ filter
+    subtypes TEXT[], -- only EQ filter
+    fullTextInfo TEXT,
+
+    ext JSONB,
+    creatorRefTargetOid UUID,
+    creatorRefTargetType ObjectType,
+    creatorRefRelationId INTEGER REFERENCES m_uri(id),
+    createChannelId INTEGER REFERENCES m_uri(id),
+    createTimestamp TIMESTAMPTZ,
+    modifierRefTargetOid UUID,
+    modifierRefTargetType ObjectType,
+    modifierRefRelationId INTEGER REFERENCES m_uri(id),
+    modifyChannelId INTEGER REFERENCES m_uri(id),
+    modifyTimestamp TIMESTAMPTZ,
+
+    -- these are purely DB-managed metadata, not mapped to in midPoint
+    db_created TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+    db_modified TIMESTAMPTZ NOT NULL DEFAULT current_timestamp, -- updated in update trigger
+
     objectClassId INTEGER REFERENCES m_uri(id),
     resourceRefTargetOid UUID,
     resourceRefTargetType ObjectType,
@@ -1029,8 +1060,7 @@ CREATE TABLE m_shadow (
     correlationCaseOpenTimestamp TIMESTAMPTZ,
     correlationCaseCloseTimestamp TIMESTAMPTZ,
     correlationSituation CorrelationSituationType
-)
-    INHERITS (m_object);
+) PARTITION BY LIST (resourceRefTargetOid);
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
@@ -1039,23 +1069,28 @@ CREATE TRIGGER m_shadow_update_tr BEFORE UPDATE ON m_shadow
 CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-CREATE INDEX m_shadow_nameOrig_idx ON m_shadow (nameOrig);
-CREATE INDEX m_shadow_nameNorm_idx ON m_shadow (nameNorm); -- may not be unique for shadows!
-CREATE UNIQUE INDEX m_shadow_primIdVal_objCls_resRefOid_key
-    ON m_shadow (primaryIdentifierValue, objectClassId, resourceRefTargetOid);
 
-CREATE INDEX m_shadow_subtypes_idx ON m_shadow USING gin(subtypes);
-CREATE INDEX m_shadow_policySituation_idx ON m_shadow USING gin(policysituations gin__int_ops);
-CREATE INDEX m_shadow_ext_idx ON m_shadow USING gin(ext);
-CREATE INDEX m_shadow_attributes_idx ON m_shadow USING gin(attributes);
-CREATE INDEX m_shadow_fullTextInfo_idx ON m_shadow USING gin(fullTextInfo gin_trgm_ops);
-CREATE INDEX m_shadow_resourceRefTargetOid_idx ON m_shadow (resourceRefTargetOid);
-CREATE INDEX m_shadow_createTimestamp_idx ON m_shadow (createTimestamp);
-CREATE INDEX m_shadow_modifyTimestamp_idx ON m_shadow (modifyTimestamp);
-CREATE INDEX m_shadow_correlationStartTimestamp_idx ON m_shadow (correlationStartTimestamp);
-CREATE INDEX m_shadow_correlationEndTimestamp_idx ON m_shadow (correlationEndTimestamp);
-CREATE INDEX m_shadow_correlationCaseOpenTimestamp_idx ON m_shadow (correlationCaseOpenTimestamp);
-CREATE INDEX m_shadow_correlationCaseCloseTimestamp_idx ON m_shadow (correlationCaseCloseTimestamp);
+CREATE TABLE m_shadow_default PARTITION OF m_shadow DEFAULT;
+ALTER TABLE m_shadow_default ADD PRIMARY KEY (oid);
+
+CREATE INDEX m_shadow_default_nameOrig_idx ON m_shadow_default (nameOrig);
+CREATE INDEX m_shadow_default_nameNorm_idx ON m_shadow_default (nameNorm); -- may not be unique for shadows!
+CREATE UNIQUE INDEX m_shadow_default_primIdVal_objCls_resRefOid_key
+    ON m_shadow_default (primaryIdentifierValue, objectClassId, resourceRefTargetOid);
+
+CREATE INDEX m_shadow_default_subtypes_idx ON m_shadow_default USING gin(subtypes);
+CREATE INDEX m_shadow_default_policySituation_idx ON m_shadow_default USING gin(policysituations gin__int_ops);
+CREATE INDEX m_shadow_default_ext_idx ON m_shadow_default USING gin(ext);
+CREATE INDEX m_shadow_default_attributes_idx ON m_shadow_default USING gin(attributes);
+CREATE INDEX m_shadow_default_fullTextInfo_idx ON m_shadow_default USING gin(fullTextInfo gin_trgm_ops);
+CREATE INDEX m_shadow_default_resourceRefTargetOid_idx ON m_shadow_default (resourceRefTargetOid);
+CREATE INDEX m_shadow_default_createTimestamp_idx ON m_shadow_default (createTimestamp);
+CREATE INDEX m_shadow_default_modifyTimestamp_idx ON m_shadow_default (modifyTimestamp);
+CREATE INDEX m_shadow_default_correlationStartTimestamp_idx ON m_shadow_default (correlationStartTimestamp);
+CREATE INDEX m_shadow_default_correlationEndTimestamp_idx ON m_shadow_default (correlationEndTimestamp);
+CREATE INDEX m_shadow_default_correlationCaseOpenTimestamp_idx ON m_shadow_default (correlationCaseOpenTimestamp);
+CREATE INDEX m_shadow_default_correlationCaseCloseTimestamp_idx ON m_shadow_default (correlationCaseCloseTimestamp);
+
 
 /*
 TODO: reconsider, especially boolean things like dead (perhaps WHERE in other indexes?)
@@ -1067,6 +1102,70 @@ CREATE INDEX iShadowFailedOperationType ON m_shadow (failedOperationType);
 CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation);
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount);
 */
+
+-- We can now create m_object_view which will join m_shadow and m_object into single view
+-- Necessary for .. in queries and searches by ObjectType
+
+CREATE VIEW m_object_view
+AS SELECT
+    oid,
+    objectType,
+    nameOrig,
+    nameNorm,
+    fullObject,
+    tenantRefTargetOid,
+    tenantRefTargetType,
+    tenantRefRelationId,
+    lifecycleState,
+    cidSeq,
+    version,
+    policySituations,
+    subtypes,
+    fullTextInfo,
+    ext,
+    creatorRefTargetOid,
+    creatorRefTargetType,
+    creatorRefRelationId,
+    createChannelId,
+    createTimestamp,
+    modifierRefTargetOid,
+    modifierRefTargetType,
+    modifierRefRelationId,
+    modifyChannelId,
+    modifyTimestamp,
+    db_created,
+    db_modified
+from m_object
+UNION SELECT
+    oid,
+    objectType,
+    nameOrig,
+    nameNorm,
+    fullObject,
+    tenantRefTargetOid,
+    tenantRefTargetType,
+    tenantRefRelationId,
+    lifecycleState,
+    cidSeq,
+    version,
+    policySituations,
+    subtypes,
+    fullTextInfo,
+    ext,
+    creatorRefTargetOid,
+    creatorRefTargetType,
+    creatorRefRelationId,
+    createChannelId,
+    createTimestamp,
+    modifierRefTargetOid,
+    modifierRefTargetType,
+    modifierRefRelationId,
+    modifyChannelId,
+    modifyTimestamp,
+    db_created,
+    db_modified
+from m_shadow;
+
 
 -- Represents shadowType/referenceAttributes/[name] ObjectReferenceTypes
 CREATE TABLE m_shadow_ref_attribute (
@@ -2367,4 +2466,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(41, $$ SELECT 1 $$, true);
+call apply_change(42, $$ SELECT 1 $$, true);
