@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.PathSet;
 
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
 import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.google.common.base.Preconditions;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
@@ -70,10 +72,14 @@ public class QShadowMapping
         return Objects.requireNonNull(instance);
     }
 
+
+    private final ShadowPartitionManager partitionManager;
+
+    private boolean createPartitionOnInsert = true;
     private QShadowMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QShadow.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ShadowType.class, QShadow.class, repositoryContext);
-
+        partitionManager = new ShadowPartitionManager(repositoryContext);
         addItemMapping(ShadowType.F_OBJECT_CLASS, uriMapper(q -> q.objectClassId));
         addRefMapping(F_RESOURCE_REF,
                 q -> q.resourceRefTargetOid,
@@ -304,5 +310,15 @@ public class QShadowMapping
     protected void customizeFullObjectItemsToSkip(PathSet mutableSet) {
         super.customizeFullObjectItemsToSkip(mutableSet);
         mutableSet.add(F_ATTRIBUTES);
+    }
+
+    @Override
+    public void beforeInsert(MShadow row, JdbcSession jdbcSession) {
+        super.beforeInsert(row, jdbcSession);
+        Preconditions.checkArgument(row.objectClassId != null, "objectClass needs to be present in shadow");
+        Preconditions.checkArgument(row.resourceRefTargetOid != null, "resourceRef needs to be present in shadow");
+        if (createPartitionOnInsert) {
+            partitionManager.ensurePartitionExists(row,jdbcSession);
+        }
     }
 }

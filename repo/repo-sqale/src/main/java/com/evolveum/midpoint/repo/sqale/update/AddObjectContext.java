@@ -123,6 +123,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
         S schemaObject = object.asObjectable();
         R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 
+        rootMapping.beforeInsert(row, jdbcSession);
         // first insert without full object, because we don't know the OID yet
         UUID oid = jdbcSession.newInsert(root)
                 // default populate mapper ignores null, that's good, especially for objectType

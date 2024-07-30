@@ -81,7 +81,7 @@ public class TestSqaleRepositoryBeanConfig {
         try (JdbcSession jdbcSession = sqlRepoContext.newJdbcSession().startTransaction()) {
             // Simulations results have dynamic partitions, we need to execute delete triggers to clean them.
             jdbcSession.executeStatement("DELETE FROM m_simulation_result CASCADE;");
-
+            jdbcSession.executeStatement("DELETE FROM m_shadow_partition_def CASCADE;");
             // Truncate cascades to sub-rows of the "object aggregate" - if FK points to m_object table hierarchy.
             jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
 
