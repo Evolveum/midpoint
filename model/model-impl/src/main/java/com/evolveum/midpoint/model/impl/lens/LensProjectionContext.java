@@ -856,8 +856,27 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return fullShadow;
     }
 
+    /**
+     * Returns true if full shadow is available, either loaded or in a create delta.
+     *
+     * NOTE: The distinction between {@link #isFullShadow()} and this method is subtle but sometimes important.
+     * The {@link #isFullShadow()} method is used to determine whether the shadow is fully loaded from the resource.
+     * This method can return {@code true} also if we know how the shadow would need to be created. But resource-provided
+     * attributes may be missing in such cases! Like {@code uid} in case of LDAP. Inbound mappings could fail in such cases.
+     */
+    public boolean hasFullShadow() {
+        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
+            return true;
+        }
+        return isFullShadow();
+    }
+
+    public void setFullShadow(boolean fullShadow) {
+        this.fullShadow = fullShadow;
+    }
+
     private Boolean getGenericItemLoadedAnswer() {
-        if (hasFullShadow()) {
+        if (isFullShadow()) {
             return true;
         } else if (!lensContext.isCachedShadowsUseAllowed()) {
             return false; // The attribute may or may not be cached; but we want to use fresh version anyway
@@ -911,7 +930,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     /**
      * Returns {@code true} if the attribute is available for processing. It must either be freshly loaded
-     * (in the {@link #hasFullShadow()} sense) or it must be cached *and* the use of cache for computations
+     * (in the {@link #isFullShadow()} sense) or it must be cached *and* the use of cache for computations
      * must be allowed.
      */
     public boolean isAttributeLoaded(QName attrName) throws SchemaException, ConfigurationException {
@@ -944,20 +963,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public Collection<QName> getCachedAttributesNames() throws SchemaException, ConfigurationException {
         return ShadowUtil.getCachedAttributesNames(
                 getObjectCurrent(), getCompositeObjectDefinitionRequired(), getCurrentTime());
-    }
-
-    /**
-     * Returns true if full shadow is available, either loaded or in a create delta.
-     */
-    public boolean hasFullShadow() {
-        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
-            return true;
-        }
-        return isFullShadow();
-    }
-
-    public void setFullShadow(boolean fullShadow) {
-        this.fullShadow = fullShadow;
     }
 
     public ShadowKindType getKind() {
