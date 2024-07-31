@@ -226,6 +226,7 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
             PrismContainerDefinition<Containerable> containerDef = getContainerDefinition();
             PrismContainerWrapperFactory<Containerable> cwf = getPageBase().getRegistry().findContainerWrapperFactory(containerDef);
             PrismContainerValue<Containerable> containerValue = instantiateContainerValue();
+            containerValue.setParent(null); //todo is this correct? there is a problem while delta collection if parent != null
             wrapper = cwf.createValueWrapper(null, containerValue, ValueStatus.ADDED, ctx);
         } catch (SchemaException e) {
             throw new RuntimeException(e);//todo proper handling
