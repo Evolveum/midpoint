@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscU
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -47,6 +49,7 @@ import org.apache.wicket.request.resource.IResource;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -244,14 +247,18 @@ public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCerti
     private StatisticBoxDto<ObjectReferenceType> createReviewerStatisticBoxDto(ObjectReferenceType ref) {
         OperationResult result = new OperationResult(OPERATION_REVIEWER);
         Task task = getPageBase().createSimpleTask(OPERATION_REVIEWER);
-        PrismObject<ObjectType> object = WebModelServiceUtils.resolveReferenceNoFetch(ref, getPageBase(), task, result);
+        Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                        .item(FocusType.F_JPEG_PHOTO).retrieve()
+                        .build();
+        PrismObject<FocusType> object = WebModelServiceUtils.loadObject(FocusType.class, ref.getOid(), options,
+                getPageBase(), task, result);
         String name = WebComponentUtil.getName(object);
         String displayName = WebComponentUtil.getDisplayName(object);
         DisplayType displayType = new DisplayType()
                 .label(name)
                 .help(displayName)
                 .icon(new IconType().cssClass("fa fa-user"));
-        IResource userPhoto = WebComponentUtil.createJpegPhotoResource(ref, getPageBase());
+        IResource userPhoto = WebComponentUtil.createJpegPhotoResource(object);
         return new StatisticBoxDto<>(Model.of(displayType), Model.of(userPhoto)) {
             @Serial private static final long serialVersionUID = 1L;
 
