@@ -3976,6 +3976,15 @@ public final class WebComponentUtil {
         }
     }
 
+    public static <T extends FocusType> IResource createJpegPhotoResource(ObjectReferenceType ref, PageBase pageBase) {
+        PrismObject<T> object = WebModelServiceUtils.loadObject(ref, pageBase);
+        if (object == null) {
+            return null;
+        }
+
+        return createJpegPhotoResource(object.asObjectable());
+    }
+
     public static <T extends FocusType> IResource createJpegPhotoResource(PrismObject<T> object) {
         if (object == null) {
             return null;
