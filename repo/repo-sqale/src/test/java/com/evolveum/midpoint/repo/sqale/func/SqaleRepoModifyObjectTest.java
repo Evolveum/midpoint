@@ -19,8 +19,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -3848,4 +3851,63 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 2);
     }
     // endregion
+
+
+    @Test(expectedExceptions = SystemException.class)
+    public void test992UpdateAssignmentWithWrongOid() throws Exception {
+        // GIVEN
+        final String targetOid = UUID.randomUUID().toString();
+
+        final ObjectReferenceType originalRef = new ObjectReferenceType()
+                .oid(targetOid)
+                .type(RoleType.COMPLEX_TYPE)
+                .relation(SchemaConstants.ORG_DEFAULT);
+
+        AssignmentType a = new AssignmentType();
+        a.setTargetRef(originalRef);
+
+        OperationResult result = new OperationResult("updateAssignmentWithWrongOid");
+
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        ObjectDelta<UserType> delta = userObject.asPrismObject().createModifyDelta();
+        delta.addModificationAddContainer(UserType.F_ASSIGNMENT, a);
+
+        delta.addModificationDeleteContainer(
+                UserType.F_ASSIGNMENT, userObject.getAssignment().stream().map(i -> i.clone()).toList().toArray(new AssignmentType[0]));
+
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        try (JdbcSession session = sqlRepoContext.newJdbcSession()) {
+            QAssignment qa = new QAssignment("a");
+
+            UUID uuid = session.newQuery().select(qa.targetRefTargetOid)
+                    .from(qa)
+                    .where(qa.ownerOid.eq(SqaleUtils.oidToUuid(user1Oid))).fetchFirst();
+            AssertJUnit.assertEquals(SqaleUtils.oidToUuid(targetOid), uuid);
+        }
+
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        AssertJUnit.assertEquals(1, user.getAssignment().size());
+
+        AssignmentType created = user.getAssignment().get(0);
+        AssertJUnit.assertEquals(targetOid, created.getTargetRef().getOid());
+
+        // WHEN
+        ObjectReferenceType newRef = new ObjectReferenceType()
+                .oid("1234")
+                .type(RoleType.COMPLEX_TYPE)
+                .relation(SchemaConstants.ORG_DEFAULT);
+
+        delta = user.asPrismObject().createModifyDelta();
+        ReferenceDelta refDelta = delta.createReferenceModification(ItemPath.create(UserType.F_ASSIGNMENT, created.getId(), AssignmentType.F_TARGET_REF));
+        refDelta.addValuesToAdd(newRef.asReferenceValue());
+        refDelta.addValueToDelete(originalRef.asReferenceValue().clone());
+
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        // THEN
+        AssertJUnit.fail("Should fail in repository service modify, since oid in targetRef is invalid");
+    }
 }
