@@ -106,7 +106,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
         R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
         row.containerIdSeq = lastCid + 1;
         rootMapping.setFullObject(row, schemaObject);
-
+        rootMapping.beforeInsert(row, jdbcSession);
         UUID oid = jdbcSession.newInsert(root)
                 // default populate mapper ignores null, that's good, especially for objectType
                 .populate(row)
