@@ -113,8 +113,9 @@ public class LiveSynchronizer {
 
         UcfFetchChangesResult fetchChangesResult;
         try {
-            fetchChangesResult = resourceObjectConverter.fetchChanges(ctx.context, ctx.getInitialToken(), ctx.getBatchSize(),
-                    listener, gResult);
+            fetchChangesResult =
+                    resourceObjectConverter.fetchChanges(
+                            ctx.context, ctx.getInitialToken(), ctx.getBatchSize(), listener, gResult);
         } finally {
             handler.allEventsSubmitted(gResult);
         }

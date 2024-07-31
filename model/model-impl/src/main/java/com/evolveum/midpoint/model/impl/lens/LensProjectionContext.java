@@ -2213,14 +2213,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public @NotNull CachedShadowsUseType getCachedShadowsUse() throws SchemaException, ConfigurationException {
+        // From model execution options
         var fromOptions = ModelExecuteOptions.getCachedShadowsUse(lensContext.getOptions());
         if (fromOptions != null) {
             return fromOptions;
         }
-        var fromResource = getStructuralObjectDefinitionRequired().getEffectiveShadowCachingPolicy().getDefaultCacheUse();
-        if (fromResource != null) {
-            return fromResource;
+        // From the resource (if accessible)
+        var objectDefinition = getStructuralObjectDefinition();
+        if (objectDefinition != null) {
+            var fromResource = objectDefinition.getEffectiveShadowCachingPolicy().getDefaultCacheUse();
+            if (fromResource != null) {
+                return fromResource;
+            }
         }
+        // The default
         return CachedShadowsUseType.USE_FRESH;
     }
 }
