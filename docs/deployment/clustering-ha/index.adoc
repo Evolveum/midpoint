@@ -303,13 +303,13 @@ An example:
   <driverClassName>org.h2.Driver</driverClassName>
   <jdbcUsername>sa</jdbcUsername>
   <jdbcPassword></jdbcPassword>
-  <jdbcUrl>jdbc:h2:tcp://localhost:6000/~/midpoint;LOCK_MODE=1;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000</jdbcUrl>
+  <jdbcUrl>jdbc:h2:tcp://localhost:6000/~/midpoint;LOCK_MODE=1;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=100;MAX_LENGTH_INPLACE_LOB=10240;NON_KEYWORDS=VALUE</jdbcUrl>
   <hibernateDialect>org.hibernate.dialect.H2Dialect</hibernateDialect>
   <hibernateHbm2ddl>update</hibernateHbm2ddl>
 </repository>
 <taskManager>
   <clustered>true</clustered>
-  <jdbcUrl>jdbc:h2:tcp://localhost:6000/~/midpoint-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE</jdbcUrl>
+  <jdbcUrl>jdbc:h2:tcp://localhost:6000/~/midpoint-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE;MAX_LENGTH_INPLACE_LOB=10240;NON_KEYWORDS=VALUE</jdbcUrl>
   <jmxUsername>midpoint</jmxUsername>
   <jmxPassword>secret</jmxPassword>
 </taskManager>

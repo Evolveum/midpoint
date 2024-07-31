@@ -1,8 +1,8 @@
 ---
-midpoint-feature: role-governance
+midpoint-feature: object-governance
 doc-type: intro
 ---
-= Role Governance
+= Object Governance
 :page-upkeep-status: red
 
 NOTE: Work in progress

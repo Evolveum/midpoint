@@ -86,6 +86,10 @@ Tree node search is now same for all nodes.
 ** Support for `requirement` policy constraint in xref:/midpoint/reference/roles-policies/policy-rules/[policy rules].
 ** Built-in classifications for _privileged access_ and _information security responsibility_.
 
+* Spring Boot/hibernate upgrade
+** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
+** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
+
 === Other Improvements
 
 TODO

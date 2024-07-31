@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -40,10 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.evolveum.midpoint.common.SequenceUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -770,6 +767,22 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } else {
             ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
+
+        // additional check to prevent storing invalid reference OIDs
+        modifications.forEach(delta -> {
+            delta.accept(visitable -> {
+                if (visitable instanceof PrismReferenceValue prv) {
+                    String oid = prv.getOid();
+                    if (oid != null) {
+                        try {
+                             UUID.fromString(oid);
+                        } catch (IllegalArgumentException e) {
+                            throw new IllegalArgumentException("Cannot convert OID '" + oid + "' to UUID", e);
+                        }
+                    }
+                }
+            });
+        });
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {

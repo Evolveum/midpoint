@@ -13,12 +13,23 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ReportParameterTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CertCampaignSummaryPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -57,6 +68,11 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
     @Serial private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaign.class);
+    private static final String DOT_CLASS = PageCertCampaign.class.getName() + ".";
+    private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadCertItemsReport";
+    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runCertItemsReport";
+
     public PageCertCampaign() {
         this(new PageParameters());
     }
@@ -93,7 +109,8 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
             @Override
             protected void addRightButtons(@NotNull RepeatingView rightButtonsView) {
-                addCampaignManagementButtons(rightButtonsView);
+                addCampaignManagementButton(rightButtonsView);
+                addCreateReportButton(rightButtonsView);
             }
 
             @Override
@@ -135,7 +152,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         return new CertificationDetailsModel(createPrismObjectModel(object), this);
     }
 
-    private void addCampaignManagementButtons(RepeatingView rightButtonsView) {
+    private void addCampaignManagementButton(RepeatingView rightButtonsView) {
         LoadableDetachableModel<String> buttonLabelModel = getActionButtonTitleModel();
         LoadableDetachableModel<String> buttonCssModel = getActionButtonCssModel();
         AjaxIconButton button = new AjaxIconButton(rightButtonsView.newChildId(), buttonCssModel, buttonLabelModel) {
@@ -156,6 +173,90 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         button.showTitleAsLabel(true);
         button.add(AttributeAppender.append("class", "btn btn-primary"));
         rightButtonsView.add(button);
+    }
+
+    private void addCreateReportButton(RepeatingView rightButtonsView) {
+        AjaxIconButton button = new AjaxIconButton(rightButtonsView.newChildId(), Model.of("fa fa-chart-pie"),
+                createStringResource("PageCertDecisions.button.createReport")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                runCertItemsReport(target);
+            }
+        };
+        button.showTitleAsLabel(true);
+        button.add(AttributeModifier.append("class", "btn btn-secondary"));
+        rightButtonsView.add(button);
+    }
+
+    private PrismContainer<ReportParameterType> createParameters() {
+        PrismContainerValue<ReportParameterType> reportParamValue;
+        @NotNull PrismContainer<ReportParameterType> parameterContainer;
+        try {
+            PrismContainerDefinition<ReportParameterType> paramContainerDef = getPrismContext().getSchemaRegistry()
+                    .findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
+            parameterContainer = paramContainerDef.instantiate();
+
+            ReportParameterType reportParam = new ReportParameterType();
+
+            AccessCertificationCampaignType campaign = getModelObjectType();
+            String campaignOid = campaign.getOid();
+            ObjectReferenceType campaignRef = new ObjectReferenceType()
+                    .oid(campaignOid)
+                    .type(AccessCertificationCampaignType.COMPLEX_TYPE);
+            ReportParameterTypeUtil.addParameter(reportParam, "campaignRef", campaignRef);
+
+            int stageNumber = campaign.getStageNumber();
+            ReportParameterTypeUtil.addParameter(reportParam, "stageNumber", stageNumber);
+
+            int iteration = campaign.getIteration();
+            ReportParameterTypeUtil.addParameter(reportParam, "iteration", iteration);
+
+            reportParamValue = reportParam.asPrismContainerValue();
+            reportParamValue.revive(getPrismContext());
+            parameterContainer.add(reportParamValue);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't create container for report parameters");
+            return null;
+        }
+        return parameterContainer;
+    }
+
+    private PrismObject<ReportType> loadCertItemsReport() {
+        Task task = createSimpleTask(OPERATION_LOAD_REPORT);
+        OperationResult result = task.getResult();
+        PrismObject<ReportType> report = null;
+        try {
+            //todo implement the possibility to choose report
+            String certItemsReportOid = "00000000-0000-0000-0000-000000000160"; //cert items report
+//            String certItemsReportOid = "00000000-0000-0000-0000-000000000150"; // or cert cases report
+            report = getModelService().getObject(ReportType.class, certItemsReportOid, null, task, result);
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't load certification work items report", ex);
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+        return report;
+    }
+
+    private void runCertItemsReport(AjaxRequestTarget target) {
+        Task task = createSimpleTask(OPERATION_RUN_REPORT);
+        OperationResult result = task.getResult();
+
+        try {
+            PrismObject<ReportType> report = loadCertItemsReport();
+            PrismContainer<ReportParameterType> params = createParameters();
+            getReportManager().runReport(report, params, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        showResult(result);
+        target.add(getFeedbackPanel());
     }
 
     private LoadableDetachableModel<String> getActionButtonCssModel() {
