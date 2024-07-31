@@ -46,15 +46,40 @@
                 <ref>icfs:name</ref>
                 <correlator/>
                 <inbound>
-                    <strength>strong</strength>
                     <target>
                         <path>name</path>
                     </target>
+                    <use>correlation</use>
                 </inbound>
                 <outbound>
                     <strength>strong</strength>
                     <source>
                         <path>name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <documentation>This resource is the authoritative source for this data.</documentation>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>description</path>
                     </source>
                 </outbound>
             </attribute>
@@ -130,6 +155,7 @@
                 <association>
                     <ref>ri:group</ref>
                     <outbound>
+                        <strength>strong</strength>
                         <expression>
                             <associationConstruction>
                                 <objectRef>
@@ -147,4 +173,9 @@
             </subject>
         </associationType>
     </schemaHandling>
+    <caching>
+        <cachingStrategy>passive</cachingStrategy>
+        <timeToLive>PT10M</timeToLive>
+        <defaultCacheUse>useCachedOrIgnore</defaultCacheUse>
+    </caching>
 </resource>

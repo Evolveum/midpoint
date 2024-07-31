@@ -906,10 +906,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (generic != null) {
             return generic;
         } else {
-            return ShadowUtil.isPasswordValueLoaded(
-                    getObjectCurrent(),
-                    getCompositeObjectDefinitionRequired(),
-                    getCurrentTime());
+            return false; // FIXME
+//            return ShadowUtil.isPasswordValueLoaded(
+//                    getObjectCurrent(),
+//                    getCompositeObjectDefinitionRequired(),
+//                    getCurrentTime());
         }
     }
 
@@ -919,10 +920,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (generic != null) {
             return generic;
         } else {
-            return ShadowUtil.isAuxiliaryObjectClassPropertyLoaded(
-                    getObjectCurrent(),
-                    getCompositeObjectDefinitionRequired(),
-                    getCurrentTime());
+            return false; // FIXME
+//            return ShadowUtil.isAuxiliaryObjectClassPropertyLoaded(
+//                    getObjectCurrent(),
+//                    getCompositeObjectDefinitionRequired(),
+//                    getCurrentTime());
         }
     }
 
@@ -2228,5 +2230,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
         // The default
         return CachedShadowsUseType.USE_FRESH;
+    }
+
+    public boolean hasLowerOrderContext() {
+        return lensContext.hasLowerOrderContextThan(this);
     }
 }

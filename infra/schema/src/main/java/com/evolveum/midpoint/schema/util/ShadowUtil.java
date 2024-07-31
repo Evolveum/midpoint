@@ -1297,19 +1297,20 @@ public class ShadowUtil {
         return scope == null || scope.getActivation() != ShadowItemsCachingScopeType.NONE;
     }
 
-    public static boolean isPasswordValueLoaded(
-            @Nullable PrismObject<ShadowType> shadow,
-            @NotNull ResourceObjectDefinition definition,
-            @NotNull XMLGregorianCalendar now) {
-        return isShadowFresh(shadow, definition, now);
-    }
-
-    public static boolean isAuxiliaryObjectClassPropertyLoaded(
-            @Nullable PrismObject<ShadowType> shadow,
-            @NotNull ResourceObjectDefinition definition,
-            @NotNull XMLGregorianCalendar now) {
-        return isShadowFresh(shadow, definition, now);
-    }
+    // TODO implement these correctly
+//    public static boolean isPasswordValueLoaded(
+//            @Nullable PrismObject<ShadowType> shadow,
+//            @NotNull ResourceObjectDefinition definition,
+//            @NotNull XMLGregorianCalendar now) {
+//        return isShadowFresh(shadow, definition, now); // TODO
+//    }
+//
+//    public static boolean isAuxiliaryObjectClassPropertyLoaded(
+//            @Nullable PrismObject<ShadowType> shadow,
+//            @NotNull ResourceObjectDefinition definition,
+//            @NotNull XMLGregorianCalendar now) {
+//        return isShadowFresh(shadow, definition, now); // TODO
+//    }
 
     public static boolean isAttributeLoaded(
             @NotNull ItemName attrName,

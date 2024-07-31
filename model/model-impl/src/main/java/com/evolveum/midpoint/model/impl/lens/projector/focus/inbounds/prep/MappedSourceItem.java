@@ -127,19 +127,20 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
         if (itemAPrioriDelta != null) {
             // This is the legacy (pre-4.9) behavior.
             // TODO is it still valid? Maybe we should try to get the value even if we have a-priori delta?
-            LOGGER.trace("A priori delta existence for {} indicates that we do not need to know the current value", itemPath);
+            LOGGER.trace("{}: A priori delta existence for it indicates that we do not need to know the current value", itemPath);
             return false;
         }
         for (var mappingsCI : mappingsCIs) {
             if (mappingsCI.isStrong()) {
-                LOGGER.trace("Strong inbound mapping {} for {} indicates that we need to know its current value (fresh or cached,"
-                                + " depending on other options)", mappingsCI.getName(), itemPath);
+                LOGGER.trace("{}: Strong inbound mapping {} for it indicates that we need to know its current value"
+                        + " (fresh or cached, depending on other options)", itemPath, mappingsCI.getName());
                 return true;
             }
         }
         if (inboundsSource.hasDependentContext()) {
             // TODO reconsider this ugly hack
-            LOGGER.trace("There is a depending context, we need to know the current value of {}", itemPath);
+            LOGGER.trace("{}: There is a depending context (not necessarily for this item, though), we need to know"
+                    + "the current value of it", itemPath);
             return true;
         }
         return false;
@@ -159,7 +160,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
         if (!loadedStateProvider.isLoaded()) {
             if (itemAPrioriDelta != null) {
                 LOGGER.trace(
-                        "Item {} is not loaded; but proceeding with its inbound mapping(s) because of the a priori delta",
+                        "{}: Item is not loaded; but proceeding with its inbound mapping(s) because of the a priori delta",
                         itemPath);
             } else {
                 var cachedShadowsUse = inboundsSource.getCachedShadowsUse();
@@ -169,7 +170,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                                     itemPath));
                 } else {
                     // The loading might not be requested, or it could simply fail
-                    LOGGER.trace("Item {} is not loaded; its inbound mapping(s) evaluation will be skipped", itemPath);
+                    LOGGER.trace("{}: Item is not loaded; its inbound mapping(s) evaluation will be skipped", itemPath);
                     return;
                 }
             }
@@ -226,11 +227,11 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
 
             String channel = inboundsSource.getChannel();
             if (!MappingImpl.isApplicableToChannel(mappingBean, channel)) {
-                LOGGER.trace("Mapping is not applicable to channel {}", channel);
+                LOGGER.trace("Mapping '{}' is not applicable to channel {}", mappingCI.getName(), channel);
                 continue;
             }
             if (!inboundsContext.env.task.canSee(mappingBean)) {
-                LOGGER.trace("Mapping is not applicable to the task execution mode");
+                LOGGER.trace("Mapping '{}' is not applicable to the task execution mode", mappingCI.getName());
                 continue;
             }
 
@@ -284,7 +285,9 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
 
             // We check the weak mapping skipping using the declared path, not the overridden path pointing to identities data.
             if (checkWeakSkip(mapping, targetFullPath)) {
-                LOGGER.trace("Skipping because of mapping is weak and focus property has already a value");
+                LOGGER.trace(
+                        "Skipping mapping '{}' because it is weak and focus property has already a value",
+                        mappingCI.getName());
                 continue;
             }
 

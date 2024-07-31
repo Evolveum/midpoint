@@ -1,24 +1,25 @@
 package com.evolveum.midpoint.model.impl;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.prism.*;
+import static org.testng.Assert.assertNotNull;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.impl.Shadow;
-import com.evolveum.midpoint.test.DummyDefaultScenario;
-import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.TestObject;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.File;
+import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import javax.xml.namespace.QName;
-import java.io.File;
-
-import static org.testng.Assert.assertNotNull;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Created by Dominik.

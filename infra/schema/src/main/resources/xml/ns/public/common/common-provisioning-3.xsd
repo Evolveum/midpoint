@@ -7101,14 +7101,14 @@
             <xsd:element name="attributes" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="mapped">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Scope of the caching for attributes.
+                        Scope of the caching for simple attributes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="associations" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Scope of the caching for associations.
+                        Scope of the caching for associations i.e. reference attributes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

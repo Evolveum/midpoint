@@ -25,12 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.EqualsChecker;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -143,6 +138,10 @@ public class ConsolidationProcessor {
             // resource availability. We need to know, if the account was read full
             // or we have only the shadow from the repository. If we have only
             // shadow, the weak mappings may applied even if they should not be.
+
+            // TODO consider removing this code - the shadow should be already loaded for strong/weak mappings.
+            //  Unless special cases like it doesn't exist yet (add, simulation, broken) - but for that cases, the
+            //  repeated loading is useless anyway.
             contextLoader.loadFullShadow(projCtx, "weak or strong mapping", task, result);
         }
     }
