@@ -7,16 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
-import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
-
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.loadUserBasedMultimapData;
-
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.createAttributeMap;
-
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
+import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.loadUserBasedMultimapData;
 import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
@@ -26,11 +23,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -44,6 +43,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.*;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
@@ -80,6 +80,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -312,7 +313,15 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         RoleAnalysisClusterType clusterObject = clusterPrismObject.asObjectable();
         clusterObject.setRoleAnalysisSessionRef(parentRef);
         clusterObject.setDetectionOption(roleAnalysisSessionDetectionOption);
-        modelService.importObject(clusterPrismObject, null, task, result);
+        //TODO exception handling
+        try {
+            repositoryService.addObject(clusterPrismObject, null, result);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new RuntimeException(e);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+//        modelService.importObject(clusterPrismObject, null, task, result);
     }
 
     @Override
@@ -933,16 +942,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
     }
 
     @Override
-    public @NotNull MiningOperationChunk prepareMiningStructure(@NotNull RoleAnalysisClusterType cluster,
+    public MiningOperationChunk prepareBasicChunkStructure(
+            @NotNull RoleAnalysisClusterType cluster,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
             @NotNull Task task) {
-
         RoleAnalysisChunkMode chunkMode = option.getChunkMode();
         List<MiningUserTypeChunk> miningUserTypeChunks;
         List<MiningRoleTypeChunk> miningRoleTypeChunks;
 
+        MiningOperationChunk chunk = null;
         switch (chunkMode) {
             case EXPAND_ROLE -> {
                 miningRoleTypeChunks = new ExpandedMiningStructure()
@@ -951,6 +961,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 miningUserTypeChunks = new CompressedMiningStructure()
                         .executeOperation(this, cluster, true, processMode, result, task)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
+                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
             }
             case EXPAND_USER -> {
                 miningRoleTypeChunks = new CompressedMiningStructure()
@@ -959,42 +970,175 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                 miningUserTypeChunks = new ExpandedMiningStructure()
                         .executeOperation(this, cluster, true, processMode, result, task, option)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
+                chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
             }
             case COMPRESS -> {
-                return new CompressedMiningStructure()
+                chunk = new CompressedMiningStructure()
                         .executeOperation(this, cluster, true, processMode, result, task);
             }
             default -> {
-                return new ExpandedMiningStructure()
+                chunk = new ExpandedMiningStructure()
                         .executeOperation(this, cluster, true, processMode, result, task, option);
+            }
+        }
+        chunk.setSortMode(option.getSortMode());
+        chunk.setProcessMode(processMode);
+        RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
+        RangeType frequencyRange = detectionOption.getFrequencyRange();
+
+        if (frequencyRange != null) {
+            chunk.setMinFrequency(frequencyRange.getMin() / 100);
+            chunk.setMaxFrequency(frequencyRange.getMax() / 100);
+        }
+        return chunk;
+    }
+
+    @Override
+    public @NotNull MiningOperationChunk prepareMiningStructure(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull DisplayValueOption option,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull List<DetectedPattern> detectedPatterns,
+            @NotNull OperationResult result,
+            @NotNull Task task) {
+
+        MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, option, processMode, result, task);
+        updateChunkWithPatterns(basicChunk, detectedPatterns, task, result);
+        return basicChunk;
+    }
+
+    @Override
+    public void updateChunkWithPatterns(MiningOperationChunk basicChunk, List<DetectedPattern> detectedPatterns, Task task, OperationResult result) {
+        List<MiningRoleTypeChunk> miningRoleTypeChunks = basicChunk.getMiningRoleTypeChunks();//basicChunk.getMiningRoleTypeChunks(option.getSortMode());
+        List<MiningUserTypeChunk> miningUserTypeChunks = basicChunk.getMiningUserTypeChunks();
+
+        List<List<String>> detectedPatternsRoles = new ArrayList<>();
+        List<List<String>> detectedPatternsUsers = new ArrayList<>();
+        List<String> candidateRolesIds = new ArrayList<>();
+
+        for (DetectedPattern detectedPattern : detectedPatterns) {
+            detectedPatternsRoles.add(new ArrayList<>(detectedPattern.getRoles()));
+            detectedPatternsUsers.add(new ArrayList<>(detectedPattern.getUsers()));
+            candidateRolesIds.add(detectedPattern.getIdentifier());
+        }
+
+        for (MiningRoleTypeChunk role : miningRoleTypeChunks) {
+            FrequencyItem frequencyItem = role.getFrequencyItem();
+            double frequency = frequencyItem.getFrequency();
+
+            for (int i = 0; i < detectedPatternsRoles.size(); i++) {
+                List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
+                List<String> chunkRoles = role.getRoles();
+                if (new HashSet<>(detectedPatternsRole).containsAll(chunkRoles)) {
+                    RoleAnalysisObjectStatus objectStatus = role.getObjectStatus();
+                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
+                    objectStatus.addContainerId(candidateRolesIds.get(i));
+                    detectedPatternsRole.removeAll(chunkRoles);
+                } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency() && !role.getStatus().isInclude()) {
+                    role.setStatus(RoleAnalysisOperationMode.DISABLE);
+                } else if (!role.getStatus().isInclude()) {
+                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
+                }
+            }
+        }
+
+        for (MiningUserTypeChunk user : miningUserTypeChunks) {
+            for (int i = 0; i < detectedPatternsUsers.size(); i++) {
+                List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
+                List<String> chunkUsers = user.getUsers();
+                if (new HashSet<>(detectedPatternsUser).containsAll(chunkUsers)) {
+                    RoleAnalysisObjectStatus objectStatus = user.getObjectStatus();
+                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
+                    objectStatus.addContainerId(candidateRolesIds.get(i));
+                    detectedPatternsUser.removeAll(chunkUsers);
+                } else if (!user.getStatus().isInclude()) {
+                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
+                }
+            }
+        }
+
+        int size = detectedPatternsUsers.size();
+
+        IntStream.range(0, size).forEach(i -> {
+            List<String> detectedPatternRoles = detectedPatternsRoles.get(i);
+            List<String> detectedPatternUsers = detectedPatternsUsers.get(i);
+            String candidateRoleId = candidateRolesIds.get(i);
+            addAdditionalObject(candidateRoleId, detectedPatternUsers, detectedPatternRoles, miningUserTypeChunks,
+                    miningRoleTypeChunks,
+                    task,
+                    result);
+        });
+    }
+
+    private void addAdditionalObject(
+            String candidateRoleId,
+            @NotNull List<String> detectedPatternUsers,
+            @NotNull List<String> detectedPatternRoles,
+            @NotNull List<MiningUserTypeChunk> users,
+            @NotNull List<MiningRoleTypeChunk> roles,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        RoleAnalysisObjectStatus roleAnalysisObjectStatus = new RoleAnalysisObjectStatus(RoleAnalysisOperationMode.INCLUDE);
+        roleAnalysisObjectStatus.setContainerId(Collections.singleton(candidateRoleId));
+
+        if (!detectedPatternRoles.isEmpty()) {
+            Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
+            ListMultimap<String, String> mappedMembers = extractUserTypeMembers(
+                    userExistCache, null, new HashSet<>(detectedPatternRoles), task, result);
+
+            for (String detectedPatternRole : detectedPatternRoles) {
+                List<String> properties = new ArrayList<>(mappedMembers.get(detectedPatternRole));
+                PrismObject<RoleType> roleTypeObject = getRoleTypeObject(detectedPatternRole, task, result);
+                String chunkName = "Unknown";
+                String iconColor = null;
+                if (roleTypeObject != null) {
+                    chunkName = roleTypeObject.getName().toString();
+                    iconColor = resolveFocusObjectIconColor(roleTypeObject.asObjectable(), task, result);
+                }
+
+                MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(
+                        Collections.singletonList(detectedPatternRole),
+                        properties,
+                        chunkName,
+                        new FrequencyItem(100.0),
+                        roleAnalysisObjectStatus);
+                if (iconColor != null) {
+                    miningRoleTypeChunk.setIconColor(iconColor);
+                }
+                roles.add(miningRoleTypeChunk);
             }
 
         }
 
-//        if (chunkMode.equals(RoleAnalysisChunkMode.EXPAND_ROLE)) {
-//            miningRoleTypeChunks = new ExpandedMiningStructure()
-//                    .executeOperation(this, cluster, true, processMode, result, task, option)
-//                    .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
-//            miningUserTypeChunks = new CompressedMiningStructure()
-//                    .executeOperation(this, cluster, true, processMode, result, task)
-//                    .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
-//        } else if (chunkMode.equals(RoleAnalysisChunkMode.EXPAND_USER)) {
-//            miningRoleTypeChunks = new CompressedMiningStructure()
-//                    .executeOperation(this, cluster, true, processMode, result, task)
-//                    .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
-//            miningUserTypeChunks = new ExpandedMiningStructure()
-//                    .executeOperation(this, cluster, true, processMode, result, task, option)
-//                    .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
-//        } else if (chunkMode.equals(RoleAnalysisChunkMode.COMPRESS)) {
-//            return new CompressedMiningStructure()
-//                    .executeOperation(this, cluster, true, processMode, result, task);
-//        } else {
-//            return new ExpandedMiningStructure()
-//                    .executeOperation(this, cluster, true, processMode, result, task, option);
-//        }
+        if (!detectedPatternUsers.isEmpty()) {
+            for (String detectedPatternUser : detectedPatternUsers) {
+                PrismObject<UserType> userTypeObject = getUserTypeObject(detectedPatternUser, task, result);
+                List<String> properties = new ArrayList<>();
+                String chunkName = "Unknown";
+                String iconColor = null;
+                if (userTypeObject != null) {
+                    chunkName = userTypeObject.getName().toString();
+                    properties = getRolesOidAssignment(userTypeObject.asObjectable());
+                    iconColor = resolveFocusObjectIconColor(userTypeObject.asObjectable(), task, result);
+                }
 
-        return new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
+                MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(
+                        Collections.singletonList(detectedPatternUser),
+                        properties,
+                        chunkName,
+                        new FrequencyItem(100.0),
+                        roleAnalysisObjectStatus);
+
+                if (iconColor != null) {
+                    miningUserTypeChunk.setIconColor(iconColor);
+                }
+
+                users.add(miningUserTypeChunk);
+            }
+        }
     }
+
 
     @Override
     public @NotNull MiningOperationChunk prepareExpandedMiningStructure(
@@ -2387,7 +2531,18 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         MetadataType metadata = new MetadataType();
         metadata.setCreateTimestamp(getCurrentXMLGregorianCalendar());
         outlier.setMetadata(metadata);
-        modelService.importObject(outlier.asPrismObject(), null, task, result);
+            ObjectDelta<RoleAnalysisOutlierType> outlierDelta = PrismContext.get().deltaFactory().object().create(RoleAnalysisOutlierType.class, ChangeType.ADD);
+            outlierDelta.setObjectToAdd(outlier.asPrismObject());
+
+            //TODO exception handler
+        try {
+            repositoryService.addObject(outlier.asPrismObject(), null, result);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new RuntimeException(e);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     public void resolveOutliers(

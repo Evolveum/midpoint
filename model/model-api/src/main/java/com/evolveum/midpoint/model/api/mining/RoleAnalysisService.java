@@ -357,6 +357,12 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             @NotNull Task task);
 
+    MiningOperationChunk prepareBasicChunkStructure(
+            @NotNull RoleAnalysisClusterType cluster,
+            @NotNull DisplayValueOption option,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull OperationResult result,
+            @NotNull Task task);
     /**
      * Method for preparing a mining structure for role analysis.
      *
@@ -371,8 +377,17 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisClusterType cluster,
             DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull OperationResult result,
             @NotNull Task task);
+
+
+    void updateChunkWithPatterns(
+            MiningOperationChunk chunk,
+            List<DetectedPattern> detectedPatterns,
+            Task task,
+            OperationResult result);
+
 
     /**
      * Method for preparing an expanded mining structure for role analysis.

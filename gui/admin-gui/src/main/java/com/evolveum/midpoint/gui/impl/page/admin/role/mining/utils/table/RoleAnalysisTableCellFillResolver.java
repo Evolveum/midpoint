@@ -68,6 +68,10 @@ public class RoleAnalysisTableCellFillResolver {
             FrequencyItem frequencyItem = object.getFrequencyItem();
             FrequencyItem.Status status = frequencyItem.getStatus();
 
+            if (status == null) {
+                return;
+            }
+
             if (status.equals(FrequencyItem.Status.NEGATIVE_EXCLUDE)) {
                 object.setStatus(RoleAnalysisOperationMode.NEGATIVE_EXCLUDE);
             } else if (status.equals(FrequencyItem.Status.POSITIVE_EXCLUDE)) {
@@ -105,7 +109,7 @@ public class RoleAnalysisTableCellFillResolver {
             Item<ICellPopulator<A>> cellItem,
             @NotNull A rowModel,
             @NotNull B colModel,
-            @NotNull LoadableDetachableModel<Map<String, String>> colorLoadableMap) {
+            @NotNull IModel<Map<String, String>> colorLoadableMap) {
         Map<String, String> colorMap = colorLoadableMap.getObject();
         RoleAnalysisObjectStatus rowObjectStatus = rowModel.getObjectStatus();
         RoleAnalysisObjectStatus colObjectStatus = colModel.getObjectStatus();
@@ -289,6 +293,7 @@ public class RoleAnalysisTableCellFillResolver {
      * @param minFrequency The minimum frequency threshold.
      * @param maxFrequency The maximum frequency threshold.
      */
+    //TODO remove
     public static void initUserBasedDetectionPattern(
             @NotNull PageBase pageBase,
             @NotNull List<MiningUserTypeChunk> users,
@@ -407,6 +412,8 @@ public class RoleAnalysisTableCellFillResolver {
      * @param minFrequency The minimum frequency threshold.
      * @param maxFrequency The maximum frequency threshold.
      */
+
+    //TODO remove
     public static void initRoleBasedDetectionPattern(
             @NotNull PageBase pageBase,
             @NotNull List<MiningUserTypeChunk> users,

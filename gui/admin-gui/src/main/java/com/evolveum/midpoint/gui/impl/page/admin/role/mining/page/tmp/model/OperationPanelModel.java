@@ -26,6 +26,8 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 
 public class OperationPanelModel implements Serializable {
 
+    public static final String F_PALLET_COLORS = "palletColors";
+
     private @NotNull List<DetectedPattern> selectedPatterns = new ArrayList<>();
     private Map<String, String> palletColors = new HashMap<>();
     private String patternIconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " fa-2x text-primary";

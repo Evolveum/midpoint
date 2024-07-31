@@ -120,7 +120,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         detectionOption.setFrequencyRange(new RangeType().min(minFrequency).max(maxFrequency));
         cluster.setDetectionOption(detectionOption);
 
-        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareMiningStructure(cluster, displayValueOption,
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster, displayValueOption,
                 RoleAnalysisProcessModeType.USER, result, task);
 
         RangeType frequencyRange = detectionOption.getFrequencyRange();
@@ -149,9 +149,9 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         RoleAnalysisMatrixTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadTable(displayValueOption, cluster);
         add(table);
 
-        RepeatingView headerItems = new RepeatingView("header-items");
-        headerItems.setOutputMarkupId(true);
-        add(headerItems);
+//        RepeatingView headerItems = new RepeatingView("header-items");
+//        headerItems.setOutputMarkupId(true);
+//        add(headerItems);
 
 //        initOutlierAnalysisHeaderPanel(headerItems, userOid, usedFrequency, originalCluster.asObjectable());
     }

@@ -268,7 +268,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
             displayValueOption.setSortMode(RoleAnalysisSortMode.NONE);
         }
 
-        return roleAnalysisService.prepareMiningStructure(
+        return roleAnalysisService.prepareBasicChunkStructure(
                 tempCluster, displayValueOption, RoleAnalysisProcessModeType.USER, result, task);
     }
 

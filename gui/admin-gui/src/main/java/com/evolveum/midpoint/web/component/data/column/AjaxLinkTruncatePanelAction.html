@@ -9,25 +9,23 @@
 <html xmlns:wicket="http://wicket.apache.org" lang="">
 <wicket:panel>
 
-    <div class="row" wicket:id="container" style="align-items: center;">
+    <div class="d-flex " wicket:id="container">
 
 
-        <div class="col" style="height: 30px;width:20px;">
-            <a class="row" wicket:id="link_icon" style="height: 16px;width:16px;">
+        <div class="p-2 ml-auto">
+            <a wicket:id="link_icon">
                 <i wicket:id="image"></i>
             </a>
         </div>
 
-        <div class="col">
+        <div class="p-2">
             <a class="row" wicket:id="link">
-                <span class="text-truncate" wicket:id="link_label"></span>
+                <span class="text-truncate" wicket:id="link_label"></span> <!--TODO for header add class="text-truncate" -->
             </a>
         </div>
 
-        <div class="col mt-2" style="height: 30px;width:20px;">
-            <div class="row" style="height: 16px;width:16px;">
-                <i style="transform: rotate(90deg);" wicket:id="icon"></i>
-            </div>
+        <div class="p-2">
+            <div wicket:id="icon"></div> <!-- TODO for header add style="transform: rotate(90deg);"-->
         </div>
 
     </div>

@@ -38,7 +38,7 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
     private DetectedPattern detectedPattern;
 
 
-    PatternStatistics(List<T> additionalObjects, List<String> members, List<String> mustMeet, PrismObject<RoleAnalysisClusterType> cluster, ModelServiceLocator serviceLocator) {
+    public PatternStatistics(List<T> additionalObjects, List<String> members, List<String> mustMeet, PrismObject<RoleAnalysisClusterType> cluster, ModelServiceLocator serviceLocator) {
         loadStatistics(additionalObjects, members, mustMeet, cluster, serviceLocator);
 
     }

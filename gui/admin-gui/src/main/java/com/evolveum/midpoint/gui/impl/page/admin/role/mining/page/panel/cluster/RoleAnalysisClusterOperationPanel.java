@@ -52,13 +52,9 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     private static final String DOT_CLASS = RoleAnalysisClusterOperationPanel.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
-
-
     private boolean isRoleMode;
 
     private LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
-
-
 
     public static final String PARAM_CANDIDATE_ROLE_ID = "candidateRoleId";
     public static final String PARAM_DETECTED_PATER_ID = "detectedPatternId";
@@ -74,8 +70,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         }
         return null;
     }
-
-
 
     public RoleAnalysisClusterOperationPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
             ContainerPanelConfigurationType config) {
