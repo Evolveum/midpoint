@@ -64,4 +64,9 @@ public class TestModelServiceContractCaching extends TestModelServiceContract {
         assertTrue("Unexpected number of attributes in repo shadow, expected at least "+
         expectedNumberOfIdentifiers+", but was "+attributes.size(), attributes.size() >= expectedNumberOfIdentifiers);
     }
+
+    @Override
+    boolean isCached() {
+        return true;
+    }
 }

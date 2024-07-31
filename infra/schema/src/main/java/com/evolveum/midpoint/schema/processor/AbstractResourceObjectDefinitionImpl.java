@@ -819,11 +819,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
         boolean readCachedCapabilityPresent = isReadCachedCapabilityPresent();
 
-        boolean unlimitedByDefault = false;
+        boolean enabledBecauseOfReadCachedCapability = false;
         if (workingCopy.getCachingStrategy() == null) {
             if (readCachedCapabilityPresent) {
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
-                unlimitedByDefault = true;
+                enabledBecauseOfReadCachedCapability = true;
             } else {
                 workingCopy.setCachingStrategy(
                         InternalsConfig.shadowCachingOnByDefault ? CachingStrategyType.PASSIVE : CachingStrategyType.NONE);
@@ -836,7 +836,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         var scope = workingCopy.getScope();
         if (scope.getAttributes() == null) {
             scope.setAttributes(
-                    unlimitedByDefault ?
+                    enabledBecauseOfReadCachedCapability ?
                             ShadowSimpleAttributesCachingScopeType.ALL : ShadowSimpleAttributesCachingScopeType.DEFINED);
         }
         if (scope.getAssociations() == null) {
@@ -852,7 +852,9 @@ public abstract class AbstractResourceObjectDefinitionImpl
             scope.setAuxiliaryObjectClasses(ShadowItemsCachingScopeType.ALL);
         }
         if (workingCopy.getDefaultCacheUse() == null) {
-            if (workingCopy.getCachingStrategy() == CachingStrategyType.PASSIVE) {
+            // When enabling the caching because of read cached, we want to keep the pre-4.9 behavior (of not using
+            // the cache by projector) by default. It should not make a difference, but seemingly it does. TODO research
+            if (workingCopy.getCachingStrategy() == CachingStrategyType.PASSIVE && !enabledBecauseOfReadCachedCapability) {
                 workingCopy.setDefaultCacheUse(CachedShadowsUseType.USE_CACHED_OR_FRESH);
             } else {
                 workingCopy.setDefaultCacheUse(CachedShadowsUseType.USE_FRESH);
@@ -860,7 +862,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
         if (workingCopy.getTimeToLive() == null) {
             workingCopy.setTimeToLive(
-                    XmlTypeConverter.createDuration(unlimitedByDefault ? "P1000Y" : "P1D"));
+                    XmlTypeConverter.createDuration(enabledBecauseOfReadCachedCapability ? "P1000Y" : "P1D"));
         }
         return workingCopy;
     }
