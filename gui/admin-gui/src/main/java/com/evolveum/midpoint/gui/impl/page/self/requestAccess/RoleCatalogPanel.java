@@ -389,7 +389,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 Search search = getObject();
 
                 queryType = search.getTypeClass();
-                searchScope = search.findMemberSearchItem().getScopeValue();
+                if (search.findMemberSearchItem() != null) {
+                    searchScope = search.findMemberSearchItem().getScopeValue();
+                }
             }
         };
 
@@ -636,12 +638,45 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void updateQueryModelSearchAndParameters(ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        // copy query object since it's being changed in place
+        RoleCatalogQuery currentRcq = queryModel.getObject().copy();
+
         boolean saveSearchType = updateQueryModel(item);
         if (saveSearchType) {
             searchModel.saveType();
         }
 
-        searchModel.reset();
+        updateOrResetSearchModel(currentRcq);
+    }
+
+    public void updateOrResetSearchModel(RoleCatalogQuery currentRcq) {
+        // already updated
+        RoleCatalogQuery rcq = queryModel.getObject();
+
+        Class<?> currentType = currentRcq.getType();
+        Class<?> newType = rcq.getType();
+
+        // reset search if type has changed
+        if (currentType != newType) {
+            searchModel.reset();
+            return;
+        }
+
+        // we have to reset if we're switching from scoped to unscoped search (to show/hide scope)
+        if ((currentRcq.getParent() != null && rcq.getParent() == null)
+                || (currentRcq.getParent() == null && rcq.getParent() != null)) {
+            searchModel.reset();
+            return;
+        }
+
+        // reset search if there's custom query that has changed (e.g. switching to teammate roles)
+        ObjectQuery currentQuery = currentRcq.getQuery();
+        ObjectQuery newQuery = rcq.getQuery();
+
+        if ((currentQuery != null && newQuery == null)
+                || (currentQuery == null && newQuery != null)) {
+            searchModel.reset();
+        }
     }
 
     private boolean updateQueryModel(ListGroupMenuItem<RoleCatalogQueryItem> item) {
