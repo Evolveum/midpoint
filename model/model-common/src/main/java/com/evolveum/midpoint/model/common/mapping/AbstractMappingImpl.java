@@ -399,7 +399,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Value metadata computer to be used when expression is evaluated.
      */
     transient private TransformationValueMetadataComputer valueMetadataComputer;
-    private MappingSpecificationType mappingAliasSpecification;
+    private List<MappingSpecificationType> mappingAliasSpecifications;
     //endregion
 
     //region Constructors and (relatively) simple getters
@@ -432,14 +432,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         targetItemName = builder.targetItemName;
         mappingSpecification = builder.getMappingSpecification() != null ?
                 builder.getMappingSpecification() : createDefaultSpecification();
-        mappingAliasSpecification = createMappingAliasSpecification(mappingSpecification,mappingBean.getMappingAlias());
+        mappingAliasSpecifications = createMappingAliasSpecifications(mappingSpecification,mappingBean.getMappingAlias());
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
         valueMetadataDefinition = SchemaRegistry.get().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class);
     }
-
-
 
     private MappingSpecificationType createDefaultSpecification() {
         MappingSpecificationType specification = new MappingSpecificationType();
@@ -977,7 +975,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 ModelCommonBeans.get().expressionFactory,
                 name,
                 mappingSpecification,
-                mappingAliasSpecification,
+                mappingAliasSpecifications,
                 "range",
                 "range of " + name + " in " + getMappingContextDescription(),
                 task, result);
@@ -985,7 +983,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
             // FIXME: Migrate legacy to new?
-            
+
             if (rangeSetDef.contains(originalValue)) {
                 addToMinusIfNecessary(originalValue, rangeSetDef);
             }
@@ -1679,5 +1677,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return new MappingSpecificationType()
                 .definitionObjectRef(spec.getDefinitionObjectRef().clone())
                 .mappingName(alias);
+    }
+
+    private static List<MappingSpecificationType> createMappingAliasSpecifications(MappingSpecificationType spec, List<String> alias) {
+        if (spec == null || alias == null || alias.isEmpty()) {
+            return null;
+        }
+
+        return alias.stream().map(s -> createMappingAliasSpecification(spec, s)).toList();
     }
 }
