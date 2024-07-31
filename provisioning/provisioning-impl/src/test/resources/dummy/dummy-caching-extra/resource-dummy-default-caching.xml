@@ -113,7 +113,7 @@
             <credentials>
                 <password>
                     <compareStrategy>cached</compareStrategy>
-                       <caching>
+                    <caching>
                         <cachingStrategy>passive</cachingStrategy>
                     </caching>
                 </password>
