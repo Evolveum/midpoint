@@ -234,6 +234,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="cacheInvalidationTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, all shadows cached on or before this time are considered expired.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="synchronization" type="tns:SynchronizationType" minOccurs="0"/>
                     <xsd:element name="business" type="tns:ResourceBusinessConfigurationType" minOccurs="0"/>
                 </xsd:sequence>
@@ -4424,6 +4434,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="expired">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object (presumably obtained from shadow cache) is not considered fresh enough, i.e., its
+                        time to live in the cache already passed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPIRED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -5277,6 +5298,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="contentDescription" type="tns:ShadowContentDescriptionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Describes the content of the shadow, mainly regarding the source (repository / resource),
+                                plus other limitations. Transient property, not to be stored in the repository.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                                <a:operational>true</a:operational>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -5495,6 +5528,87 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="INCOMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ShadowContentDescriptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes what exactly is in the shadow, mainly regarding the origin of the data.
+
+                Currently it is a simple enumeration. Later on we can add more detailed information here,
+                like exactly what attributes are to be expected in the shadow.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="fromResourceComplete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The shadow comes from the resource.
+
+                        It should be relatively complete, meaning that at least the attributes provided by default
+                        (including associations) are present.
+
+                        This means that e.g. it is safe to cache it, run mappings against it, and so on.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FROM_RESOURCE_COMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fromResourceIncomplete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The shadow comes from the resource but we cannot assure it's complete.
+
+                        We should not cache it. It is questionable whether we should run mappings against it.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FROM_RESOURCE_INCOMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fromRepository">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The shadow comes from the cache, i.e., from the repository.
+
+                        Its expiration should be determined by examining cachingMetadata item.
+
+                        Note that the shadow may or may not really exist on the resource.
+                        The shadow lifecycle state must be examined to learn this.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FROM_REPOSITORY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="new">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This is a shadow that is going to be created on the resource.
+                        Resource-provided attributes (like icfs:uid, or LDAP uid) should or may be missing.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="identificationOnly">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This shadow serves just as a holder of identifiers pointing to a real shadow.
+                        Used for shadow references.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IDENTIFICATION_ONLY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -6950,6 +7064,21 @@
                             <xsd:documentation>
                                 Scope of the caching. The default is to cache mapped items, activation, and "protected" flag.
                                 Any exceptions can be marked by "cached" property of individual attributes and associations.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="timeToLive" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                For how long do we consider cached data as usable?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="defaultCacheUse" type="tns:CachedShadowsUseType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How should be the cache used by default, e.g., if no caching behavior
+                                is specified in model execution options?
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

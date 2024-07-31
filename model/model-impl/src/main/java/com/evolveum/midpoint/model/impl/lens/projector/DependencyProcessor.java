@@ -347,7 +347,7 @@ public class DependencyProcessor {
      * Setting OID and adapting the synchronization policy decision (if necessary).
      */
     private void alignWithLowerOrderContext(LensProjectionContext projContext) {
-        if (projContext.getOid() != null && projContext.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.ADD) {
+        if (projContext.getOid() != null && !projContext.isSynchronizationDecisionAdd()) {
             LOGGER.trace("No need to align with lower-order context");
             return;
         }
@@ -361,7 +361,7 @@ public class DependencyProcessor {
             LOGGER.trace("Setting OID based on lower-order context: {}", lowerOrderContext.getOid());
             projContext.setOid(lowerOrderContext.getOid());
         }
-        if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
+        if (projContext.isSynchronizationDecisionAdd()) {
             // This context cannot be ADD. There is a lower-order context with an OID
             // it means that the lower-order projection exists, we cannot add it twice
             LOGGER.trace("Switching policy decision from ADD to KEEP");

@@ -75,7 +75,7 @@ public class ResourceObjectFuturizer {
             @NotNull ProvisioningContext shadowCtx,
             @NotNull RepoShadow repoShadow,
             XMLGregorianCalendar now)
-            throws SchemaException, ConfigurationException {
+            throws SchemaException {
         return new ResourceObjectFuturizer(shadowCtx, repoShadow, null, false, now)
                 .futurize();
     }

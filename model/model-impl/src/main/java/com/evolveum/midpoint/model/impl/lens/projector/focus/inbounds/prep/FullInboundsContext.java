@@ -9,8 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import com.evolveum.midpoint.prism.path.PathSet;
 
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;

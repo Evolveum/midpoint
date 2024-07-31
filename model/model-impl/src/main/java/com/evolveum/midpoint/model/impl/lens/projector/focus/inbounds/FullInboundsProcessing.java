@@ -407,7 +407,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
             params.setDefaultTargetItemPath(targetPath);
             params.setEvaluateCurrent(MappingTimeEval.CURRENT);
             params.setContext(lensContext);
-            params.setHasFullTargetObject(true);
+            params.setTargetValueAvailable(true);
             beans.projectionMappingSetEvaluator.evaluateMappingsToTriples(params, inboundsContext.getEnv().task, result);
         }
 

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessingContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.PathSet;
@@ -20,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 /**
- * A {@link InboundsContext} for inbound mappings evaluation that is used in "pre-inbounds" evaluation (i.e., before clockwork is run).
+ * A {@link InboundsContext} for inbound mappings evaluation that is used in {@link SingleShadowInboundsProcessing}.
  */
 public class LimitedInboundsContext extends InboundsContext {
 

@@ -101,6 +101,12 @@
                         <synchronize/>
                     </actions>
                 </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <deleteFocus/>
+                    </actions>
+                </reaction>
             </synchronization>
         </objectType>
         <objectType>
@@ -220,5 +226,7 @@
     <caching>
         <cachingStrategy>passive</cachingStrategy>
         <!-- default scope -->
+        <timeToLive>PT10M</timeToLive>
+        <defaultCacheUse>useCachedOrIgnore</defaultCacheUse>
     </caching>
 </resource>

@@ -13,7 +13,7 @@ import java.util.List;
 import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 
-import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.processor.*;
 
@@ -124,10 +124,11 @@ public abstract class InboundsSource implements DebugDumpable {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     abstract boolean isProjectionBeingDeleted();
 
-    /**
-     * Do we have the absolute state (i.e. full shadow) available?
-     */
-    abstract boolean isAbsoluteStateAvailable();
+    public abstract boolean isAttributeAvailable(ItemName itemName) throws SchemaException, ConfigurationException;
+    public abstract boolean isAssociationAvailable(ItemName itemName) throws SchemaException, ConfigurationException;
+    public abstract boolean isFullShadowAvailable();
+    public abstract boolean isShadowGone();
+    public abstract boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException;
 
     /**
      * Adds value metadata to values in the current item and in a-priori delta.
@@ -142,37 +143,28 @@ public abstract class InboundsSource implements DebugDumpable {
     abstract String getChannel();
 
     /**
-     * Determines processing mode: delta, full state, or that the mapping(s) should be ignored.
-     *
-     * There are complex rules written to eliminate needless shadow fetch operations that are applied
-     * in the clockwork execution mode.
-     *
-     * TODO maybe we should rename this method to something like "is shadow loading requested"?
+     * Returns true if the mapping(s) for given item on this source should be skipped because of item restrictions
+     * or obviously missing data.
      */
-    abstract @NotNull ProcessingMode getItemProcessingMode(
-            String itemDescription, ItemDelta<?, ?> itemAPrioriDelta,
-            List<? extends AbstractMappingConfigItem<?>> mappings,
-            boolean executionModeVisible,
-            boolean ignored,
-            PropertyLimitations limitations) throws SchemaException, ConfigurationException;
-
-    /**
-     * Returns true if the mapping(s) for given item on this source should be skipped.
-     */
-    boolean shouldBeMappingSkipped(
-            String itemDescription, boolean executionModeVisible, boolean ignored, PropertyLimitations limitations) {
+    boolean isItemNotProcessable(
+            ItemPath itemPath, boolean executionModeVisible, boolean ignored, PropertyLimitations limitations) {
         if (!executionModeVisible) {
-            LOGGER.trace("Mapping(s) for {} will be skipped because the item is not visible in current execution mode",
-                    itemDescription);
+            LOGGER.trace("Inbound mapping(s) for {} will be skipped because the item is not visible in current execution mode",
+                    itemPath);
             return true;
         }
         if (ignored) {
-            LOGGER.trace("Mapping(s) for {} will be skipped because the item is ignored", itemDescription);
+            LOGGER.trace("Inbound mapping(s) for {} will be skipped because the item is ignored", itemPath);
             return true;
         }
         if (limitations != null && !limitations.canRead()) {
             LOGGER.warn("Skipping inbound mapping(s) for {} in {} because it is not readable",
-                    itemDescription, getProjectionHumanReadableName());
+                    itemPath, getProjectionHumanReadableName());
+            return true;
+        }
+        if (sourceData.isEmpty() && sourceData.getItemAPrioriDelta(itemPath) == null) {
+            LOGGER.trace("Inbound mapping(s) for {} will be skipped because there is no shadow (not even repo version),"
+                    + "and no a priori delta for the item", itemPath);
             return true;
         }
         return false;
@@ -183,7 +175,7 @@ public abstract class InboundsSource implements DebugDumpable {
      *
      * Currently relevant only for clockwork-based execution.
      */
-    abstract void loadFullShadowIfNeeded(boolean fullStateRequired, @NotNull InboundsContext context, OperationResult result)
+    abstract void loadFullShadow(@NotNull InboundsContext context, OperationResult result)
             throws SchemaException, StopProcessingProjectionException;
 
     /**
@@ -265,5 +257,15 @@ public abstract class InboundsSource implements DebugDumpable {
 
     public @NotNull InboundSourceData getSourceData() {
         return sourceData;
+    }
+
+    /** FIXME ugly hack */
+    boolean hasDependentContext() throws SchemaException, ConfigurationException {
+        return false;
+    }
+
+    /** Only for full processing. */
+    @NotNull CachedShadowsUseType getCachedShadowsUse() throws SchemaException, ConfigurationException {
+        throw new UnsupportedOperationException("Not implemented for " + this);
     }
 }

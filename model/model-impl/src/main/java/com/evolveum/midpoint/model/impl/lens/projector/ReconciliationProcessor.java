@@ -90,8 +90,10 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         // Reconcile even if it was not explicitly requested and if we have full shadow
         // reconciliation is cheap if the shadow is already fetched therefore just do it
-        if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow()) {
-            LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow", projCtx.getHumanReadableName());
+        boolean avoidCachedShadows = !projCtx.isCachedShadowsUseAllowed();
+        if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow() && avoidCachedShadows) {
+            LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow (and cache use disallowed)",
+                    projCtx.getHumanReadableName());
             return;
         }
 
@@ -106,17 +108,20 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             return;
         }
 
-        contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
-        if (!projCtx.isFullShadow()) {
-            LOGGER.trace("Full shadow is not available, skipping the reconciliation of {}", projCtx.getHumanReadableName());
-            result.recordNotApplicable("Full shadow is not available");
-            return;
+        if (avoidCachedShadows) {
+            // This is the pre-4.9 behavior, present here to improve compatible behavior
+            contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
+            if (!projCtx.isFullShadow()) {
+                LOGGER.trace("Full shadow is not available, skipping the reconciliation of {}", projCtx.getHumanReadableName());
+                result.recordNotApplicable("Full shadow is not available");
+                return;
+            }
         }
 
         LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
 
-        reconcileAuxiliaryObjectClasses(projCtx);
-        reconcileProjectionAttributes(projCtx, task);
+        reconcileAuxiliaryObjectClasses(projCtx, task, result);
+        reconcileProjectionAttributes(projCtx, task, result);
         reconcileProjectionAssociations(projCtx, task, result);
 
         reconcileMissingAuxiliaryObjectClassAttributes(projCtx);
@@ -124,12 +129,21 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         projCtx.checkConsistenceIfNeeded();
     }
 
-    private void reconcileAuxiliaryObjectClasses(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
+    private void reconcileAuxiliaryObjectClasses(LensProjectionContext projCtx, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
 
         var squeezedAuxiliaryObjectClasses = projCtx.getSqueezedAuxiliaryObjectClasses();
         if (squeezedAuxiliaryObjectClasses == null || squeezedAuxiliaryObjectClasses.isEmpty()) {
             return;
         }
+
+        if (!projCtx.isAuxiliaryObjectClassPropertyLoaded()) {
+            if (!loadIfPossible(projCtx, "auxiliary object class", task, result)) {
+                return;
+            }
+        }
+
         LOGGER.trace("Auxiliary object class reconciliation processing {}", projCtx.getHumanReadableName());
 
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
@@ -287,21 +301,25 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         }
     }
 
-    private void reconcileProjectionAttributes(LensProjectionContext projCtx, Task task)
-            throws SchemaException, ConfigurationException {
+    private void reconcileProjectionAttributes(LensProjectionContext projCtx, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
 
         LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
+
+        boolean useCachedShadows = projCtx.isCachedShadowsUseAllowed();
 
         var squeezedAttributes = projCtx.getSqueezedAttributes();
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
-        PrismContainer<?> attributesContainer = shadowNew.findContainer(ShadowType.F_ATTRIBUTES);
-        Collection<QName> attributeNames = squeezedAttributes != null ?
-                MiscUtil.union(squeezedAttributes.keySet(), attributesContainer.getValue().getItemNames()) :
-                attributesContainer.getValue().getItemNames();
+        var attributesContainer = shadowNew.findContainer(ShadowType.F_ATTRIBUTES);
+        var attributeNames = MiscUtil.union(
+                squeezedAttributes != null ? squeezedAttributes.keySet() : null,
+                attributesContainer.getValue().getItemNames(),
+                useCachedShadows ? projCtx.getCachedAttributesNames() : null);
 
         for (QName attrName : attributeNames) {
-            reconcileProjectionAttribute(attrName, projCtx, squeezedAttributes, attributesContainer, task);
+            reconcileProjectionAttribute(attrName, projCtx, squeezedAttributes, attributesContainer, task, result);
         }
     }
 
@@ -310,7 +328,9 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             LensProjectionContext projCtx,
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes,
             PrismContainer<?> attributesContainer,
-            Task task) throws SchemaException, ConfigurationException {
+            Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
 
         LOGGER.trace("Attribute reconciliation processing attribute {}", attrName);
 
@@ -345,6 +365,12 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             }
             if (projCtx.isModify() && !limitations.canModify()) {
                 LOGGER.trace("Skipping reconciliation of attribute {} because it is non-updateable", attrName);
+                return;
+            }
+        }
+
+        if (!projCtx.isAttributeLoaded(attrName)) {
+            if (!loadIfPossible(projCtx, "attribute " + attrName, task, result)) {
                 return;
             }
         }
@@ -556,6 +582,12 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 //                    }
 //                }
 //            }
+
+            if (!projCtx.isAssociationLoaded(assocName)) {
+                if (!loadIfPossible(projCtx, "association " + assocName, task, result)) {
+                    return;
+                }
+            }
 
             Collection<ItemValueWithOrigin<ShadowAssociationValue, ShadowAssociationDefinition>> shouldBeCValues;
             if (cvwoTriple == null) {
@@ -968,5 +1000,36 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             }
         }
         return false;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean loadIfPossible(LensProjectionContext projCtx, String desc, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!projCtx.isDoReconciliation()) {
+            LOGGER.trace(
+                    "Skipping loading the shadow, as the reconciliation was not requested for {}",
+                    projCtx.getHumanReadableName());
+            return false;
+        }
+        switch (projCtx.getCachedShadowsUse()) {
+            case USE_CACHED_OR_FAIL:
+                throw new ExpressionEvaluationException(
+                        "%s could not be reconciled, because the item is not loaded".formatted(desc));
+            case USE_CACHED_OR_IGNORE:
+                LOGGER.trace("{} is not loaded; its inbound mapping(s) evaluation will be skipped", desc);
+                return false;
+            case USE_CACHED_OR_FRESH:
+            case USE_FRESH:
+                // We can simply load the shadow in this case
+        }
+        contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
+        if (!projCtx.isFullShadow()) {
+            LOGGER.trace(
+                    "Full shadow could not be loaded, skipping the reconciliation of {} in {}",
+                    desc, projCtx.getHumanReadableName());
+            return false;
+        }
+        return true;
     }
 }

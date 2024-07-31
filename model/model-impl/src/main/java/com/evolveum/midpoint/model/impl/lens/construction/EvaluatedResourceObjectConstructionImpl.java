@@ -301,13 +301,13 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
      * Checks whether we are obliged to load the full shadow.
      * @return non-null if we have to
      */
-    String getFullShadowLoadReason(ShadowItemMapper<?, ?, ?> itemMapper) {
+    String getFullShadowLoadReason(ShadowItemMapper<?, ?, ?> itemMapper) throws SchemaException, ConfigurationException {
         if (projectionContext == null) {
             LOGGER.trace("We will not load full shadow, because we have no projection context");
             return null;
         }
-        if (projectionContext.isFullShadow()) {
-            LOGGER.trace("We will not load full shadow, because we already have one");
+        if (itemMapper.isItemLoaded(projectionContext)) {
+            LOGGER.trace("We will not load full shadow, because we already have sufficient information");
             return null;
         }
         if (projectionContext.isDelete()) {
