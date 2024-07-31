@@ -51,6 +51,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_RESOURCE_INCOMPLETE;
+
 public class ProvisioningUtil {
 
     private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
@@ -382,6 +387,15 @@ public class ProvisioningUtil {
                         refAttr.getElementName(), newDefinition);
                 attributesContainer.remove((ShadowAttribute<?, ?, ?, ?>) refAttr);
             }
+        }
+    }
+
+    public static @NotNull ShadowContentDescriptionType determineContentDescription(
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, boolean error) {
+        if (error || SelectorOptions.excludesSomethingFromRetrieval(options)) {
+            return FROM_RESOURCE_INCOMPLETE;
+        } else {
+            return FROM_RESOURCE_COMPLETE;
         }
     }
 }

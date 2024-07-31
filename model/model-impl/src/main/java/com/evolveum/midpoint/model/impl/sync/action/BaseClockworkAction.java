@@ -37,6 +37,8 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_REPOSITORY;
+
 /**
  * A synchronization action that involves clockwork processing.
  *
@@ -182,7 +184,12 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
         // This will set both old and current object: and that's how it should be.
         projectionContext.setInitialObject(shadow.asPrismObject());
 
-        if (!tombstone && !containsIncompleteItems(shadow)) {
+        // This would be the correct form, but not all sources provide this information (yet)
+        //boolean contentIsComplete = shadow.getContentDescription() == FROM_RESOURCE_COMPLETE;
+        // So we define it the other way around: by checking for the "from repository" state
+        boolean contentIsComplete = shadow.getContentDescription() != FROM_REPOSITORY;
+
+        if (!tombstone && !containsIncompleteItems(shadow) && contentIsComplete) {
             projectionContext.setFullShadow(true);
         }
         projectionContext.setFresh(true);

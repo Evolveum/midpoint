@@ -16,6 +16,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 
 /**
@@ -32,7 +33,8 @@ import java.io.Serializable;
 public record BasicResourceInformation(
         @Nullable String oid,
         @Nullable PolyStringType name,
-        @Nullable ShadowCachingPolicyType cachingPolicy)
+        @Nullable ShadowCachingPolicyType cachingPolicy,
+        @Nullable XMLGregorianCalendar cacheInvalidationTimestamp)
         implements Serializable {
 
     public static BasicResourceInformation of(@NotNull PrismObject<ResourceType> resource) {
@@ -43,7 +45,8 @@ public record BasicResourceInformation(
         return new BasicResourceInformation(
                 resource.getOid(),
                 CloneUtil.clone(resource.getName()),
-                CloneUtil.toImmutable(resource.getCaching()));
+                CloneUtil.toImmutable(resource.getCaching()),
+                CloneUtil.clone(resource.getCacheInvalidationTimestamp()));
     }
 
     @Override

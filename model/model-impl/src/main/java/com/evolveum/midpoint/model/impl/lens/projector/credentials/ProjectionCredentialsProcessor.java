@@ -188,8 +188,9 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                         return false;
                     }
 
-                    boolean projectionIsNew = projDelta != null && (projDelta.getChangeType() == ChangeType.ADD
-                            || projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD);
+                    boolean projectionIsNew =
+                            projDelta != null
+                                    && (projDelta.getChangeType() == ChangeType.ADD || projCtx.isSynchronizationDecisionAdd());
 
                     Collection<PrismPropertyValue<ProtectedStringType>> newValues;
                     if (projectionIsNew) {
@@ -269,7 +270,8 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         params.setNow(now);
         params.setInitializer(internalInitializer);
         params.setProcessor(processor);
-        params.setTargetLoader(new ProjectionMappingLoader<>(projCtx, contextLoader));
+        params.setTargetLoader(new ProjectionMappingLoader(projCtx, contextLoader, projCtx::isPasswordValueLoaded));
+        params.setTargetValueAvailable(projCtx.isPasswordValueLoaded());
         params.setAPrioriTargetObject(shadowNew);
         params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
         params.setTargetContext(projCtx);
@@ -280,9 +282,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         params.setEvaluateCurrent(MappingTimeEval.CURRENT);
         params.setEvaluateWeak(evaluateWeak);
         params.setContext(context);
-        params.setHasFullTargetObject(projCtx.hasFullShadow());
         projectionMappingSetEvaluator.evaluateMappingsToTriples(params, task, result);
-
     }
 
     private <F extends FocusType> boolean isActivated(List<MappingType> outboundMappingBeans, ObjectDelta<F> focusDelta) {

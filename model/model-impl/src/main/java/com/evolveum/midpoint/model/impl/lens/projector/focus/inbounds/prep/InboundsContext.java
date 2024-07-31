@@ -13,6 +13,8 @@ import com.evolveum.midpoint.schema.TaskExecutionMode;
 
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachedShadowsUseType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;

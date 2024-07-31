@@ -11,6 +11,8 @@ import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 
 import com.evolveum.midpoint.repo.common.activity.run.SearchSpecification;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,11 +68,16 @@ public final class ResourceObjectsReconciliationActivityRun
     // Ignoring configured search options. TODO ok?
     @Override
     public void customizeSearchOptions(SearchSpecification<ShadowType> searchSpecification, OperationResult result) {
-        // This is necessary to give ItemProcessingGatekeeper a chance to "see" errors in preprocessing.
+
+        // We want to preserve "no fetch" option for the main reconciliation sub-activity.
+        var noFetchRequested = GetOperationOptions.isNoFetch(searchSpecification.getSearchOptions());
+
+        // Error reporting method: This is necessary to give ItemProcessingGatekeeper a chance to "see" errors in preprocessing.
         // At the same time, it ensures that an exception in preprocessing does not kill the whole searchObjectsIterative call.
         searchSpecification.setSearchOptions(
                 getBeans().schemaService.getOperationOptionsBuilder()
                         .errorReportingMethod(FetchErrorReportingMethodType.FETCH_RESULT)
+                        .noFetch(noFetchRequested)
                         .build());
     }
 

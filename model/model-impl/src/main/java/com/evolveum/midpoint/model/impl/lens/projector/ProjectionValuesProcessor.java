@@ -109,9 +109,11 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
 
         context.checkConsistenceIfNeeded();
 
+        // In the future, we can require an indication of attributes and other items used for these computations,
+        // so that we can determine if we should load the shadow.
         if (!projContext.hasFullShadow() && hasIterationExpression(projContext)) {
             contextLoader.loadFullShadow(projContext, "iteration expression", task, result);
-            if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+            if (projContext.isBroken()) {
                 return;
             }
         }

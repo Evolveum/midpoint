@@ -217,6 +217,15 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
         return !OBJECTS_NOT_RETURNED_FULLY_BY_DEFAULT.contains(objectType);
     }
 
+    /** Very primitive method that checks whether there is an instruction to exclude any item from retrieval. */
+    public static boolean excludesSomethingFromRetrieval(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+        return emptyIfNull(options).stream()
+                .anyMatch(
+                        option -> option != null
+                                && option.getOptions() != null
+                                && option.getOptions().getRetrieve() == RetrieveOption.EXCLUDE);
+    }
+
     /**
      * Returns true if the asked path must be included in the object based on the provided get options.
      * See {@link GetOperationOptions#retrieve} javadoc for more details.
@@ -247,16 +256,11 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
             if (retrievalCommand != null) {
                 ObjectSelector selector = option.getSelector();
                 if (selector == null || selector.getPath() == null || selector.getPath().isSubPathOrEquivalent(path)) {
-                    switch (retrievalCommand) {
-                        case EXCLUDE:
-                            return false;
-                        case DEFAULT:
-                            return defaultValue;
-                        case INCLUDE:
-                            return true;
-                        default:
-                            throw new AssertionError("Wrong retrieve option: " + retrievalCommand);
-                    }
+                    return switch (retrievalCommand) {
+                        case EXCLUDE -> false;
+                        case DEFAULT -> defaultValue;
+                        case INCLUDE -> true;
+                    };
                 }
             }
         }
@@ -298,15 +302,10 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
                 if (selector == null || selector.getPath() == null
                         // shortcut for "is subpath or prefix or equal"
                         || ItemPathComparatorUtil.compareComplex(selector.getPath(), path) != ItemPath.CompareResult.NO_RELATION) {
-                    switch (retrievalCommand) {
-                        case EXCLUDE:
-                        case DEFAULT:
-                            return false;
-                        case INCLUDE:
-                            return true;
-                        default:
-                            throw new AssertionError("Wrong retrieve option: " + retrievalCommand);
-                    }
+                    return switch (retrievalCommand) {
+                        case EXCLUDE, DEFAULT -> false;
+                        case INCLUDE -> true;
+                    };
                 }
             }
         }

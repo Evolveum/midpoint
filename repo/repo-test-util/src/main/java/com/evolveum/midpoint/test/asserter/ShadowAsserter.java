@@ -729,4 +729,11 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         checkAbstractShadowPresent();
         return abstractShadow;
     }
+
+    public ShadowAsserter<RA> assertFromResourceComplete() {
+        assertThat(getObjectable().getContentDescription())
+                .as("content description")
+                .isEqualTo(ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE);
+        return this;
+    }
 }

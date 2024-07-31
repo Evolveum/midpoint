@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteO
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -136,6 +137,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 
     public static boolean isForce(ModelExecuteOptions options) {
         return is(options, ModelExecuteOptionsType.F_FORCE);
+    }
+
+    public static @Nullable CachedShadowsUseType getCachedShadowsUse(ModelExecuteOptions options) {
+        return options != null ? options.content.getCachedShadowsUse() : null;
     }
 
     public Boolean getPushChanges() {

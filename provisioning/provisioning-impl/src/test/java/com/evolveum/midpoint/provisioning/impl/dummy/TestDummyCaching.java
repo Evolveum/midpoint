@@ -25,7 +25,6 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 
 import com.evolveum.midpoint.util.exception.*;
 
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -519,15 +517,5 @@ public class TestDummyCaching extends TestDummy {
             AbstractShadow shadow, String attrName, Object... attrValues) {
         Object[] reallyExpectedValue = isAttrCachedInFullObject(attrName) ? attrValues : new Object[0];
         assertAttribute(shadow, attrName, reallyExpectedValue);
-    }
-
-    @Override
-    protected void checkCachedAccountShadow(
-            AbstractShadow shadow, OperationResult parentResult, boolean fullShadow,
-            XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, ConfigurationException {
-        super.checkAccountShadow(shadow, parentResult, fullShadow);
-        if (fullShadow) {
-            assertCachingMetadata(shadow.getBean(), true, startTs, endTs);
-        }
     }
 }
