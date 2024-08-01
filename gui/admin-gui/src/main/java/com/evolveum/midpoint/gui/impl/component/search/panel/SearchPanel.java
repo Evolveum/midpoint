@@ -298,27 +298,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                                 ajaxRequestTarget);
                     }
                 };
-                final String mouseOverStyle = "color: red;";
-                final String mouseLeaveStyle = "color: red; display: none;";
-                removeButton.add(AttributeAppender.append("style", mouseLeaveStyle));
                 item.add(removeButton);
-
-                item.add(new AjaxEventBehavior("mouseenter") {
-                    @Override
-                    public void onEvent(AjaxRequestTarget target) {
-                        removeButton.add(AttributeModifier.remove("style"));
-                        removeButton.add(AttributeAppender.append("style", mouseOverStyle));
-                        target.add(removeButton);
-                    }
-                });
-                item.add(new AjaxEventBehavior("mouseleave") {
-                    @Override
-                    public void onEvent(AjaxRequestTarget target) {
-                        removeButton.add(AttributeAppender.append("style", mouseLeaveStyle));
-                        target.add(removeButton);
-                    }
-                });
-
             }
         };
 
