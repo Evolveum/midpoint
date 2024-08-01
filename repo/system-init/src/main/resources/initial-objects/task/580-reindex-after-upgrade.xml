@@ -8,8 +8,12 @@
 <task oid="00000000-0000-0000-0000-000000000580"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
-    <name>Reindex and Partition Task</name>
-    <description>A system task that reindexes objects, performs repository migrations and partition shadows</description>
+    <name>Reindex (After Upgrade) Task</name>
+    <description>
+        A system task that reindexes objects, performs basic repository migrations.
+        These migrations ensures that preexisting data are properly stored in new format
+        and that support for new searchable items are properly populated for queries to work.
+    </description>
     <assignment id="1">
         <identifier>archetype</identifier>
         <targetRef oid="00000000-0000-0000-0000-000000000519" type="ArchetypeType" />

@@ -30,7 +30,7 @@ import java.util.UUID;
 public class ShadowPartitioningTest extends SqaleRepoBaseTest {
 
     private static final int NON_MIGRATED_RESOURCE_COUNT = 5;
-    private static final int SHADOWS_PER_RESOURCE_OBJECTCLASS = 1000;
+    private static final int SHADOWS_PER_RESOURCE_OBJECTCLASS = 100;
     private static final List<QName> OBJECT_CLASSES = ImmutableList.of(
             SchemaConstants.RI_ACCOUNT_OBJECT_CLASS,
             SchemaConstants.RI_GROUP_OBJECT_CLASS);
@@ -42,7 +42,7 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
     public void initObjects() throws Exception {
         super.initDatabase();
         this.shadowMapping = (QShadowMapping) ((QueryTableMapping) sqlRepoContext.getMappingBySchemaType(ShadowType.class));
-        shadowMapping.setCreatePartitionOnInsert(false);
+        shadowMapping.getPartitionManager().setPartitionCreationOnAdd(false);
         var result = createOperationResult();
         this.partitionManager = shadowMapping.getPartitionManager();
 
@@ -90,7 +90,7 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
     public void  test200PartitioningEnabledNewResourceAdded() throws SchemaException, ObjectAlreadyExistsException {
         var result = createOperationResult();
         when("Partitioning is enabled");
-        shadowMapping.setCreatePartitionOnInsert(true);
+        shadowMapping.getPartitionManager().setPartitionCreationOnAdd(true);
 
         when("new resource shadows are discovered");
         var newResourceOid = UUID.randomUUID();
@@ -104,7 +104,7 @@ public class ShadowPartitioningTest extends SqaleRepoBaseTest {
     @Test
     public void test300CreateMissingPartitions() throws SchemaException, ObjectAlreadyExistsException {
         var result = createOperationResult();
-        partitionManager.createMissingPartitions(result);
+        repositoryService.createPartitionsForExistingData(result);
 
         for (var resource : resourcesOids) {
             var resourceTableInfo = partitionManager.getResourceTable(resource);

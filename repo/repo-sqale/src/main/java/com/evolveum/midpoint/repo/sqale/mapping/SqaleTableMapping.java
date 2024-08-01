@@ -639,8 +639,10 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
         return null;
     }
 
-
-    public void beforeInsert(R row, JdbcSession jdbcSession) {
-        // NOOP
+    /**
+     * @return Partition manager if table support partitioning
+     */
+    public @Nullable  PartitionManager<R> getPartitionManager() {
+        return null;
     }
 }

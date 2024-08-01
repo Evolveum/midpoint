@@ -675,7 +675,7 @@ call apply_change(42,$aa$
 
     DROP TRIGGER m_shadow_oid_insert_tr ON m_shadow_default;
     DROP TRIGGER m_shadow_update_tr ON m_shadow_default;
-    DROP TRIGGER m_shadow_oid_insert_tr ON m_shadow_default;
+    DROP TRIGGER m_shadow_oid_delete_tr ON m_shadow_default;
 
     CREATE TABLE m_shadow (
         oid UUID NOT NULL REFERENCES m_object_oid(oid),

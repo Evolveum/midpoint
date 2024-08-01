@@ -115,6 +115,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private final SqlQueryExecutor sqlQueryExecutor;
 
+    private final SqaleQueryContext.SqaleSystemConfigurationListener configurationChangeListener;
+
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
@@ -127,6 +129,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         super(repositoryContext, sqlPerformanceMonitorsCollection);
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
+        this.configurationChangeListener = new SqaleQueryContext.SqaleSystemConfigurationListener(repositoryContext);
     }
 
     // region getObject/getVersion
@@ -2660,4 +2663,36 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return attempt + 1;
     }
 
+    @Override
+    public void createPartitionsForExistingData(OperationResult parentResult) throws SchemaException {
+        // Currently we support only partitioning for shadow type
+        // If partitioning is added for other types we should also call their partition
+        // manager
+
+
+        var shadowMapping = (SqaleTableMapping) sqlRepoContext.getMappingBySchemaType(ShadowType.class);
+        var partitionManager = shadowMapping.getPartitionManager();
+        if (partitionManager == null) {
+            return;
+        }
+
+        var result = parentResult.createSubresult(OP_CREATE_PARTITIONS_FOR_EXISTING_DATA);
+        try {
+            long opHandle = registerOperationStart(OP_CREATE_PARTITIONS_FOR_EXISTING_DATA, ShadowType.class);
+            executeRetriable("createPartitions", null, opHandle, () -> {
+                partitionManager.createMissingPartitions(result);
+                return null;
+            });
+            result.computeStatus();
+        } catch (Exception e) {
+            result.recordFatalError(e);
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public void applyRepositoryConfiguration(@Nullable RepositoryConfigurationType repositoryConfig) {
+        configurationChangeListener.update(repositoryConfig);
+    }
 }

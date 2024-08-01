@@ -1,47 +1,70 @@
+/*
+ * Copyright (C) 2024 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sqale.qmodel.shadow;
 
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
+import com.evolveum.midpoint.repo.sqale.mapping.PartitionManager;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeAdminGuiConfigurationType;
+
+import com.google.common.base.Preconditions;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class ShadowPartitionManager {
+public class ShadowPartitionManager implements PartitionManager<MShadow> {
     public static final String DEFAULT_PARTITION = "m_shadow_default";
     private static final String TABLE_PREFIX = "m_shadow_";
     private static final String DEFAULT_SUFFIX = "_default";
     private final SqaleRepoContext repoContext;
 
     Map<UUID, ResourceTable> resourceTable;
+    private boolean partitionCreationOnAdd;
+    private boolean createDefaultPartitions;
+
 
     public ShadowPartitionManager(SqaleRepoContext repositoryContext) {
         this.repoContext = repositoryContext;
     }
 
-    public void ensurePartitionExists(MShadow row, JdbcSession jdbcSession) {
-        ResourceTable resource = getOrCreateResourceView(row.resourceRefTargetOid, jdbcSession);
-        resource.getOrCreateObjectClassTable(row.objectClassId, jdbcSession);
-        resource.ensureAttached();
+    @Override
+    public void setPartitionCreationOnAdd(boolean value) {
+        this.partitionCreationOnAdd = value;
     }
 
-    private ResourceTable getOrCreateResourceView(UUID resourceRefTargetOid,JdbcSession jdbcSession) {
+    public boolean isPartitionCreationOnAdd() {
+        return partitionCreationOnAdd;
+    }
+
+    @Override
+    public synchronized void ensurePartitionExists(MShadow row, JdbcSession jdbcSession) {
+        Preconditions.checkArgument(row.objectClassId != null, "objectClass needs to be present in shadow");
+        Preconditions.checkArgument(row.resourceRefTargetOid != null, "resourceRef needs to be present in shadow");
+        ResourceTable resource = getOrCreateResourceView(row.resourceRefTargetOid, jdbcSession, true);
+        resource.getOrCreateObjectClassTable(row.objectClassId, jdbcSession);
+        resource.attach(jdbcSession);
+    }
+
+    private ResourceTable getOrCreateResourceView(UUID resourceRefTargetOid,JdbcSession jdbcSession, boolean createDefault) {
         var view = resourceTableLoaded().get(resourceRefTargetOid);
         if (view != null) {
             return view;
         }
-        return loadOrCreateResourceView(resourceRefTargetOid, jdbcSession);
+        return loadOrCreateResourceView(resourceRefTargetOid, jdbcSession, createDefault);
     }
 
-    private ResourceTable loadOrCreateResourceView(UUID resourceOid, JdbcSession jdbcSession) {
+    private ResourceTable loadOrCreateResourceView(UUID resourceOid, JdbcSession jdbcSession, boolean createDefault) {
         var partitionDef = alias();
         var dbView = jdbcSession.newQuery().from(partitionDef)
                 .select(partitionDef)
@@ -50,7 +73,7 @@ public class ShadowPartitionManager {
         if (dbView != null) {
             return resourceViewFromDb(dbView);
         }
-        return createResourceView(resourceOid, jdbcSession);
+        return createResourceView(resourceOid, jdbcSession, createDefault);
 
     }
 
@@ -60,7 +83,7 @@ public class ShadowPartitionManager {
                 .and(partitionDef.partition.isFalse());
     }
 
-    private ResourceTable createResourceView(UUID resourceOid, JdbcSession jdbcSession) {
+    private ResourceTable createResourceView(UUID resourceOid, JdbcSession jdbcSession, boolean createDefault) {
         var resourceTable = new MShadowPartitionDef();
         resourceTable.resourceOid = resourceOid;
         resourceTable.objectClassId = null;
@@ -69,25 +92,17 @@ public class ShadowPartitionManager {
         resourceTable.partition = false;
         resourceTable.table = TABLE_PREFIX + tableOid(resourceOid);
         resourceTable.attached = false;
-
-
-        var defaultPartition = new MShadowPartitionDef();
-        defaultPartition.resourceOid = resourceOid;
-        defaultPartition.objectClassId = null;
-
-        // Resource is table, not view
-        defaultPartition.partition = true;
-        defaultPartition.table = TABLE_PREFIX + tableOid(resourceOid) + DEFAULT_SUFFIX;
-        defaultPartition.attached = false;
-
         jdbcSession.newInsert(alias()).populate(resourceTable).execute();
-        jdbcSession.newInsert(alias()).populate(defaultPartition).execute();
-
-        var partitionDef = alias();
-
-        jdbcSession.newUpdate(partitionDef)
-                .set(partitionDef.attached, true)
-                .where(partitionViewPredicate(resourceOid, partitionDef)).execute();
+        if (createDefault) {
+            var defaultPartition = new MShadowPartitionDef();
+            defaultPartition.resourceOid = resourceOid;
+            defaultPartition.objectClassId = null;
+            // Defualt Partition is actual partition
+            defaultPartition.partition = true;
+            defaultPartition.table = TABLE_PREFIX + tableOid(resourceOid) + DEFAULT_SUFFIX;
+            defaultPartition.attached = false;
+            jdbcSession.newInsert(alias()).populate(defaultPartition).execute();
+        }
 
         return resourceViewFromDb(resourceTable);
     }
@@ -115,15 +130,17 @@ public class ShadowPartitionManager {
     }
 
     private Map<UUID, ResourceTable> loadResourceTable() {
-        return new HashMap<>();
+        // FIXME: We can select and load table based
+        return new ConcurrentHashMap<>();
     }
 
+    @VisibleForTesting
     public ResourceTable getResourceTable(UUID newResourceOid) {
         return resourceTableLoaded().get(newResourceOid);
     }
 
-    public void createMissingPartitions(OperationResult result) {
-
+    @Override
+    public synchronized void createMissingPartitions(OperationResult parentResult) {
         try (var session = repoContext.newJdbcSession()) {
             var s = new QShadow("s", FlexibleRelationalPathBase.DEFAULT_SCHEMA_NAME, DEFAULT_PARTITION);
             List<Tuple> existingCombinations = session.newQuery().from(s)
@@ -132,13 +149,24 @@ public class ShadowPartitionManager {
                     .orderBy(s.resourceRefTargetOid.asc(), s.objectClassId.asc())
                     .fetch();
 
-           for (var combo : existingCombinations) {
-               var coordinates = new MShadow();
-               coordinates.resourceRefTargetOid = combo.get(s.resourceRefTargetOid);
-               coordinates.objectClassId = combo.get(s.objectClassId);
-               ensurePartitionExists(coordinates, session);
-           }
-           session.commit();
+            Map<UUID,ResourceTable> toAttach = new HashMap<>();
+            for (var combo : existingCombinations) {
+               var row = new MShadow();
+               row.resourceRefTargetOid = combo.get(s.resourceRefTargetOid);
+               row.objectClassId = combo.get(s.objectClassId);
+
+               var resource = toAttach.get(row.resourceRefTargetOid);
+               if (resource == null) {
+                   resource = getOrCreateResourceView(row.resourceRefTargetOid, session, false);
+                   toAttach.put(resource.row.resourceOid, resource);
+               }
+               resource.getOrCreateObjectClassTable(row.objectClassId, session);
+            }
+            for (var resouce : toAttach.values()) {
+                resouce.attach(session);
+            }
+
+            session.commit();
         }
     }
 
@@ -180,12 +208,20 @@ public class ShadowPartitionManager {
             return ret;
         }
 
-        public void ensureAttached() {
-
-        }
-
         public String getTableName() {
             return row.table;
+        }
+
+        public void attach(JdbcSession session) {
+            var partitionDef = alias();
+
+            session.newUpdate(partitionDef)
+                    .set(partitionDef.attached, true)
+                    .where(partitionViewPredicate(row.resourceOid, partitionDef)).execute();
+        }
+
+        public void createDefaultTable() {
+
         }
     }
 
@@ -200,6 +236,7 @@ public class ShadowPartitionManager {
     private class ObjectClassPartition {
 
         public ObjectClassPartition(MShadowPartitionDef dbRow) {
+
         }
     }
 }

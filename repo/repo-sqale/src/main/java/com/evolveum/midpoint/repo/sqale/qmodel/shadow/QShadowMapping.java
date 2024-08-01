@@ -75,7 +75,6 @@ public class QShadowMapping
 
     private final ShadowPartitionManager partitionManager;
 
-    private boolean createPartitionOnInsert = true;
     private QShadowMapping(@NotNull SqaleRepoContext repositoryContext) {
         super(QShadow.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 ShadowType.class, QShadow.class, repositoryContext);
@@ -312,20 +311,8 @@ public class QShadowMapping
         mutableSet.add(F_ATTRIBUTES);
     }
 
+
     @Override
-    public void beforeInsert(MShadow row, JdbcSession jdbcSession) {
-        super.beforeInsert(row, jdbcSession);
-        Preconditions.checkArgument(row.objectClassId != null, "objectClass needs to be present in shadow");
-        Preconditions.checkArgument(row.resourceRefTargetOid != null, "resourceRef needs to be present in shadow");
-        if (createPartitionOnInsert) {
-            partitionManager.ensurePartitionExists(row,jdbcSession);
-        }
-    }
-
-    public void setCreatePartitionOnInsert(boolean value) {
-        this.createPartitionOnInsert = value;
-    }
-
     public ShadowPartitionManager getPartitionManager() {
         return partitionManager;
     }
