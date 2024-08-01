@@ -1290,25 +1290,24 @@ public class ShadowUtil {
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        if (!isShadowFresh(shadow, definition, now)) {
-            return false;
-        }
-        var scope = definition.getEffectiveShadowCachingPolicy().getScope();
-        return scope == null || scope.getActivation() != ShadowItemsCachingScopeType.NONE;
+        return isShadowFresh(shadow, definition, now)
+                && definition.isActivationCached();
     }
 
     public static boolean isPasswordValueLoaded(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        return isShadowFresh(shadow, definition, now);
+        return isShadowFresh(shadow, definition, now)
+                && definition.areCredentialsCached();
     }
 
     public static boolean isAuxiliaryObjectClassPropertyLoaded(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        return isShadowFresh(shadow, definition, now);
+        return isShadowFresh(shadow, definition, now)
+                && definition.isAuxiliaryObjectClassPropertyCached();
     }
 
     public static boolean isAttributeLoaded(
@@ -1317,7 +1316,7 @@ public class ShadowUtil {
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) throws SchemaException {
         if (shadow != null && definition.isIdentifier(attrName)) {
-            return true; // identifiers are supposed to be always up-to-date (is this correct?)
+            return true; // TODO revisit this: identifiers are supposed to be always up-to-date (is this correct?)
         }
         if (!isShadowFresh(shadow, definition, now)) {
             return false;

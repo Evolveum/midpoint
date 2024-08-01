@@ -12,6 +12,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +28,9 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 /**
  * Common functionality for {@link ShadowObjectComputer}, {@link ShadowDeltaComputerAbsolute},
@@ -35,33 +41,41 @@ class ShadowComputerUtil {
     private static final Trace LOGGER = TraceManager.getTrace(ShadowComputerUtil.class);
 
     static boolean shouldStoreSimpleAttributeInShadow(
-            @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull ShadowSimpleAttributeDefinition<?> attrDef) {
-        if (objectDefinition.isIdentifier(attrDef.getItemName())) {
-            return true;
-        }
-        return shouldStoreAttributeInShadow(ctx, objectDefinition, attrDef);
+        return attrDef.isEffectivelyCached(objectDefinition);
     }
 
     static boolean shouldStoreReferenceAttributeInShadow(
-            @NotNull ProvisioningContext ctx,
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull ShadowReferenceAttributeDefinition attrDef) {
-        return shouldStoreAttributeInShadow(ctx, objectDefinition, attrDef);
+        return attrDef.isEffectivelyCached(objectDefinition);
     }
 
-    private static boolean shouldStoreAttributeInShadow(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObjectDefinition objectDefinition,
-            @NotNull ShadowAttributeDefinition<?, ?, ?, ?> attrDef) {
-        if (Boolean.FALSE.equals(ctx.getExplicitCachingStatus())) {
-            return false;
+    // MID-2585
+    static boolean shouldStoreActivationItemInShadow(ProvisioningContext ctx, QName elementName) {
+        return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP)
+                || QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP)
+                || QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP)
+                || QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON)
+                || ctx.getObjectDefinitionRequired().isActivationCached();
+    }
+
+    static void cleanupShadowActivation(ProvisioningContext ctx, ActivationType a) {
+        if (a == null) {
+            return;
         }
-        if (ctx.isReadCachingOnlyCapabilityPresent()) {
-            return true;
+
+        if (!ctx.getObjectDefinitionRequired().isActivationCached()) {
+            a.setAdministrativeStatus(null);
+            a.setValidFrom(null);
+            a.setValidTo(null);
+            a.setLockoutStatus(null);
+            a.setLockoutExpirationTimestamp(null);
         }
-        return attrDef.isEffectivelyCached(objectDefinition);
+        a.setEffectiveStatus(null);
+        a.setValidityStatus(null);
+        a.setValidityChangeTimestamp(null);
     }
 
     static @NotNull List<ObjectReferenceType> toRepoFormat(
@@ -95,5 +109,24 @@ class ShadowComputerUtil {
     static PrismReferenceDefinition createRepoRefAttrDef(ShadowReferenceAttributeDefinition attrDef) {
         return PrismContext.get().definitionFactory().newReferenceDefinition(
                 attrDef.getItemName(), ObjectReferenceType.COMPLEX_TYPE, 0, -1);
+    }
+
+    static void cleanupShadowPassword(PasswordType p) {
+        p.setValue(null);
+    }
+
+    static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, ObjectReferenceType ownerRef)
+            throws SchemaException {
+        var valueMetadata = p.asPrismContainerValue().getValueMetadata();
+        if (!valueMetadata.isEmpty()) {
+            return;
+        }
+        // Supply some metadata if they are not present. However the normal thing is that those metadata are provided by model.
+        var newMetadata = new ValueMetadataType()
+                .storage(new StorageMetadataType()
+                        .createTimestamp(now)
+                        .creatorRef(ObjectTypeUtil.createObjectRefCopy(ownerRef)));
+        valueMetadata.addMetadataValue(
+                newMetadata.asPrismContainerValue());
     }
 }

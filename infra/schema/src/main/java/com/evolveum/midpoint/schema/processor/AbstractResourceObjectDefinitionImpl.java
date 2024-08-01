@@ -17,6 +17,12 @@ import com.evolveum.midpoint.prism.delta.ItemMerger;
 
 import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +63,8 @@ public abstract class AbstractResourceObjectDefinitionImpl
 
     /**
      * Effective shadow caching policy determined from resource and object type/class level.
+     * If present, all defaults are resolved.
+     *
      * Nullable only for unattached raw object class definitions.
      */
     @Nullable private final ShadowCachingPolicyType effectiveShadowCachingPolicy;
@@ -138,12 +146,6 @@ public abstract class AbstractResourceObjectDefinitionImpl
      */
     @NotNull final DeeplyFreezableList<ResourceObjectDefinition> auxiliaryObjectClassDefinitions =
             new DeeplyFreezableList<>();
-
-//    /**
-//     * Definition of associations. Immutable.
-//     */
-//    @NotNull final DeeplyFreezableList<XXX> associationDefinitions =
-//            new DeeplyFreezableList<>();
 
     /**
      * The "source" bean for this definition.
@@ -813,7 +815,68 @@ public abstract class AbstractResourceObjectDefinitionImpl
         var merged = BaseMergeOperation.merge(
                 definitionBean.getCaching(),
                 basicResourceInformation.cachingPolicy());
-        return Objects.requireNonNullElseGet(merged, ShadowCachingPolicyType::new);
+        var workingCopy = merged != null ? merged.clone() : new ShadowCachingPolicyType();
+
+        boolean readCachedCapabilityPresent = isReadCachedCapabilityPresent();
+
+        boolean enabledBecauseOfReadCachedCapability = false;
+        if (workingCopy.getCachingStrategy() == null) {
+            if (readCachedCapabilityPresent) {
+                workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
+                enabledBecauseOfReadCachedCapability = true;
+            } else {
+                workingCopy.setCachingStrategy(
+                        InternalsConfig.shadowCachingOnByDefault ? CachingStrategyType.PASSIVE : CachingStrategyType.NONE);
+            }
+        }
+
+        if (workingCopy.getScope() == null) {
+            workingCopy.setScope(new ShadowCachingScopeType());
+        }
+        var scope = workingCopy.getScope();
+        if (scope.getAttributes() == null) {
+            scope.setAttributes(
+                    enabledBecauseOfReadCachedCapability ?
+                            ShadowSimpleAttributesCachingScopeType.ALL : ShadowSimpleAttributesCachingScopeType.DEFINED);
+        }
+        if (scope.getAssociations() == null) {
+            scope.setAssociations(ShadowItemsCachingScopeType.ALL);
+        }
+        if (scope.getActivation() == null) {
+            scope.setActivation(ShadowItemsCachingScopeType.ALL);
+        }
+        if (scope.getCredentials() == null) {
+            scope.setCredentials(ShadowItemsCachingScopeType.NONE); // TODO reconsider
+        }
+        if (scope.getAuxiliaryObjectClasses() == null) {
+            scope.setAuxiliaryObjectClasses(ShadowItemsCachingScopeType.ALL);
+        }
+        if (workingCopy.getDefaultCacheUse() == null) {
+            // When enabling the caching because of read cached, we want to keep the pre-4.9 behavior (of not using
+            // the cache by projector) by default. It should not make a difference, but seemingly it does. TODO research
+            if (workingCopy.getCachingStrategy() == CachingStrategyType.PASSIVE && !enabledBecauseOfReadCachedCapability) {
+                workingCopy.setDefaultCacheUse(CachedShadowsUseType.USE_CACHED_OR_FRESH);
+            } else {
+                workingCopy.setDefaultCacheUse(CachedShadowsUseType.USE_FRESH);
+            }
+        }
+        if (workingCopy.getTimeToLive() == null) {
+            workingCopy.setTimeToLive(
+                    XmlTypeConverter.createDuration(enabledBecauseOfReadCachedCapability ? "P1000Y" : "P1D"));
+        }
+        return workingCopy;
+    }
+
+    private boolean isReadCachedCapabilityPresent() {
+        var typeDef = getTypeDefinition();
+        if (typeDef != null) {
+            var readCapabilityOfObjectType = typeDef.getConfiguredCapability(ReadCapabilityType.class);
+            if (readCapabilityOfObjectType != null) {
+                return CapabilityUtil.isCapabilityEnabled(readCapabilityOfObjectType)
+                        && Boolean.TRUE.equals(readCapabilityOfObjectType.isCachingOnly());
+            }
+        }
+        return basicResourceInformation.readCachedCapabilityPresent();
     }
 
     @Override

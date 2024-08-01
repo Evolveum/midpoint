@@ -7098,17 +7098,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="attributes" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="mapped">
+            <xsd:element name="attributes" type="tns:ShadowSimpleAttributesCachingScopeType" minOccurs="0" default="defined">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Scope of the caching for attributes.
+                        Scope of the caching for simple attributes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="associations" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Scope of the caching for associations.
+                        Scope of the caching for associations i.e. reference attributes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -7116,7 +7116,20 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Scope of the caching for the activation information.
-                        The value of "mapped" is currently not supported here. (It is interpreted as "all".)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="auxiliaryObjectClasses" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope of the caching for the auxiliary object classes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="credentials" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope of the caching for credentials.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -7124,10 +7137,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:simpleType name="ShadowItemsCachingScopeType">
+    <xsd:simpleType name="ShadowSimpleAttributesCachingScopeType">
         <xsd:annotation>
             <xsd:documentation>
-                Scope of the shadow caching for a category of items (e.g., attributes or associations).
+                Scope of the shadow caching for simple attributes.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -7141,6 +7154,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="defined">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Only attributes defined (refined) in schemaHandling section will be cached.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEFINED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="mapped">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -7149,6 +7172,36 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MAPPED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All items of given kind will be cached.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ShadowItemsCachingScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope of the shadow caching for a category of items other than simple attributes (e.g., associations).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No items of given kind will be cached.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

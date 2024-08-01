@@ -134,17 +134,18 @@ class MappedSourceItems<T extends Containerable> {
         }
 
         var attributeName = attributeDefinition.getItemName();
+        var itemPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName);
+
         List<InboundMappingConfigItem> applicableMappings = // [EP:M:IM] DONE beans are really from the resource
                 inboundsSource.selectMappingBeansForEvaluationPhase(
+                        itemPath,
                         createMappingCIs(inboundMappingBeans),
                         attributeInboundDefinition.getCorrelatorDefinition() != null,
                         inboundsContext.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
-            LOGGER.trace("No applicable beans for this phase");
+            LOGGER.trace("{}: No applicable beans for this phase", itemPath);
             return;
         }
-
-        ItemPath itemPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName);
 
         if (inboundsSource.isItemNotProcessable(
                 itemPath,
@@ -188,14 +189,16 @@ class MappedSourceItems<T extends Containerable> {
         }
 
         var refAttrName = refAttrDef.getItemName();
-        ItemPath itemPath = ShadowType.F_ATTRIBUTES.append(refAttrName);
+        var itemPath = ShadowType.F_ATTRIBUTES.append(refAttrName);
+
         List<InboundMappingConfigItem> applicableMappings =
                 inboundsSource.selectMappingBeansForEvaluationPhase(
+                        itemPath,
                         createMappingCIs(inboundMappingBeans),
                         attributeInboundDefinition.getCorrelatorDefinition() != null,
                         inboundsContext.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
-            LOGGER.trace("No applicable beans for this phase");
+            LOGGER.trace("{}: No applicable beans for this phase", itemPath);
             return;
         }
 
@@ -235,14 +238,16 @@ class MappedSourceItems<T extends Containerable> {
         }
 
         var assocName = assocDef.getItemName();
-        ItemPath itemPath = ShadowType.F_ASSOCIATIONS.append(assocName);
+        var itemPath = ShadowType.F_ASSOCIATIONS.append(assocName);
+
         List<InboundMappingConfigItem> applicableMappings =
                 inboundsSource.selectMappingBeansForEvaluationPhase(
+                        itemPath,
                         createMappingCIs(inboundMappingBeans),
                         false, // association cannot be a correlator (currently)
                         inboundsContext.getCorrelationItemPaths());
         if (applicableMappings.isEmpty()) {
-            LOGGER.trace("No applicable beans for this phase");
+            LOGGER.trace("{}: No applicable beans for this phase", itemPath);
             return;
         }
 

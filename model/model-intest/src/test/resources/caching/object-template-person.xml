@@ -1,0 +1,28 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="62d94990-fb9d-4723-a101-cd91384795d5">
+    <name>object-template-person</name>
+    <item>
+        <ref>fullName</ref>
+        <mapping>
+            <strength>strong</strength>
+            <source>
+                <path>givenName</path>
+            </source>
+            <source>
+                <path>familyName</path>
+            </source>
+            <expression>
+                <script>
+                    <code>basic.concatName(givenName, familyName)</code>
+                </script>
+            </expression>
+        </mapping>
+    </item>
+</objectTemplate>

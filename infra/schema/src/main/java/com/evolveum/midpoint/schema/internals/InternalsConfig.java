@@ -143,6 +143,8 @@ public class InternalsConfig {
         testingPaths = null;
     }
 
+    public static boolean shadowCachingOnByDefault;
+
     public static void set(Configuration internalsConfig) {
         if (internalsConfig.containsKey("developmentMode")) {
             boolean developmentMode = internalsConfig.getBoolean("developmentMode");

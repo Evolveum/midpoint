@@ -416,14 +416,4 @@ public class ResourceManager {
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, operationCapabilityClass);
         return connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec);
     }
-
-    /**
-     * Gets a specific capability from resource/connectors/object-class.
-     */
-    public <T extends CapabilityType> T getCapability(
-            @NotNull ResourceType resource,
-            @Nullable ResourceObjectDefinition objectDefinition,
-            @NotNull Class<T> operationCapabilityClass) {
-        return CapabilityUtil.getCapability(resource, objectDefinition, operationCapabilityClass);
-    }
 }

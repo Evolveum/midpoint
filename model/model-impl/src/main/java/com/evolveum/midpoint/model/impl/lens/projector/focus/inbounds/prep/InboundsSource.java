@@ -208,6 +208,7 @@ public abstract class InboundsSource implements DebugDumpable {
      * @param correlationItemPaths What (focus) items are referenced by `items` correlators?
      */
     @NotNull List<InboundMappingConfigItem> selectMappingBeansForEvaluationPhase(
+            @NotNull ItemPath itemPath,
             @NotNull List<InboundMappingConfigItem> mappings,
             boolean resourceItemLocalCorrelatorDefined,
             @NotNull Collection<ItemPath> correlationItemPaths) throws ConfigurationException {
@@ -216,8 +217,8 @@ public abstract class InboundsSource implements DebugDumpable {
                 getDefaultEvaluationPhases(), resourceItemLocalCorrelatorDefined, correlationItemPaths, currentPhase);
         var filteredMappings = applicabilityEvaluator.filterApplicableMappings(mappings);
         if (filteredMappings.size() < mappings.size()) {
-            LOGGER.trace("{} out of {} mapping(s) for this item were filtered out because of evaluation phase '{}'",
-                    mappings.size() - filteredMappings.size(), mappings.size(), currentPhase);
+            LOGGER.trace("{}: {} out of {} mapping(s) were filtered out because of evaluation phase '{}'",
+                    itemPath, mappings.size() - filteredMappings.size(), mappings.size(), currentPhase);
         }
         return filteredMappings;
     }
