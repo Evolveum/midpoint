@@ -38,7 +38,10 @@ public class OperationPanelModel implements Serializable {
     private List<DetectedPattern> candidatesRoles = new ArrayList<>();
     private boolean isCompareMode = false;
     private boolean isCandidateRoleView = false;
+
+
     private boolean isPanelExpanded = false;
+    private boolean showAsExpandCard = false;
 
     public OperationPanelModel() {
     }
@@ -238,5 +241,11 @@ public class OperationPanelModel implements Serializable {
         isPanelExpanded = panelExpanded;
     }
 
+    public boolean isShowAsExpandCard() {
+        return showAsExpandCard;
+    }
 
+    public void setShowAsExpandCard(boolean showAsExpandCard) {
+        this.showAsExpandCard = showAsExpandCard;
+    }
 }

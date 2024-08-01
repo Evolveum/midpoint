@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applySquareTableCell;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.*;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 import org.apache.wicket.Component;
@@ -53,23 +55,23 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
     private final B baseMiningChunk;
 
-    private final LoadableModel<MiningOperationChunk> miningOperationChunk;
 
     private final RoleAnalysisTableTools.StyleResolution styleWidth;
 
 
     public RoleAnalysisIntersectionColumn(
             B baseMiningChunk,
-            IModel<OperationPanelModel> opPanelModel,
-            IModel<PrismObject<RoleAnalysisClusterType>> cluster,
-            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
-            LoadableModel<MiningOperationChunk> miningOperationChunk,
+            IModel<RoleAnalysisObjectDto> model,
+//            IModel<OperationPanelModel> opPanelModel,
+//            IModel<PrismObject<RoleAnalysisClusterType>> cluster,
+//            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
+//            LoadableModel<MiningOperationChunk> miningOperationChunk,
             PageBase pageBase) {
-        super(opPanelModel, cluster, displayValueOptionModel, miningOperationChunk, pageBase);
-
+        super(model, pageBase);
+//
         this.baseMiningChunk = baseMiningChunk;
-
-        this.miningOperationChunk = miningOperationChunk;
+//
+//        this.miningOperationChunk = miningOperationChunk;
         this.styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(baseMiningChunk.getUsers().size());
     }
 
@@ -88,7 +90,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             applySquareTableCell(cellItem, styleWidth, styleHeight);
 
             RoleAnalysisTableCellFillResolver.Status isInclude = resolveCellTypeUserTable(componentId, cellItem, rowChunk, baseMiningChunk,
-                   new PropertyModel<>(getOpPanelModel(), OperationPanelModel.F_PALLET_COLORS));
+                   getColorPaletteModel());
 
             if (isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_INCLUDE)) {
                 setRelationSelected(true);
@@ -109,7 +111,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
             RoleAnalysisChunkAction chunkAction = getChunkAction();
             if (!chunkAction.equals(RoleAnalysisChunkAction.SELECTION)) {
-                patternCellResolver(cellItem, rowChunk, baseMiningChunk, getAdditionalMiningChunk(), getCluster(), chunkAction);
+                patternCellResolver(cellItem, rowChunk, baseMiningChunk);
             } else {
                 chunkActionSelectorBehavior(cellItem, rowChunk, baseMiningChunk);
             }
@@ -144,10 +146,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
     private void patternCellResolver(@NotNull Item<ICellPopulator<A>> cellItem,
             A roleChunk,
-            B userChunk,
-            List<A> roles,
-            PrismObject<RoleAnalysisClusterType> cluster,
-            RoleAnalysisChunkAction chunkAction) {
+            B userChunk) {
         cellItem.add(new AjaxEventBehavior("click") {
             @Override
             protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
@@ -159,13 +158,15 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                     return;
                 }
 
+                RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
+                RoleAnalysisChunkAction chunkAction = roleAnalysis.getChunkAction();
                 if (chunkAction.equals(RoleAnalysisChunkAction.DETAILS_DETECTION)) {
-                    DebugLabel debugLabel = createDebugLabelPanel(roles, userChunk.getMembers(), roleChunk.getProperties(), cluster);
+                    DebugLabel debugLabel = createDebugLabelPanel(userChunk.getMembers(), roleChunk.getProperties(), roleAnalysis);
                     getPageBase().showMainPopup(debugLabel, ajaxRequestTarget);
                 } else {
                     getSelectedPatterns().clear();
 
-                    PatternStatistics<A> statistics = new PatternStatistics<>(roles, userChunk.getMembers(), roleChunk.getProperties(), cluster, getPageBase());
+                    PatternStatistics<A> statistics = new PatternStatistics<>(roleAnalysis, userChunk.getMembers(), roleChunk.getProperties(), getPageBase());
                     DetectedPattern detectedPattern = statistics.getDetectedPattern();
                     if (detectedPattern.getRoles() != null && !detectedPattern.getRoles().isEmpty()
                             && detectedPattern.getUsers() != null && !detectedPattern.getUsers().isEmpty()) {
@@ -182,8 +183,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     }
 
     @NotNull
-    private DebugLabel createDebugLabelPanel(List<A> roles, List<String> members, List<String> mustMeet, PrismObject<RoleAnalysisClusterType> cluster) {
-        DebugLabel debugLabel = new DebugLabel(getPageBase().getMainPopupBodyId(), () -> new PatternStatistics<>(roles, members, mustMeet, cluster, getPageBase())) {
+    private DebugLabel createDebugLabelPanel(List<String> members, List<String> mustMeet, RoleAnalysisObjectDto roleAnalysisObjectDto) {
+        DebugLabel debugLabel = new DebugLabel(getPageBase().getMainPopupBodyId(), () -> new PatternStatistics<>(roleAnalysisObjectDto, members, mustMeet, getPageBase())) {
 
             @Override
             protected void explorePatternPerform(@NotNull DetectedPattern pattern, AjaxRequestTarget target) {
@@ -251,7 +252,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
     protected void refreshTableCells(AjaxRequestTarget target) {
         setRelationSelected(false);
-        MiningOperationChunk chunk = miningOperationChunk.getObject();
+        MiningOperationChunk chunk = getMiningChunk();
         List<MiningUserTypeChunk> users = chunk.getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
         List<MiningRoleTypeChunk> roles = chunk.getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
 
@@ -264,5 +265,11 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     protected <T extends MiningBaseTypeChunk> List<String> getElements(T miningBaseTypeChunk) {
         return miningBaseTypeChunk.getUsers();
     }
+
+    private MiningOperationChunk getMiningChunk() {
+        return getModel().getObject().getMininingOperationChunk();
+    }
+
+    protected abstract IModel<Map<String, String>> getColorPaletteModel(); //new PropertyModel<>(getOpPanelModel(), OperationPanelModel.F_PALLET_COLORS)
 
 }

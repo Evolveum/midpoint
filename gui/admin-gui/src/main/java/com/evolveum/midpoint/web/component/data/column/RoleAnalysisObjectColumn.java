@@ -16,6 +16,8 @@ import java.util.List;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
+
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -49,12 +51,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
 
     public RoleAnalysisObjectColumn(
-            IModel<OperationPanelModel> opPanelModel,
-            IModel<PrismObject<RoleAnalysisClusterType>> clusterModel,
-            LoadableModel<MiningOperationChunk> miningOperationChunk,
-            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
+//            IModel<OperationPanelModel> opPanelModel,
+//            IModel<PrismObject<RoleAnalysisClusterType>> clusterModel,
+            IModel<RoleAnalysisObjectDto> miningOperationChunk,
+//            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
             PageBase pageBase) {
-        super(opPanelModel, clusterModel, displayValueOptionModel, miningOperationChunk, pageBase);
+        super(miningOperationChunk, pageBase);
     }
 
     @Override
@@ -104,7 +106,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
             protected void onSubmit(AjaxRequestTarget target) {
                 RoleAnalysisSortMode roleAnalysisSortMode = getRoleAnalysisSortMode();
 
-                DisplayValueOption options = getDisplayValueOption();
+                DisplayValueOption options = getModel().getObject().getDisplayValueOption();
 
                 options.setSortMode(roleAnalysisSortMode);
 
@@ -190,7 +192,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
             compositedIconBuilder.appendColorHtmlValue(iconColor);
         }
 
-        List<ObjectReferenceType> resolvedPattern = getCluster().asObjectable().getResolvedPattern();
+        List<ObjectReferenceType> resolvedPattern = getModel().getObject().getResolvedPattern();
         for (ObjectReferenceType ref : resolvedPattern) {
             if (roles.contains(ref.getOid())) {
                 compositedIconBuilder.setBasicIcon(defaultBlackIcon + " " + GuiStyleConstants.GREEN_COLOR,

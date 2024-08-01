@@ -13,6 +13,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.model.IModel;
@@ -41,24 +44,30 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
     private static final String DOT_CLASS = RoleAnalysisMatrixColumn.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
-    private final IModel<OperationPanelModel> opPanelModel;
-    private final IModel<PrismObject<RoleAnalysisClusterType>> clusterModel;
-    private final LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
-    private final IModel<MiningOperationChunk> miningOperationChunk;
+//    private final IModel<OperationPanelModel> opPanelModel;
+//    private final IModel<PrismObject<RoleAnalysisClusterType>> clusterModel;
+//    private final LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
+//    private final IModel<MiningOperationChunk> miningOperationChunk;
     private final PageBase pageBase;
 
 
+    private final IModel<RoleAnalysisObjectDto> model;
+
+
     public RoleAnalysisMatrixColumn(
-            IModel<OperationPanelModel> opPanelModel,
-            IModel<PrismObject<RoleAnalysisClusterType>> clusterModel,
-            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
-            IModel<MiningOperationChunk> miningOperationChunk,
+            IModel<RoleAnalysisObjectDto> model,
+
+//    IModel<OperationPanelModel> opPanelModel,
+//            IModel<PrismObject<RoleAnalysisClusterType>> clusterModel,
+//            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
+//            IModel<MiningOperationChunk> miningOperationChunk,
             PageBase pageBase) {
         super(new StringResourceModel(""));
-        this.opPanelModel = opPanelModel;
-        this.clusterModel = clusterModel;
-        this.displayValueOptionModel = displayValueOptionModel;
-        this.miningOperationChunk = miningOperationChunk;
+        this.model = model;
+//        this.opPanelModel = opPanelModel;
+//        this.clusterModel = clusterModel;
+//        this.displayValueOptionModel = displayValueOptionModel;
+//        this.miningOperationChunk = miningOperationChunk;
         this.pageBase = pageBase;
     }
 
@@ -74,41 +83,42 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
         return patternIds;
     }
 
-    public List<DetectedPattern> getSelectedPatterns() {
-        return opPanelModel.getObject().getSelectedPatterns();
-    }
+//    public List<DetectedPattern> getSelectedPatterns() {
+//        return opPanelModel.getObject().getSelectedPatterns();
+//    }
+//
+//    public IModel<OperationPanelModel> getOpPanelModel() {
+//        return opPanelModel;
+//    }
 
-    public IModel<OperationPanelModel> getOpPanelModel() {
-        return opPanelModel;
-    }
-
-    public PrismObject<RoleAnalysisClusterType> getCluster() {
-        return clusterModel.getObject();
-    }
+//    public PrismObject<RoleAnalysisClusterType> getCluster() {
+//        return clusterModel.getObject();
+//    }
 
     public RoleAnalysisSortMode getRoleAnalysisSortMode() {
-        if (displayValueOptionModel.getObject() != null) {
-            return displayValueOptionModel.getObject().getSortMode();
+        RoleAnalysisSortMode sortMode = model.getObject().getSortMode();
+        if (sortMode != null) {
+            return sortMode;
         }
 
         return RoleAnalysisSortMode.NONE;
     }
 
     protected String getCompressStatus() {
-        return displayValueOptionModel.getObject().getChunkMode().getValue();
+        return model.getObject().getChunkModeValue(); //displayValueOptionModel.getObject().getChunkMode().getValue();
     }
 
     protected RoleAnalysisChunkAction getChunkAction() {
-        return displayValueOptionModel.getObject().getChunkAction();
+        return model.getObject().getChunkAction(); //displayValueOptionModel.getObject().getChunkAction();
     }
 
     protected PageBase getPageBase() {
         return pageBase;
     }
 
-    protected DisplayValueOption getDisplayValueOption() {
-        return displayValueOptionModel.getObject();
-    }
+//    protected DisplayValueOption getDisplayValueOption() {
+//        return displayValueOptionModel.getObject();
+//    }
 
     protected final <T extends MiningBaseTypeChunk> AjaxLinkTruncatePanelAction createColumnDisplayPanel(
             String componentId,
@@ -183,24 +193,29 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
     }
 
     protected double getMinFrequency() {
-        return miningOperationChunk.getObject().getMinFrequency();
+        return model.getObject().getMinFrequency();
     }
 
     protected double getMaxFrequency() {
-        return miningOperationChunk.getObject().getMaxFrequency();
+        return model.getObject().getMaxFrequency();
     }
 
     protected List<A> getAdditionalMiningChunk() {
-        return miningOperationChunk.getObject().getAdditionalMiningChunk();
+        return model.getObject().getAdditionalMiningChunk();
     }
 
     protected <T extends MiningBaseTypeChunk> List<String> getElements(T miningChunk) {
         throw new UnsupportedOperationException("Not supported in parent, implement in children");
     }
 
+    IModel<RoleAnalysisObjectDto> getModel() {
+        return model;
+    }
 
     protected abstract void refreshTable(AjaxRequestTarget target);
 //    protected abstract void resetCellsAndActionButton(AjaxRequestTarget target);
     protected abstract void setRelationSelected(boolean isRelationSelected);
+
+    protected abstract List<DetectedPattern> getSelectedPatterns();
 
 }

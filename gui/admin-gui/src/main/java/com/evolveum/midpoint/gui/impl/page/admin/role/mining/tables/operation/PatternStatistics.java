@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.tran
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
@@ -38,19 +40,20 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
     private DetectedPattern detectedPattern;
 
 
-    public PatternStatistics(List<T> additionalObjects, List<String> members, List<String> mustMeet, PrismObject<RoleAnalysisClusterType> cluster, ModelServiceLocator serviceLocator) {
-        loadStatistics(additionalObjects, members, mustMeet, cluster, serviceLocator);
+    public PatternStatistics(RoleAnalysisObjectDto roleAnalysisObjectDto, List<String> members, List<String> mustMeet, ModelServiceLocator serviceLocator) {
+        loadStatistics(roleAnalysisObjectDto, members, mustMeet, serviceLocator);
 
     }
 
     //addtionalObject -> in User mode those are roles, in Role mode those are users
-    private void loadStatistics(List<T> additionalObjects, List<String> members, List<String> mustMeet, PrismObject<RoleAnalysisClusterType> cluster, ModelServiceLocator serviceLocator) {
+    private void loadStatistics(RoleAnalysisObjectDto roleAnalysisObjectDto, List<String> members, List<String> mustMeet, ModelServiceLocator serviceLocator) {
 //        List<String> members = userChunk.getMembers();
         List<SimpleHeatPattern> totalRelationOfPatternsForCell;
 //        List<String> mustMeet = roleChunk.getProperties();
         List<String> topPattern = new ArrayList<>();
 
 
+        List<T> additionalObjects = roleAnalysisObjectDto.getAdditionalMiningChunk();
 
         if (new HashSet<>(mustMeet).containsAll(members)) {
             DetectionOption detectionOption = new DetectionOption(
@@ -119,20 +122,20 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
         Task task = serviceLocator.createSimpleTask("InitPattern");
         RoleAnalysisService roleAnalysisService = serviceLocator.getRoleAnalysisService();
 
-        ObjectReferenceType roleAnalysisSessionRef = cluster.asObjectable().getRoleAnalysisSessionRef();
-        if (roleAnalysisSessionRef != null) {
-            PrismObject<RoleAnalysisSessionType> session = roleAnalysisService
-                    .getObject(RoleAnalysisSessionType.class, roleAnalysisSessionRef.getOid(), task, task.getResult());
-            if (session == null) {
-                return;
-            }
-            List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService
-                    .resolveAnalysisAttributes(session.asObjectable(), UserType.COMPLEX_TYPE);
-            List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
-                    .resolveAnalysisAttributes(session.asObjectable(), RoleType.COMPLEX_TYPE);
+//        ObjectReferenceType roleAnalysisSessionRef = cluster.asObjectable().getRoleAnalysisSessionRef();
+//        if (roleAnalysisSessionRef != null) {
+//            PrismObject<RoleAnalysisSessionType> session = roleAnalysisService
+//                    .getObject(RoleAnalysisSessionType.class, roleAnalysisSessionRef.getOid(), task, task.getResult());
+//            if (session == null) {
+//                return;
+//            }
+//            List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService
+//                    .resolveAnalysisAttributes(session.asObjectable(), UserType.COMPLEX_TYPE);
+//            List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
+//                    .resolveAnalysisAttributes(session.asObjectable(), RoleType.COMPLEX_TYPE);
 
             roleAnalysisService.resolveDetectedPatternsAttributes(Collections.singletonList(pattern), userExistCache,
-                    roleExistCache, task, task.getResult(), roleAnalysisAttributeDef, userAnalysisAttributeDef);
+                    roleExistCache, task, task.getResult(), roleAnalysisObjectDto.getRoleAnalysisAttributes(), roleAnalysisObjectDto.getUserAnalysisAttributes());
 
             double totalDensity = 0.0;
             int totalCount = 0;
@@ -154,7 +157,7 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
 
             double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
             pattern.setItemConfidence(itemsConfidence);
-        }
+//        }
 
         detectedPattern = transformPatternWithAttributes(pattern);
     }
