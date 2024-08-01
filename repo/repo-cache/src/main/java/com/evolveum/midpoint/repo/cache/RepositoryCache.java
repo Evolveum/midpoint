@@ -456,5 +456,15 @@ public class RepositoryCache implements RepositoryService, Cache {
         modificationOpHandler.setModifyRandomDelayRange(modifyRandomDelayRange);
     }
 
+    @Override
+    public void createPartitionsForExistingData(OperationResult parentResult) throws SchemaException {
+        repositoryService.createPartitionsForExistingData(parentResult);
+    }
+
+    @Override
+    public void applyRepositoryConfiguration(RepositoryConfigurationType repositoryConfig) {
+        repositoryService.applyRepositoryConfiguration(repositoryConfig);
+    }
+
     //endregion
 }

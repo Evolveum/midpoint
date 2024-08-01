@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.api;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
 
+import org.jetbrains.annotations.VisibleForTesting;
+
 /**
  * Contains information about object deletion result; primarily needed by repository caching algorithms.
  * Because it is bound to the current (SQL) implementation of the repository, avoid using this information
@@ -29,6 +31,7 @@ public class DeleteObjectResult implements RepositoryOperationResult {
      * necessary. Note that it does not contain information that is stored elsewhere (user photo, lookup table rows,
      * certification cases, task result, etc).
      */
+    @VisibleForTesting
     public String getObjectTextRepresentation() {
         return objectTextRepresentation;
     }

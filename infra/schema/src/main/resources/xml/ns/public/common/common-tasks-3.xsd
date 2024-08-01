@@ -2052,6 +2052,14 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="repartitioning" type="tns:RepartitioningWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Re-parititions specified repository objects. Creates new table partiations
+                            for objects if they according to policy should be in separate partition.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
                 <xsd:element name="shadowCleanup" type="tns:ShadowCleanupWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -7424,6 +7432,25 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="reindexingWorkDefinition" type="tns:ReindexingWorkDefinitionType"/>
+
+    <xsd:complexType name="RepartitioningWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Re-indexes specified repository objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repartitioningWorkDefinition" type="tns:RepartitioningWorkDefinitionType"/>
+
+
 
     <xsd:complexType name="ObjectSetBasedWorkDefinitionType">
         <xsd:annotation>

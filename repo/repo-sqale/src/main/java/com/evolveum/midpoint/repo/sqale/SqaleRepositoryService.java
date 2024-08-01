@@ -112,6 +112,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private final SqlQueryExecutor sqlQueryExecutor;
 
+    private final SqaleQueryContext.SqaleSystemConfigurationListener configurationChangeListener;
+
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
@@ -124,6 +126,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         super(repositoryContext, sqlPerformanceMonitorsCollection);
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
+        this.configurationChangeListener = new SqaleQueryContext.SqaleSystemConfigurationListener(repositoryContext);
     }
 
     // region getObject/getVersion
@@ -895,17 +898,22 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws ObjectNotFoundException {
 
         QueryTableMapping<T, Q, R> mapping = sqlRepoContext.getMappingBySchemaType(type);
-        Q entityPath = mapping.defaultAlias();
-        byte[] fullObject = jdbcSession.newQuery()
-                .select(entityPath.fullObject)
+        QObject<?> entityPath = mapping.defaultAlias();
+        Tuple result = jdbcSession.newQuery()
+                .select(entityPath.objectType, entityPath.fullObject)
                 .forUpdate()
                 .from(entityPath)
                 .where(entityPath.oid.eq(oid))
                 .fetchOne();
-        if (fullObject == null) {
+        if (result == null) {
             throw new ObjectNotFoundException(type, oid.toString(), false);
         }
+        var fullObject = result.get(entityPath.fullObject);
 
+        if (ObjectType.class.equals(type)) {
+            mapping = (QueryTableMapping) sqlRepoContext.getMappingBySchemaType(result.get(entityPath.objectType).getSchemaType());
+            entityPath = mapping.defaultAlias();
+        }
         // object delete cascades to all owned related rows
         jdbcSession.newDelete(entityPath)
                 .where(entityPath.oid.eq(oid))
@@ -2586,6 +2594,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
      */
     private static final String PSQL_CONCURRENT_UPDATE_MESSAGE = "ERROR: could not serialize access due to concurrent update";
     private static final String PSQL_FOREIGN_KEY_VIOLATION = "23503";
+    private static final String PSQL_CHECK_VIOLATION = "23514";
+
 
     private boolean isRetriableException(Exception e) {
         Throwable toCheck = e;
@@ -2597,6 +2607,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 }
                 if (PSQL_FOREIGN_KEY_VIOLATION.equals(pgEx.getSQLState()) && pgEx.getMessage().contains("m_uri")) {
                     // This could be immediate retry - because of URI cache.
+                    return true;
+                }
+                if (PSQL_CHECK_VIOLATION.equals(pgEx.getSQLState()) && pgEx.getMessage().contains("partition constraint")) {
+                    // Retry on partition constraints failed - partition may be added during insert from another client
+                    // and now shadow belong to other partition.
                     return true;
                 }
             }
@@ -2668,4 +2683,36 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return attempt + 1;
     }
 
+    @Override
+    public void createPartitionsForExistingData(OperationResult parentResult) throws SchemaException {
+        // Currently we support only partitioning for shadow type
+        // If partitioning is added for other types we should also call their partition
+        // manager
+
+
+        var shadowMapping = (SqaleTableMapping) sqlRepoContext.getMappingBySchemaType(ShadowType.class);
+        var partitionManager = shadowMapping.getPartitionManager();
+        if (partitionManager == null) {
+            return;
+        }
+
+        var result = parentResult.createSubresult(OP_CREATE_PARTITIONS_FOR_EXISTING_DATA);
+        try {
+            long opHandle = registerOperationStart(OP_CREATE_PARTITIONS_FOR_EXISTING_DATA, ShadowType.class);
+            executeRetriable("createPartitions", null, opHandle, () -> {
+                partitionManager.createMissingPartitions(result);
+                return null;
+            });
+            result.computeStatus();
+        } catch (Exception e) {
+            result.recordFatalError(e);
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public void applyRepositoryConfiguration(@Nullable RepositoryConfigurationType repositoryConfig) {
+        configurationChangeListener.update(repositoryConfig);
+    }
 }

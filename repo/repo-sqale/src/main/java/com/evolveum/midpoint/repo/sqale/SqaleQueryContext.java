@@ -10,6 +10,9 @@ import java.util.Collection;
 import java.util.UUID;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
@@ -38,6 +41,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.Nullable;
 
 public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         extends SqlQueryContext<S, Q, R> {
@@ -250,5 +255,44 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         }
 
         return super.processFuzzyFilter(filter, path, values);
+    }
+
+    public static class SqaleSystemConfigurationListener {
+
+        private final SqaleRepoContext repositoryContext;
+
+        public SqaleSystemConfigurationListener(SqaleRepoContext repositoryContext) {
+            this.repositoryContext = repositoryContext;
+        }
+
+        public void update(@Nullable RepositoryConfigurationType repository) {
+            if (repository != null) {
+                updateImpl(repository);
+            } else {
+                applyDefaults();
+            }
+        }
+
+
+        /** Applies configuration from RepositoryConfigurationType **/
+        private void updateImpl(RepositoryConfigurationType repository) {
+            enablePartitioningOnAdd(ShadowType.class, valueOrDefault(repository.getAutoCreatePartitionsOnAdd(), false));
+        }
+
+        private <T> T valueOrDefault(T value, T defaultValue) {
+            return value != null ? value : defaultValue;
+        }
+
+        private void applyDefaults() {
+            enablePartitioningOnAdd(ShadowType.class, false);
+        }
+
+        private void enablePartitioningOnAdd(Class<?> type, boolean value) {
+            var mapping = (SqaleTableMapping) repositoryContext.getMappingBySchemaType(type);
+            if (mapping.getPartitionManager() != null) {
+                mapping.getPartitionManager().setPartitionCreationOnAdd(value);
+            }
+        }
+
     }
 }

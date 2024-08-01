@@ -90,7 +90,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     @BeforeClass
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
-
+        var resouceOid = UUID.randomUUID().toString();
         user1Oid = repositoryService.addObject(
                 new UserType().name("user-1").asPrismObject(),
                 null, result);
@@ -98,7 +98,10 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 new TaskType().name("task-1").asPrismObject(),
                 null, result);
         shadow1Oid = repositoryService.addObject(
-                new ShadowType().name("shadow-1").asPrismObject(),
+                new ShadowType().name("shadow-1")
+                        .resourceRef(resouceOid, ResourceType.COMPLEX_TYPE)
+                        .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                        .asPrismObject(),
                 null, result);
         service1Oid = repositoryService.addObject(
                 new ServiceType().name("service-1").asPrismObject(),
