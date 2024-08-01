@@ -2581,6 +2581,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
      */
     private static final String PSQL_CONCURRENT_UPDATE_MESSAGE = "ERROR: could not serialize access due to concurrent update";
     private static final String PSQL_FOREIGN_KEY_VIOLATION = "23503";
+    private static final String PSQL_CHECK_VIOLATION = "23514";
+
 
     private boolean isRetriableException(Exception e) {
         Throwable toCheck = e;
@@ -2592,6 +2594,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 }
                 if (PSQL_FOREIGN_KEY_VIOLATION.equals(pgEx.getSQLState()) && pgEx.getMessage().contains("m_uri")) {
                     // This could be immediate retry - because of URI cache.
+                    return true;
+                }
+                if (PSQL_CHECK_VIOLATION.equals(pgEx.getSQLState()) && pgEx.getMessage().contains("partition constraint")) {
+                    // Retry on partition constraints failed - partition may be added during insert from another client
+                    // and now shadow belong to other partition.
                     return true;
                 }
             }
