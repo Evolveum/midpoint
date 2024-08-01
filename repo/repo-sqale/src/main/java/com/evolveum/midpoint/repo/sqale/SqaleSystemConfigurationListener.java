@@ -30,7 +30,7 @@ public class SqaleSystemConfigurationListener {
 
     /** Applies configuration from RepositoryConfigurationType **/
     private void updateImpl(RepositoryConfigurationType repository) {
-        enablePartitioningOnAdd(ShadowType.class, valueOrDefault(repository.getAutoCreatePartitionsOnAdd(), false));
+        enablePartitioningOnAdd(ShadowType.class, valueOrDefault(repository.getAutoCreatePartitionsOnAdd(), true));
     }
 
     private <T> T valueOrDefault(T value, T defaultValue) {

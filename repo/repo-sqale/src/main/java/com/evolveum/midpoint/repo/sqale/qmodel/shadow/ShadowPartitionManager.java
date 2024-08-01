@@ -44,7 +44,7 @@ public class ShadowPartitionManager implements PartitionManager<MShadow> {
     }
 
     public boolean isPartitionCreationOnAdd() {
-        return partitionCreationOnAdd;
+        return true;
     }
 
     @Override
