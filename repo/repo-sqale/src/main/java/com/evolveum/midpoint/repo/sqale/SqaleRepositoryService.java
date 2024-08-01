@@ -2593,8 +2593,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
      * https://www.postgresql.org/docs/16/transaction-iso.html
      */
     private static final String PSQL_CONCURRENT_UPDATE_MESSAGE = "ERROR: could not serialize access due to concurrent update";
+
     private static final String PSQL_FOREIGN_KEY_VIOLATION = "23503";
     private static final String PSQL_CHECK_VIOLATION = "23514";
+
+    private static final String PSQL_DEADLOCK_DETECTED = "40P01";
 
 
     private boolean isRetriableException(Exception e) {
@@ -2612,6 +2615,11 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 if (PSQL_CHECK_VIOLATION.equals(pgEx.getSQLState()) && pgEx.getMessage().contains("partition constraint")) {
                     // Retry on partition constraints failed - partition may be added during insert from another client
                     // and now shadow belong to other partition.
+                    return true;
+                }
+                if (PSQL_DEADLOCK_DETECTED.equals(pgEx.getSQLState())) {
+                    // Sometimes there can be deadlock if one thread is updating shadow in default partition
+                    // and other thread (client) triggered partition move.
                     return true;
                 }
             }
