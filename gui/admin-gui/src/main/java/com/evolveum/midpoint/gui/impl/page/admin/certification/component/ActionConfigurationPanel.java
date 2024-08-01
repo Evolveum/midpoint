@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
@@ -70,6 +71,7 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
     private static final String ID_BUTTONS = "buttons";
     protected static final String ID_CONFIRM_BUTTON = "confirmButton";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
+    private static final String ID_FEEDBACK = "feedback";
 
     LoadableModel<PrismContainerValueWrapper<Containerable>> model;
 
@@ -93,6 +95,10 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
         add(label);
 
         add(createGeneratedPanel());
+
+        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        add(feedback);
     }
 
     protected IModel<String> getMessageModel() {
@@ -126,7 +132,7 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
 
             @Override
             protected void onError(AjaxRequestTarget target) {
-                target.add(ActionConfigurationPanel.this);
+                target.add(getFeedbackPanel());
             }
 
         };
@@ -164,6 +170,10 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
 
     protected boolean isValidated(AjaxRequestTarget target) {
         return true;
+    }
+
+    public Component getFeedbackPanel() {
+        return get(ID_FEEDBACK);
     }
 
     protected Collection<ItemDelta<?, ?>> computedDeltas() {

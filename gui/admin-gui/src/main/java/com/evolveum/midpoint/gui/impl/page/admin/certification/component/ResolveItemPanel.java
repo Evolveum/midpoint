@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
@@ -43,7 +42,6 @@ public class ResolveItemPanel extends ActionConfigurationPanel implements Popupa
 
     private static final String ID_RESPONSES_PANEL = "responsesPanel";
     private static final String ID_RESPONSE_PANEL = "responsePanel";
-    private static final String ID_FEEDBACK = "feedback";
 
     AccessCertificationResponseType selectedResponse = null;
 
@@ -121,9 +119,7 @@ public class ResolveItemPanel extends ActionConfigurationPanel implements Popupa
 //        };
 //        add(cancelButton);
 //
-        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-        feedback.setOutputMarkupId(true);
-        add(feedback);
+
     }
 
     @Override
@@ -182,7 +178,7 @@ public class ResolveItemPanel extends ActionConfigurationPanel implements Popupa
 
     @Override
     public StringResourceModel getTitle() {
-        return createStringResource("CommentPanel.title");
+        return createStringResource("ResolveItemPanel.title");
     }
 
     @Override
