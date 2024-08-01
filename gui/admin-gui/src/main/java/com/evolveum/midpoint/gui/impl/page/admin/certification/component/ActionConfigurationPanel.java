@@ -154,11 +154,22 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
         return () -> "Cancel";
     }
 
-    protected void confirmPerformed(AjaxRequestTarget target) {
+    private void confirmPerformed(AjaxRequestTarget target) {
+        if (!isValidated(target)) {
+            return;
+        }
+        Collection<ItemDelta<?, ?>> computedDeltas = computedDeltas();
+        confirmPerformedWithDeltas(target, computedDeltas);
+    }
+
+    protected boolean isValidated(AjaxRequestTarget target) {
+        return true;
+    }
+
+    protected Collection<ItemDelta<?, ?>> computedDeltas() {
         try {
             PrismContainerValueWrapper<Containerable> iw = model.getObject();
-            Collection<ItemDelta<?, ?>> computedDeltas = iw.getDeltas();
-            confirmPerformedWithDeltas(target, computedDeltas);
+            return iw.getDeltas();
         } catch (SchemaException e) {
             throw new RuntimeException(e);
         }

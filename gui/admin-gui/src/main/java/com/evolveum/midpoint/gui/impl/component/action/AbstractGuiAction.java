@@ -62,7 +62,7 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
 
     }
 
-    private void showActionConfigurationPanel(ContainerPanelConfigurationType panelConfig, List<C> objectsToProcess,
+    protected void showActionConfigurationPanel(ContainerPanelConfigurationType panelConfig, List<C> objectsToProcess,
             PageBase pageBase, AjaxRequestTarget target) {
         ActionConfigurationPanel panel = new ActionConfigurationPanel(pageBase.getMainPopupBodyId(), Model.of(panelConfig)) {
 
@@ -70,20 +70,25 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
 
             @Override
             protected void confirmPerformedWithDeltas(AjaxRequestTarget target, Collection<ItemDelta<?, ?>> deltas) {
-                for (C objectToProcess : objectsToProcess) {
-                    try {
-                        ItemDeltaCollectionsUtil.applyTo(deltas, objectToProcess.asPrismContainerValue());
-                    } catch (SchemaException e) {
-                        throw new RuntimeException(e);
-                        //TODO error handling
-                    }
-                }
-
-                executeAction(objectsToProcess, pageBase, target);
-                pageBase.hideMainPopup(target);
+                confirmActionPerformed(target, objectsToProcess, deltas, pageBase);
             }
         };
         pageBase.showMainPopup(panel, target);
+    }
+
+    protected void confirmActionPerformed(AjaxRequestTarget target, List<C> objectsToProcess,
+            Collection<ItemDelta<?, ?>> deltas, PageBase pageBase) {
+        for (C objectToProcess : objectsToProcess) {
+            try {
+                ItemDeltaCollectionsUtil.applyTo(deltas, objectToProcess.asPrismContainerValue());
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+                //TODO error handling
+            }
+        }
+
+        executeAction(objectsToProcess, pageBase, target);
+        pageBase.hideMainPopup(target);
     }
 
     protected abstract void executeAction(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target);

@@ -28,7 +28,7 @@ public class CertItemReduceAction extends AbstractCertItemDecisionAction {
     }
 
     @Override
-    protected AccessCertificationResponseType getResponse() {
+    protected AccessCertificationResponseType getResponse(AccessCertificationWorkItemType certItem) {
         return AccessCertificationResponseType.REDUCE;
     }
 

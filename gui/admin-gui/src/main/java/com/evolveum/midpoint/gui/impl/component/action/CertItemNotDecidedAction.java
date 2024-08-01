@@ -28,7 +28,7 @@ public class CertItemNotDecidedAction extends AbstractCertItemDecisionAction {
     }
 
     @Override
-    protected AccessCertificationResponseType getResponse() {
+    protected AccessCertificationResponseType getResponse(AccessCertificationWorkItemType certItem) {
         return AccessCertificationResponseType.NOT_DECIDED;
     }
 

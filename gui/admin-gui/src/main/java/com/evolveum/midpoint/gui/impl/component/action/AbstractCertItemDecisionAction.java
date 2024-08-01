@@ -37,16 +37,16 @@ public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<A
 
     @Override
     protected void executeAction(List<AccessCertificationWorkItemType> workItems, PageBase pageBase, AjaxRequestTarget target) {
-        AccessCertificationResponseType response = getResponse();
-        OperationResult result = new OperationResult(OPERATION_RECORD_ACTION + "." + response.value());
-        Task task = pageBase.createSimpleTask(OPERATION_RECORD_ACTION + "." + response.value());
+        OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
+        Task task = pageBase.createSimpleTask(OPERATION_RECORD_ACTION);
 
         //TODO comment
         workItems.forEach(workItem -> {
+            AccessCertificationResponseType response = getResponse(workItem);
             OperationResult oneActionResult = result
                     .subresult(result.getOperation() + ".workItemId:" + workItem.getId())
                             .build();
-            CertMiscUtil.recordCertItemResponse(workItem, getResponse(), getComment(workItem), oneActionResult, task, pageBase);
+            CertMiscUtil.recordCertItemResponse(workItem, response, getComment(workItem), oneActionResult, task, pageBase);
         });
         result.computeStatus();
         target.add(pageBase);
@@ -62,14 +62,14 @@ public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<A
         return output.getComment();
     }
 
-    protected abstract AccessCertificationResponseType getResponse();
+    protected abstract AccessCertificationResponseType getResponse(AccessCertificationWorkItemType certItem);
 
     @Override
-    public boolean isVisibleForRow(AccessCertificationWorkItemType certItem) {
+    protected boolean isVisibleForRow(AccessCertificationWorkItemType certItem) {
         if (certItem == null) {
             return true;
         }
-        AccessCertificationResponseType response = getResponse();
+        AccessCertificationResponseType response = getResponse(certItem);
         AccessCertificationResponseType certItemResponse = getCertItemResponse(certItem);
 
         return certItemResponse == null || certItemResponse != response;
