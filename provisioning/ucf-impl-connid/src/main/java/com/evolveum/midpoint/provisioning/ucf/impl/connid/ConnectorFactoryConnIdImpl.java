@@ -431,7 +431,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             }
 
             var xsdTypeName = ConnIdTypeMapper.connIdTypeToXsdTypeName(
-                    icfProperty.getName(), componentType, null, icfProperty.isConfidential());
+                    componentType, null, icfProperty.isConfidential(), null);
             LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {} (multi: {})", this,
                     icfPropertyName, icfProperty.getType(), xsdTypeName, multivalue);
             PrismPropertyDefinitionMutator<?> propertyDefinition =

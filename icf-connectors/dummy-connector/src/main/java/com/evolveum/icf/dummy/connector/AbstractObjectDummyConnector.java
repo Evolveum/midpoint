@@ -455,7 +455,10 @@ public abstract class AbstractObjectDummyConnector
                 continue;
             }
             var attrBuilder = new AttributeInfoBuilder(participant.getLinkNameRequired(), ConnectorObjectReference.class)
-                    .setSubtype(linkDefinition.getLinkClassDefinition().getName())
+                    // We provide null subtype for one-sided links to check that midPoint can cope with them.
+                    .setSubtype(
+                            linkDefinition.getOtherParticipant().isVisible() ?
+                                    linkDefinition.getLinkClassDefinition().getName() : null)
                     .setMultiValued(participant.getMaxOccurs() < 0 || participant.getMaxOccurs() > 1)
                     .setRequired(participant.getMinOccurs() > 0)
                     .setReturnedByDefault(participant.isReturnedByDefault())
