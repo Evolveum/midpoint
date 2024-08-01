@@ -257,42 +257,4 @@ public class SqaleQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
         return super.processFuzzyFilter(filter, path, values);
     }
 
-    public static class SqaleSystemConfigurationListener {
-
-        private final SqaleRepoContext repositoryContext;
-
-        public SqaleSystemConfigurationListener(SqaleRepoContext repositoryContext) {
-            this.repositoryContext = repositoryContext;
-        }
-
-        public void update(@Nullable RepositoryConfigurationType repository) {
-            if (repository != null) {
-                updateImpl(repository);
-            } else {
-                applyDefaults();
-            }
-        }
-
-
-        /** Applies configuration from RepositoryConfigurationType **/
-        private void updateImpl(RepositoryConfigurationType repository) {
-            enablePartitioningOnAdd(ShadowType.class, valueOrDefault(repository.getAutoCreatePartitionsOnAdd(), false));
-        }
-
-        private <T> T valueOrDefault(T value, T defaultValue) {
-            return value != null ? value : defaultValue;
-        }
-
-        private void applyDefaults() {
-            enablePartitioningOnAdd(ShadowType.class, false);
-        }
-
-        private void enablePartitioningOnAdd(Class<?> type, boolean value) {
-            var mapping = (SqaleTableMapping) repositoryContext.getMappingBySchemaType(type);
-            if (mapping.getPartitionManager() != null) {
-                mapping.getPartitionManager().setPartitionCreationOnAdd(value);
-            }
-        }
-
-    }
 }

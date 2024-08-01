@@ -112,7 +112,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private final SqlQueryExecutor sqlQueryExecutor;
 
-    private final SqaleQueryContext.SqaleSystemConfigurationListener configurationChangeListener;
+    private final SqaleSystemConfigurationListener configurationChangeListener;
 
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
@@ -126,7 +126,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         super(repositoryContext, sqlPerformanceMonitorsCollection);
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
-        this.configurationChangeListener = new SqaleQueryContext.SqaleSystemConfigurationListener(repositoryContext);
+        this.configurationChangeListener = new SqaleSystemConfigurationListener(repositoryContext);
     }
 
     // region getObject/getVersion
