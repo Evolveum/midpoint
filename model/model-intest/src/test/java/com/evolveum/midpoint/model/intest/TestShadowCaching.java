@@ -51,11 +51,15 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
     private static final TestObject<ArchetypeType> ARCHETYPE_PERSON = TestObject.file(
             TEST_DIR, "archetype-person.xml", "c4b26c78-b7ac-42b8-9a7c-9bdb0c1e2bbd");
+    private static final TestObject<ArchetypeType> OBJECT_TEMPLATE_PERSON = TestObject.file(
+            TEST_DIR, "object-template-person.xml", "62d94990-fb9d-4723-a101-cd91384795d5");
 
     private static final TestTask TASK_RECOMPUTE_PERSONS = TestTask.file(
             TEST_DIR, "task-recompute-persons.xml", "d791f072-1be3-4da0-a0d5-9da2ae5589c6");
-    private static final TestTask TASK_RECONCILE_PERSONS = TestTask.file(
-            TEST_DIR, "task-reconcile-persons.xml", "007c5ef2-3d1f-4688-a799-b735bbb9d934");
+    private static final TestTask TASK_RECONCILE_HR_PERSONS = TestTask.file(
+            TEST_DIR, "task-reconcile-hr-persons.xml", "007c5ef2-3d1f-4688-a799-b735bbb9d934");
+    private static final TestTask TASK_RECONCILE_TARGET_ACCOUNTS = TestTask.file(
+            TEST_DIR, "task-reconcile-target-accounts.xml", "3b5cf882-65ae-4482-9b29-354d35599614");
 
     private static final String INTENT_PERSON = "person";
 
@@ -100,7 +104,8 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         initTestObjects(initTask, initResult,
-                ARCHETYPE_PERSON, TASK_RECOMPUTE_PERSONS, TASK_RECONCILE_PERSONS);
+                OBJECT_TEMPLATE_PERSON, ARCHETYPE_PERSON,
+                TASK_RECOMPUTE_PERSONS, TASK_RECONCILE_HR_PERSONS, TASK_RECONCILE_TARGET_ACCOUNTS);
 
         RESOURCE_DUMMY_HR.initAndTest(this, initTask, initResult);
         createCommonHrObjects();
@@ -224,15 +229,8 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                 .isEqualTo(INITIAL_PERSONS_COUNT);
 
         and("there were no shadow fetch operations");
-        var taskProvisioningStats = assertTask(taskOid, "import task after")
-                .display()
-                .getObjectable()
-                .getOperationStats()
-                .getEnvironmentalPerformanceInformation()
-                .getProvisioningStatistics();
-
-        displayValue("Provisioning statistics", ProvisioningStatistics.format(taskProvisioningStats));
-        assertThat(taskProvisioningStats.getEntry()).as("provisioning statistics entry").isEmpty();
+        var provisioningStatistics = dumpProvisioningStatistics(taskOid);
+        assertThat(provisioningStatistics.getEntry()).as("provisioning statistics entry").isEmpty();
 
         assertNoShadowFetchOperations();
     }
@@ -360,7 +358,7 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
 
         when("users are reconciled");
 
-        TASK_RECONCILE_PERSONS.rerun(result);
+        TASK_RECONCILE_HR_PERSONS.rerun(result);
 
         then("john's data are changed in midPoint");
 
@@ -376,12 +374,143 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         and("there were two shadow fetch operations (checking for non-existent accounts)");
         assertShadowFetchOperations(2);
 
-        var provisioningStatistics = TASK_RECONCILE_PERSONS.assertAfter()
-                .getObjectable()
-                .getOperationStats()
-                .getEnvironmentalPerformanceInformation()
-                .getProvisioningStatistics();
-        displayValue("Provisioning statistics", ProvisioningStatistics.format(provisioningStatistics));
+        dumpProvisioningStatistics(TASK_RECONCILE_HR_PERSONS.oid);
+    }
+
+    @Test
+    public void test200AddTargetResourceAndCreateAccounts() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        RESOURCE_DUMMY_TARGET.initAndTest(this, task, result);
+
+        TASK_RECOMPUTE_PERSONS.rerun(result);
+
+        // We don't care much here, just dumping this for information
+        dumpProvisioningStatistics(TASK_RECOMPUTE_PERSONS.oid);
+
+        displayDumpable("target", RESOURCE_DUMMY_TARGET.getDummyResource());
+
+        RESOURCE_DUMMY_TARGET.controller.assertAccountByUsername(PERSON_JOHN_NAME)
+                .display()
+                .assertFullName("John Doe-150");
+    }
+
+    /** We modify john on HR and on target, and now run the recomputation task. */
+    @Test
+    public void test210RecomputingWithChangedData() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("john's data are changed and the cache is refreshed");
+
+        hrScenario.person.getByNameRequired(PERSON_JOHN_NAME)
+                .replaceAttributeValues(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Doe-210");
+        targetScenario.account.getByNameRequired(PERSON_JOHN_NAME)
+                .replaceAttributeValues(DummyDefaultScenario.Account.AttributeNames.DESCRIPTION.local(), "Desc-210");
+
+        refreshHrPersons(task, result);
+        refreshTargetAccounts(task, result);
+
+        rememberShadowOperations();
+
+        when("users are recomputed");
+
+        TASK_RECOMPUTE_PERSONS.rerun(result);
+
+        then("john's data are changed in midPoint");
+        assertUserAfterByUsername(PERSON_JOHN_NAME)
+                .assertFamilyName("Doe-210") // from HR
+                .assertDescription("Desc-210"); // from target
+
+        and("john's data are changed on target");
+        RESOURCE_DUMMY_TARGET.controller.assertAccountByUsername(PERSON_JOHN_NAME)
+                .assertFullName("John Doe-210");
+
+        and("there were no shadow fetch operations");
+        assertNoShadowFetchOperations();
+    }
+
+    /** We modify john on HR and on target, and now run the HR reconciliation task. */
+    @Test
+    public void test220ReconcilingWithHrWithChangedData() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("john's data are changed and the cache is refreshed");
+
+        hrScenario.person.getByNameRequired(PERSON_JOHN_NAME)
+                .replaceAttributeValues(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Doe-220");
+        targetScenario.account.getByNameRequired(PERSON_JOHN_NAME)
+                .replaceAttributeValues(DummyDefaultScenario.Account.AttributeNames.DESCRIPTION.local(), "Desc-220");
+
+        refreshHrPersons(task, result);
+        refreshTargetAccounts(task, result);
+
+        rememberShadowOperations();
+
+        when("HR is reconciled");
+
+        TASK_RECONCILE_HR_PERSONS.rerun(result);
+
+        then("john's data are changed in midPoint");
+        assertUserAfterByUsername(PERSON_JOHN_NAME)
+                .assertFamilyName("Doe-220") // from HR
+                .assertDescription("Desc-220"); // from target
+
+        and("john's data are changed on target");
+        RESOURCE_DUMMY_TARGET.controller.assertAccountByUsername(PERSON_JOHN_NAME)
+                .assertFullName("John Doe-220");
+
+        and("there were no shadow fetch operations");
+        assertNoShadowFetchOperations();
+    }
+
+    /** We modify john on HR and on target, and now run the target reconciliation task. */
+    @Test
+    public void test230ReconcilingWithTargetWithChangedData() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        given("john's data are changed and the cache is refreshed");
+
+        hrScenario.person.getByNameRequired(PERSON_JOHN_NAME)
+                .replaceAttributeValues(DummyHrScenarioExtended.Person.AttributeNames.LAST_NAME.local(), "Doe-230");
+        targetScenario.account.getByNameRequired(PERSON_JOHN_NAME)
+                .replaceAttributeValues(DummyDefaultScenario.Account.AttributeNames.DESCRIPTION.local(), "Desc-230");
+
+//        executeChanges(
+//                deltaFor(ResourceType.class)
+//                        .item(ResourceType.F_CACHING, ShadowCachingPolicyType.F_DEFAULT_CACHE_USE)
+//                        .replace(CachedShadowsUseType.USE_FRESH)
+//                        .asObjectDelta(RESOURCE_DUMMY_HR.oid),
+//                null, task, result);
+
+        refreshHrPersons(task, result);
+        refreshTargetAccounts(task, result);
+
+        rememberShadowOperations();
+
+        when("target is reconciled");
+
+        TASK_RECONCILE_TARGET_ACCOUNTS.rerun(result);
+
+        // Note that unlike HR reconciliation (which executes inbounds from the target), this one ignores HR data.
+        // The reason is that in the former case, there is a priori delta for target, that causes the inbounds to be executed.
+        // (From cached data, but anyway.) In this case, there is no such a priori delta for HR, so that inbounds for HR are
+        // not executed.
+
+        then("john's data from the target are changed in midPoint");
+        assertUserAfterByUsername(PERSON_JOHN_NAME)
+                .assertFamilyName("Doe-220") // from HR - unchanged
+                .assertDescription("Desc-230"); // from target
+
+        and("john's data are NOT changed on target");
+        RESOURCE_DUMMY_TARGET.controller.assertAccountByUsername(PERSON_JOHN_NAME)
+                .assertFullName("John Doe-220"); // indirectly from HR - unchanged
+
+        and("there were no shadow fetch operations");
+        assertNoShadowFetchOperations();
     }
 
     private @NotNull SearchResultList<? extends AbstractShadow> refreshHrPersons(Task task, OperationResult result)
@@ -398,6 +527,15 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
         return provisioningService.searchShadows(
                 Resource.of(RESOURCE_DUMMY_HR.get())
                         .queryFor(DummyHrScenario.OrgUnit.OBJECT_CLASS_NAME.xsd())
+                        .build(),
+                null, task, result);
+    }
+
+    private @NotNull SearchResultList<? extends AbstractShadow> refreshTargetAccounts(Task task, OperationResult result)
+            throws CommonException {
+        return provisioningService.searchShadows(
+                Resource.of(RESOURCE_DUMMY_TARGET.get())
+                        .queryFor(DummyDefaultScenario.Account.OBJECT_CLASS_NAME.xsd())
                         .build(),
                 null, task, result);
     }
@@ -422,5 +560,15 @@ public class TestShadowCaching extends AbstractEmptyModelIntegrationTest {
                                         .retrievalTimestamp(XmlTypeConverter.fromNow(EXPIRY_INTERVAL)))
                         .asItemDeltas(),
                 result);
+    }
+
+    private ProvisioningStatisticsType dumpProvisioningStatistics(String taskOid) throws CommonException {
+        var provisioningStatistics = assertTask(taskOid, "")
+                .getObjectable()
+                .getOperationStats()
+                .getEnvironmentalPerformanceInformation()
+                .getProvisioningStatistics();
+        displayValue("Provisioning statistics", ProvisioningStatistics.format(provisioningStatistics));
+        return provisioningStatistics;
     }
 }

@@ -2229,4 +2229,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         // The default
         return CachedShadowsUseType.USE_FRESH;
     }
+
+    public boolean hasLowerOrderContext() {
+        return lensContext.hasLowerOrderContextThan(this);
+    }
 }

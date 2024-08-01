@@ -225,7 +225,6 @@
     </schemaHandling>
     <caching>
         <cachingStrategy>passive</cachingStrategy>
-        <!-- default scope -->
         <timeToLive>PT10M</timeToLive>
         <defaultCacheUse>useCachedOrIgnore</defaultCacheUse>
     </caching>

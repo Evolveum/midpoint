@@ -91,10 +91,12 @@ public interface ShadowAttributeDefinition<
      * Returns `true` if this attribute is effectively cached, given provided object type/class definition.
      *
      * Precondition: the definition must be attached to a resource.
-     *
-     * NOTE: Ignores the default caching turned on by read capability with `cachingOnly` = `true`.
      */
     default boolean isEffectivelyCached(@NotNull ResourceObjectDefinition objectDefinition) {
+
+        if (objectDefinition.isIdentifier(getItemName())) {
+            return true;
+        }
 
         var cachingPolicy = objectDefinition.getEffectiveShadowCachingPolicy();
         if (cachingPolicy.getCachingStrategy() != CachingStrategyType.PASSIVE) {
@@ -107,24 +109,22 @@ public interface ShadowAttributeDefinition<
             return override;
         }
 
-        var scope = cachingPolicy.getScope();
+        var objectScope = Objects.requireNonNull(cachingPolicy.getScope());
 
-        ShadowItemsCachingScopeType attributesScope;
         if (this instanceof ShadowSimpleAttributeDefinition) {
-            attributesScope = Objects.requireNonNullElse(
-                    scope != null ? scope.getAttributes() : null,
-                    ShadowItemsCachingScopeType.MAPPED);
+            return switch (Objects.requireNonNull(objectScope.getAttributes())) {
+                case ALL -> true;
+                case DEFINED -> hasRefinements();
+                case MAPPED -> hasOutboundMapping() || !getInboundMappingBeans().isEmpty();
+                case NONE -> false;
+            };
         } else {
-            attributesScope = Objects.requireNonNullElse(
-                    scope != null ? scope.getAssociations() : null,
-                    ShadowItemsCachingScopeType.ALL);
+            assert this instanceof ShadowReferenceAttributeDefinition;
+            return switch (Objects.requireNonNull(objectScope.getAssociations())) {
+                case ALL -> true;
+                case NONE -> false;
+            };
         }
-
-        return switch (attributesScope) {
-            case ALL -> true;
-            case NONE -> false;
-            case MAPPED -> hasOutboundMapping() || !getInboundMappingBeans().isEmpty();
-        };
     }
 
     /**

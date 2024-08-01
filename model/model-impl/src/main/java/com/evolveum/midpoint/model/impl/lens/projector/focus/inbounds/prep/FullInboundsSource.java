@@ -200,7 +200,7 @@ public class FullInboundsSource extends InboundsSource {
                 throw new StopProcessingProjectionException();
             }
             if (!projectionContext.isFullShadow()) {
-                LOGGER.trace("Projection couldn't be loaded - it is not a full shadow even after load operation: {}",
+                LOGGER.trace("Projection couldn't or shouldn't be loaded - it is not a full shadow even after load operation: {}",
                         projectionContext);
                 if (aPrioriDelta != null) {
                     LOGGER.trace("There's a priori delta. We'll try to process relevant inbounds in relative mode.");

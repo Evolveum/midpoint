@@ -735,7 +735,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     }
 
     @NotNull
-    private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(ShadowAssociationDefinition associationDefinition) throws SchemaException {
+    private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(ShadowAssociationDefinition associationDefinition)
+            throws SchemaException {
         var targetObjectDefinition = associationDefinition.getRepresentativeTargetObjectDefinition();
         // TODO why naming attribute? Why not valueAttribute from the association definition?
         ShadowSimpleAttributeDefinition<?> targetNamingAttributeDef = targetObjectDefinition.getNamingAttribute();
@@ -1012,21 +1013,10 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                     projCtx.getHumanReadableName());
             return false;
         }
-        switch (projCtx.getCachedShadowsUse()) {
-            case USE_CACHED_OR_FAIL:
-                throw new ExpressionEvaluationException(
-                        "%s could not be reconciled, because the item is not loaded".formatted(desc));
-            case USE_CACHED_OR_IGNORE:
-                LOGGER.trace("{} is not loaded; its inbound mapping(s) evaluation will be skipped", desc);
-                return false;
-            case USE_CACHED_OR_FRESH:
-            case USE_FRESH:
-                // We can simply load the shadow in this case
-        }
         contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
         if (!projCtx.isFullShadow()) {
             LOGGER.trace(
-                    "Full shadow could not be loaded, skipping the reconciliation of {} in {}",
+                    "Full shadow could or should not be loaded, skipping the reconciliation of {} in {}",
                     desc, projCtx.getHumanReadableName());
             return false;
         }

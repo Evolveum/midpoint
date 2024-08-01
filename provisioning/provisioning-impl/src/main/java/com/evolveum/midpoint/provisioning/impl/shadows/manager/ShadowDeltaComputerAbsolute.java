@@ -92,8 +92,6 @@ class ShadowDeltaComputerAbsolute {
     /** Here we collect modifications that will be (presumably) applied to the repo shadow by the caller. */
     @NotNull private final RepoShadowModifications computedModifications = new RepoShadowModifications();
 
-    private final boolean cachingEnabled; // FIXME partial caching?!
-
     private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
     private ShadowDeltaComputerAbsolute(
@@ -109,7 +107,6 @@ class ShadowDeltaComputerAbsolute {
         this.rawRepoShadow = Preconditions.checkNotNull(repoShadow.getRawRepoShadow(), "no raw repo shadow");
         this.resourceObject = resourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
-        this.cachingEnabled = ctx.isCachingEnabled();
         this.fromResource = fromResource;
     }
 
@@ -135,6 +132,8 @@ class ShadowDeltaComputerAbsolute {
 
         var incompleteCacheableItems = updateAttributes();
         updateShadowName();
+
+        // TODO should we take "caching aux OCs" into account here? (the information was always updated in the repo shadow)
         updateAuxiliaryObjectClasses();
 
         if (fromResource) {
@@ -145,8 +144,13 @@ class ShadowDeltaComputerAbsolute {
 
         if (fromResource) { // TODO reconsider this
             updateEffectiveMarks();
-            if (cachingEnabled) {
+            if (ctx.getObjectDefinitionRequired().isActivationCached()) {
                 updateCachedActivation();
+            }
+            if (ctx.getObjectDefinitionRequired().areCredentialsCached()) {
+                // FIXME update password if it happened to be present in the data
+            }
+            if (ctx.getObjectDefinitionRequired().isCachingEnabled()) {
                 updateCachingMetadata(incompleteCacheableItems);
             } else {
                 clearCachingMetadata();
@@ -274,7 +278,7 @@ class ShadowDeltaComputerAbsolute {
             if (resourceObjectAttribute instanceof ShadowSimpleAttribute<?> simpleAttribute) {
                 var attrDef = simpleAttribute.getDefinitionRequired();
                 var attrName = attrDef.getItemName();
-                if (shouldStoreSimpleAttributeInShadow(ctx, ocDef, attrDef)) {
+                if (shouldStoreSimpleAttributeInShadow(ocDef, attrDef)) {
                     expectedRepoSimpleAttributes.add(attrName);
                     if (!resourceObjectAttribute.isIncomplete()) {
                         updateSimpleAttributeIfNeeded(simpleAttribute);
@@ -287,7 +291,7 @@ class ShadowDeltaComputerAbsolute {
             } else if (resourceObjectAttribute instanceof ShadowReferenceAttribute referenceAttribute) {
                 var attrDef = referenceAttribute.getDefinitionRequired();
                 var attrName = attrDef.getItemName();
-                if (shouldStoreReferenceAttributeInShadow(ctx, ocDef, attrDef)) {
+                if (shouldStoreReferenceAttributeInShadow(ocDef, attrDef)) {
                     expectedRepoReferenceAttributes.add(attrName);
                     if (!resourceObjectAttribute.isIncomplete()) {
                         updateReferenceAttributeIfNeeded(referenceAttribute);

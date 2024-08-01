@@ -12,15 +12,14 @@ import static com.evolveum.midpoint.schema.result.OperationResult.DEFAULT;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 
 import java.util.Collection;
+import java.util.Objects;
 
-import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FullShadowLoadedTraceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -42,14 +40,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * Note that full object can be loaded also in {@link ProjectionUpdateOperation}.
  */
-public class ProjectionFullLoadOperation<F extends ObjectType> {
+class ProjectionFullLoadOperation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ProjectionFullLoadOperation.class);
 
     // Backwards-compatible name
     private static final String OP_LOAD_FULL_SHADOW = ContextLoader.class.getName() + "." + "loadFullShadow";
 
-    @NotNull private final LensContext<F> context;
+    @NotNull private final LensContext<?> context;
     @NotNull private final LensProjectionContext projCtx;
     @NotNull private final String reason;
     @NotNull private final Task task;
@@ -59,12 +57,11 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
     private FullShadowLoadedTraceType trace;
 
     ProjectionFullLoadOperation(
-            @NotNull LensContext<F> context,
             @NotNull LensProjectionContext projCtx,
             @NotNull String reason,
             boolean noDiscovery,
             @NotNull Task task) {
-        this.context = context;
+        this.context = projCtx.getLensContext();
         this.projCtx = projCtx;
         this.reason = reason;
         this.task = task;
@@ -90,24 +87,23 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
         try {
             if (projCtx.isHigherOrder()) {
                 // It may be just too early to load the projection
-                if (context.hasLowerOrderContext(projCtx) && context.getExecutionWave() < projCtx.getWave()) {
+                if (projCtx.hasLowerOrderContext() && context.getExecutionWave() < projCtx.getWave()) {
                     // We cannot reliably load the context now
                     result.addReturn(DEFAULT, "too early");
                     return;
                 }
             }
 
-            Collection<SelectorOptions<GetOperationOptions>> options = createOptions();
-            String oid = projCtx.getOid();
+            var options = createOptions();
+            var oid = projCtx.getOid();
             try {
                 if (oid == null) {
                     throw new IllegalStateException(
                             String.format("Trying to load shadow with null OID (reason for load: %s) for %s",
                                     reason, projCtx.getHumanReadableName()));
                 }
-                PrismObject<ShadowType> objectCurrent =
-                        beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
-                Validate.notNull(objectCurrent.getOid());
+                var objectCurrent = beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                Objects.requireNonNull(objectCurrent.getOid());
                 if (trace != null) {
                     trace.setShadowLoadedRef(
                             createObjectRefWithFullObject(objectCurrent));
@@ -179,7 +175,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
         LOGGER.trace("Loading full resource object {} from provisioning ({}) as requested; reason: {}",
                 projCtx, discoveryDescription, reason);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
+        var options = SelectorOptions.createCollection(getOptions);
         addRetrievePasswordIfNeeded(options);
         return options;
     }
@@ -201,7 +197,7 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
         }
     }
 
-    private boolean shouldSkipLoading() {
+    private boolean shouldSkipLoading() throws SchemaException, ConfigurationException {
         if (projCtx.isFullShadow()) {
             LOGGER.trace("Skipping loading full shadow: The shadow is already loaded.");
             return true;
@@ -233,7 +229,23 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
                 return true;
             }
         }
-        return false;
+
+        return switch (projCtx.getCachedShadowsUse()) {
+            case USE_FRESH, USE_CACHED_OR_FRESH -> false;
+            case USE_CACHED_OR_IGNORE -> {
+                // The caller should re-check the data availability, and skip the processing if they're not there.
+                LOGGER.trace("Skipping loading full shadow: caching is enabled but no data is available: {}",
+                        projCtx.getHumanReadableName());
+                yield true;
+            }
+            case USE_CACHED_OR_FAIL ->
+                // TODO Or a different kind of exception? PolicyViolationException is a candidate, but I'm not sure
+                //  if it's really appropriate for this kind of "policy". Moreover, being checked one, its introduction here
+                //  leads to tons of added "throws" clauses throughout midPoint code.
+                throw new UnsupportedOperationException(
+                        "Asked to load a shadow from resource (reason: %s), but loading is forbidden: %s".formatted(
+                                reason, projCtx.getHumanReadableName()));
+        };
     }
 
     private void addRetrievePasswordIfNeeded(Collection<SelectorOptions<GetOperationOptions>> options)

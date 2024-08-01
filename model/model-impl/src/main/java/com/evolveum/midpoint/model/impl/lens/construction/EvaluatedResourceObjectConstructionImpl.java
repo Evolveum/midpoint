@@ -234,8 +234,9 @@ public abstract class EvaluatedResourceObjectConstructionImpl<
     //endregion
 
     //region Mappings evaluation
-    public NextRecompute evaluate(Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    public NextRecompute evaluate(Task task, OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         if (constructionEvaluation != null) {
             throw new IllegalStateException("Attempting to evaluate an EvaluatedResourceObjectConstruction twice: " + this);
         }

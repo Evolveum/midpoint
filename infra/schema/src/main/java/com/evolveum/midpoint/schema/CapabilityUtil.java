@@ -491,6 +491,18 @@ public class CapabilityUtil {
         return getCapability(resource.getCapabilities(), capabilityClass);
     }
 
+    public static boolean isReadingCachingOnly(@NotNull ResourceType resource, @Nullable ResourceObjectDefinition objectDefinition) {
+        var readCapability = getEnabledCapability(resource, objectDefinition, ReadCapabilityType.class);
+        return readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly());
+    }
+
+    public static <T extends CapabilityType> T getEnabledCapability(
+            @NotNull ResourceType resource,
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @NotNull Class<T> capabilityClass) {
+        T capability = getCapability(resource, objectDefinition, capabilityClass);
+        return isCapabilityEnabled(capability) ? capability : null;
+    }
     /**
      * Returns the additional connector capability - but only if it's enabled.
      */
