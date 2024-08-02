@@ -55,26 +55,13 @@ public class MiningOperationChunk implements Serializable {
     private double maxFrequency;
 
 
-
-//    RoleAnalysisSortMode sortModeUserChunk = RoleAnalysisSortMode.NONE;
-//    RoleAnalysisSortMode sortModeRoleChunk = RoleAnalysisSortMode.NONE;
-
     public MiningOperationChunk(List<MiningUserTypeChunk> miningUserTypeChunks, List<MiningRoleTypeChunk> miningRoleTypeChunks) {
         resetList();
         this.miningUserTypeChunks = miningUserTypeChunks;
         this.miningRoleTypeChunks = miningRoleTypeChunks;
     }
 
-    public List<MiningUserTypeChunk> getSimpleMiningUserTypeChunks() {
-        return miningUserTypeChunks;
-    }
-
-    public List<MiningRoleTypeChunk> getSimpleMiningRoleTypeChunks() {
-        return miningRoleTypeChunks;
-    }
-
     public List<MiningUserTypeChunk> getMiningUserTypeChunks(@NotNull RoleAnalysisSortMode roleAnalysisSortMode) {
-//        this.sortModeUserChunk = roleAnalysisSortMode;
         if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.JACCARD)) {
             this.miningUserTypeChunks = JaccardSorter.jaccardSorter(miningUserTypeChunks);
         } else if (roleAnalysisSortMode.equals(RoleAnalysisSortMode.FREQUENCY)) {
@@ -98,26 +85,28 @@ public class MiningOperationChunk implements Serializable {
     }
 
     public List<MiningUserTypeChunk> getMiningUserTypeChunks() {
-//        this.sortModeUserChunk = roleAnalysisSortMode;
-//        if (sortMode.equals(RoleAnalysisSortMode.JACCARD)) {
-//            this.miningUserTypeChunks = JaccardSorter.jaccardSorter(miningUserTypeChunks);
-//        } else if (sortMode.equals(RoleAnalysisSortMode.FREQUENCY)) {
-//            this.miningUserTypeChunks = JaccardSorter.frequencyBasedSort(miningUserTypeChunks);
-//        } else if (sortMode.equals(RoleAnalysisSortMode.INCLUDES)) {
-//            this.miningUserTypeChunks = sortByIncludeStatusMiningUserTypeChunks();
-//        }
         return miningUserTypeChunks;
     }
 
     public List<MiningRoleTypeChunk> getMiningRoleTypeChunks() {
-//        if (sortMode.equals(RoleAnalysisSortMode.JACCARD)) {
-//            this.miningRoleTypeChunks = JaccardSorter.jaccardSorter(miningRoleTypeChunks);
-//        } else if (sortMode.equals(RoleAnalysisSortMode.FREQUENCY)) {
-//            this.miningRoleTypeChunks = JaccardSorter.frequencyBasedSort(miningRoleTypeChunks);
-//        }else if (sortMode.equals(RoleAnalysisSortMode.INCLUDES)) {
-//            this.miningRoleTypeChunks = sortByStatusIncludeMiningRoleTypeChunks();
-//        }
         return miningRoleTypeChunks;
+    }
+
+    private void sort() {
+        switch (sortMode) {
+            case JACCARD -> {
+                this.miningRoleTypeChunks = JaccardSorter.jaccardSorter(miningRoleTypeChunks);
+                this.miningUserTypeChunks = JaccardSorter.jaccardSorter(miningUserTypeChunks);
+            }
+            case FREQUENCY -> {
+                this.miningRoleTypeChunks = JaccardSorter.frequencyBasedSort(miningRoleTypeChunks);
+                this.miningUserTypeChunks = JaccardSorter.frequencyBasedSort(miningUserTypeChunks);
+            }
+            case INCLUDES -> {
+                this.miningRoleTypeChunks = sortByStatusIncludeMiningRoleTypeChunks();
+                this.miningUserTypeChunks = sortByIncludeStatusMiningUserTypeChunks();
+            }
+        }
     }
 
     //TODO check it. it should be executed only when pattern or candidate role is selected.
@@ -183,6 +172,7 @@ public class MiningOperationChunk implements Serializable {
 
     public void setSortMode(RoleAnalysisSortMode sortMode) {
         this.sortMode = sortMode;
+        sort();
     }
 
     public void setProcessMode(RoleAnalysisProcessModeType processMode) {
@@ -236,70 +226,6 @@ public class MiningOperationChunk implements Serializable {
 
     public RoleAnalysisProcessModeType getProcessMode() {
         return processMode;
-    }
-
-
-//    @Override
-    public void updateChunkWithPatterns(MiningOperationChunk basicChunk, List<DetectedPattern> detectedPatterns, Task task, OperationResult result) {
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = basicChunk.getMiningRoleTypeChunks();//basicChunk.getMiningRoleTypeChunks(option.getSortMode());
-        List<MiningUserTypeChunk> miningUserTypeChunks = basicChunk.getMiningUserTypeChunks();
-
-        List<List<String>> detectedPatternsRoles = new ArrayList<>();
-        List<List<String>> detectedPatternsUsers = new ArrayList<>();
-        List<String> candidateRolesIds = new ArrayList<>();
-
-        for (DetectedPattern detectedPattern : detectedPatterns) {
-            detectedPatternsRoles.add(new ArrayList<>(detectedPattern.getRoles()));
-            detectedPatternsUsers.add(new ArrayList<>(detectedPattern.getUsers()));
-            candidateRolesIds.add(detectedPattern.getIdentifier());
-        }
-
-        for (MiningRoleTypeChunk role : miningRoleTypeChunks) {
-            FrequencyItem frequencyItem = role.getFrequencyItem();
-            double frequency = frequencyItem.getFrequency();
-
-            for (int i = 0; i < detectedPatternsRoles.size(); i++) {
-                List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
-                List<String> chunkRoles = role.getRoles();
-                if (new HashSet<>(detectedPatternsRole).containsAll(chunkRoles)) {
-                    RoleAnalysisObjectStatus objectStatus = role.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsRole.removeAll(chunkRoles);
-                } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency() && !role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.DISABLE);
-                } else if (!role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            }
-        }
-
-        for (MiningUserTypeChunk user : miningUserTypeChunks) {
-            for (int i = 0; i < detectedPatternsUsers.size(); i++) {
-                List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
-                List<String> chunkUsers = user.getUsers();
-                if (new HashSet<>(detectedPatternsUser).containsAll(chunkUsers)) {
-                    RoleAnalysisObjectStatus objectStatus = user.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsUser.removeAll(chunkUsers);
-                } else if (!user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            }
-        }
-
-        int size = detectedPatternsUsers.size();
-
-//        IntStream.range(0, size).forEach(i -> {
-//            List<String> detectedPatternRoles = detectedPatternsRoles.get(i);
-//            List<String> detectedPatternUsers = detectedPatternsUsers.get(i);
-//            String candidateRoleId = candidateRolesIds.get(i);
-//            addAdditionalObject(candidateRoleId, detectedPatternUsers, detectedPatternRoles, miningUserTypeChunks,
-//                    miningRoleTypeChunks,
-//                    task,
-//                    result);
-//        });
     }
 
 }

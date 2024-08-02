@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Evolveum and contributors
+ * Copyright (C) 2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,12 +8,11 @@
 package com.evolveum.midpoint.web.component.data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.*;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
@@ -25,6 +24,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.refreshCells;
+
 public class RoleAnalysisObjectDto implements Serializable {
 
     private static final String DOT_CLASS = RoleAnalysisObjectDto.class.getName() + ".";
@@ -32,8 +35,7 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     public static final String F_DISPLAY_VALUE_OPTION = "displayValueOption";
 
-    //TODO maybe cache the whole cluster?
-    private MiningOperationChunk miiningOperationChunk;
+    private MiningOperationChunk miningOperationChunk;
     private boolean isRoleMode;
     private boolean isOutlierDetection;
     private DisplayValueOption displayValueOption;
@@ -77,7 +79,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         this.displayValueOption = loadDispayValueOption(cluster, parameterTableSetting);
 
         //chunk mode
-        this.miiningOperationChunk = roleAnalysisService.prepareMiningStructure(
+        this.miningOperationChunk = roleAnalysisService.prepareMiningStructure(
                 cluster,
                 displayValueOption,
                 isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER,
@@ -142,19 +144,19 @@ public class RoleAnalysisObjectDto implements Serializable {
     }
 
     public <B extends MiningBaseTypeChunk> List<B> getMainMiningChunk() {
-        return miiningOperationChunk.getMainMiningChunk();
+        return miningOperationChunk.getMainMiningChunk();
     }
 
     public <A extends MiningBaseTypeChunk> List<A> getAdditionalMiningChunk() {
-        return miiningOperationChunk.getAdditionalMiningChunk();
+        return miningOperationChunk.getAdditionalMiningChunk();
     }
 
     public double getMinFrequency() {
-        return miiningOperationChunk.getMinFrequency();
+        return miningOperationChunk.getMinFrequency();
     }
 
     public double getMaxFrequency() {
-        return miiningOperationChunk.getMaxFrequency();
+        return miningOperationChunk.getMaxFrequency();
     }
 
     public RoleAnalysisSortMode getSortMode() {
@@ -173,12 +175,36 @@ public class RoleAnalysisObjectDto implements Serializable {
         return isOutlierDetection;
     }
 
-    public void recomputeChunks() {
+    public void recomputeChunks(PageBase pageBase) {
+        Task task = pageBase.createSimpleTask("recompute chunks");
+        OperationResult result = task.getResult();
+        pageBase.getRoleAnalysisService().prepareMiningStructure(
+                cluster,
+                displayValueOption,
+                isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER,
+                new ArrayList<>(),
+                result,
+                task);
+    }
 
+    public void updateWithPatterns(List<DetectedPattern> selectedPatterns, PageBase pageBase) {
+        List<MiningUserTypeChunk> users = miningOperationChunk.getMiningUserTypeChunks();
+        List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks();
+
+        refreshCells(miningOperationChunk.getProcessMode(), users, roles, miningOperationChunk.getMinFrequency(), miningOperationChunk.getMaxFrequency());
+
+
+
+        if (CollectionUtils.isNotEmpty(selectedPatterns)) {
+            Task task = pageBase.createSimpleTask("InitPattern"); //TODO task name
+            OperationResult result = task.getResult();
+
+            pageBase.getRoleAnalysisService().updateChunkWithPatterns(miningOperationChunk, selectedPatterns, task, result);
+        }
     }
 
     public MiningOperationChunk getMininingOperationChunk() {
-        return miiningOperationChunk;
+        return miningOperationChunk;
     }
 
     public List<RoleAnalysisAttributeDef> getRoleAnalysisAttributes() {
