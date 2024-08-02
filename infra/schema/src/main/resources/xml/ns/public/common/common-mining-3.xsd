@@ -177,7 +177,7 @@
             </xsd:element>
 
 
-            <!-- TODO clean, design whats, where and when we need store statistics -->
+            <!-- TODO clean, design what's, where and when we need store statistics -->
             <xsd:element name="partitionAnalysis" type="c:RoleAnalysisPartitionAnalysisType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -189,7 +189,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <!-- TODO clean, design whats, where and when we need store statistics -->
+            <!-- TODO clean, design what's, where and when we need store statistics -->
             <xsd:element name="detectedAnomalyResult" type="c:DetectedAnomalyResult" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -956,7 +956,6 @@
         </xsd:complexContent>
 
     </xsd:complexType>
-
     <xsd:element name="roleAnalysisSession" type="tns:RoleAnalysisSessionType" substitutionGroup="tns:object"/>
 
     <xsd:complexType name="AnalysisClusterStatisticType">
@@ -2224,6 +2223,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Confidence level associated with the identified outlier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="topDetectedPattern" type="c:RoleAnalysisDetectionPatternType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The top detected pattern.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

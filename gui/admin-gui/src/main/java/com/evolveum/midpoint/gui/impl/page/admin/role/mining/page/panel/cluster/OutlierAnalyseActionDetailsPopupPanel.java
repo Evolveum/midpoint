@@ -82,7 +82,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
 
         PrismObject<RoleAnalysisSessionType> sessionObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
 
-        if(sessionObject == null) {
+        if (sessionObject == null) {
             LOGGER.error("Session object is null");
             return;
         }
@@ -104,8 +104,6 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
                 }
             }
         }
-
-
 
         elements = new ArrayList<>(similarObjects);
         elements.add(userOid);
@@ -150,6 +148,11 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
                 anomalyAssignmentCount++;
             }
         }
+
+        cluster.setRoleAnalysisSessionRef(new ObjectReferenceType().type(RoleAnalysisSessionType.COMPLEX_TYPE).oid(sessionOid));
+        cluster.setClusterStatistics(new AnalysisClusterStatisticType()
+                .rolesCount(roles.size())
+                .usersCount(elements.size()));
 
         RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadTable(displayValueOption, cluster);
         add(table);
@@ -200,7 +203,6 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
                 return markObjects;
             }
         };
-
 
         table.setOutputMarkupId(true);
         return table;

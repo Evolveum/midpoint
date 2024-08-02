@@ -6,13 +6,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
@@ -114,6 +113,8 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
         double totalTimeInSecAnomalyConf = 0;
         double totalTimeInSecPatternAnalysis = 0;
 
+        ProcessingTimes processingTimes = new ProcessingTimes();
+
         for (MiningRoleTypeChunk miningRoleTypeChunk : miningRoleTypeChunks) {
 
             FrequencyItem frequencyItem = miningRoleTypeChunk.getFrequencyItem();
@@ -140,7 +141,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                         //TODO
                         long startTimeP = System.currentTimeMillis();
                         RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(
-                                miningRoleTypeChunk, user, miningRoleTypeChunks);
+                                miningRoleTypeChunk, user, miningRoleTypeChunks, processingTimes);
                         long endTimeP = System.currentTimeMillis();
                         double totalProcessingTimeP = (double) (endTimeP - startTimeP) / 1000.0;
                         totalTimeInSecPatternAnalysis += totalProcessingTimeP;
@@ -166,6 +167,10 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
 
         //TODO from this version pattern detection took 99% of time for chunk analysis. (CHECK MAJOR/ current implementation of pattern detection is experimental not proofed yet.)
         LOGGER.debug("Total processing time for all pattern analysis: " + totalTimeInSecPatternAnalysis + " seconds");
+
+        LOGGER.debug("Total processing time for all pattern analysis A: " + processingTimes.getTotalProcessingTimeA() + " seconds");
+        LOGGER.debug("Total processing time for all pattern analysis B: " + processingTimes.getTotalProcessingTimeB() + " seconds");
+
         long endTime = System.currentTimeMillis();
         double totalProcessingTime = (double) (endTime - startTime1) / 1000.0;
 
@@ -211,8 +216,12 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
             RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
             if (userAttributeAnalysisResult != null && attributesForUserAnalysis != null) {
 
-                RoleAnalysisAttributeAnalysisResult userAttributes = roleAnalysisService
-                        .resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
+                RoleAnalysisAttributeAnalysisResult userAttributes = userAnalysisCache
+                        .getUserAttributeAnalysisCache(userTypeObject.getOid());
+                if (userAttributes == null) {
+                    userAttributes = roleAnalysisService.resolveUserAttributes(userTypeObject, attributesForUserAnalysis);
+                    userAnalysisCache.putUserAttributeAnalysisCache(userTypeObject.getOid(), userAttributes);
+                }
 
                 compareAttributeResult = roleAnalysisService
                         .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
@@ -227,7 +236,8 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                     userTypeObject, countOfRoles);
             partitionAnalysis.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
 
-            RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(userOid, miningRoleTypeChunks);
+            RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(
+                    userOid, miningRoleTypeChunks, null, session, roleAnalysisService, task, result);
             partitionAnalysis.setPatternAnalysis(roleAnalysisPatternInfo);
 
             double outlierConfidenceBasedAssignment = 0;
@@ -266,4 +276,31 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
         totalProcessingTime = (double) (endTime - startTime1) / 1000.0;
         LOGGER.debug("Total processing time for all user keySet: " + totalProcessingTime + " seconds");
     }
+
+    public static class ProcessingTimes {
+        public double totalProcessingTimeA;
+        public double totalProcessingTimeB;
+
+        public ProcessingTimes() {
+            this.totalProcessingTimeA = 0;
+            this.totalProcessingTimeB = 0;
+        }
+
+        public double getTotalProcessingTimeA() {
+            return totalProcessingTimeA;
+        }
+
+        public double getTotalProcessingTimeB() {
+            return totalProcessingTimeB;
+        }
+
+        public void incrementTotalProcessingTimeA(double totalProcessingTimeA) {
+            this.totalProcessingTimeA += totalProcessingTimeA;
+        }
+
+        public void incrementTotalProcessingTimeB(double totalProcessingTimeB) {
+            this.totalProcessingTimeB += totalProcessingTimeB;
+        }
+    }
+
 }

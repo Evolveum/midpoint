@@ -351,7 +351,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                 }
                                 RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
                                 outlierObjectModel = generateUserOutlierResultModel(
-                                        roleAnalysisService, outlierObject, task, task.getResult(), outlierPartition, getPageBase());
+                                        roleAnalysisService, outlierObject,
+                                        task, task.getResult(), outlierPartition, getPageBase());
 
                                 if (outlierObjectModel == null) {
                                     return;
@@ -910,7 +911,11 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             emptyPanel(ID_PANEL, "No data available", container);
             return;
         }
-        RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
+
+        if (outlierPartition == null) {
+            emptyPanel(ID_PANEL, "No data available", container);
+            return;
+        }
 
         outlierObjectModel = generateUserOutlierResultModel(
                 roleAnalysisService, outlierObject, task, task.getResult(), outlierPartition, getPageBase());

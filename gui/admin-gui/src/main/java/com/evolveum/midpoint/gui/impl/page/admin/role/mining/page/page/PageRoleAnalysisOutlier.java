@@ -21,6 +21,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,6 +79,14 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
         super();
     }
 
+    public PageRoleAnalysisOutlier(PageParameters params) {
+        super(params);
+    }
+
+    public PageRoleAnalysisOutlier(PrismObject<RoleAnalysisOutlierType> outlier) {
+        super(outlier);
+
+    }
     @Override
     public void savePerformed(AjaxRequestTarget target) {
         super.savePerformed(target);
