@@ -91,11 +91,15 @@ public class OutlierObjectModel implements Serializable {
 
         ObjectReferenceType targetObjectRef = outlierResult.getTargetObjectRef();
         PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, targetObjectRef.getOid(), pageBase, task, result);//roleAnalysisService.getUserTypeObject(targetObjectRef.getOid(), task, result);
-        XMLGregorianCalendar createTimestamp = outlierResult.getMetadata().getCreateTimestamp();
-        GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
-        Date date = gregorianCalendar.getTime();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String formattedDate = sdf.format(date);
+        String formattedDate = "unknown";
+        if (outlierResult.getMetadata() != null) {
+            XMLGregorianCalendar createTimestamp = outlierResult.getMetadata().getCreateTimestamp();
+            GregorianCalendar gregorianCalendar = createTimestamp.toGregorianCalendar();
+            Date date = gregorianCalendar.getTime();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            formattedDate = sdf.format(date);
+        }
+
         if (userTypeObject == null) {
             return null;
         }
@@ -222,7 +226,8 @@ public class OutlierObjectModel implements Serializable {
             @NotNull RoleAnalysisOutlierType outlierResult,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @NotNull RoleAnalysisOutlierPartitionType partition, PageBase pageBase) {
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            PageBase pageBase) {
 
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
         List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();

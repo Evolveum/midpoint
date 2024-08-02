@@ -223,7 +223,8 @@ public class RoleAnalysisOutlierTable extends BasePanel<String> {
 
                         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                             //TODO!
-                            outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier, task, task.getResult(), outlierPartitions.get(0), getPageBase());
+                            outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier,
+                                    task, task.getResult(), outlierPartitions.get(0), getPageBase());
                         } else {
                             //TODO
                         }

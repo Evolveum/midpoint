@@ -7,11 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -23,9 +18,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-
-import java.io.Serial;
 
 public class OutlierResultPanel extends BasePanel<String> implements Popupable {
 
@@ -116,23 +110,14 @@ public class OutlierResultPanel extends BasePanel<String> implements Popupable {
     }
 
     public Component getCardFooterBody(String componentId) {
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-arrow-right",
-                LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton linkButton = new AjaxCompositedIconSubmitButton(componentId,
-                iconBuilder.build(), Model.of("Recertification process")) {
-            @Serial private static final long serialVersionUID = 1L;
+        AjaxIconButton linkButton = new AjaxIconButton(componentId,
+                Model.of("fa fa-cog"), Model.of("Recertification process")) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target) {
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(((PageBase) getPage()).getFeedbackPanel());
             }
         };
-        linkButton.titleAsLabel(true);
         linkButton.setOutputMarkupId(true);
         linkButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
 
