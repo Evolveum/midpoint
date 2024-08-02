@@ -94,7 +94,7 @@ public class RelatedTasksPanel extends BasePanel {
             AjaxDownloadBehaviorFromStream ajaxDownloadBehavior =
                     ReportDownloadHelper.createAjaxDownloadBehaviorFromStream(report, getPageBase());
             AjaxIconButton downloadButton = new AjaxIconButton(id, Model.of("fa fa-download"),
-                    createStringResource("pageCreatedReports.button.download")) {
+                    createStringResource("PageTask.download.report")) {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override
