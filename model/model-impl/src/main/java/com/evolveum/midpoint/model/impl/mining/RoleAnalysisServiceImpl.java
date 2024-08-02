@@ -861,6 +861,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
         }
     }
 
+    @Override
     public void deleteOutlier(
             @NotNull RoleAnalysisOutlierType outlier,
             @NotNull Task task,

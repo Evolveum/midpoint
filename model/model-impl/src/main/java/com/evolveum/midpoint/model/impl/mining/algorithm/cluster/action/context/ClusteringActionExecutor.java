@@ -58,7 +58,7 @@ public class ClusteringActionExecutor extends BaseAction {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClusteringActionExecutor.class);
 
-    private AttributeAnalysisCache attributeAnalysisCache = new AttributeAnalysisCache();
+    private final AttributeAnalysisCache attributeAnalysisCache = new AttributeAnalysisCache();
 
     private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering",
             7, this::incrementProgress);

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.BasicOutlierDetectionStrategy;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.SimpleHeatPattern;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -200,11 +201,8 @@ public class OutlierPatternResolver implements Serializable {
                 preparedObjects,
                 null,
                 null,
-                minFrequency,
-                maxFrequency,
-                minIntersection,
-                minOccupancy,
-                userBasedDetection);
+                minIntersection
+        );
 
         //first level of intersection
         List<List<String>> outerIntersections = outerPatternDetection(
@@ -294,11 +292,86 @@ public class OutlierPatternResolver implements Serializable {
                 preparedObjects,
                 requiredProperties,
                 allowedProperties,
-                minFrequency,
-                maxFrequency,
+                minIntersection
+        );
+
+        //first level of intersection
+        List<List<String>> outerIntersections = outerPatternDetection(
+                preparedObjects,
                 minIntersection,
-                minOccupancy,
-                userBasedDetection);
+                minOccupancy);
+
+        //from there we calculate inner intersection
+        Set<List<String>> innerIntersections = new HashSet<>();
+
+        //last inner intersection that was found (tmp variable for innerIntersections calculation)
+        List<List<String>> result = new ArrayList<>(outerIntersections);
+
+        //TODO proof
+        //there we identify all intersections that can be found in the data (this is true if remainsOperation is disabled)
+        boolean calculate = true;
+        int remainsOperation = 3;
+        while (calculate && remainsOperation > 0) {
+            result = new ArrayList<>(innerPatternDetection(
+                    result,
+                    minIntersection, preparedObjects));
+
+            if (result.isEmpty()) {
+                calculate = false;
+            } else {
+                innerIntersections.addAll(result);
+            }
+            remainsOperation--;
+        }
+
+        Set<List<String>> allPossibleIntersections = new HashSet<>();
+        allPossibleIntersections.addAll(outerIntersections);
+        allPossibleIntersections.addAll(innerIntersections);
+
+        List<SimpleHeatPattern> simpleHeatPatterns = new ArrayList<>();
+        int key = 0;
+        for (List<String> references : allPossibleIntersections) {
+            simpleHeatPatterns.add(new SimpleHeatPattern(references, key++));
+        }
+
+        //now we need map intersection to miningBaseTypeChunk
+        for (T miningBaseTypeChunk : miningBaseTypeChunks) {
+            List<String> properties = miningBaseTypeChunk.getProperties();
+            for (SimpleHeatPattern pattern : simpleHeatPatterns) {
+                if (pattern.isPartOf(new HashSet<>(properties))) {
+                    //there we map intersection to miningBaseTypeChunk
+                    //TODO simplify this
+                    //there we calculate total relations over miningBaseTypeChunk for each pattern
+                    int countOfMembers = miningBaseTypeChunk.getMembers().size();
+                    int countOfIntersectedProperties = pattern.getPropertiesCount();
+                    int totalRelations = countOfMembers * countOfIntersectedProperties;
+                    pattern.incrementTotalRelations(totalRelations);
+                }
+            }
+        }
+        return simpleHeatPatterns;
+    }
+
+
+    public <T extends MiningBaseTypeChunk> List<SimpleHeatPattern> performSingleAnomalyCellDetection(
+            @NotNull List<T> miningBaseTypeChunks,
+            @NotNull DetectionOption detectionOption,
+            List<String> requiredProperties,
+            List<String> allowedProperties, BasicOutlierDetectionStrategy.ProcessingTimes processingTimes) {
+
+        int minIntersection;
+        int minOccupancy;
+        minIntersection = detectionOption.getMinUsers();
+        minOccupancy = detectionOption.getMinRoles();
+
+        List<T> preparedObjects = new ArrayList<>();
+
+        prepareObjects(miningBaseTypeChunks,
+                preparedObjects,
+                requiredProperties,
+                allowedProperties,
+                minIntersection
+        );
 
         //first level of intersection
         List<List<String>> outerIntersections = outerPatternDetection(
@@ -367,12 +440,7 @@ public class OutlierPatternResolver implements Serializable {
      *
      * @param miningBaseTypeChunks A list of mining base type chunks to be prepared for analysis.
      * @param preparedObjects A list to store prepared mining base type chunks.
-     * @param minFrequency The minimum frequency threshold for chunk analysis.
-     * @param maxFrequency The maximum frequency threshold for chunk analysis.
      * @param minIntersection The minimum number of intersections required for analysis.
-     * @param minOccupancy The minimum occupancy threshold for analysis.
-     * @param userBasedDetection A boolean indicating whether user-based detection is applied.
-     * If true, user-based detection is applied; otherwise, role-based detection.
      * @param <T> Generic type extending MiningBaseTypeChunk.
      */
     private static <T extends MiningBaseTypeChunk> void prepareObjects(
@@ -380,20 +448,8 @@ public class OutlierPatternResolver implements Serializable {
             @NotNull List<T> preparedObjects,
             List<String> requiredMembers,
             List<String> allowedProperties,
-            double minFrequency,
-            double maxFrequency,
-            int minIntersection,
-            int minOccupancy,
-            boolean userBasedDetection) {
+            int minIntersection) {
         for (T chunk : miningBaseTypeChunks) {
-            //TODO temporary ignore frequency. Think about it
-//            FrequencyItem frequencyItem = chunk.getFrequencyItem();
-//            double frequency = frequencyItem.getFrequency();
-
-//            if (frequency < minFrequency || frequency > maxFrequency) {
-//                continue;
-//            }
-
             List<String> chunkProperties = chunk.getProperties();
             Set<String> members = new HashSet<>(chunkProperties);
             if (members.size() < minIntersection) {

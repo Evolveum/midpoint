@@ -11,6 +11,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.RoleMemberCountCache;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context.OutlierPatternResolver;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.prepareDetectedPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 
 //TODO major multiple thinks is processed multiple times
@@ -135,7 +137,7 @@ public class OutliersDetectionUtil {
             }
         }
 
-        if(attributeAnalysisCompare.isEmpty() || averageItemFactor == 0) {
+        if (attributeAnalysisCompare.isEmpty() || averageItemFactor == 0) {
             return 0;
         }
 
@@ -146,29 +148,78 @@ public class OutliersDetectionUtil {
     //TODO this is just for USER MODE! Implement Role (Experimental)
     static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
             @NotNull String userOid,
-            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            BasicOutlierDetectionStrategy.ProcessingTimes processingTimes,
+            @NotNull RoleAnalysisSessionType session,
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
 
         DetectionOption detectionOption = new DetectionOption(
                 10, 100, 2, 2);
         List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
-                .performSingleCellDetection(RoleAnalysisProcessModeType.USER, miningRoleTypeChunks, detectionOption,
-                        Collections.singletonList(userOid), null);
+                .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
+                        Collections.singletonList(userOid), null, processingTimes);
 
         int patternCount = totalRelationOfPatternsForCell.size();
         int totalRelations = 0;
         int topPatternRelation = 0;
+        SimpleHeatPattern topPattern = null;
         for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
             int relations = simpleHeatPattern.getTotalRelations();
             totalRelations += relations;
             if (relations > topPatternRelation) {
                 topPatternRelation = relations;
+                topPattern = simpleHeatPattern;
             }
+        }
+
+        if (topPattern != null) {
+            Set<String> patternMembers = new HashSet<>();
+            for (MiningRoleTypeChunk miningBaseTypeChunk : miningRoleTypeChunks) {
+                List<String> properties = miningBaseTypeChunk.getProperties();
+                if (topPattern.isPartOf(new HashSet<>(properties))) {
+                    patternMembers.addAll(miningBaseTypeChunk.getMembers());
+                }
+            }
+            DetectedPattern detectedPattern = prepareDetectedPattern(patternMembers, new HashSet<>(topPattern.getPropertiesOids()));
+
+            RoleAnalysisDetectionPatternType pattern = new RoleAnalysisDetectionPatternType();
+
+            Set<String> roles = new HashSet<>(detectedPattern.getRoles());
+            Set<String> users = new HashSet<>(detectedPattern.getUsers());
+
+            for (String usersRef : users) {
+                pattern.getUserOccupancy().add(
+                        new ObjectReferenceType().oid(usersRef).type(UserType.COMPLEX_TYPE));
+
+            }
+
+            for (String rolesRef : roles) {
+                pattern.getRolesOccupancy().add(
+                        new ObjectReferenceType().oid(rolesRef).type(RoleType.COMPLEX_TYPE)
+                );
+            }
+
+            pattern.setClusterMetric(detectedPattern.getMetric());
+
+            Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
+            Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
+
+            List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService
+                    .resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
+            List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
+                    .resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
+
+            roleAnalysisService.resolveDetectedPatternsAttributes(Collections.singletonList(pattern), userExistCache,
+                    roleExistCache, task, result, roleAnalysisAttributeDef, userAnalysisAttributeDef);
+            patternInfo.setTopDetectedPattern(pattern);
         }
 
         int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
         double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
 
-        RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
         patternInfo.setConfidence(topPatternCoverage);
         patternInfo.setDetectedPatternCount(patternCount);
         patternInfo.setTopPatternRelation(topPatternRelation);
@@ -181,13 +232,14 @@ public class OutliersDetectionUtil {
     static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
             @NotNull MiningRoleTypeChunk miningRoleTypeChunk,
             @NotNull String user,
-            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks) {
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            BasicOutlierDetectionStrategy.ProcessingTimes processingTimes) {
         List<String> allowedProperties = miningRoleTypeChunk.getProperties();
         DetectionOption detectionOption = new DetectionOption(
                 10, 100, 2, 2);
         List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
-                .performSingleCellDetection(RoleAnalysisProcessModeType.USER, miningRoleTypeChunks, detectionOption,
-                        Collections.singletonList(user), allowedProperties);
+                .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
+                        Collections.singletonList(user), allowedProperties, processingTimes);
 
         int patternCount = totalRelationOfPatternsForCell.size();
         int totalRelations = 0;

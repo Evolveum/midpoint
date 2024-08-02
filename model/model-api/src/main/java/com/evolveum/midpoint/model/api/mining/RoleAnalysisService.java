@@ -255,6 +255,18 @@ public interface RoleAnalysisService {
             boolean recomputeStatistics);
 
     /**
+     * Deletes a single RoleAnalysisOutlierType object.
+     *
+     * @param cluster The outlier to delete.
+     * @param task The task associated with this operation.
+     * @param result The operation result.
+     */
+    void deleteOutlier(
+            @NotNull RoleAnalysisOutlierType cluster,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
      * Recomputes the statistics of a RoleAnalysisSessionType object.
      *
      * @param sessionOid The session OID.
