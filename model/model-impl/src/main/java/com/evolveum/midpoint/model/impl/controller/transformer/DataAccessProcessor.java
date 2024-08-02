@@ -60,7 +60,7 @@ public class DataAccessProcessor {
 
         AccessDecision decision = constraints.getDecision();
         if (decision == AccessDecision.ALLOW) {
-            return applyReadConstraintsToMetadata(value, constraints);
+            return value;
         } else if (decision == AccessDecision.DENY || !(value instanceof PrismContainerValue<?>)) {
             SecurityUtil.logSecurityDeny(value, "because the authorization denies access");
             throw new AuthorizationException("Access denied");
@@ -140,13 +140,15 @@ public class DataAccessProcessor {
             // Value does not have metadata no need to do any changes.
             return value;
         }
-        var itemConstraints = readConstraints.getItemConstraints(InfraItemName.METADATA);
-        var decision = itemConstraints.getDecision();
-        switch (decision) {
+
+
+
+        var itemConstraints = readConstraints.getMetadataConstraints();
+        var explictConstraints = itemConstraints.getDecision();
+
+        switch (explictConstraints) {
             case ALLOW -> {
                 return value;
-
-                //throw new UnsupportedOperationException("Unsupported decision {}" + decision);
             }
             case DEFAULT -> {
                 value = (V) value.cloneIfImmutable();
@@ -159,7 +161,7 @@ public class DataAccessProcessor {
                 return ret;
             }
             default -> {
-                throw new UnsupportedOperationException("Unsupported decision {}" + decision);
+                throw new UnsupportedOperationException("Unsupported decision {}" + explictConstraints);
             }
         }
     }

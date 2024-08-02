@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.model.impl.sync.tasks.imp.ImportFromResourceLauncher;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
@@ -262,6 +263,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
         // Archetypes
         repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult);
+
+        repoAdd(CommonInitialObjects.SERVICE_ORIGIN_INTERNAL, initResult);
 
     }
 

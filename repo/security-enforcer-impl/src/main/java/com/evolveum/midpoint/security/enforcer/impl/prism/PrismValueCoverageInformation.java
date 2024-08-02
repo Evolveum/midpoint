@@ -12,16 +12,13 @@ import static com.evolveum.midpoint.security.enforcer.impl.prism.PrismEntityCove
 import java.util.*;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.schema.selector.spec.ValueSelector;
 import com.evolveum.midpoint.security.enforcer.impl.TieredSelectorWithItems;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameKeyedMap;
-import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.security.enforcer.impl.AuthorizationEvaluation;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -46,21 +43,27 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
      */
     private boolean positive;
 
-    private PrismValueCoverageInformation(boolean positive) {
+    private boolean exceptMetadata;
+
+    private PrismValueCoverageInformation(boolean positive, boolean exceptMetadata) {
         this.positive = positive;
+        this.exceptMetadata = exceptMetadata;
     }
 
-    static PrismValueCoverageInformation fullCoverage() {
-        return new PrismValueCoverageInformation(false);
+    static PrismValueCoverageInformation fullCoverage(boolean exceptMetadata) {
+        return new PrismValueCoverageInformation(false, exceptMetadata);
     }
 
-    static PrismValueCoverageInformation noCoverage() {
-        return new PrismValueCoverageInformation(true);
+    static PrismValueCoverageInformation noCoverage(boolean exceptMetadata) {
+        return new PrismValueCoverageInformation(true, exceptMetadata);
     }
 
     public @NotNull PrismEntityCoverage getCoverage() {
         if (itemsMap.isEmpty()) {
-            return positive ? NONE : FULL;
+            if (positive) {
+                return NONE;
+            }
+            return exceptMetadata ? PARTIAL : FULL;
         } else {
             // We do not know if the object really contains something of interest. It may or may not.
             return PARTIAL;
@@ -71,12 +74,17 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         return positive;
     }
 
+    @Override
+    public boolean isExceptMetadata() {
+        return exceptMetadata;
+    }
+
     @NotNull PrismItemCoverageInformation getItemCoverageInformation(@NotNull ItemName name) {
         var forItem = itemsMap.get(name);
         if (forItem != null) {
             return forItem;
         }
-        return positive ? PrismItemCoverageInformation.noCoverage() : PrismItemCoverageInformation.fullCoverage();
+        return positive ? PrismItemCoverageInformation.noCoverage(exceptMetadata) : PrismItemCoverageInformation.fullCoverage(exceptMetadata);
     }
 
     @NotNull PrismValueCoverageInformation getValueCoverageInformation(@NotNull ItemPath nameOnlyPath) {
@@ -101,7 +109,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
 
         Collection<TieredSelectorWithItems> tieredSelectors = TieredSelectorWithItems.forAutzAndValue(value, evaluation);
         if (!tieredSelectors.isEmpty()) {
-            PrismValueCoverageInformation merged = PrismValueCoverageInformation.noCoverage();
+            PrismValueCoverageInformation merged = PrismValueCoverageInformation.noCoverage(false);
             int i = 0;
             for (TieredSelectorWithItems tieredSelector : tieredSelectors) {
                 merged.merge(
@@ -125,20 +133,21 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         assert valueSelector.getParentClause() == null;
 
         if (!evaluation.isSelectorApplicable(id, valueSelector, value, "TODO")) {
-            return PrismValueCoverageInformation.noCoverage();
+            return PrismValueCoverageInformation.noCoverage(false);
         }
 
         PathSet positives = tieredSelector.getPositives();
         PathSet negatives = tieredSelector.getNegatives();
+        boolean exceptMetadata = tieredSelector.isExceptMetadata();
         var linkToChild = tieredSelector.getLinkToChild();
         if (!positives.isEmpty() || linkToChild != null) {
-            var coverage = forPositivePaths(positives);
+            var coverage = forPositivePaths(positives, exceptMetadata);
             if (linkToChild != null) {
                 coverage.merge(forChildTieredSelector(id + "v", linkToChild, value, rootValue, evaluation));
             }
             return coverage;
         } else {
-            return forNegativePaths(negatives);
+            return forNegativePaths(negatives, exceptMetadata);
         }
     }
 
@@ -151,16 +160,16 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
         if (!(parentValue instanceof PrismContainerValue<?> pcv)) {
-            return PrismValueCoverageInformation.noCoverage();
+            return PrismValueCoverageInformation.noCoverage(false);
         }
         ItemPath childPath = linkToChild.getItemPath();
         Item<?, ?> item = pcv.findItem(childPath);
         if (item == null) {
             // Item is not present in the PCV, the coverage needs no update.
-            return PrismValueCoverageInformation.noCoverage();
+            return PrismValueCoverageInformation.noCoverage(false);
         }
 
-        var parentCoverage = PrismValueCoverageInformation.noCoverage();
+        var parentCoverage = PrismValueCoverageInformation.noCoverage(false);
         var itemCoverageInformation = createItemCoverageInformationObject(parentCoverage, childPath); // TODO evaluate lazily
 
         int valId = 0;
@@ -172,7 +181,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             }
         }
         if (itemCoverageInformation.getCoverage() == NONE) {
-            return PrismValueCoverageInformation.noCoverage(); // to avoid useless root->item chain
+            return PrismValueCoverageInformation.noCoverage(false); // to avoid useless root->item chain
         } else {
             return parentCoverage;
         }
@@ -186,7 +195,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         assert !segments.isEmpty();
         for (Object segment : segments) {
             ItemName name = ItemPath.toName(segment);
-            PrismValueCoverageInformation next = PrismValueCoverageInformation.noCoverage();
+            PrismValueCoverageInformation next = PrismValueCoverageInformation.noCoverage(root.exceptMetadata);
             last = PrismItemCoverageInformation.single(next);
             current.itemsMap.put(name, last);
             current = next;
@@ -194,35 +203,35 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
         return last;
     }
 
-    private static PrismValueCoverageInformation forPositivePaths(PathSet positives) {
+    private static PrismValueCoverageInformation forPositivePaths(PathSet positives, boolean exceptMetadata) {
         if (positives.contains(ItemPath.EMPTY_PATH)) {
-            return fullCoverage();
+            return fullCoverage(exceptMetadata);
         }
-        var coverage = noCoverage();
+        var coverage = noCoverage(exceptMetadata);
         for (Map.Entry<ItemName, PathSet> entry : positives.factor().entrySet()) {
             ItemName first = entry.getKey();
             PathSet rests = entry.getValue();
             coverage.itemsMap.put(
                     first,
                     PrismItemCoverageInformation.single(
-                            forPositivePaths(rests)));
+                            forPositivePaths(rests, exceptMetadata)));
         }
         return coverage;
     }
 
-    private static PrismValueCoverageInformation forNegativePaths(PathSet negatives) {
+    private static PrismValueCoverageInformation forNegativePaths(PathSet negatives, boolean exceptMetadata) {
         if (negatives.contains(ItemPath.EMPTY_PATH)) {
             // "except for" item means that all its sub-items are excluded
-            return noCoverage();
+            return noCoverage(exceptMetadata);
         }
-        var coverage = fullCoverage();
+        var coverage = fullCoverage(exceptMetadata);
         for (Map.Entry<ItemName, PathSet> entry : negatives.factor().entrySet()) {
             ItemName first = entry.getKey();
             PathSet rests = entry.getValue();
             coverage.itemsMap.put(
                     first,
                     PrismItemCoverageInformation.single(
-                            forNegativePaths(rests)));
+                            forNegativePaths(rests, exceptMetadata)));
         }
         return coverage;
     }
@@ -244,11 +253,12 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
     }
 
     private void mergePositiveIntoPositive(PrismValueCoverageInformation increment) {
+        exceptMetadata = increment.exceptMetadata;
         for (var iEntry : increment.itemsMap.entrySet()) {
             ItemName iFirst = iEntry.getKey();
             PrismItemCoverageInformation iCoverage = iEntry.getValue();
             itemsMap
-                    .computeIfAbsent(iFirst, k -> PrismItemCoverageInformation.noCoverage())
+                    .computeIfAbsent(iFirst, k -> PrismItemCoverageInformation.noCoverage(exceptMetadata))
                     .merge(iCoverage);
         }
     }
@@ -270,7 +280,7 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
 
         // Transposing to "merge positive into negative": this -> copy (positive), increment -> this (negative)
 
-        PrismValueCoverageInformation copy = new PrismValueCoverageInformation(this.positive);
+        PrismValueCoverageInformation copy = new PrismValueCoverageInformation(this.positive, this.exceptMetadata);
         copy.itemsMap.putAll(this.itemsMap);
         assert copy.isPositive();
 
@@ -315,5 +325,9 @@ class PrismValueCoverageInformation implements PrismEntityCoverageInformation {
             DebugUtil.debugDumpWithLabel(sb, "Individual sub-items", itemsMap, indent + 1);
         }
         return sb.toString();
+    }
+
+    public boolean hasItemCoverage(ItemName name) {
+        return itemsMap.containsKey(name);
     }
 }

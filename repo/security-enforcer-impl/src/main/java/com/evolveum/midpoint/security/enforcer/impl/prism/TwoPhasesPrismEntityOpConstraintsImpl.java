@@ -112,6 +112,14 @@ public abstract class TwoPhasesPrismEntityOpConstraintsImpl<OC extends SinglePha
                     execution.getValueConstraints(nameOnlyPath));
         }
 
+        @Override
+        public @NotNull PrismEntityOpConstraints.ForItemContent getMetadataConstraints() {
+            return new TwoPhasesPrismEntityOpConstraintsImpl.ForItemContent(
+                    request.getMetadataConstraints(),
+                    execution.getMetadataConstraints()
+            );
+        }
+
         public void applyAuthorization(
                 @NotNull PrismObjectValue<?> value, @NotNull AuthorizationEvaluation evaluation)
                 throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
