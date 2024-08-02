@@ -220,7 +220,7 @@ public abstract class PredefinedActivationMappingEvaluator {
 
         loadFullShadowIfNeeded(projCtx, task, result);
 
-        if (projCtx.hasFullShadow()) {
+        if (projCtx.isActivationLoaded()) {
             // Note that we also accept the "new" state; if there is a match, then there is no need to add a delta again.
             var object = projCtx.getObjectNewOrCurrentRequired();
             var property = object.findProperty(path);
@@ -248,8 +248,8 @@ public abstract class PredefinedActivationMappingEvaluator {
     private void loadFullShadowIfNeeded(LensProjectionContext projCtx, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        if (!projCtx.hasFullShadow()) {
-            var loader = new ProjectionMappingLoader<>(projCtx, ModelBeans.get().contextLoader);
+        if (!projCtx.isActivationLoaded()) {
+            var loader = new ProjectionMappingLoader(projCtx, ModelBeans.get().contextLoader, projCtx::isActivationLoaded);
             String loadReason = "target property going to be set by " + getName();
             loader.load(loadReason, task, result);
             getLogger().trace("Projection was loaded because of: {}", loadReason);

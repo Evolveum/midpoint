@@ -163,6 +163,9 @@ public class CampaignStateHelper implements Serializable {
 
     public List<CampaignAction> getAvailableActions() {
         List<CampaignAction> availableActions = campaignStateAvailableActionsMap.get(campaignState);
+        if (availableActions == null) {
+            return Collections.emptyList();
+        }
         if (stageNumber == stageDefinitionSize) {
             return availableActions
                     .stream()

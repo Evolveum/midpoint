@@ -151,8 +151,8 @@ public class ResourceObjectClassDefinitionImpl
     }
 
     @Override
-    public boolean isAssociationObject() {
-        return nativeObjectClassDefinition.isAssociationObject();
+    public boolean isEmbedded() {
+        return nativeObjectClassDefinition.isEmbedded();
     }
 
     @Override

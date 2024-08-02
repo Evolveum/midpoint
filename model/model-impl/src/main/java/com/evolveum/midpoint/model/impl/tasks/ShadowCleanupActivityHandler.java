@@ -187,7 +187,7 @@ public class ShadowCleanupActivityHandler
     public static class MyWorkDefinition extends AbstractWorkDefinition implements ResourceObjectSetSpecificationProvider {
 
         /** Mutable, disconnected from the source. */
-        private final ResourceObjectSetType shadows;
+        @NotNull private final ResourceObjectSetType shadows;
         @NotNull private final Duration interval;
 
         MyWorkDefinition(@NotNull WorkDefinitionFactory.WorkDefinitionInfo info) {
@@ -205,7 +205,7 @@ public class ShadowCleanupActivityHandler
         }
 
         @Override
-        public ResourceObjectSetType getResourceObjectSetSpecification() {
+        public @NotNull ResourceObjectSetType getResourceObjectSetSpecification() {
             return shadows;
         }
 

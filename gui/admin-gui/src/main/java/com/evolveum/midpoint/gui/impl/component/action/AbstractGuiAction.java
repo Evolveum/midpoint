@@ -8,63 +8,87 @@
 package com.evolveum.midpoint.gui.impl.component.action;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.ActionConfigurationPanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractGuiAction<C extends Containerable> implements Serializable {
 
-    AbstractGuiAction<C> preAction;
-    private boolean isVisible = true;
-    private DisplayType actionDisplayType = null;
-    Map<String, Object> actionParametersMap = new HashMap<>();
-    List<GuiParameterType> actionParameters = new ArrayList<>();
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractGuiAction.class);
+
+    private GuiActionType guiActionType;
 
     public AbstractGuiAction() {
     }
 
-    public AbstractGuiAction(@NotNull GuiActionDto<C> guiActionDto) {
-        this.preAction = guiActionDto.getPreAction();
-        this.actionParameters = guiActionDto.getActionParameters();
-        this.isVisible = guiActionDto.isVisible();
-        this.actionDisplayType = guiActionDto.getDisplay();
-    }
-
-    public void onActionPerformed(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
-        onActionPerformed(objectsToProcess, true, pageBase, target);
+    public AbstractGuiAction(@NotNull GuiActionType guiActionType) {
+        this.guiActionType = guiActionType;
     }
 
     /**
-     * Executes the action. If preAction is set, it will be executed first.
-     * This method should be called for main action with preActionPerform set to false (after pre-action was performed)
+     * Executes the action. In case panel is defined, it is shown in the main popup.
      * @param objectsToProcess
-     * @param preActionPerform
      * @param pageBase
      * @param target
      */
-    public void onActionPerformed(List<C> objectsToProcess, boolean preActionPerform, PageBase pageBase, AjaxRequestTarget target) {
-        if (preAction != null && preActionPerform) {
-            if (preAction instanceof PreAction) {
-                PreAction<C, AbstractGuiAction<C>> preAction = (PreAction<C, AbstractGuiAction<C>>) this.preAction;
-                preAction.onActionPerformed(this, objectsToProcess, pageBase, target);
-            } else {
-                preAction.onActionPerformed(objectsToProcess, pageBase, target);
-            }
-        } else {
+    public void onActionPerformed(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target) {
+        if (guiActionType == null) {
             executeAction(objectsToProcess, pageBase, target);
+            return;
         }
+
+        ContainerPanelConfigurationType panel = guiActionType.getPanel();
+        if (panel != null) {
+            showActionConfigurationPanel(panel, objectsToProcess, pageBase, target);
+            return;
+        }
+        executeAction(objectsToProcess, pageBase, target);
+
+    }
+
+    protected void showActionConfigurationPanel(ContainerPanelConfigurationType panelConfig, List<C> objectsToProcess,
+            PageBase pageBase, AjaxRequestTarget target) {
+        ActionConfigurationPanel panel = new ActionConfigurationPanel(pageBase.getMainPopupBodyId(), Model.of(panelConfig)) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void confirmPerformedWithDeltas(AjaxRequestTarget target, Collection<ItemDelta<?, ?>> deltas) {
+                confirmActionPerformed(target, objectsToProcess, deltas, pageBase);
+            }
+        };
+        pageBase.showMainPopup(panel, target);
+    }
+
+    protected void confirmActionPerformed(AjaxRequestTarget target, List<C> objectsToProcess,
+            Collection<ItemDelta<?, ?>> deltas, PageBase pageBase) {
+        for (C objectToProcess : objectsToProcess) {
+            try {
+                ItemDeltaCollectionsUtil.applyTo(deltas, objectToProcess.asPrismContainerValue());
+            } catch (SchemaException e) {
+                throw new RuntimeException(e);
+                //TODO error handling
+            }
+        }
+
+        executeAction(objectsToProcess, pageBase, target);
+        pageBase.hideMainPopup(target);
     }
 
     protected abstract void executeAction(List<C> objectsToProcess, PageBase pageBase, AjaxRequestTarget target);
@@ -75,8 +99,10 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
     }
 
     public DisplayType getActionDisplayType() {
-        if (actionDisplayType != null) {
-            return actionDisplayType;
+        //TODO probably there should be merging of those two
+        DisplayType displayType = guiActionType == null ? null : guiActionType.getDisplay();
+        if (displayType != null) {
+            return displayType;
         }
         ActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(ActionType.class);
         PanelDisplay display = actionType != null ? actionType.display() : null;
@@ -89,20 +115,16 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
                         .cssClass(display.icon()));
     }
 
-    public boolean isVisible() {
-        return isVisible;
+    public boolean isVisible(C rowObject) {
+        return isConfiguredVisibility() && isVisibleForRow(rowObject);
     }
 
-    public Map<String, Object> getActionParametersMap() {
-        return actionParametersMap;
+    private boolean isConfiguredVisibility() {
+        return guiActionType == null || WebComponentUtil.getElementVisibility(guiActionType.getVisibility());
     }
 
-    public void addParameterValue(String parameterName, Object parameterValue) {
-        if (actionParametersMap.containsKey(parameterName)) {
-            actionParametersMap.replace(parameterName, parameterValue);
-        } else {
-            actionParametersMap.put(parameterName, parameterValue);
-        }
+    protected boolean isVisibleForRow(C rowObject) {
+        return true;
     }
 
     public List<String> getParameterNameList() {
@@ -113,21 +135,14 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
         return new ArrayList<>();
     }
 
-    public Map<String, Object> getPreActionParametersMap() {
-        return preAction != null ? preAction.getActionParametersMap() : null;
-    }
-
-    public boolean isParameterMandatory(String parameterName) {
-        if (actionParameters == null) {
-            return false;
-        }
-        return actionParameters.stream()
-                .anyMatch(param -> parameterName.equals(param.getName()) && param.isMandatory());
-    }
-
     public boolean isBulkAction() {
         ActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(ActionType.class);
         return actionType != null && actionType.bulkAction();
     }
 
+    public int getOrder() {
+        ActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(ActionType.class);
+        PanelDisplay display = actionType != null ? actionType.display() : null;
+        return display != null ? display.order() : 0;
+    }
 }

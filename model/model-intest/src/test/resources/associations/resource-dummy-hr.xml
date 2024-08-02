@@ -69,6 +69,12 @@
                         <link/>
                     </actions>
                 </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
             </synchronization>
         </objectType>
         <objectType>
@@ -105,6 +111,12 @@
                         <link/>
                     </actions>
                 </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
             </synchronization>
         </objectType>
         <objectType>
@@ -124,6 +136,7 @@
                 <association>
                     <ref>ri:contract</ref>
                     <inbound>
+                        <name>contracts-inbound</name>
                         <expression>
                             <associationSynchronization>
                                 <attribute>
@@ -260,12 +273,6 @@
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <assignmentSubtype>contract</assignmentSubtype>
-                            <set>
-                                <predefined>all</predefined>
-                            </set>
-                        </target>
                     </inbound>
                 </association>
             </subject>

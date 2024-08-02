@@ -181,8 +181,10 @@ public class SynchronizationServiceMock
                 try {
                     repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService." + notificationDesc));
                 } catch (Exception e) {
-                    AssertJUnit.fail("Got exception while trying to read current shadow " + currentShadowType +
-                            ": " + e.getCause() + ": " + e.getMessage());
+                    throw new AssertionError(
+                            "Got exception while trying to read current shadow " + currentShadowType + ": "
+                                    + e.getCause() + ": " + e.getMessage(),
+                            e);
                 }
             }
             // Check resource
@@ -191,8 +193,11 @@ public class SynchronizationServiceMock
             try {
                 repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService." + notificationDesc));
             } catch (Exception e) {
-                AssertJUnit.fail("Got exception while trying to read resource " + resourceOid + " as specified in current shadow " + currentShadowType +
-                        ": " + e.getCause() + ": " + e.getMessage());
+                throw new AssertionError(
+                        "Got exception while trying to read resource " + resourceOid
+                                + " as specified in current shadow " + currentShadowType + ": "
+                                + e.getCause() + ": " + e.getMessage(),
+                        e);
             }
         }
         if (opDescription.getObjectDelta() != null && !failure) {

@@ -124,9 +124,12 @@ public class AssociationValuesTripleComputation {
                                 ea.getRoles().foreach(
                                         (targetSet, target) -> {
                                             try {
-                                                var mode = PlusMinusZero.compute(eaSet, targetSet);
-                                                if (mode != null) {
-                                                    processAssignmentTarget(mode, target);
+                                                if (target.getAssignmentPath().last().isMatchingOrder()) {
+                                                    var mode = PlusMinusZero.compute(eaSet, targetSet);
+                                                    if (mode != null) {
+                                                        // TODO consider validity as well
+                                                        processAssignmentTarget(mode, target);
+                                                    }
                                                 }
                                             } catch (CommonException e) {
                                                 throw new LocalTunnelException(e);
@@ -173,7 +176,8 @@ public class AssociationValuesTripleComputation {
             ConfigurationException, ObjectNotFoundException {
 
         var objectParticipants = associationDefinition.getObjectParticipants(projectionContext.getResourceSchemaRequired());
-        LOGGER.trace("Trying to find relevant shadows for focus {} (object types: {})", focus, objectParticipants);
+        LOGGER.trace("Trying to find relevant shadows for focus {} having {} linkRefs (object types: {})",
+                focus, focus.getLinkRef().size(), objectParticipants);
 
         stateCheck(!objectParticipants.isEmpty(), "No object participants in %s", associationDefinition);
 

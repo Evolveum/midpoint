@@ -1011,7 +1011,8 @@ public class ActivationProcessor implements ProjectorProcessor {
         params.setMappingDesc(desc + " in projection " + projCtxDesc);
         params.setNow(now);
         params.setInitializer(internalInitializer);
-        params.setTargetLoader(new ProjectionMappingLoader<>(projCtx, contextLoader));
+        params.setTargetLoader(new ProjectionMappingLoader(projCtx, contextLoader, projCtx::isActivationLoaded));
+        params.setTargetValueAvailable(projCtx.isActivationLoaded());
         params.setAPrioriTargetObject(shadowNew);
         params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
         if (context.getFocusContext() != null) {
@@ -1022,7 +1023,6 @@ public class ActivationProcessor implements ProjectorProcessor {
         params.setEvaluateCurrent(evaluationTime);
         params.setEvaluateWeak(true);
         params.setContext(context);
-        params.setHasFullTargetObject(projCtx.hasFullShadow());
 
         Map<UniformItemPath, MappingOutputStruct<PrismPropertyValue<T>>> outputTripleMap =
                 projectionMappingSetEvaluator.evaluateMappingsToTriples(params, task, result);

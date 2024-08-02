@@ -554,7 +554,6 @@ public class CollectionProcessor {
         compileViewIdentifier(existingView, objectListViewType, replaceIfExist);
         compileVisibility(existingView, objectListViewType);
         compileApplicableForOperation(existingView, objectListViewType);
-        compileMultiselect(existingView, objectListViewType);
     }
 
     @Nullable
@@ -725,12 +724,6 @@ public class CollectionProcessor {
     private void compileApplicableForOperation(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
         if (objectListViewType.getApplicableForOperation() != null) {
             existingView.setApplicableForOperation(objectListViewType.getApplicableForOperation());
-        }
-    }
-
-    private void compileMultiselect(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
-        if (objectListViewType.getMultiselect() != null) {
-            existingView.setMultiselect(objectListViewType.getMultiselect());
         }
     }
 

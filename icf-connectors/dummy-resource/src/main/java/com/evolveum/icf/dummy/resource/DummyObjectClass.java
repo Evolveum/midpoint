@@ -29,27 +29,27 @@ public class DummyObjectClass {
     /** Links relevant to this object class. Maintained by the resource itself. Indexed by (non-null) local link name.*/
     @NotNull private final Map<String, LinkDefinition> linkDefinitionsMap = new ConcurrentHashMap<>();
 
-    /** True if this is an "association object class". */
-    private final boolean associationObject;
+    /** True if this class represents objects that are embedded into "normal" ones. */
+    private final boolean embeddedObject;
 
     public DummyObjectClass() {
         this(false);
     }
 
-    public DummyObjectClass(boolean associationObject) {
-        this.associationObject = associationObject;
+    public DummyObjectClass(boolean embeddedObject) {
+        this.embeddedObject = embeddedObject;
     }
 
     /**
-     * Creates a standard/standalone object class, i.e. not an association one. The object class can be structural or auxiliary,
+     * Creates a standard/standalone object class, i.e. not an embedded one. The object class can be structural or auxiliary,
      * depending on how it's used.
      */
     public static DummyObjectClass standard() {
         return new DummyObjectClass();
     }
 
-    /** Creates an association object class. Should be used as a structural one for now. */
-    public static DummyObjectClass association() {
+    /** Creates an object class for embedded objects. Should be used as a structural one for now. */
+    public static DummyObjectClass embedded() {
         return new DummyObjectClass(true);
     }
 
@@ -99,13 +99,14 @@ public class DummyObjectClass {
                 "No link '%s' definition in %s", linkName, this);
     }
 
+    /** The definition must be visible on this class. */
     synchronized void addLinkDefinition(LinkDefinition definition) {
-        var name = argNonNull(definition.getLinkName(), "No link name in %s", definition);
+        var name = definition.getLinkNameRequired();
         stateCheck(!linkDefinitionsMap.containsKey(name), "Link definition for %s already exists", name);
         linkDefinitionsMap.put(name, definition);
     }
 
-    public boolean isAssociationObject() {
-        return associationObject;
+    public boolean isEmbeddedObject() {
+        return embeddedObject;
     }
 }

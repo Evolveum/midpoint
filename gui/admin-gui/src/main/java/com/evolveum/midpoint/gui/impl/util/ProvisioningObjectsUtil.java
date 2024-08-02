@@ -730,11 +730,11 @@ public class ProvisioningObjectsUtil {
 
         refAttrDef.getTargetParticipantTypes().forEach(objectParticipantDef -> {
             @NotNull ResourceObjectDefinition objectDef = objectParticipantDef.getObjectDefinition();
-            if (objectDef.getObjectClassDefinition().isAssociationObject()) {
+            if (objectDef.getObjectClassDefinition().isEmbedded()) {
                 objectDef.getReferenceAttributeDefinitions().forEach(associationRefAttrDef -> {
                     associationRefAttrDef.getTargetParticipantTypes().forEach(associationObjectParticipantDef -> {
                         @NotNull ResourceObjectDefinition associationObjectDef = associationObjectParticipantDef.getObjectDefinition();
-                        if (associationObjectDef.getObjectClassDefinition().isAssociationObject()) {
+                        if (associationObjectDef.getObjectClassDefinition().isEmbedded()) {
                             return;
                         }
                         objects.add(associationObjectParticipantDef);

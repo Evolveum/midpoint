@@ -27,6 +27,7 @@ import org.identityconnectors.framework.spi.operations.*;
 
 import com.evolveum.icf.dummy.resource.*;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -138,21 +139,21 @@ public abstract class AbstractObjectDummyConnector
         if (!(referenceAttributeValue instanceof ConnectorObjectReference reference)) {
             throw new SchemaViolationException("Reference attribute with non-reference value: " + referenceAttributeValue);
         }
-        var referencedObjectClass = reference.getReferencedValue().getObjectClass();
+        var referenceValue = reference.getValue();
+        var referencedObjectClass = referenceValue.getObjectClass();
         var referencedObjectClassNativeName = fromConnIdObjectClass(referencedObjectClass);
         var referencedObjectClassDef = resource.getStructuralObjectClass(referencedObjectClassNativeName);
         DummyObject referencedObject;
-        if (referencedObjectClassDef.isAssociationObject()) {
-            var attributes = reference.getReferencedValue().getAttributes();
+        if (referencedObjectClassDef.isEmbeddedObject()) {
+            var attributes = referenceValue.getAttributes();
             try {
                 referencedObject = convertToDummyObjectAndAdd(referencedObjectClass, attributes);
             } catch (ObjectAlreadyExistsException | ObjectDoesNotExistException e) {
                 throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);
             }
         } else {
-            var identification = reference.getReferencedObjectIdentification();
-            var uidAttr = (Uid) identification.getAttributeByName(Uid.NAME);
-            var nameAttr = (Name) identification.getAttributeByName(Name.NAME);
+            var uidAttr = (Uid) referenceValue.getAttributeByName(Uid.NAME);
+            var nameAttr = (Name) referenceValue.getAttributeByName(Name.NAME);
             if (uidAttr != null) {
                 referencedObject = findObjectByUidRequired(referencedObjectClassNativeName, uidAttr, false);
             } else if (nameAttr != null) {
@@ -170,18 +171,18 @@ public abstract class AbstractObjectDummyConnector
 
     private DummyObject convertToDummyObjectExceptLinks(ObjectClass objectClass, Set<Attribute> createAttributes)
             throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
-        var objectClassName = objectClass.getObjectClassValue();
-        if (ObjectClass.ACCOUNT.is(objectClassName)) {
+        var objectClassName = fromConnIdObjectClass(objectClass);
+        if (objectClassName.equalsIgnoreCase(DummyAccount.OBJECT_CLASS_NAME)) {
             return convertToAccount(createAttributes);
-        } else if (ObjectClass.GROUP.is(objectClassName)) {
+        } else if (objectClassName.equalsIgnoreCase(DummyGroup.OBJECT_CLASS_NAME)) {
             return convertToGroup(createAttributes);
-        } else if (objectClass.is(DummyPrivilege.OBJECT_CLASS_NAME)) {
+        } else if (objectClassName.equalsIgnoreCase(DummyPrivilege.OBJECT_CLASS_NAME)) {
             return convertToOther(
                     new DummyPrivilege(
                             getIcfName(createAttributes),
                             resource),
                     createAttributes);
-        } else if (objectClass.is(DummyOrg.OBJECT_CLASS_NAME)) {
+        } else if (objectClassName.equalsIgnoreCase(DummyOrg.OBJECT_CLASS_NAME)) {
             return convertToOther(
                     new DummyOrg(
                             getIcfName(createAttributes),
@@ -351,7 +352,7 @@ public abstract class AbstractObjectDummyConnector
         if (typeName != null) {
             objClassBuilder.setType(typeName);
         }
-        objClassBuilder.setAssociated(dummyAccountObjectClass.isAssociationObject());
+        objClassBuilder.setEmbedded(dummyAccountObjectClass.isEmbeddedObject());
 
         buildAttributes(objClassBuilder, dummyAccountObjectClass);
         buildLinks(objClassBuilder, dummyAccountObjectClass);
@@ -406,6 +407,19 @@ public abstract class AbstractObjectDummyConnector
         return objClassBuilder.build();
     }
 
+    @Contract("!null -> !null; null -> null")
+    private String nativeObjectClassNameToConnId(String nativeClassName) {
+        if (!configuration.getUseLegacySchema()) {
+            return nativeClassName;
+        } else if (DummyAccount.OBJECT_CLASS_NAME.equals(nativeClassName)) {
+            return ObjectClass.ACCOUNT_NAME;
+        } else if (DummyGroup.OBJECT_CLASS_NAME.equals(nativeClassName)) {
+            return ObjectClass.GROUP_NAME;
+        } else {
+            return nativeClassName;
+        }
+    }
+
     private String getAccountObjectClassName() {
         return configuration.getUseLegacySchema() ? ObjectClass.ACCOUNT_NAME : DummyAccount.OBJECT_CLASS_NAME;
     }
@@ -437,18 +451,24 @@ public abstract class AbstractObjectDummyConnector
     private void buildLinks(ObjectClassInfoBuilder classBuilder, DummyObjectClass dummyObjectClass) {
         for (var linkDefinition : dummyObjectClass.getLinkDefinitions()) {
             var participant = linkDefinition.getParticipant();
-            var attrBuilder = new AttributeInfoBuilder(linkDefinition.getLinkName(), ConnectorObjectReference.class)
+            if (!participant.isVisible()) {
+                continue;
+            }
+            var attrBuilder = new AttributeInfoBuilder(participant.getLinkNameRequired(), ConnectorObjectReference.class)
+                    // We provide null subtype for one-sided links to check that midPoint can cope with them.
+                    .setSubtype(
+                            linkDefinition.getOtherParticipant().isVisible() ?
+                                    linkDefinition.getLinkClassDefinition().getName() : null)
                     .setMultiValued(participant.getMaxOccurs() < 0 || participant.getMaxOccurs() > 1)
                     .setRequired(participant.getMinOccurs() > 0)
-                    .setReturnedByDefault(participant.isReturnedByDefault());
-            if (!participant.isVisible()) {
-                attrBuilder
-                        .setReadable(false)
-                        .setUpdateable(false)
-                        .setCreateable(false);
-            }
-            attrBuilder.setSubtype(
-                    linkDefinition.getLinkClassDefinition().getName() + "#" + linkDefinition.getParticipantIndex().getOrder());
+                    .setReturnedByDefault(participant.isReturnedByDefault())
+                    .setReferencedObjectClassName(
+                            nativeObjectClassNameToConnId(
+                                    linkDefinition.getOtherParticipant().getSingleObjectClassNameIfApplicable()))
+                    .setRoleInReference(
+                            linkDefinition.getParticipantIndex() == LinkClassDefinition.ParticipantIndex.FIRST ?
+                                    AttributeInfo.RoleInReference.SUBJECT.toString() :
+                                    AttributeInfo.RoleInReference.OBJECT.toString());
             classBuilder.addAttributeInfo(attrBuilder.build());
         }
     }
@@ -1024,7 +1044,7 @@ public abstract class AbstractObjectDummyConnector
                 throw new InvalidAttributeValueException("Unknown account attribute '"+name+"'");
             }
             if (!attrDef.isReturnedByDefault()) {
-                if (attributesToGet != null && !attributesToGet.contains(name)) {
+                if (attributesToGet == null || !attributesToGet.contains(name)) {
                     continue;
                 }
             }
@@ -1074,7 +1094,7 @@ public abstract class AbstractObjectDummyConnector
             builder.addAttribute(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, dummyObject.getAuxiliaryObjectClassNames());
         }
 
-        addLinks(builder, dummyObject);
+        addLinks(builder, dummyObject, attributesToGet);
 
         addAdditionalCommonAttributes(builder, dummyObject);
 
@@ -1102,24 +1122,39 @@ public abstract class AbstractObjectDummyConnector
         }
     }
 
-    private void addLinks(ConnectorObjectBuilder builder, DummyObject dummyObject) throws SchemaViolationException {
+    private void addLinks(ConnectorObjectBuilder builder, DummyObject dummyObject, Collection<String> attributesToGet)
+            throws SchemaViolationException {
         for (LinkDefinition linkDefinition : dummyObject.getStructuralObjectClass().getLinkDefinitions()) {
             if (!linkDefinition.isVisible()) {
                 continue;
             }
             LOG.info("Processing link definition: {0}", linkDefinition);
             var participant = linkDefinition.getParticipant();
-            // in the future, returned/expanded-by-default will be overridable by "get options"
+            var linkName = participant.getLinkNameRequired();
             if (!participant.isReturnedByDefault()) {
-                continue;
+                if (attributesToGet == null || !attributesToGet.contains(linkName)) {
+                    continue;
+                }
             }
             Set<Object> convertedLinkValues = new HashSet<>();
-            for (DummyObject linkedObject : dummyObject.getLinkedObjects(linkDefinition.getLinkName())) {
+
+            for (DummyObject linkedObject : dummyObject.getLinkedObjects(linkName)) {
                 var convertedLinkedObject = convertToConnectorObject(linkedObject, null);
-                convertedLinkValues.add(new ConnectorObjectReference(
-                        participant.isExpandedByDefault() ? convertedLinkedObject : convertedLinkedObject.getIdentification()));
+                BaseConnectorObject refValue;
+                // in the future, expanded-by-default will be overridable by "get options"
+                if (participant.isExpandedByDefault()) {
+                    refValue = convertedLinkedObject;
+                } else {
+                    var identification = convertedLinkedObject.getIdentification();
+                    if (participant.isProvidingUnclassifiedReferences()) {
+                        refValue = new ConnectorObjectIdentification(null, identification.getAttributes());
+                    } else {
+                        refValue = identification;
+                    }
+                }
+                convertedLinkValues.add(new ConnectorObjectReference(refValue));
             }
-            builder.addAttribute(linkDefinition.getLinkName(), convertedLinkValues);
+            builder.addAttribute(linkName, convertedLinkValues);
         }
     }
 

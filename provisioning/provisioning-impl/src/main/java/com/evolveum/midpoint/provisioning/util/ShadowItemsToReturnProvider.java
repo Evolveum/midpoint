@@ -27,12 +27,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType.EXPLICIT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType.*;
 
 /** Determines {@link ShadowItemsToReturn} in a given context. */
 public class ShadowItemsToReturnProvider {
@@ -155,32 +154,39 @@ public class ShadowItemsToReturnProvider {
 
     private boolean hasItemWithMinimalFetchStrategy() {
         return getRelevantItemDefinitionsStream()
-                .anyMatch(def -> def.getFetchStrategy() == AttributeFetchStrategyType.MINIMAL);
+                .anyMatch(def -> def.getFetchStrategy() == MINIMAL);
     }
 
     private boolean shouldFetchExplicitly(ShadowAttributeDefinition<?, ?, ?, ?> itemDef) {
-        AttributeFetchStrategyType fetchStrategy = itemDef.getFetchStrategy();
+        var fetchStrategy = itemDef.getFetchStrategy();
         if (fetchStrategy == EXPLICIT) {
-            LOGGER.trace("Will fetch explicitly because it's configured so: {}", itemDef);
+            LOGGER.trace("WILL fetch explicitly because it's configured so: {}", itemDef);
             return true;
-        } else if (shadowItemsToReturn.isReturnDefaultAttributes()) {
-            assert fetchStrategy != AttributeFetchStrategyType.MINIMAL; // otherwise we wouldn't have set "return default ones"
-            LOGGER.trace("Will not fetch explicitly because it's returned by default: {}", itemDef);
-            return false;
-        } else if (isFetchingRequestedByClient(itemDef)) {
-            LOGGER.trace("Will fetch explicitly because client requested it: {}", itemDef);
-            return true;
-        } else if (fetchStrategy == AttributeFetchStrategyType.MINIMAL) {
-            LOGGER.trace("Will not fetch explicitly because the strategy is MINIMAL: {}", itemDef);
-            return false;
         } else if (!itemDef.canRead()) {
-            // TODO shouldn't we do this check earlier?
-            LOGGER.trace("Will not fetch explicitly because the item is not readable: {}", itemDef);
+            LOGGER.trace("WILL NOT fetch explicitly because the attribute is not readable: {}", itemDef);
             return false;
-        } else {
-            assert fetchStrategy == AttributeFetchStrategyType.IMPLICIT;
-            LOGGER.trace("Will fetch explicitly because of the implicit fetch strategy: {}", itemDef);
+        } else if (shadowItemsToReturn.isReturnDefaultAttributes()) {
+            // We know that the strategy for this attribute is IMPLICIT, because
+            //  - if it was MINIMAL, we wouldn't have set "return default ones";
+            //  - EXPLICIT value was treated above
+            assert fetchStrategy == IMPLICIT;
+            LOGGER.trace("NEED NOT be fetched explicitly because it's returned by default anyway: {}", itemDef);
+            return false;
+        } else if (isFetchingRequestedByClient(itemDef)) { // TODO what about options that BLOCK retrieving given attribute?
+            LOGGER.trace("WILL fetch explicitly because client requested it: {}", itemDef);
             return true;
+        } else if (fetchStrategy == MINIMAL) {
+            LOGGER.trace("WILL NOT fetch explicitly, because the fetch strategy is MINIMAL: {}", itemDef);
+            return false;
+        }
+        assert fetchStrategy == IMPLICIT;
+        if (itemDef.isReturnedByDefault()) {
+            LOGGER.trace("WILL fetch explicitly, because strategy=IMPLICIT and it's normally returned by default, "
+                    + "but we are asking to not return default attributes: {}", itemDef);
+            return true;
+        }  else {
+            LOGGER.trace("WILL NOT fetch explicitly, because strategy=IMPLICIT, and it's not returned by default: {}", itemDef);
+            return false;
         }
     }
 

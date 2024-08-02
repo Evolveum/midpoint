@@ -172,11 +172,6 @@
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <set> <!-- TEMPORARY! Will be turned on automatically soon. -->
-                                <predefined>matchingProvenance</predefined>
-                            </set>
-                        </target>
                     </inbound>
                 </association>
             </subject>

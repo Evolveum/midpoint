@@ -75,7 +75,20 @@ Tree node search is now same for all nodes.
 ** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle (TODO add link).
 ** For more information can see xref:/midpoint/reference/schema/custom-schema-extension.adoc[].
 
-* xref:/midpoint/reference/roles-policies/classification/[Information Classification and Clearances]
+* Object marks
+** Supported for all object types including assignments when executed via policy rules
+** GUI support for adding/removing marks for focus objects and shadows
+** GUI Support to show mark in the focus and shadow tables
+
+* Regulatory compliance
+** Compliance dashboard provides overview of metrics related to regulatory compliance.
+** Built-in support for xref:/midpoint/reference/roles-policies/classification/[information classification and clearances].
+** Support for `requirement` policy constraint in xref:/midpoint/reference/roles-policies/policy-rules/[policy rules].
+** Built-in classifications for _privileged access_ and _information security responsibility_.
+
+* Spring Boot/hibernate upgrade
+** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
+** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
 
 === Other Improvements
 
@@ -403,6 +416,9 @@ For more information see xref:/midpoint/reference/deployment/ninja/use-case/upgr
 
 * 250-object-collection-resource.xml: The `All resources` object collection was updated with a filter to exclude resource templates.
 * 251-object-collection-resource-up.xml: The `Resources up` object collection was updated with a filter to exclude resource templates.
+* 520-archetype-task-certification.xml: Changes for proper functioning of certification related tasks.
+* 534-archetype-task-certification-campaign-open-next-stage.xml: Archetype for campaign open next stage (start campaign) related task.
+* 535-archetype-task-certification-remediation.xml: Archetype for campaign remediation related task.
 // * References to removed `category`, `handlerUri`, and `reportOutputOid` properties of tasks were deleted: from task archetypes and from GUI configurations.
 // See https://github.com/Evolveum/midpoint/commit/1fe4b60057d040f7424523cf24194bfcb7920f90[1fe4b6], https://github.com/Evolveum/midpoint/commit/b5a331b377a4fff0dbabd82e64da60f0b8c96c2b[b5a331], and https://github.com/Evolveum/midpoint/commit/6887e980c48e45a5ae22642932ed22e0c8b5f665[6887e9].
 //

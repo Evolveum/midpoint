@@ -19,6 +19,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -386,6 +388,16 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
                     .kind(null)
                     .intent(null);
         }
+    }
+
+    default @NotNull ShadowContentDescriptionType getContentDescriptionRequired() {
+        return stateNonNull(
+                getContentDescription(),
+                "No content description in %s", this);
+    }
+
+    default @Nullable ShadowContentDescriptionType getContentDescription() {
+        return getBean().getContentDescription();
     }
 
     /**

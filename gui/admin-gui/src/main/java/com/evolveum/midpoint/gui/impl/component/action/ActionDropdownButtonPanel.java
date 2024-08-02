@@ -42,11 +42,13 @@ public abstract class ActionDropdownButtonPanel<C extends Containerable> extends
     private static final String ID_ACTION_ITEM_BODY = "actionItemBody";
 
     IModel<DisplayType> buttonDisplayModel;
+    private C rowObject;
 
     public ActionDropdownButtonPanel(String id, IModel<DisplayType> buttonDisplayModel,
-            IModel<List<AbstractGuiAction<C>>> itemsModel) {
+            IModel<List<AbstractGuiAction<C>>> itemsModel, C rowObject) {
         super(id, itemsModel);
         this.buttonDisplayModel = buttonDisplayModel;
+        this.rowObject = rowObject;
     }
 
     @Override
@@ -134,7 +136,7 @@ public abstract class ActionDropdownButtonPanel<C extends Containerable> extends
         };
         actionItemPanel.setRenderBodyOnly(true);
         actionItem.add(actionItemPanel);
-        actionItem.add(new VisibleEnableBehaviour(() -> actionItem.getModelObject().isVisible()));
+        actionItem.add(new VisibleEnableBehaviour(() -> actionItem.getModelObject().isVisible(rowObject)));
     }
 
     protected String getSpecialButtonClass() {

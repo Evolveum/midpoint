@@ -1,5 +1,9 @@
 = Shadow Partitioning
 
+== Removing from m_object hierarchy
+
+IMPORTANT: Shadows not being able to be found breaks lots of tasks dealing with objects in general (eg. trigger task), so it seems repository needs if searching for ObjectType emulate joined search over `m_object` and `m_shadow`
+
 == Migration
 
 === Upgrade Script `postgres-upgrade.sql`
@@ -14,6 +18,7 @@
 
 ==== SQL Scripts
 
+.Converting `m_shadow` table to become default partition 
 [source, sql]
 ----
 ALTER TABLE m_shadow NO INHERIT m_object;
@@ -21,22 +26,14 @@ ALTER TABLE m_shadow RENAME TO m_shadow_default;
 
 ALTER TABLE m_shadow_default
 ALTER resourcereftargetoid TYPE uuid,
-ALTER resourcereftargetoid DROP DEFAULT,
 ALTER resourcereftargetoid SET NOT NULL;
 
-
-/*ALTER TABLE "m_shadow_default"
-DROP CONSTRAINT "m_shadow_pkey";
-*/
-/*ALTER TABLE "m_shadow_default"
-ADD CONSTRAINT "m_shadow_pkey" PRIMARY KEY ("resourcereftargetoid", "oid");
-*/
-
-
+DROP TRIGGER "m_shadow_oid_insert_tr" ON "m_shadow_default";
 DROP TRIGGER "m_shadow_update_tr" ON "m_shadow_default";
-
+DROP TRIGGER "m_shadow_oid_insert_tr" ON "m_shadow_default";
 ----
 
+.Creating partitioned `m_shadow`
 [source, sql]
 ----
 CREATE TABLE m_shadow (
@@ -96,7 +93,7 @@ CREATE TABLE m_shadow (
     correlationEndTimestamp TIMESTAMPTZ,
     correlationCaseOpenTimestamp TIMESTAMPTZ,
     correlationCaseCloseTimestamp TIMESTAMPTZ,
-    correlationSituation CorrelationSituationType,
+    correlationSituation CorrelationSituationType
 ) PARTITION BY LIST (resourceRefTargetOid);
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
@@ -104,6 +101,8 @@ CREATE TRIGGER m_shadow_update_tr BEFORE UPDATE ON m_shadow
     FOR EACH ROW EXECUTE FUNCTION before_update_object();
 CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+ALTER TABLE m_shadow ATTACH PARTITION m_shadow_default DEFAULT;
 ----
 
 

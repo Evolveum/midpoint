@@ -29,7 +29,8 @@ import java.util.List;
 /**
  * A shadow that was fetched from the repository OR that is going to be (or was) added to the repository.
  *
- * In both cases, the attributes are meant to be "in the repository format", i.e. normalized.
+ * In both cases, the simple attributes are meant to be "in the repository format", i.e. normalized.
+ * Reference attributes are placed in `referenceAttributes` container, and are guaranteed to have OIDs.
  *
  * Moreover, in the former case, it can be in a not-very-consistent state,
  * for example, with obsolete (or no) attribute definitions.
@@ -43,6 +44,8 @@ import java.util.List;
  * - raw (no definition), if coming from 4.8 and earlier version of midPoint,
  * - with dynamic definitions, coming from xsi:type declarations in the full object in repository,
  * - with dynamic definitions, coming from the "ext item dictionary" for index-only attributes (if requested to be read).
+ *
+ * FIXME update the above description
  *
  * NOTE: The "raw" does not mean that the shadow was fetched from the repository in raw mode.
  * (Funny enough, if the raw mode was used, the attributes would get their estimated definitions even in 4.8.)
@@ -174,8 +177,14 @@ public class RawRepoShadow implements DebugDumpable, ShortDumpable {
         sb.append(ShadowUtil.shortDumpShadow(getBean()));
     }
 
-    public String getResourceOid() {
+    public @Nullable String getResourceOid() {
         return ShadowUtil.getResourceOid(bean);
+    }
+
+    public @NotNull String getResourceOidRequired() {
+        return MiscUtil.stateNonNull(
+                getResourceOid(),
+                "No resource OID in %s", this);
     }
 
     public Collection<Item<?, ?>> getSimpleAttributes() {

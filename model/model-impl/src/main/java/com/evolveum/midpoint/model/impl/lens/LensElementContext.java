@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
+import com.evolveum.midpoint.repo.common.EvaluatedPolicyStatements;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -117,6 +118,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * Everything related to policy rules evaluation and processing.
      */
     @NotNull final PolicyRulesContext policyRulesContext = new PolicyRulesContext();
+
+    /**
+     * Evaluated policy statements for each run. These are collected to later compute effectiveMarkRef delta,
+     * based on manual marking and also marking from policy rules.
+     */
+    @NotNull private EvaluatedPolicyStatements evaluatedPolicyStatements = new EvaluatedPolicyStatements();
 
     /**
      * Link to the parent context.
@@ -502,6 +509,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     public void addToPendingObjectPolicyStateModifications(ItemDelta<?, ?> modification) {
         policyRulesContext.addToPendingObjectPolicyStateModifications(modification);
+    }
+
+    public void addEvaluatedPolicyStatements(EvaluatedPolicyStatements evaluatedPolicyStatements) {
+        this.evaluatedPolicyStatements = evaluatedPolicyStatements;
+    }
+
+    public EvaluatedPolicyStatements getEvaluatedPolicyStatements() {
+        return evaluatedPolicyStatements;
     }
 
     @NotNull

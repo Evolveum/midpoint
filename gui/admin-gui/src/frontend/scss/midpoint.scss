@@ -2209,3 +2209,18 @@ div.show > a > div > i.fas {
   height: 35px;
   }
 }
+
+.search-panel-form {
+  .saved-filter-item {
+    a.delete-filter {
+      display: none;
+    }
+
+    &:hover a.delete-filter {
+      display: inline;
+      color: $danger;
+    }
+  }
+}
+
+

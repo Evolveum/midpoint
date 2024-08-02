@@ -6,12 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.mark;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -73,7 +73,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.util.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -82,9 +81,10 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
 
+//TODO better name, it is now applicable for all object types
 @PanelType(name = "markedShadowList")
 @PanelDisplay(label = "Members", order = 60)
-public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDetailsModels<MarkType>> {
+public class ShadowMarkPanel<O extends ObjectType> extends AbstractObjectMainPanel<MarkType, ObjectDetailsModels<MarkType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -95,12 +95,11 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
     private static final Trace LOGGER = TraceManager.getTrace(ShadowMarkPanel.class);
     private static final String DOT_CLASS = ShadowMarkPanel.class.getName() + ".";
 
-    protected static final String OPERATION_LOAD_MEMBER_RELATIONS = DOT_CLASS + "loadMemberRelationsList";
-
     private static final String OPERATION_UNASSIGN_OBJECTS = DOT_CLASS + "unassignObjects";
     private static final String OPERATION_UNASSIGN_OBJECT = DOT_CLASS + "unassignObject";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_RECOMPUTE_OBJECT = DOT_CLASS + "recomputeObject";
+    private static final String OPERATION_UNMARK_OBJECT = DOT_CLASS + "unmarkObject";
 
     protected static final String ID_FORM = "form";
 
@@ -135,18 +134,18 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
         return (Form<?>) get(ID_FORM);
     }
 
-    private <AH extends ObjectType> Class<AH> getDefaultObjectTypeClass() {
-        return (Class<AH>) ShadowType.class;
+    private Class<O> getDefaultObjectTypeClass() {
+        return (Class<O>) ObjectType.class;
     }
 
-    protected <AH extends ObjectType> void initMemberTable(Form<?> form) {
+    protected void initMemberTable(Form<?> form) {
         WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
         memberContainer.setOutputMarkupId(true);
         memberContainer.setOutputMarkupPlaceholderTag(true);
         form.add(memberContainer);
 
         //TODO QName defines a relation value which will be used for new member creation
-        MainObjectListPanel<AH> childrenListPanel = new MainObjectListPanel<>(
+        MainObjectListPanel<O> childrenListPanel = new MainObjectListPanel<>(
                 ID_MEMBER_TABLE, getDefaultObjectTypeClass(), getPanelConfiguration()) {
 
             private static final long serialVersionUID = 1L;
@@ -157,14 +156,13 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
             }
 
             @Override
-            protected List<IColumn<SelectableBean<AH>, String>> createDefaultColumns() {
-                List<IColumn<SelectableBean<AH>, String>> columns = super.createDefaultColumns();
-                //columns.add(createRelationColumn());
+            protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<O>, String>> columns = super.createDefaultColumns();
                 return columns;
             }
 
             @Override
-            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<AH>> rowModel) {
+            protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
                 if (rowModel == null || rowModel.getObject() == null
                         || rowModel.getObject().getValue() == null) {
                     return false;
@@ -198,14 +196,14 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
             }
 
             @Override
-            protected SelectableBeanObjectDataProvider<AH> createProvider() {
+            protected SelectableBeanObjectDataProvider<O> createProvider() {
                 var options = getPageBase().getOperationOptionsBuilder()
                         .distinct()
                         .raw()
                         .resolveNames()
                         .build();
 
-                SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(
+                SelectableBeanObjectDataProvider<O> provider = createSelectableBeanObjectDataProvider(
                         () -> getCustomizedQuery(getSearchModel().getObject()),
                         null,
                         options);
@@ -276,7 +274,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
         memberContainer.add(childrenListPanel);
     }
 
-    protected <AH extends AssignmentHolderType> SearchContext getDefaultMemberSearchBoxConfig() {
+    protected SearchContext getDefaultMemberSearchBoxConfig() {
         SearchContext ctx = new SearchContext();
         ctx.setPanelType(getPanelType());
         return ctx;
@@ -295,8 +293,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
         return false;
     }
 
-    protected <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search search) {
-        PrismContext prismContext = getPageBase().getPrismContext();
+    protected ObjectQuery getCustomizedQuery(Search search) {
         return getPageBase().getPrismContext().queryFor((Class<? extends Containerable>) search.getTypeClass())
                 .item(ObjectType.F_EFFECTIVE_MARK_REF)
                 .ref(getModelObject().getOid())
@@ -345,30 +342,57 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
                     "ShadowMarkPanel.message.info.created.task",
                     task.getResult().getOperation())
                     .getString());
-//            OperationResult showedResult = new OperationResult(task.getResult().getOperation());
-//            showedResult.setStatus(task.getResult().getStatus());
-//            getPageBase().showResult(showedResult);
         }
 
         refreshTable(target);
         target.add(getFeedback());
     }
 
-    protected AjaxIconButton createUnassignButton(String buttonId) {
-        AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_UNASSIGN),
-                createStringResource("TreeTablePanel.menu.removeMembers")) {
+    //TODO migrate to new (bulk) action task
+    protected void removeMarkPerformed(IModel<SelectableBean<O>> rowModel, AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OPERATION_UNMARK_OBJECT);
+        OperationResult result = task.getResult();
 
-            private static final long serialVersionUID = 1L;
+        List<SelectableBean<O>> selected = getMemberTable().isAnythingSelected(rowModel);
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                // remove this mark
+        if (selected == null || selected.isEmpty()) {
+            result.recordWarning(createStringResource("ResourceContentPanel.message.markShadowPerformed.warning").getString());
+            getPageBase().showResult(result);
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        MarkType markToDelete = getModelObject();
+        for (SelectableBean<O> shadow : selected) {
+            // We recreate statements (can not reuse them between multiple objects - we can create new or clone
+            // but for each delta we need separate statement
+            Set<PolicyStatementType> statements = shadow.getValue().getPolicyStatement()
+                    .stream().filter(statement -> statement.getMarkRef().getOid().equals(markToDelete.getOid()))
+                    .map(PolicyStatementType::clone)
+                    .collect(Collectors.toSet());
+            try {
+                ObjectDelta<O> delta = getPageBase().getPrismContext()
+                        .deltaFor(shadow.getValue().getClass())
+                        .item(ObjectType.F_POLICY_STATEMENT)
+                        .deleteRealValues(statements)
+                        .asObjectDelta(shadow.getValue().getOid());
+                getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            } catch (Exception e) {
+                result.recordPartialError(
+                        createStringResource(
+                                "ResourceContentPanel.message.markShadowPerformed.partialError", shadow)
+                                .getString(),
+                        e);
+                LOGGER.error("Could not mark shadow {} with marks {}", shadow, e);
             }
-        };
-        assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)));
-        assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        return assignButton;
+        }
+
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        refreshTable(target);
+        target.add(getPageBase().getFeedbackPanel());
     }
+
 
     private CompositedIconButtonDto createCompositedIconButtonDto(DisplayType buttonDisplayType, AssignmentObjectRelation relation, CompositedIcon icon) {
         CompositedIconButtonDto compositedIconButtonDto = new CompositedIconButtonDto();
@@ -404,24 +428,25 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
 
     protected List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
-        createUnassignMemberRowAction(menu);
-        createDeleteMemberRowAction(menu);
+        createUnmarkMemberRowAction(menu);
+//        createDeleteMemberRowAction(menu);
         return menu;
     }
 
-    private void createUnassignMemberRowAction(List<InlineMenuItem> menu) {
-        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
-            InlineMenuItem menuItem = new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign")) {
+    private void createUnmarkMemberRowAction(List<InlineMenuItem> menu) {
+//        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
+            InlineMenuItem menuItem = new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unmark")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<>() {
+                    return new ColumnMenuAction<SelectableBean<O>>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            unassignMembersPerformed(getRowModel(), target);
+                            removeMarkPerformed(getRowModel(), target);
+//                            unassignMembersPerformed(getRowModel(), target);
                         }
 
 
@@ -436,7 +461,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
             };
             menuItem.setVisibilityChecker((rowModel, isHeader) -> isHeader ? true : containsDirectApplyStatement(rowModel, isHeader));
             menu.add(menuItem);
-        }
+//        }
     }
 
     private boolean containsDirectApplyStatement(IModel<?> rowModel, boolean isHeader) {
@@ -455,10 +480,10 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
         return false;
     }
 
-    private void unassignMembersPerformed(IModel<Serializable> rowModel, AjaxRequestTarget target) {
-        // FIXME: Unassign all shadow
-
-    }
+//    private void unassignMembersPerformed(IModel<Serializable> rowModel, AjaxRequestTarget target) {
+//        // FIXME: Unassign all shadow
+//
+//    }
 
     private ObjectType getObjectTypeFromRow(IModel<?> rowModel) {
         if (rowModel != null && (rowModel.getObject() instanceof SelectableBean)
@@ -475,7 +500,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<>() {
+                    return new ColumnMenuAction<SelectableBean<O>>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -497,7 +522,7 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
         return new ArrayList<>();
     }
 
-    private <AH extends AssignmentHolderType> List<QName> getSupportedObjectTypes() {
+    private List<QName> getSupportedObjectTypes() {
         Search search = getMemberPanelStorage().getSearch();
         return search.getAllowedTypeList();
     }
@@ -706,8 +731,8 @@ public class ShadowMarkPanel extends AbstractObjectMainPanel<MarkType, ObjectDet
         return getMemberTable().getSelectedRealObjects();
     }
 
-    protected MainObjectListPanel<FocusType> getMemberTable() {
-        return (MainObjectListPanel<FocusType>) get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
+    protected MainObjectListPanel<O> getMemberTable() {
+        return (MainObjectListPanel<O>) get(getPageBase().createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
     }
 
     protected WebMarkupContainer getMemberContainer() {

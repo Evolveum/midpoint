@@ -1,0 +1,53 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="3b5cf882-65ae-4482-9b29-354d35599614">
+    <name>reconcile-target-accounts</name>
+    <executionState>closed</executionState> <!-- run on demand -->
+    <activity>
+        <work>
+            <reconciliation>
+                <resourceObjects>
+                    <resourceRef oid="e26d279d-6552-45e6-a3ca-a288910c885a"/>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                    <searchOptions>
+                        <option>
+                            <options>
+                                <noFetch>true</noFetch>
+                            </options>
+                        </option>
+                    </searchOptions>
+                </resourceObjects>
+            </reconciliation>
+        </work>
+        <reporting>
+            <tracing>
+                <beforeItemCondition>
+                    <interval>1</interval>
+                </beforeItemCondition>
+                <tracingProfile>
+                    <name>functional-model-logging</name>
+                    <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                    <createRepoObject>true</createRepoObject>
+                    <compressOutput>true</compressOutput>
+                    <collectLogEntries>true</collectLogEntries>
+                    <loggingOverride>
+                        <levelOverride>
+                            <logger>com.evolveum.midpoint.model</logger>
+                            <level>TRACE</level>
+                        </levelOverride>
+                    </loggingOverride>
+                    <tracingTypeProfile>
+                        <level>normal</level>
+                    </tracingTypeProfile>
+                </tracingProfile>
+            </tracing>
+        </reporting>
+    </activity>
+</task>

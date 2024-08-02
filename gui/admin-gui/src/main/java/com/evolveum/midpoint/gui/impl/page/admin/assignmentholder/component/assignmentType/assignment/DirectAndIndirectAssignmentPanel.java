@@ -296,7 +296,6 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
         DeltaSetTriple<? extends EvaluatedAssignmentTarget> targetsTriple = evaluatedAssignment.getRoles();
         Collection<? extends EvaluatedAssignmentTarget> targets = targetsTriple.getNonNegativeValues();
         for (EvaluatedAssignmentTarget target : targets) {
-            target.getTarget();
             if (ArchetypeType.class.equals(target.getTarget().getCompileTimeClass())) {
                 continue;
             }

@@ -43,6 +43,8 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 @NamedQueries({
         @NamedQuery(name = "get.focusPhoto", query = "select p.photo from RFocusPhoto p where p.ownerOid = :oid"),
         @NamedQuery(name = "get.taskResult", query = "select t.fullResult from RTask t where t.oid = :oid"),
@@ -366,6 +368,7 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         return polys;
     }
 
+    @JdbcType(IntegerJdbcType.class)
     @Enumerated
     @NotQueryable
     public RObjectType getObjectTypeClass() {

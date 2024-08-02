@@ -72,6 +72,12 @@
                         <link/>
                     </actions>
                 </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
             </synchronization>
         </objectType>
         <objectType>
@@ -88,6 +94,12 @@
             <attribute>
                 <ref>icfs:name</ref>
                 <correlator/>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -106,6 +118,12 @@
                     <situation>unlinked</situation>
                     <actions>
                         <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
                     </actions>
                 </reaction>
             </synchronization>
@@ -149,6 +167,7 @@
                         </expression>
                     </outbound>
                     <inbound>
+                        <name>accesses-inbound</name>
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
@@ -213,12 +232,6 @@
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <assignmentSubtype>documentAccess</assignmentSubtype>
-                            <set>
-                                <predefined>all</predefined>
-                            </set>
-                        </target>
                     </inbound>
                 </association>
             </subject>

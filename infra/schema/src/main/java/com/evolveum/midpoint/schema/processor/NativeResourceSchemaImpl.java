@@ -10,9 +10,7 @@ package com.evolveum.midpoint.schema.processor;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.xml.namespace.QName;
 
@@ -24,6 +22,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.google.common.collect.ArrayListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
@@ -39,7 +38,7 @@ public class NativeResourceSchemaImpl
         extends AbstractFreezable
         implements NativeResourceSchema, NativeResourceSchemaBuilder {
 
-    /** Definitions of native object classes and associations. */
+    /** Definitions of native object classes and reference types. */
     @NotNull private final Map<String, NativeComplexTypeDefinitionImpl> nativeComplexTypeDefinitionMap =
             new ConcurrentHashMap<>();
 
@@ -105,10 +104,10 @@ public class NativeResourceSchemaImpl
         return this;
     }
 
-    /** Transforms references between object classes into a collection of association classes. */
+    /** Transforms references between object classes into a collection of reference types. */
     @Override
     public void computeReferenceTypes() throws SchemaException {
-        new AssociationClassesComputer().compute();
+        new ReferenceTypesComputer().compute();
     }
 
     @Override
@@ -186,22 +185,45 @@ public class NativeResourceSchemaImpl
         nativeComplexTypeDefinitionMap.values().forEach(NativeComplexTypeDefinitionImpl::freeze);
     }
 
-    private class AssociationClassesComputer {
+    private class ReferenceTypesComputer {
+
         void compute() throws SchemaException {
 
             // Creating the reference type definitions
             nativeComplexTypeDefinitionMap.entrySet().removeIf(entry -> entry.getValue().isReferenceType());
+
+            // This is what we learn from "referencedObjectClassName" information
+            // Keyed by the participant, values are (local) names of object classes
+            var knownParticipatingObjectClasses = ArrayListMultimap.<ReferenceTypeParticipant, String>create();
+
             for (var objectClassDefinition : getObjectClassDefinitions()) {
                 for (var referenceAttributeDefinition : objectClassDefinition.getReferenceAttributeDefinitions()) {
                     var referenceTypeName = referenceAttributeDefinition.getTypeName();
                     stateCheck(NS_RI.equals(referenceTypeName.getNamespaceURI()),
                             "Reference type name must be in the RI namespace: %s", referenceTypeName);
+                    var role = referenceAttributeDefinition.getReferenceParticipantRole();
                     findOrCreateReferenceTypeDefinition(referenceTypeName)
                             .addParticipant(
                                     objectClassDefinition.getName(),
                                     referenceAttributeDefinition.getItemName(),
-                                    referenceAttributeDefinition.getReferenceParticipantRole());
+                                    role);
+                    var referencedObjectClassName = referenceAttributeDefinition.getReferencedObjectClassName();
+                    if (referencedObjectClassName != null) {
+                        stateCheck(
+                                NS_RI.equals(referencedObjectClassName.getNamespaceURI()),
+                                "Referenced object class name must be in the RI namespace: %s",
+                                referencedObjectClassName);
+                        knownParticipatingObjectClasses.put(
+                                new ReferenceTypeParticipant(referenceTypeName, role.other()),
+                                referencedObjectClassName.getLocalPart());
+                    }
                 }
+            }
+
+            // Adding object classes learned from "referencedObjectClassName"
+            for (var entry : knownParticipatingObjectClasses.entries()) {
+                var existingRefType = Objects.requireNonNull(findReferenceTypeDefinition(entry.getKey().referenceTypeName));
+                existingRefType.addParticipantIfNotThere(entry.getValue(), entry.getKey().role);
             }
 
             // Checking the consistency of the reference type definitions
@@ -214,15 +236,19 @@ public class NativeResourceSchemaImpl
         }
 
         private NativeReferenceTypeDefinition findOrCreateReferenceTypeDefinition(QName typeName) {
-            var existingClass = findReferenceTypeDefinition(typeName);
-            if (existingClass != null) {
-                return existingClass;
+            var existingRefType = findReferenceTypeDefinition(typeName);
+            if (existingRefType != null) {
+                return existingRefType;
             }
             String localTypeName = typeName.getLocalPart();
             var newClass = new NativeComplexTypeDefinitionImpl(localTypeName);
             newClass.setReferenceType();
             nativeComplexTypeDefinitionMap.put(typeName.getLocalPart(), newClass);
             return newClass;
+        }
+
+        // referenceTypeName is fully qualified
+        record ReferenceTypeParticipant(@NotNull QName referenceTypeName, @NotNull ShadowReferenceParticipantRole role) {
         }
     }
 }

@@ -17,7 +17,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -2230,7 +2230,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                 .end()
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
-                .assertNoAttribute(ATTR_DESCRIPTION_QNAME)
+                .assertNoSimpleAttribute(ATTR_DESCRIPTION_QNAME)
             .end()
             .assertNoPassword()
             .getObject();

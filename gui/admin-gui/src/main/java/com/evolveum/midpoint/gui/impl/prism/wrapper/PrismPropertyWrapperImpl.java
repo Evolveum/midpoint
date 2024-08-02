@@ -167,7 +167,7 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     }
 
     @Override
-    public Class<T> getTypeClass() {
+    public @NotNull Class<T> getTypeClass() {
         //noinspection unchecked
         return (Class<T>) super.getTypeClass();
     }

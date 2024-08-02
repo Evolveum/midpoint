@@ -54,6 +54,11 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         this.abstractShadow = abstractShadow;
     }
 
+    public ShadowAsserter(AbstractShadow abstractShadow, RA returnAsserter, String details) {
+        super(abstractShadow.getPrismObject(), returnAsserter, details);
+        this.abstractShadow = abstractShadow;
+    }
+
     public ShadowAsserter(PrismObject<ShadowType> shadow) {
         super(shadow);
         abstractShadow = null;
@@ -723,5 +728,12 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
     public AbstractShadow getAbstractShadow() {
         checkAbstractShadowPresent();
         return abstractShadow;
+    }
+
+    public ShadowAsserter<RA> assertFromResourceComplete() {
+        assertThat(getObjectable().getContentDescription())
+                .as("content description")
+                .isEqualTo(ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE);
+        return this;
     }
 }

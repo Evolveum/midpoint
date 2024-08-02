@@ -8,7 +8,9 @@
 <user oid="00000000-0000-0000-0000-000000000002"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>administrator</name>
     <fullName>midPoint Administrator</fullName>
     <givenName>midPoint</givenName>
@@ -48,4 +50,7 @@
     <assignment>
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
     </assignment>
+    <extension>
+        <piracy:ship xsi:type="xsd:string">Administrator ship</piracy:ship>
+    </extension>
 </user>

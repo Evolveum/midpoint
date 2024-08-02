@@ -4786,8 +4786,12 @@
             <xsd:enumeration value="implicit">
                 <xsd:annotation>
                     <xsd:documentation>
-                        MidPoint expects that the attribute will be implicitly returned by the connector
-                        in each fetch request and there is no need to explicitly request the attribute.
+                        The decision whether to return an attribute is left to the connector.
+
+                        If the attribute is returned by default, midPoint won't try to explicitly request it.
+                        (Unless midPoint needs to block returning default attributes, for some reason.)
+
+                        If the attribute is not returned by default, midPoint won't request it either.
 
                         This is the default. This strategy will be used if no other strategy is specified.
                     </xsd:documentation>
@@ -5177,6 +5181,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="mappingAlias" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Short alias of the mapping. Used for provenance metadata management and debugging purposes.
+                        Alias is usually previous name of the mapping and it is used to identify mapping values which
+                        were emitted in previous version of the mapping.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MappingType.mappingAlias</a:displayName>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element ref="tns:description" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -5677,6 +5695,9 @@
             </xsd:element>
             <xsd:element name="additionalMappingSpecification" type="c:MappingSpecificationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
                     <xsd:documentation>
                         Specification of additional mappings, which are considered as part of value set. Ideal for migration
                         after rename of mapping.
@@ -13638,6 +13659,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="autoCreatePartitionsOnAdd" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If database partitions should be automatically created on object add / reindex.
+                        Currently, this is only supported for Shadow Type.
+
+                        Default value is false.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -16295,6 +16329,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="requirement">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUIREMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="minAssigneesViolation">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -16695,7 +16736,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000333">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLASSIFICATION_INFORMATION_SECURITY_RESPONSIBILITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000501">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -17106,6 +17153,167 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MARK_INVALID_DATA"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000811">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_EXCLUSION_VIOLATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000812">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_REQUIREMENT_VIOLATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000813">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_UNDERASSIGNED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000814">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_OVERASSIGNED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000815">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_OBJECT_MODIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000816">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ASSIGNMENT_MODIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000817">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_HAS_ASSIGNMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000818">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_HAS_NO_ASSIGNMENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000819">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_OBJECT_STATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000820">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ASSIGNMENT_STATE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000821">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_OBJECT_TIME_VALIDITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000822">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ASSIGNMENT_TIME_VALIDITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000830">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_SUSPICIOUS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000831">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_UNDERSTAFFED_SECURITY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000832">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_ORPHANED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000833">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MARK_NEGLECTED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0001-000000000001">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DASHBOARD_ADMIN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0001-000000000350">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_COLLECTION_ALL_INFORMATION_SECURITY_RESPONSIBILITIES"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0001-000000000351">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_COLLECTION_SECURITY_UNDERSTAFFING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0001-000000000352">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_COLLECTION_SUSPICIOUS_OBJECTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0001-000000000353">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_COLLECTION_USERS_WITH_SOD_VIOLATIONS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0001-000000000354">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_COLLECTION_ROLES_PRIVILEGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0001-000000001001">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DASHBOARD_COMPLIANCE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17830,6 +18038,16 @@
 
                         This "conditional" meaning may change in the future.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="cachedShadowsUse" type="tns:CachedShadowsUseType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How should we use cached shadows during this operation?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="reconcileFocus" type="xsd:boolean" minOccurs="0">
@@ -21419,5 +21637,60 @@
     </xsd:complexType>
     <xsd:element name="schema" type="tns:SchemaType" substitutionGroup="c:object"/>
 
-
+    <xsd:simpleType name="CachedShadowsUseType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Whether (and how) we use cached shadows during processing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="useFresh">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When we need the data from the shadow, we will fetch it from the resource.
+                        This is the same behavior as it was before midPoint 4.9.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USE_FRESH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="useCachedOrFresh">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When we need the data from the shadow, we will use the cached data, if they are available.
+                        If they are not, we will fetch them from the resource.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USE_CACHED_OR_FRESH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="useCachedOrIgnore">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When we need the data from the shadow, we will use the cached data, if they are available.
+                        If they are not, we will skip the respective part of the processing (e.g., a mapping).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USE_CACHED_OR_IGNORE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="useCachedOrFail">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When we need the data from the shadow, we will use the cached data, if they are available.
+                        If they are not, we will fail.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="USE_CACHED_OR_FAIL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 </xsd:schema>

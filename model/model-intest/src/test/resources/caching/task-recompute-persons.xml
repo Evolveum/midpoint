@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="d791f072-1be3-4da0-a0d5-9da2ae5589c6">
+    <name>recompute-persons</name>
+    <executionState>closed</executionState> <!-- run on demand -->
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                    <archetypeRef oid="c4b26c78-b7ac-42b8-9a7c-9bdb0c1e2bbd"/>
+                </objects>
+            </recomputation>
+        </work>
+        <!--<reporting>-->
+        <!--    <tracing>-->
+        <!--        <beforeItemCondition>-->
+        <!--            <interval>1</interval>-->
+        <!--        </beforeItemCondition>-->
+        <!--        <tracingProfile>-->
+        <!--            <name>functional-model-logging</name>-->
+        <!--            <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>-->
+        <!--            <createRepoObject>true</createRepoObject>-->
+        <!--            <compressOutput>true</compressOutput>-->
+        <!--            <collectLogEntries>true</collectLogEntries>-->
+        <!--            <loggingOverride>-->
+        <!--                <levelOverride>-->
+        <!--                    <logger>com.evolveum.midpoint.model</logger>-->
+        <!--                    <level>TRACE</level>-->
+        <!--                </levelOverride>-->
+        <!--            </loggingOverride>-->
+        <!--            <tracingTypeProfile>-->
+        <!--                <level>normal</level>-->
+        <!--            </tracingTypeProfile>-->
+        <!--        </tracingProfile>-->
+        <!--    </tracing>-->
+        <!--</reporting>-->
+    </activity>
+</task>

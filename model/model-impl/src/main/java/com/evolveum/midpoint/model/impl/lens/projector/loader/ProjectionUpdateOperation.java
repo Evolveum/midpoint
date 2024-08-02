@@ -7,6 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+import static com.evolveum.midpoint.schema.GetOperationOptions.isNoFetch;
+
+import java.util.Collection;
+import java.util.List;
+
+import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -29,15 +38,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-import static com.evolveum.midpoint.schema.GetOperationOptions.isNoFetch;
 
 /**
  * Updates the projection context:
@@ -171,7 +171,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
 
         if (projectionContext.isDoReconciliation() && !projectionContext.isFullShadow()) {
             LOGGER.trace("Will reload current object, because we are doing reconciliation and we do not have full shadow");
-            return true; // Note that the loading options will ensure that the full object is loaded.
+            return true; // Note that the loading options will ensure that the full object is loaded, unless cache is used.
         }
 
         // This is kind of brutal. But effective. We are reloading all higher-order dependencies
@@ -394,7 +394,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
     }
 
     private void checkLoadedShadowConsistency(PrismObject<ShadowType> object) {
-        Validate.notNull(object.getOid());
+        Preconditions.checkNotNull(object.getOid());
         if (InternalsConfig.consistencyChecks) {
             String resourceOid = projectionContext.getResourceOid();
             if (resourceOid != null) {
@@ -410,18 +410,21 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         }
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions() {
+    private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions()
+            throws SchemaException, ConfigurationException {
         GetOperationOptionsBuilder builder = beans.schemaService.getOperationOptionsBuilder()
                 //.readOnly() [not yet]
                 .futurePointInTime()
                 .allowNotFound();
 
+        // Most probably reconciliation for all projections implies reconciliation for projContext
+        // but we include both conditions just to be sure.
+        var reconciliation = projectionContext.isDoReconciliation() || context.isDoReconciliationForAllProjections();
+
         if (projectionContext.isInMaintenance()) {
             LOGGER.trace("Using 'no fetch' mode because of resource maintenance (to avoid errors being reported)");
             builder = builder.noFetch();
-        } else if (projectionContext.isDoReconciliation() || context.isDoReconciliationForAllProjections()) {
-            // Most probably reconciliation for all projections implies reconciliation for projContext
-            // but we include both conditions just to be sure.
+        } else if (reconciliation && !projectionContext.isCachedShadowsUseAllowed()) {
             builder = builder.forceRefresh();
 
             // We force operation retry "in hard way" only if we do full-scale reconciliation AND we are starting the clockwork.

@@ -31,6 +31,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
+
 @Entity
 @ForeignKey(name = "fk_resource")
 @Table(uniqueConstraints = @UniqueConstraint(name = "uc_resource_name", columnNames = { "name_norm" }),
@@ -54,7 +56,7 @@ public class RResource extends RObject {
     private Boolean template;
 
     @Enumerated(EnumType.ORDINAL)
-    @Column
+    @JdbcType(IntegerJdbcType.class)
     public RResourceAdministrativeState getAdministrativeState() {
         return administrativeState;
     }

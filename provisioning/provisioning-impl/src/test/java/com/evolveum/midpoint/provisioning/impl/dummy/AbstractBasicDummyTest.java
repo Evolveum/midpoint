@@ -8,6 +8,10 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_REPOSITORY;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE;
+
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -26,6 +30,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.test.DummyDefaultScenario;
+
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -1313,7 +1319,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         List<String> expectedValues = new ArrayList<>(List.of("uid", "name", "description", "cc"));
         if (areReferencesSupportedNatively()) {
             expectedValues.add(DummyDefaultScenario.Group.LinkNames.GROUP.local());
-            expectedValues.add(DummyDefaultScenario.Group.LinkNames.MEMBER_REF.local());
         }
         PrismAsserts.assertSets("Wrong attribute to return", attrsToGet, expectedValues);
 
@@ -1411,7 +1416,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 .assertOrigValues(SchemaConstants.ICFS_NAME, getWillNameOnResource())
                 .assertOrigValues(SchemaConstants.ICFS_UID, willIcfUid)
                 .attributes()
-                .assertNoAttribute(new QName(SchemaConstants.NS_ICF_SCHEMA, "password"));
+                .assertNoSimpleAttribute(new QName(SchemaConstants.NS_ICF_SCHEMA, "password"));
 
         ActivationType activation = shadowAfter.getBean().getActivation();
         if (supportsActivation()) {
@@ -1464,7 +1469,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // The reason is that the ConnId returns only the UID (up-cased), so midPoint does not know that the name
         // was converted as well.
         String expectedIcfsName = rightAfterCreate ? ACCOUNT_WILL_USERNAME : getWillNameOnResource();
-        RepoShadowAsserter<Void> asserter = RepoShadowAsserter.forRepoShadow(accountRepo, getCachedAccountAttributes())
+        var asserter = assertRepoShadowNew(accountRepo)
                 .display()
                 .assertName(expectedIcfsName)
                 .assertIndexedPrimaryIdentifierValue(
@@ -1623,7 +1628,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
         checkRepoAccountShadowWillBasic(repoShadow, startTs, endTs, false, null);
 
-        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAccountAttributes())
+        assertRepoShadowNew(repoShadow)
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Black Pearl")
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE")
@@ -1698,6 +1703,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     void checkAccountShadow(
             AbstractShadow shadow, OperationResult result, boolean fullShadow)
             throws SchemaException, ConfigurationException {
+        assertThat(shadow.getContentDescription())
+                .as("content description")
+                .isEqualTo(fullShadow ? FROM_RESOURCE_COMPLETE : FROM_REPOSITORY);
         ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
         shadow.checkConsistenceComplex(result.getOperation());
         IntegrationTestTools.checkAccountShadow(
@@ -1790,5 +1798,23 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                         ResourceSchemaFactory.getCompleteSchemaRequired(resource));
         return requireNonNull(
                 resourceSchema.findObjectClassDefinition(RI_ACCOUNT_OBJECT_CLASS));
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull String oid)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        return assertRepoShadow(oid, getCachedAccountAttributes());
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull RawRepoShadow rawRepoShadow)
+            throws SchemaException, ConfigurationException {
+        return RepoShadowAsserter.forRepoShadow(rawRepoShadow, getCachedAccountAttributes());
+    }
+
+    /** TODO reconcile with {@link #assertRepoShadow(String)} */
+    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull PrismObject<ShadowType> rawRepoShadow)
+            throws SchemaException, ConfigurationException {
+        return RepoShadowAsserter.forRepoShadow(rawRepoShadow, getCachedAccountAttributes());
     }
 }

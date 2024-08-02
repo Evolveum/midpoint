@@ -52,31 +52,22 @@ This are semi-internal notes that can be ignored if you just want to run with H2
 Remember that *H2 is not supported as a production database* - it is only used for testing or proof-of-concept experiments.
 ====
 
-Since December 2016 we use H2 1.4.193 (released in October 2016).
+Since December 2016 we used H2 1.4.193 (released in October 2016).
+Since July 2024 we switched to H2 2.3.230 (released in July 2024).
+
 There are some issues with H2, especially when running multi-threaded transactions, but in general the version works fine.
 
-Current link:https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html[Spring Boot BOM] offers H2 in version 1.4.200.
-During experimental upgrades to this fresh version we discovered couple of issues.
+After H2 upgrade:
 
-Firstly, the following must be changed in the code to go above version 1.4.197, which was rather a disruptive version change:
-
-* *MVCC* option in JDBC URL is obsolete and its usage must be removed.
-Threading model of H2 was reworked in 1.4.198 - which seems to be version with multiple breaking changes.
-See also: link:http://www.h2database.com/html/changelog.html[http://www.h2database.com/html/changelog.html]
-
-** This affects *jdbcUrl* if *sqlConfig.isEmbedded()* in *TaskManagerConfiguration#setJdbcJobStoreInformation*,
-
-** and *getDefaultEmbeddedJdbcUrl()* in *SqlRepositoryConfiguration*.
-
-
-
-* Some SQLs in *OrgClosureManager*, mainly strange usage of parenthesis around two columns in selects used in *IN* clause.
-All these *isH2()* branches can be unified with *isPostgreSQL()* branches safely.
+* Some SQLs in *OrgClosureManager*, mainly strange usage of parenthesis around two columns in selects used in *IN* clause were removed.
 
 * In *SqlRepositoryFactory.createArguments()* versions 1.4.198 and higher require additional argument *args.add("-ifNotExists")*, because remote database is not created by default.
-In lower versions this can't be used.
+In lower versions this can't be used. However "-ifNotExists" was not used as that would create security issue. DB file is created manually during start.
+See link:http://h2database.com/html/tutorial.html?highlight=ifNotExists&search=ifNotExists#creating_new_databases[Creating new databases].
 
-These changes are not an issue and can be done quickly.
+
+=== Other threading issues found H2 between 1.4.193 and 1.4.200:
+
 The real problem are other issues that seriously affect the midPoint experience:
 
 * MidPoint with H2 always suffered with multi-threading issues, but with versions >=1.4.198 we regularly hit link:https://github.com/h2database/h2database/issues/1808[https://github.com/h2database/h2database/issues/1808] (NPE in *LobStorageMap.copyLob*) during *TestDummyParallelism*, but also during normal user interaction (e.g. adding a working thread to an existing task).

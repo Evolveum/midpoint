@@ -124,7 +124,7 @@ public class TestUuidNonUniqueName extends AbstractMiscTest {
                     .assertName(USER_JACK_GIVEN_NAME)
                     .attributes()
                         .assertValue(SchemaConstants.ICFS_NAME, USER_JACK_GIVEN_NAME)
-                        .getValue(SchemaConstants.ICFS_UID);
+                        .getSimpleAttributeValue(SchemaConstants.ICFS_UID);
         // @formatter:on
 
         assertDummyAccountById(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_NAME, accountJackSparrowUid)
@@ -191,7 +191,7 @@ public class TestUuidNonUniqueName extends AbstractMiscTest {
                     .assertName(USER_SKELLINGTON_GIVEN_NAME)
                     .attributes()
                         .assertValue(SchemaConstants.ICFS_NAME, USER_SKELLINGTON_GIVEN_NAME)
-                        .getValue(SchemaConstants.ICFS_UID);
+                        .getSimpleAttributeValue(SchemaConstants.ICFS_UID);
         // @formatter:on
 
         assertDummyAccountById(RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_NAME, accountJackSkellingtonUid)

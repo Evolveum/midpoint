@@ -11,11 +11,13 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -241,6 +243,13 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
     public AssignmentAsserter<R> assertDescription(String expected) {
         assertThat(assignment.getDescription())
                 .as("description in " + assignment)
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public AssignmentAsserter<R> assertValidFrom(XMLGregorianCalendar expected) {
+        assertThat(ActivationUtil.getValidFrom(assignment))
+                .as("validFrom in " + assignment)
                 .isEqualTo(expected);
         return this;
     }

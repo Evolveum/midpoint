@@ -26,6 +26,8 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import com.evolveum.midpoint.test.DummyDefaultScenario;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -60,7 +62,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
-import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -170,7 +171,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                         DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME,
                         XmlTypeConverter.createXMLGregorianCalendar(ZonedDateTime.parse(ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP)))
                 .attributes()
-                        .assertNoAttribute(ICFS_PASSWORD);
+                        .assertNoSimpleAttribute(ICFS_PASSWORD);
 
         and("the account is correct on the dummy resource");
         DummyAccount dummyAccount = getDummyAccountAssert(transformNameToResource(ACCOUNT_MORGAN_NAME), morganIcfUid);
@@ -338,7 +339,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         checkAccountShadow(shadow, result, true);
 
         var repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
-        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAccountAttributes())
+        assertRepoShadowNew(repoShadow)
                 .display()
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate")
                 .assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor")
@@ -517,7 +518,7 @@ public class TestDummy extends AbstractBasicDummyTest {
             foundObjects.add(shadow);
 
             try {
-                checkCachedAccountShadow(shadow, parentResult, false, null, startTs);
+                checkCachedAccountShadow(shadow, parentResult);
             } catch (ConfigurationException | SchemaException e) {
                 throw new SystemException(e.getMessage(), e);
             }
@@ -1445,8 +1446,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         when();
-        SearchResultList<PrismObject<ShadowType>> resultList =
-                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+        var resultList = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
         then();
         assertSuccess(result);
@@ -1635,8 +1635,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         when();
-        SearchResultList<PrismObject<ShadowType>> resultList =
-                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+        var resultList = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
         then();
         result.computeStatus();
@@ -1743,8 +1742,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
 
         when();
-        SearchResultList<PrismObject<ShadowType>> resultList =
-                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+        var resultList = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 
         then();
         result.computeStatus();
@@ -2508,8 +2506,31 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         and("cached shadow is OK");
         assertRepoShadowNew(ACCOUNT_WILL_OID)
-                .display();
-                //.assertCachedOrigValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate")
+                .display()
+                .assertCachedRefValues(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
+
+        and("search by references works");
+        assertSearchByReferenceAndAssociation(DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID, ACCOUNT_WILL_OID);
+
+        if (getCachedAccountAttributes().contains(DUMMY_ENTITLEMENT_GROUP_QNAME)) {
+            and("association is seen when using 'no fetch' get");
+            var willAfterNoFetchGet = provisioningService.getShadow(ACCOUNT_WILL_OID, createNoFetchCollection(), task, result);
+            displayDumpable("account obtained via 'no fetch' get", willAfterNoFetchGet);
+            assertGroupAssociation(willAfterNoFetchGet, GROUP_PIRATES_OID);
+
+            and("association is seen when using 'no fetch' search");
+            var willAfterNoFetchSearch =
+                    MiscUtil.extractSingletonRequired(
+                            provisioningService.searchShadows(
+                                    Resource.of(resource)
+                                            .queryFor(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                                            .and().item(ICFS_NAME_PATH).eq(ACCOUNT_WILL_USERNAME)
+                                            .build(),
+                                    createNoFetchCollection(),
+                                    task, result));
+            displayDumpable("account obtained via 'no fetch' search", willAfterNoFetchSearch);
+            assertGroupAssociation(willAfterNoFetchSearch, GROUP_PIRATES_OID);
+        }
     }
 
     /**
@@ -3178,7 +3199,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .assertOrigValues(SchemaConstants.ICFS_NAME, lechuckNameOnResource)
                 .assertOrigValues(SchemaConstants.ICFS_UID, lechuckUidOnResource)
                 .attributes()
-                .assertNoAttribute(ICFS_PASSWORD)
+                .assertNoSimpleAttribute(ICFS_PASSWORD)
                 .end()
                 .getAbstractShadow();
 
@@ -3648,15 +3669,17 @@ public class TestDummy extends AbstractBasicDummyTest {
                         ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.DISPUTED);
 
         when();
-        provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);
+        provisioningService.modifyObject(
+                ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);
 
         then();
         assertSuccess(result);
 
         syncServiceMock.assertSingleNotifySuccessOnly();
 
-        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
-        assertEquals("Wrong situation", SynchronizationSituationType.DISPUTED, shadowAfter.asObjectable().getSynchronizationSituation());
+        var shadowAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
+        assertEquals("Wrong situation",
+                SynchronizationSituationType.DISPUTED, shadowAfter.asObjectable().getSynchronizationSituation());
 
         assertSteadyResource();
     }
@@ -3827,7 +3850,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         display("Repository shadow", repoShadow);
         checkRepoAccountShadow(repoShadow);
 
-        RepoShadowAsserter.forRepoShadow(repoShadow, getCachedAccountAttributes())
+        assertRepoShadowNew(repoShadow)
                 .assertName(getMurrayRepoIcfName());
 
         assertSteadyResource();
@@ -4444,8 +4467,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertInProgress(result);
 
         and("a pending operation is recorded");
-        PrismObject<ShadowType> shadow =
-                provisioningService.getObject(ShadowType.class, oid, createNoFetchCollection(), task, result);
+        var shadow = provisioningService.getObject(ShadowType.class, oid, createNoFetchCollection(), task, result);
 
         // @formatter:off
         assertShadowAfter(shadow)
@@ -4468,8 +4490,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertThat(oid2).as("OID after second 'add' attempt").isEqualTo(oid);
 
         and("there should be a pending operation (still)");
-        PrismObject<ShadowType> shadow2 =
-                provisioningService.getObject(ShadowType.class, oid, createNoFetchCollection(), task, result);
+        var shadow2 = provisioningService.getObject(ShadowType.class, oid, createNoFetchCollection(), task, result);
 
         // @formatter:off
         assertShadowAfter(shadow2)
@@ -4671,13 +4692,10 @@ public class TestDummy extends AbstractBasicDummyTest {
     // test999 shutdown in the superclass
 
     @SuppressWarnings("SameParameterValue")
-    protected void checkCachedAccountShadow(
+    private void checkCachedAccountShadow(
             AbstractShadow shadow,
-            OperationResult parentResult,
-            boolean fullShadow,
-            XMLGregorianCalendar startTs,
-            XMLGregorianCalendar endTs) throws SchemaException, ConfigurationException {
-        checkAccountShadow(shadow, parentResult, fullShadow);
+            OperationResult parentResult) throws SchemaException, ConfigurationException {
+        checkAccountShadow(shadow, parentResult, false);
     }
 
     private void checkGroupShadow(AbstractShadow shadow, OperationResult parentResult)
@@ -4734,12 +4752,6 @@ public class TestDummy extends AbstractBasicDummyTest {
                 icfsNameAttribute.getRealValue());
     }
 
-    /** TODO reconcile with {@link #assertRepoShadow(String)} */
-    RepoShadowAsserter<Void> assertRepoShadowNew(@NotNull String oid)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException {
-        return assertRepoShadow(oid, getCachedAccountAttributes());
-    }
-
     /** Creates the association value (not the low-level reference attribute value). */
     ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, String objectOid)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
@@ -4747,7 +4759,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         var object = AbstractShadow.of(
                 provisioningService.getObject(
                         ShadowType.class, objectOid, createNoFetchCollection(), getTestTask(), getTestOperationResult()));
-        return createEntitleDelta(subjectOid, assocName, object);
+        return createEntitleDelta(subjectOid, assocName, object, true);
     }
 
     private ObjectDelta<ShadowType> createEntitleDeltaFromIdentifier(
@@ -4755,10 +4767,10 @@ public class TestDummy extends AbstractBasicDummyTest {
             throws SchemaException, ConfigurationException {
         var object = objectDef.createBlankShadow();
         object.getAttributesContainer().addSimpleAttribute(identifierName, identifierValue);
-        return createEntitleDelta(subjectOid, assocName, object);
+        return createEntitleDelta(subjectOid, assocName, object, false);
     }
 
-    private ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, AbstractShadow object)
+    private ObjectDelta<ShadowType> createEntitleDelta(String subjectOid, QName assocName, AbstractShadow object, boolean full)
             throws SchemaException, ConfigurationException {
         var assocDef = Resource.of(resource)
                 .getCompleteSchemaRequired()
@@ -4766,7 +4778,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 .findAssociationDefinitionRequired(assocName);
         return Resource.of(resource).deltaFor(RI_ACCOUNT_OBJECT_CLASS)
                 .item(ShadowType.F_ASSOCIATIONS, assocName)
-                .add(assocDef.createValueFromFullDefaultObject(object))
+                .add(assocDef.createValueFromDefaultObject(object, full))
                 .asObjectDelta(subjectOid);
     }
 
@@ -4814,10 +4826,10 @@ public class TestDummy extends AbstractBasicDummyTest {
                 createRefAttrQuery(refAttrName, objectOid),
                 subjectOid,
                 getCachedAccountAttributes().contains(refAttrName));
-//        assertQueryResult(
-//                createAssociationQuery(refAttrName, objectOid),
-//                subjectOid,
-//                getCachedAccountAttributes().contains(refAttrName));
+        assertQueryResult(
+                createAssociationQuery(refAttrName, objectOid),
+                subjectOid,
+                getCachedAccountAttributes().contains(refAttrName));
     }
 
     private void assertQueryResult(@NotNull ObjectQuery query, String subjectOid, boolean refAttrCached) throws CommonException {
@@ -4841,6 +4853,19 @@ public class TestDummy extends AbstractBasicDummyTest {
         return Resource.of(getResource())
                 .queryFor(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
                 .and().item(ShadowType.F_REFERENCE_ATTRIBUTES.append(refAttrName)) // FIXME TEMPORARY -> change to "attributes" later
+                .ref(objectOid)
+                .build();
+    }
+
+    private ObjectQuery createAssociationQuery(QName refAttrName, String objectOid)
+            throws SchemaException, ConfigurationException {
+        return Resource.of(getResource())
+                .queryFor(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                .and().item(
+                        ShadowType.F_ASSOCIATIONS,
+                        refAttrName,
+                        ShadowAssociationValueType.F_OBJECTS,
+                        refAttrName)
                 .ref(objectOid)
                 .build();
     }

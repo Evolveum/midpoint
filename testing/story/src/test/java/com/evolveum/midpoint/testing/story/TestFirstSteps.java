@@ -1512,7 +1512,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                                 .attributes()
                                     .assertValue(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER, DN_EMPNO_6)
                                     .assertValue(QNAME_EMPLOYEE_NUMBER, "6")
-                                    .assertNoAttribute(QNAME_MAIL)
+                                    .assertNoSimpleAttribute(QNAME_MAIL)
                                     .assertValue(QNAME_GIVEN_NAME, "John")
                                     .assertValue(QNAME_SN, "Johnson")
                                     .assertValue(QNAME_CN, "John Johnson")

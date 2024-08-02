@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -298,27 +299,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
                                 ajaxRequestTarget);
                     }
                 };
-                final String mouseOverStyle = "color: red;";
-                final String mouseLeaveStyle = "color: red; display: none;";
-                removeButton.add(AttributeAppender.append("style", mouseLeaveStyle));
                 item.add(removeButton);
-
-                item.add(new AjaxEventBehavior("mouseenter") {
-                    @Override
-                    public void onEvent(AjaxRequestTarget target) {
-                        removeButton.add(AttributeModifier.remove("style"));
-                        removeButton.add(AttributeAppender.append("style", mouseOverStyle));
-                        target.add(removeButton);
-                    }
-                });
-                item.add(new AjaxEventBehavior("mouseleave") {
-                    @Override
-                    public void onEvent(AjaxRequestTarget target) {
-                        removeButton.add(AttributeAppender.append("style", mouseLeaveStyle));
-                        target.add(removeButton);
-                    }
-                });
-
             }
         };
 
@@ -379,22 +360,23 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
     }
 
     private void deleteFilterPerformed(AvailableFilterType filter, AjaxRequestTarget target) {
-        Task task = getPageBase().createSimpleTask(OPERATION_REMOVE_SAVED_FILTER);
+        PageBase page = getPageBase();
+        Task task = page.createSimpleTask(OPERATION_REMOVE_SAVED_FILTER);
         OperationResult result = task.getResult();
-        FocusType principalFocus = getPageBase().getPrincipalFocus();
+        FocusType principalFocus = page.getPrincipalFocus();
         try {
-            ObjectDelta<UserType> delta = getPageBase().getPrismContext().deltaFactory().object().createModificationDeleteContainer
+            ObjectDelta<UserType> delta = page.getPrismContext().deltaFactory().object().createModificationDeleteContainer
                     (UserType.class, principalFocus.getOid(),
                             getAvailableFilterItemPath(principalFocus, filter),
                             filter.asPrismContainerValue().clone());
-            getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+            page.getModelService().executeChanges(MiscUtil.createCollection(delta), ModelExecuteOptions.create().raw(), task, result);
         } catch (Exception e) {
             LOGGER.error("Cannot remove filter from user admin gui configuration: {}", e.getMessage(), e);
             result.recordPartialError("Cannot remove filter from user admin gui configuration: {}", e);
         }
         result.computeStatusIfUnknown();
-        getPageBase().showResult(result);
-        target.add(getPageBase().getFeedbackPanel());
+        page.showResult(result);
+        target.add(page.getFeedbackPanel());
         target.add(get(ID_FORM));
     }
 

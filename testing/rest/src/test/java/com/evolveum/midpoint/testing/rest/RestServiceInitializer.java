@@ -6,16 +6,29 @@
  */
 package com.evolveum.midpoint.testing.rest;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class RestServiceInitializer extends AbstractRestServiceInitializer {
+
+    private <O extends ObjectType> void addObjectViaRepository(
+            PrismObject<O> object, RepoAddOptions options, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException {
+
+        repositoryService.addObject(object, options, result);
+    }
 
     @Override
     public void initSystem(Task initTask, OperationResult result) throws Exception {
@@ -45,6 +58,9 @@ public abstract class RestServiceInitializer extends AbstractRestServiceInitiali
         addObject(parseObject(SECURITY_POLICY), executeOptions().overwrite(), initTask, result);
         PrismObject<SystemConfigurationType> systemConfig = parseObject(SYSTEM_CONFIGURATION_FILE);
         addObject(systemConfig, executeOptions().overwrite(), initTask, result);
+
+        addObject(ROLE_META_APPROVAL, initTask, result);
+        addObject(ROLE_TO_APPROVE, initTask, result);
 
         InternalMonitor.reset();
 

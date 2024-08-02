@@ -91,10 +91,12 @@ public interface ShadowAttributeDefinition<
      * Returns `true` if this attribute is effectively cached, given provided object type/class definition.
      *
      * Precondition: the definition must be attached to a resource.
-     *
-     * NOTE: Ignores the default caching turned on by read capability with `cachingOnly` = `true`.
      */
     default boolean isEffectivelyCached(@NotNull ResourceObjectDefinition objectDefinition) {
+
+        if (objectDefinition.isIdentifier(getItemName())) {
+            return true;
+        }
 
         var cachingPolicy = objectDefinition.getEffectiveShadowCachingPolicy();
         if (cachingPolicy.getCachingStrategy() != CachingStrategyType.PASSIVE) {
@@ -107,16 +109,22 @@ public interface ShadowAttributeDefinition<
             return override;
         }
 
-        var scope = cachingPolicy.getScope();
-        var attributesScope = Objects.requireNonNullElse(
-                scope != null ? scope.getAttributes() : null,
-                ShadowItemsCachingScopeType.MAPPED);
+        var objectScope = Objects.requireNonNull(cachingPolicy.getScope());
 
-        return switch (attributesScope) {
-            case ALL -> true;
-            case NONE -> false;
-            case MAPPED -> hasOutboundMapping() || getInboundMappingBeans().isEmpty();
-        };
+        if (this instanceof ShadowSimpleAttributeDefinition) {
+            return switch (Objects.requireNonNull(objectScope.getAttributes())) {
+                case ALL -> true;
+                case DEFINED -> hasRefinements();
+                case MAPPED -> hasOutboundMapping() || !getInboundMappingBeans().isEmpty();
+                case NONE -> false;
+            };
+        } else {
+            assert this instanceof ShadowReferenceAttributeDefinition;
+            return switch (Objects.requireNonNull(objectScope.getAssociations())) {
+                case ALL -> true;
+                case NONE -> false;
+            };
+        }
     }
 
     /**

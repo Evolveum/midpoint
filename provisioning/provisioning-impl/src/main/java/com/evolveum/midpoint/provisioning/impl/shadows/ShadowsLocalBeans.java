@@ -50,11 +50,11 @@ public class ShadowsLocalBeans {
     @Autowired AccessChecker accessChecker;
     @Autowired ClassificationHelper classificationHelper;
     @Autowired ShadowsFacade shadowsFacade;
-    @Autowired ShadowFinder shadowFinder;
+    @Autowired public ShadowFinder shadowFinder;
     @Autowired OperationResultRecorder operationResultRecorder;
     @Autowired ShadowUpdater shadowUpdater;
     @Autowired ShadowCreator shadowCreator;
-    @Autowired EntitlementsHelper entitlementsHelper;
+    @Autowired AssociationsHelper associationsHelper;
     @Autowired ExpressionFactory expressionFactory;
     @Autowired @Qualifier("cacheRepositoryService") RepositoryService repositoryService;
     @Autowired ErrorHandlerLocator errorHandlerLocator;

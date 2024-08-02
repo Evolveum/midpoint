@@ -1051,6 +1051,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         String objectName = "shadow" + getTestNumber();
         ShadowType object = new ShadowType()
                 .name(objectName)
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .extension(new ExtensionType());
 
         ExtensionType extensionContainer = object.getExtension();

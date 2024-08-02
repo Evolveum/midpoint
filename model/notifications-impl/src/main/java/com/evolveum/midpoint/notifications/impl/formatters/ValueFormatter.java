@@ -197,7 +197,14 @@ public class ValueFormatter {
         PrismObject<? extends ObjectType> object = value.getObject();
 
         if (object == null) {
-            object = getPrismObject(value.getOid(), mightBeRemoved, result);
+            Class<? extends ObjectType> type = ObjectType.class;
+            if (value.getTargetType() != null) {
+                Class maybeType = PrismContext.get().getSchemaRegistry().getCompileTimeClassForObjectType(value.getTargetType());
+                if (maybeType != null) {
+                    type = maybeType;
+                }
+            }
+            object = getPrismObject(value.getOid(), type,  mightBeRemoved, result);
         }
 
         String qualifier = "";
@@ -206,7 +213,7 @@ public class ValueFormatter {
             PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
             ResourceType resourceType = null;
             if (resource == null) {
-                resource = getPrismObject(resourceRef.getOid(), false, result);
+                resource = getPrismObject(resourceRef.getOid(), ResourceType.class, false, result);
                 if (resource != null) {
                     resourceType = resource.asObjectable();
                 }
@@ -239,11 +246,16 @@ public class ValueFormatter {
                 : referredObjectIdentification;
     }
 
-    private <O extends ObjectType> PrismObject<O> getPrismObject(String oid, boolean mightBeRemoved, OperationResult result) {
+    private <O extends ObjectType> PrismObject<O> getPrismObject(String oid, Class<? extends ObjectType> type, boolean mightBeRemoved, OperationResult result) {
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
             //noinspection unchecked
-            return (PrismObject<O>) cacheRepositoryService.getObject(ObjectType.class, oid, options, result);
+            if (type == null) {
+                // Read by object typre
+                type = ObjectType.class;
+
+            }
+            return (PrismObject<O>) cacheRepositoryService.getObject(type, oid, options, result);
         } catch (ObjectNotFoundException e) {
             if (!mightBeRemoved) {
                 LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification (it might be already removed)", e);

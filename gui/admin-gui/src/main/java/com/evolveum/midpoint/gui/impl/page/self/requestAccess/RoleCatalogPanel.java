@@ -11,8 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +51,7 @@ import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMe
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
+import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
@@ -71,6 +70,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
@@ -149,6 +149,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             throw new RestartResponseException(new PageRequestAccess(params, getWizard()));
         }
+
+        ListGroupMenu<RoleCatalogQueryItem> menu = menuModel.getObject();
+        ListGroupMenuItem<RoleCatalogQueryItem> active = menu.getActiveMenu();
+        if (active == null) {
+            active = menu.activateFirstAvailableItem();
+        }
+        updateQueryModelSearchAndParameters(active);
 
         super.onBeforeRender();
     }
@@ -244,8 +251,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return;
             }
 
+            QName relation = getModelObject().getRelation();
+
             String[] oids = user.asObjectable().getAssignment().stream()
                     .filter(a -> a.getTargetRef() != null)
+                    .filter(a -> QNameUtil.match(relation, a.getTargetRef().getRelation()))
                     .map(a -> a.getTargetRef().getOid())
                     .toArray(String[]::new);
 
@@ -379,7 +389,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 Search search = getObject();
 
                 queryType = search.getTypeClass();
-                searchScope = search.findMemberSearchItem().getScopeValue();
+                if (search.findMemberSearchItem() != null) {
+                    searchScope = search.findMemberSearchItem().getScopeValue();
+                }
             }
         };
 
@@ -415,7 +427,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                 ObjectQuery query = catalogQuery.getQuery();
                 if (query != null) {
-                query = query.clone();
+                    query = query.clone();
                 } else if (catalogQuery.getParent() != null) {
                     // this is quite a mess since query couldn't be created at during building RoleCatalogQuery
                     // since scope might have changes in search panel and queryModel wouldn't know...
@@ -626,12 +638,45 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void updateQueryModelSearchAndParameters(ListGroupMenuItem<RoleCatalogQueryItem> item) {
+        // copy query object since it's being changed in place
+        RoleCatalogQuery currentRcq = queryModel.getObject().copy();
+
         boolean saveSearchType = updateQueryModel(item);
         if (saveSearchType) {
             searchModel.saveType();
         }
 
-        searchModel.reset();
+        updateOrResetSearchModel(currentRcq);
+    }
+
+    public void updateOrResetSearchModel(RoleCatalogQuery currentRcq) {
+        // already updated
+        RoleCatalogQuery rcq = queryModel.getObject();
+
+        Class<?> currentType = currentRcq.getType();
+        Class<?> newType = rcq.getType();
+
+        // reset search if type has changed
+        if (currentType != newType) {
+            searchModel.reset();
+            return;
+        }
+
+        // we have to reset if we're switching from scoped to unscoped search (to show/hide scope)
+        if ((currentRcq.getParent() != null && rcq.getParent() == null)
+                || (currentRcq.getParent() == null && rcq.getParent() != null)) {
+            searchModel.reset();
+            return;
+        }
+
+        // reset search if there's custom query that has changed (e.g. switching to teammate roles)
+        ObjectQuery currentQuery = currentRcq.getQuery();
+        ObjectQuery newQuery = rcq.getQuery();
+
+        if ((currentQuery != null && newQuery == null)
+                || (currentQuery == null && newQuery != null)) {
+            searchModel.reset();
+        }
     }
 
     private boolean updateQueryModel(ListGroupMenuItem<RoleCatalogQueryItem> item) {
@@ -1079,7 +1124,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private void addAllItemsPerformed(AjaxRequestTarget target) {
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tiles
-                = (TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>>) get(ID_TILES);
+                = (TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>>) getTileTable();
         List<CatalogTile<SelectableBean<ObjectType>>> tilesModel = tiles.getTilesModel().getObject();
         List<ObjectType> objects = tilesModel
                 .stream()

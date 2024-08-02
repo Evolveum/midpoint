@@ -29,6 +29,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.Contract;
@@ -44,6 +45,8 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_UID;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.*;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 /**
  * Methods that would belong to the {@link ShadowType} class but cannot go there because of JAXB.
@@ -1063,6 +1066,13 @@ public class ShadowUtil {
                 .collect(Collectors.toList());
     }
 
+    public static @NotNull ImmutableList<ItemDelta<?, ?>> getNonResourceModifications(
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        return modifications.stream()
+                .filter(modification -> !isResourceModification(modification))
+                .collect(toImmutableList());
+    }
+
     public static boolean isResourceModification(ItemDelta<?, ?> modification) {
         QName firstPathName = modification.getPath().firstName();
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
@@ -1274,5 +1284,116 @@ public class ShadowUtil {
             }
         }
         return -1;
+    }
+
+    public static boolean isActivationCached(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(shadow, definition, now)
+                && definition.isActivationCached();
+    }
+
+    public static boolean isPasswordValueLoaded(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(shadow, definition, now)
+                && definition.areCredentialsCached();
+    }
+
+    public static boolean isAuxiliaryObjectClassPropertyLoaded(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(shadow, definition, now)
+                && definition.isAuxiliaryObjectClassPropertyCached();
+    }
+
+    public static boolean isAttributeLoaded(
+            @NotNull ItemName attrName,
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) throws SchemaException {
+        if (shadow != null && definition.isIdentifier(attrName)) {
+            return true; // TODO revisit this: identifiers are supposed to be always up-to-date (is this correct?)
+        }
+        if (!isShadowFresh(shadow, definition, now)) {
+            return false;
+        }
+        return definition
+                .findAttributeDefinitionRequired(attrName)
+                .isEffectivelyCached(definition);
+    }
+
+    public static boolean isAssociationLoaded(
+            @NotNull ItemName assocName,
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) throws SchemaException {
+        if (!isShadowFresh(shadow, definition, now)) {
+            return false;
+        }
+        return definition
+                .findAssociationDefinitionRequired(assocName)
+                .getReferenceAttributeDefinition()
+                .isEffectivelyCached(definition);
+    }
+
+    public static Collection<QName> getCachedAttributesNames(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull CompositeObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        if (!isShadowFresh(shadow, definition, now)) {
+            return Set.of(); // TODO or should we provide at least the identifiers?
+        }
+        return definition.getAttributeDefinitions().stream()
+                .filter(def -> def.isEffectivelyCached(definition))
+                .map(def -> def.getItemName())
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Assuming that the shadow was obtained from the repository (cache), and has the correct definition,
+     * this method tells the client if the cached data can be considered fresh enough regarding the caching TTL.
+     */
+    public static boolean isShadowFresh(
+            @NotNull PrismObject<ShadowType> shadow, @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(
+                shadow,
+                getResourceObjectDefinition(shadow),
+                now);
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean isShadowFresh(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        if (shadow == null) {
+            return false;
+        }
+        var policy = definition.getEffectiveShadowCachingPolicy();
+        if (policy.getCachingStrategy() != CachingStrategyType.PASSIVE) {
+            // Caching is disabled. Individual overriding of caching status is not relevant.
+            return false;
+        }
+        var timeToLive = policy.getTimeToLive();
+        if (timeToLive == null) {
+            return false;
+        }
+        var cachingMetadata = shadow.asObjectable().getCachingMetadata();
+        if (cachingMetadata == null) {
+            return false;
+        }
+        var retrievalTimestamp = cachingMetadata.getRetrievalTimestamp();
+        if (retrievalTimestamp == null) {
+            return false;
+        }
+        var invalidationTimestamp = definition.getBasicResourceInformation().cacheInvalidationTimestamp();
+        if (invalidationTimestamp != null && retrievalTimestamp.compare(invalidationTimestamp) != DatatypeConstants.GREATER) {
+            return false;
+        }
+        return !XmlTypeConverter.isAfterInterval(retrievalTimestamp, timeToLive, now);
     }
 }

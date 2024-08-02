@@ -819,15 +819,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         account.setOid(accountJackOid);
         ObjectDelta<UserType> userDelta = createDeleteAccountDelta(USER_JACK_OID, account);
 
-        when("account is added in the simulation mode");
+        when("account is deleted in the simulation mode");
         var simulationResult = executeWithSimulationResult(List.of(userDelta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
 
-        and("single resource access, steady resources");
-        // The fetch operation just to provide the simulation data (may be configured or turned off in the future).
-        assertShadowFetchOperations(1);
+        and("1 or 0 resource access, steady resources");
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1008,7 +1007,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
@@ -1073,7 +1072,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("no resource access, steady resources");
-        assertShadowFetchOperations(1); // Because of the event mark policy rules
+        assertShadowFetchOperations(isCached() ? 0 : 1); // Because of the event mark policy rules
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1185,7 +1184,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single resource access (because of sims), steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1445,7 +1444,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single shadow fetch, steady resources");
-        assertShadowFetchOperations(1); // strong mapping, simulation mode
+        assertShadowFetchOperations(isCached() ? 0 : 1); // strong mapping, simulation mode
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1521,7 +1520,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
 
-        assertShadowFetchOperations(1); // There is strong mapping. Complete account is fetched.
+        assertShadowFetchOperations(isCached() ? 0 : 1); // There is strong mapping. Complete account is fetched.
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1730,7 +1729,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single shadow read, steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1923,7 +1922,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2344,7 +2343,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2805,7 +2804,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // First fetch: initial account read
         // Second fetch: fetchback after modification to correctly process inbound
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 2);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2868,7 +2867,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -2934,7 +2933,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -3029,7 +3028,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -3181,7 +3180,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single shadow fetch, steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -3486,7 +3485,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("one shadow fetch, steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -3526,7 +3525,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
@@ -3779,7 +3778,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertSuccess(result);
         // Not sure why 2 ... but this is not a big problem now
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 1 : 2);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -4124,4 +4123,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayValue("OperationResultType serialized", serialized);
     }
 
+    boolean isCached() {
+        return false;
+    }
 }

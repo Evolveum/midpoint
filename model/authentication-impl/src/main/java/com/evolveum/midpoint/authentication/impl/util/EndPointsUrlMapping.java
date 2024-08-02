@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.impl.util;
 
 import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.security.api.RestAuthorizationAction;
@@ -161,6 +162,7 @@ public enum EndPointsUrlMapping {
                     "PageReport.auth.report.label", "PageReport.auth.report.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
+
     CAMPAIGN_DETAILS("/admin/certification/campaign/**",
             new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
                     "PageAdminCertification.auth.certificationAll.label",
@@ -171,6 +173,19 @@ public enum EndPointsUrlMapping {
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageAdminCertification.auth.certificationCampaigns.label",
                     "PageAdminCertification.auth.certificationCampaigns.description")),
+
+    //TODO better names for authorizations
+    CAMPAIGN_DECISIONS_DETAILS("/admin/certification/decisionsAll/**",
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
+                    "PageAdminCertification.auth.certificationAll.label",
+                    "PageAdminCertification.auth.certificationAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_DECISIONS_URL,
+                    "PageAdminCertification.auth.decisions.label",
+                    "PageAdminCertification.auth.decisions.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminCertification.auth.certificationCampaigns.label",
+                    "PageAdminCertification.auth.certificationCampaigns.description")),
+
     SIMULATION_DETAILS("/admin/simulation/**",
             new AuthorizationActionValue(AUTZ_UI_SIMULATION_RESULT_URL,
                     "PageSimulationResults.auth.simulationResult.label", "PageSimulationResults.auth.simulationResult.description"),
