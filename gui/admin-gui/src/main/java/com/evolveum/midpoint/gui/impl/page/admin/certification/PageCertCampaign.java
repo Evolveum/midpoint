@@ -215,13 +215,14 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
                             .type(AccessCertificationCampaignType.COMPLEX_TYPE);
                     ReportParameterTypeUtil.addParameter(reportParam, "campaignRef", campaignRef);
 
-                    if (isCertItemsReport(report)) {
-                        int stageNumber = campaign.getStageNumber();
-                        ReportParameterTypeUtil.addParameter(reportParam, "stageNumber", stageNumber);
-
-                        int iteration = campaign.getIteration();
-                        ReportParameterTypeUtil.addParameter(reportParam, "iteration", iteration);
-                    }
+                    //todo default values (all stages and all iterations) are used for now
+//                    if (isCertItemsReport(report)) {
+//                        int stageNumber = campaign.getStageNumber();
+//                        ReportParameterTypeUtil.addParameter(reportParam, "stageNumber", stageNumber);
+//
+//                        int iteration = campaign.getIteration();
+//                        ReportParameterTypeUtil.addParameter(reportParam, "iteration", iteration);
+//                    }
                     reportParamValue = reportParam.asPrismContainerValue();
                     reportParamValue.revive(getPrismContext());
                     parameterContainer.add(reportParamValue);

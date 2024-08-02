@@ -35,6 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class SelectReportTemplatePanel extends BasePanel implements Popupable {
@@ -42,7 +44,8 @@ public class SelectReportTemplatePanel extends BasePanel implements Popupable {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = SelectReportTemplatePanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_CASES_REPORTS = DOT_CLASS + "loadReports";
+    private static final String OPERATION_LOAD_REPORTS = DOT_CLASS + "loadReports";
+    private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadReport";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runCertItemsReport";
 
     private static final String ID_MESSAGE_LABEL = "messageLabel";
@@ -77,8 +80,10 @@ public class SelectReportTemplatePanel extends BasePanel implements Popupable {
         add(feedback);
 
         add(createLabel(ID_MESSAGE_LABEL, "SelectReportTemplatePanel.message"));
-        add(createLabel(ID_REPORTS_FOR_CASES_LABEL, "SelectReportTemplatePanel.forCases.message"));
-        add(createLabel(ID_REPORTS_FOR_ITEMS_LABEL, "SelectReportTemplatePanel.forCertItems.message"));
+        //todo the idea was to load all reports for cases and cert items and to divide them in 2 groups
+        //at the moment, it's impossible to search for reports by object type, so only initial object reports are loaded
+//        add(createLabel(ID_REPORTS_FOR_CASES_LABEL, "SelectReportTemplatePanel.forCases.message"));
+//        add(createLabel(ID_REPORTS_FOR_ITEMS_LABEL, "SelectReportTemplatePanel.forCertItems.message"));
 
         initCasesReportsPanel();
         initCertItemsReportsPanel();
@@ -119,7 +124,7 @@ public class SelectReportTemplatePanel extends BasePanel implements Popupable {
 
                             @Override
                             protected IModel<String> getIconClassModel() {
-                                return () -> GuiStyleConstants.CLASS_REPORT_ICON;
+                                return () -> GuiStyleConstants.CLASS_REPORT_ICON + " text-gray";
                             }
 
                             @Override
@@ -184,10 +189,11 @@ public class SelectReportTemplatePanel extends BasePanel implements Popupable {
     }
 
     private void runReportPerformed(PrismObject<ReportType> report, AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
         Task task = getPageBase().createSimpleTask(OPERATION_RUN_REPORT);
         OperationResult result = task.getResult();
         try {
-            PrismContainer<ReportParameterType> params = createParameters(report);;
+            PrismContainer<ReportParameterType> params = createParameters(report);
             getPageBase().getReportManager().runReport(report, params, task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
@@ -199,23 +205,39 @@ public class SelectReportTemplatePanel extends BasePanel implements Popupable {
         target.add(getFeedbackPanel());
     }
 
-
-
-
     protected PrismContainer<ReportParameterType> createParameters(PrismObject<ReportType> report) {
         return null;
     }
 
     private List<PrismObject<ReportType>> loadCasesReports() {
-        return loadReports(AccessCertificationCaseType.COMPLEX_TYPE);
+        String oid = "00000000-0000-0000-0000-000000000150";    //initial object report for campaign cases
+        return Collections.singletonList(loadReport(oid));
+//        return loadReports(AccessCertificationCaseType.COMPLEX_TYPE);
     }
 
     private List<PrismObject<ReportType>> loadCertItemsReports() {
-        return loadReports(AccessCertificationWorkItemType.COMPLEX_TYPE);
+        String oid = "00000000-0000-0000-0000-000000000160";    //initial object report for cert items
+        return Collections.singletonList(loadReport(oid));
+//        return loadReports(AccessCertificationWorkItemType.COMPLEX_TYPE);
     }
 
+    private PrismObject<ReportType> loadReport(String oid) {
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REPORT);
+        OperationResult result = task.getResult();
+        PrismObject<ReportType> report;
+        try {
+            report = getPageBase().getModelService().getObject(ReportType.class, oid, null, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't load report", ex);
+            report = null;
+        }
+        return report;
+    }
+
+    //todo ReportType.F_OBJECT_COLLECTION is not searchable at the moment
+    //may be can be used in the future
     private List<PrismObject<ReportType>> loadReports(QName type) {
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CASES_REPORTS);
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REPORTS);
         OperationResult result = task.getResult();
         ObjectQuery query = getPageBase().getPrismContext().queryFor(ReportType.class)
                 .item(ItemPath.create(ReportType.F_OBJECT_COLLECTION, ObjectCollectionReportEngineConfigurationType.F_VIEW,
