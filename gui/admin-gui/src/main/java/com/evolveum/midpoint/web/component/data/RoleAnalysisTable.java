@@ -215,24 +215,24 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     }
 
     private void addHeaderToolbar(DataTable<A, String> table, ISortableDataProvider<A, ?> provider) {
-        if (getModelObject().isOutlierDetection()) {
-            TableHeadersToolbar<?> headersTop = new TableHeadersToolbar<>(table, provider) {
-
-                @Override
-                protected void refreshTable(AjaxRequestTarget target) {
-                    super.refreshTable(target);
-                    target.add(getFooter());
-                }
-            };
-
-            headersTop.setOutputMarkupId(true);
-            table.addTopToolbar(headersTop);
-        } else {
+//        if (getModelObject().isOutlierDetection()) {
+//            TableHeadersToolbar<?> headersTop = new TableHeadersToolbar<>(table, provider) {
+//
+//                @Override
+//                protected void refreshTable(AjaxRequestTarget target) {
+//                    super.refreshTable(target);
+//                    target.add(getFooter());
+//                }
+//            };
+//
+//            headersTop.setOutputMarkupId(true);
+//            table.addTopToolbar(headersTop);
+//        } else {
             RoleAnalysisTableHeadersToolbar<?> headersTop = new RoleAnalysisTableHeadersToolbar<>(table, provider) {
 
                 @Override
                 protected void refreshTable(AjaxRequestTarget target) {
-                    target.add(getFooter());
+//                    target.add(getFooter());
                     refreshTableRows(target);
                 }
             };
@@ -240,7 +240,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
             headersTop.setOutputMarkupId(true);
             table.addTopToolbar(headersTop);
 
-        }
+//        }
     }
 
     public String getAdditionalBoxCssClasses() {

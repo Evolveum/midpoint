@@ -14,7 +14,11 @@
     <div class="card-header" wicket:id="header"></div>
 
     <div wicket:id="tableContainer" class="card-body p-0">
-        <table class="p-0 table table-hover table-responsive overflow-hidden " wicket:id="table"></table>
+        <div id="tableScaleContainer"> <!-- be careful, javroleanataascript appended to this element -->
+            <div> <!-- div neede for correct selection, for now -->
+                <table class="p-0 table table-hover table-responsive overflow-hidden " wicket:id="table"></table>
+            </div>
+        </div>
     </div>
     <div class="card-footer bg-white border-top" style="height:60px" wicket:id="footer"></div>
 </wicket:panel>
