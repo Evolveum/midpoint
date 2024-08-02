@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
 
+import com.evolveum.midpoint.common.mining.utils.values.*;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 
@@ -26,10 +27,6 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectStatus;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
@@ -104,12 +101,12 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
         return RoleAnalysisSortMode.NONE;
     }
 
-    protected String getCompressStatus() {
-        return model.getObject().getChunkModeValue(); //displayValueOptionModel.getObject().getChunkMode().getValue();
+    protected RoleAnalysisChunkMode getCompressStatus() {
+        return model.getObject().getChunkModeValue();
     }
 
     protected RoleAnalysisChunkAction getChunkAction() {
-        return model.getObject().getChunkAction(); //displayValueOptionModel.getObject().getChunkAction();
+        return model.getObject().getChunkAction();
     }
 
     protected PageBase getPageBase() {

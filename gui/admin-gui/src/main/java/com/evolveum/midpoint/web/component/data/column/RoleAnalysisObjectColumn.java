@@ -48,13 +48,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.model.StringResourceModel;
+
 public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
 
     public RoleAnalysisObjectColumn(
-//            IModel<OperationPanelModel> opPanelModel,
-//            IModel<PrismObject<RoleAnalysisClusterType>> clusterModel,
             IModel<RoleAnalysisObjectDto> miningOperationChunk,
-//            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
             PageBase pageBase) {
         super(miningOperationChunk, pageBase);
     }
@@ -74,32 +73,20 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
                 LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton compressButton = new AjaxCompositedIconSubmitButton(componentId,
                 iconBuilder.build(),
-                new LoadableDetachableModel<>() {
-                    @Override
-                    protected String load() {
-                        if (RoleAnalysisChunkMode.valueOf(getCompressStatus())
-                                .equals(RoleAnalysisChunkMode.COMPRESS)) {
-                            return getPageBase().getString("RoleMining.operation.panel.expand.button.title");
-                        } else {
-                            return getPageBase().getString("RoleMining.operation.panel.compress.button.title");
-                        }
-                    }
-                }) {
+                getPageBase().createStringResource("RoleMining.operation.panel.${chunkModeValue}.button.title", getModel())){
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public CompositedIcon getIcon() {
 
-                CompositedIconBuilder iconBuilder;
-                if (RoleAnalysisChunkMode.valueOf(getCompressStatus()).equals(RoleAnalysisChunkMode.COMPRESS)) {
-                    iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-expand",
-                            LayeredIconCssStyle.IN_ROW_STYLE);
+                String icon;
+                if (RoleAnalysisChunkMode.COMPRESS == getCompressStatus()) {
+                    icon = "fa fa-expand";
                 } else {
-                    iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-compress",
-                            LayeredIconCssStyle.IN_ROW_STYLE);
+                    icon = "fa fa-compress";
                 }
-
-                return iconBuilder.build();
+                return new CompositedIconBuilder().setBasicIcon(icon,
+                            LayeredIconCssStyle.IN_ROW_STYLE).build();
             }
 
             @Override

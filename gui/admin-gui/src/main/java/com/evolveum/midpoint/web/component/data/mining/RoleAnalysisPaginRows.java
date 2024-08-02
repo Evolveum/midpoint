@@ -200,8 +200,10 @@ public class RoleAnalysisPaginRows extends Fragment {
 
                     @Override
                     public void performAfterFinish(AjaxRequestTarget target) {
-                        refreshTableRows(target);
-                    }
+                        resetTable(target);
+                    } //TODO probably too heavy to reset mining chunk,
+                      // however we would need a mechanism how to differentiate when the chunk mode was changed
+                    // vs. when sorting or something else was changed which might not need the hard reset
                 };
                 ((PageBase) getPage()).showMainPopup(selector, target);
             }

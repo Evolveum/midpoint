@@ -163,8 +163,8 @@ public class RoleAnalysisObjectDto implements Serializable {
         return displayValueOption.getSortMode();
     }
 
-    public String getChunkModeValue() {
-        return displayValueOption.getChunkMode().getValue();
+    public RoleAnalysisChunkMode getChunkModeValue() {
+        return displayValueOption.getChunkMode();
     }
 
     public RoleAnalysisChunkAction getChunkAction() {
@@ -178,7 +178,7 @@ public class RoleAnalysisObjectDto implements Serializable {
     public void recomputeChunks(PageBase pageBase) {
         Task task = pageBase.createSimpleTask("recompute chunks");
         OperationResult result = task.getResult();
-        pageBase.getRoleAnalysisService().prepareMiningStructure(
+        this.miningOperationChunk = pageBase.getRoleAnalysisService().prepareMiningStructure(
                 cluster,
                 displayValueOption,
                 isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER,

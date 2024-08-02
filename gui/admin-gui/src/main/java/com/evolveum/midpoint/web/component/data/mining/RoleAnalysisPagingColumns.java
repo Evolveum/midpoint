@@ -17,7 +17,6 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.RoleAnalysisTablePageable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -49,30 +48,22 @@ public class RoleAnalysisPagingColumns extends Fragment {
     private static final String ID_COUNT = "count";
     private static final String ID_PAGING = "paging";
 
-//    private String valueTitle = null;
-//    private int currentPageView = 0;
-
     private int pageSize = 100;
     private int fromCol = 1 ;
     private int toCol = 100;
 
-    //    private int specialColumnCount;
-
-//    int pagingSize = getColumnPageCount();
-////        long pages = 0;
-
     public RoleAnalysisPagingColumns(String id, String markupId, DataTable<?, String> table, RoleAnalysisTable markupProvider) {
         super(id, markupId, markupProvider);
         setOutputMarkupId(true);
-
-        initLayout(table);
     }
 
-//        int pagingSize = getColumnPageCount();
-//        long pages = 0;
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
-    private void initLayout(DataTable<?, String> table) {
-
+    private void initLayout() {
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
         footerContainer.setOutputMarkupId(true);
@@ -164,7 +155,6 @@ public class RoleAnalysisPagingColumns extends Fragment {
             @Override
             protected long getCurrentPage() {
                 return fromCol / pageSize;
-//                return super.getCurrentPage();
             }
 
             @Override
@@ -181,11 +171,6 @@ public class RoleAnalysisPagingColumns extends Fragment {
 
         add(footerContainer);
     }
-
-//    private RoleAnalysisTablePageable<?> createPageableList() {
-//
-//        return new RoleAnalysisTablePageable<>(totalPages, fromCol % pageSize);
-//    }
 
     private IModel<String> createTitleModel() {
         return () -> fromCol + " to " + Math.min(getColumnCount(), toCol) + " of " + getColumnCount();
@@ -210,10 +195,6 @@ public class RoleAnalysisPagingColumns extends Fragment {
         refreshTable(fromCol, toCol, target);
     }
 
-//    private int getColumnPageCount() {
-//        return columnPageCount;
-//    }
-
     protected void onSubmitEditButton(AjaxRequestTarget target) {
 
     }
@@ -226,10 +207,6 @@ public class RoleAnalysisPagingColumns extends Fragment {
         return WebComponentUtil.getPageBase(RoleAnalysisPagingColumns.this).createStringResource(key,
                 objects);
     }
-
-//    protected int getCurrentPage() {
-//        return currentPageView;
-//    }
 
     protected int getColumnCount() {
         return 0;
