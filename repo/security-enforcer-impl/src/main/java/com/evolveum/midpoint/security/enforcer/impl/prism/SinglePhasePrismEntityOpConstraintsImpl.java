@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.security.enforcer.impl.prism;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.security.enforcer.api.PrismEntityOpConstraints;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -50,7 +54,7 @@ public abstract class SinglePhasePrismEntityOpConstraintsImpl<CI extends PrismEn
             PrismEntityCoverage allowedCoverage = allowed.getCoverage();
             switch (allowedCoverage) {
                 case FULL:
-                    return AccessDecision.ALLOW;
+                    return allowed.isExceptMetadata() ? AccessDecision.DEFAULT: AccessDecision.ALLOW;
                 case PARTIAL:
                     return AccessDecision.DEFAULT;
                 case NONE:
@@ -115,8 +119,8 @@ public abstract class SinglePhasePrismEntityOpConstraintsImpl<CI extends PrismEn
 
         public ForValueContent(@NotNull AuthorizationPhaseType phase) {
             this(phase,
-                    PrismValueCoverageInformation.noCoverage(),
-                    PrismValueCoverageInformation.noCoverage());
+                    PrismValueCoverageInformation.noCoverage(false),
+                    PrismValueCoverageInformation.noCoverage(false));
         }
 
         ForValueContent(
@@ -141,6 +145,24 @@ public abstract class SinglePhasePrismEntityOpConstraintsImpl<CI extends PrismEn
                     phase,
                     allowed.getValueCoverageInformation(nameOnlyPath),
                     denied.getValueCoverageInformation(nameOnlyPath));
+        }
+
+        @Override
+        public @NotNull SinglePhasePrismEntityOpConstraintsImpl.ForItemContent getMetadataConstraints() {
+
+            if (allowed.isExceptMetadata() && !allowed.hasItemCoverage(InfraItemName.METADATA) ) {
+                return new SinglePhasePrismEntityOpConstraintsImpl.ForItemContent(
+                        phase,
+                        PrismItemCoverageInformation.noCoverage(false),
+                        PrismItemCoverageInformation.noCoverage(false));
+            }
+            if (!allowed.isExceptMetadata() && denied.hasItemCoverage(InfraItemName.METADATA)) {
+                return new SinglePhasePrismEntityOpConstraintsImpl.ForItemContent(
+                        phase,
+                        PrismItemCoverageInformation.fullCoverage(false),
+                        PrismItemCoverageInformation.noCoverage(false));
+            }
+            return getItemConstraints(InfraItemName.METADATA);
         }
 
         public void applyAuthorization(
