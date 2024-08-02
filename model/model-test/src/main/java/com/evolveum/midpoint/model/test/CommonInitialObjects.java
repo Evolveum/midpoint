@@ -38,6 +38,7 @@ public interface CommonInitialObjects {
 
     String FUNCTION_LIBRARY = INITIAL_OBJECTS + "/function-library";
 
+    String SERVICES = INITIAL_OBJECTS + "/service";
     TestObject<ArchetypeType> ARCHETYPE_REPORT = TestObject.classPath(
             ARCHETYPES, "059-archetype-report.xml", SystemObjectsType.ARCHETYPE_REPORT.value());
 
@@ -251,6 +252,12 @@ public interface CommonInitialObjects {
             REPORTS,
             "160-report-certification-work-items.xml",
             "00000000-0000-0000-0000-000000000160");
+
+    TestObject<ServiceType> SERVICE_ORIGIN_INTERNAL = TestObject.classPath(
+            SERVICES,
+            "600-origin-internal.xml",
+            "00000000-0000-0000-0000-000000000600"
+    );
 
 
     /** To be used when needed. */

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.test.TestObject;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -102,7 +103,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
         openDJController.setResource(resourceOpenDj);
 
         openDJController.addEntriesFromLdifFile(LDIF_GROUPS);
-
+        importObject(CommonInitialObjects.SERVICE_ORIGIN_INTERNAL, initTask, initResult);
         importObjectFromFile(ROLE_MAPLE_LEAF_FACULTY_LICENSE);
         importObjectFromFile(ROLE_MAPLE_LEAF_FACULTY);
         importObjectFromFile(ROLE_MAPLE_LEAF_GRADUATE_LICENSE);
