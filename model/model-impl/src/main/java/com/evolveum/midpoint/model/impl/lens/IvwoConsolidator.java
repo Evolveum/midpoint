@@ -683,6 +683,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
 
             private void addYields(List<V> values, Function<YieldPresence, List<ValueMetadataType>> collection) {
                 for (V value : values) {
+                    // Values without metadata (and still somehow we are processing metadata
+                    // should end up in their own yield (empty metadata) so they are properly consolidated.
+                    if (value.getValueMetadata().isEmpty()) {
+                        var yield = new ValueMetadataType();
+                        YieldPresence yieldPresence = createOrFindYieldPresence(yield);
+                        collection.apply(yieldPresence).add(yield);
+                    }
                     for (PrismContainerValue<Containerable> yieldPcv : value.getValueMetadataAsContainer().getValues()) {
                         ValueMetadataType yield = (ValueMetadataType) yieldPcv.asContainerable();
                         YieldPresence yieldPresence = createOrFindYieldPresence(yield);
