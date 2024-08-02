@@ -8,127 +8,93 @@
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: yellow
 
-You should see the Certification menu item in the main menu:
+Assuming you're logged as administrator, you should see the Certification menu items in the main menu:
 
-image::image2015-9-8-11-9-18.png[]
+.Certification definitions table
+image::left-menu-cert-items.png[75%]
 
 By default, there are no campaign definitions in the repository.
-In order to try this feature, let's import the one we described above: link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/certification/def-all-user-assignments.xml[samples/certification/def-all-user-assignments.xml]. In order to do this, click on "*New campaign definition*" which will take you to the *Import object* page.
-Select appropriate file and import it.
+In order to have some definition, you can either import one (e.g. https://github.com/Evolveum/midpoint-samples/blob/master/samples/certification/def-all-user-assignments.xml[All user assignments]) or go through creating certification definition UI (by following *Certification -> New campaign definition* menu item).
 
-After clicking on *Certification -> Campaign definitions* you'll see it:
+After certification definition was added to the system, you can create a campaign based on it.
+In order to create a campaign, click on the *"Create campaign"* button (or select menu item) for the appropriate definition.
+New campaign should be created, successful message should appear.
+To view the list of campaigns, click on the *"Show campaigns"* button (or select menu item) or navigate to *Certification -> Campaigns* page through the main menu.
 
-image::image2015-9-8-11-12-16.png[]
-
-
-
-Now click on blue "*Create campaign*" button.
-Green success message should appear.
-Then click on neighbouring white "*Show campaigns*" button.
-You should see a list containing the newly-created campaign:
-
-image::image2015-9-8-11-14-26.png[]
-
-
+.Campaigns page
+image::campaigns-page.png[75%]
 
 The campaign is named "All user assignments 1", because there can be - and most probably, will be - more campaigns for a given campaign type.
 By default, they are named as <campaign definition> plus an increasing number.
 The campaign has 1 stage, because it was defined as such.
 It is in the *Created* state, meaning no action has been done yet.
-It simply silently stays in the repository, waiting to be started (or deleted).
 
-Now click on blue "*Start campaign*" button.
-The situation slightly changes:
+To start the campaign, click the appropriate *"Start campaign"* button.
+The special task is created to process this action, you can follow its progress on the created task details page (the link to it should be displayed on the information message panel).
+Let's see the campaign details now by clicking *"Details"* link on the campaign tile panel.
 
-image::image2015-9-8-11-23-22.png[]
+.Campaign details view
+image::campaign-details.png[75%]
 
+Left-side summary panel provides basic information about the campaign.
+We can see that the campaign is now in review stage 1 state.
+And the stage deadline is in 14 days.
+There are no decided items yet.
 
+To view certification items which should be reviewed, click on the *"Certification -> Active campaigns"*.
+Active campaigns are shown in the view of tile panels. To view certification items, click *"Show items"* link.
 
-We can see that the campaign is now in stage 1 (out of 1).
-And the stage deadline is in 14 days 12 hours.
-It is because the deadline is computed using given number of days (14 in this case), rounded to next midnight.
+.Active campaigns view
+image::active-campaigns.png[75%]
 
-Now, assuming you're logged as administrator, click on *Certification -> My cases to decide*. If you have a plain repo, consisting only of administrator with a Superuser role, you'll see this screen:
+On the certification items page, it is possible to make decision on the certification items with the help of the table menu items.
 
-image::image2015-9-8-11-24-44.png[]
+.Certification items view
+image::cert-items.png[75%]
 
-
-
-The columns are:
-
-. *Object* - this is an object that owns a given assignment.
-In this case, it's the user "administrator".
-
-. *Target* - this is a target of the assignment.
-Consists of an icon (role in this case - you can put the cursor on the icon to see its description) and a name ("Superuser"). The information icon on the right side contains a tooltip with detailed information about the assignment (e.g. administrativeStatus, validFrom, validTo, etc - if defined).
-
-. *Campaign name and stage* - because cases to decide can originate from various campaigns, the appropriate campaign is always referenced here.
-
-. *Requested* - when the review request was issued - i.e. when the corresponding stage was opened.
-
-. *Deadline* - when the review has to be done.
-Currently the deadline of the corresponding stage is here.
-
-. *Choice buttons* (Accept, Revoke, Reduce, Not Decided, Delegate, No Response) + *Comment* - these are used to record the reviewer's decision.
-They have the following meaning:
+By default, the system has 2 available responses.
+They are:
 
 .. Accept - the state is accepted as it is.
 
 .. Revoke - the state is unacceptable, and it should be fixed by removing the particular assignment.
+
+If needded, responses can be extended with the following:
 
 .. Reduce - the state is unacceptable, but the simple assignment removal is not sufficient.
 Perhaps it has to be discussed and some solution (e.g. assignment of a less powerful role) has to be found.
 
 .. Not Decided - the reviewer states he/she is not able or willing to decide.
 
-.. Delegate - the reviewer wants to delegate the decision to another person.
-(This is, however, not implemented yet.)
-
 .. No Response - the reviewer wants to "undone" his previous decisions regarding this case.
 (The presence of this button is questionable.
 Maybe it should be discarded.)
 
+After some decisions are made, it's possible to view the statistics of the responses and some other data on the campaign details view ("*Certification -> Campaigns*" and click on *"All user assignments 1"* campaign).
 
+.Campaign details view - Responses panel
+image::campaign-responses-panel.png[75%]
 
-It is possible to hide all items that have been already responded, allowing to concentrate on unfinished ones.
+Also, you can view the progress of the reviewers and related tasks on the Statistics panel.
+//todo another name for Statistics panel? Overview panel?//
 
-Here you can click e.g. "Accept".
-
-As a campaign owner, you can have a look at the campaign overall state.
-So, go to "*Certification -> Campaigns*" and click on "All user assignments 1" campaign.
-You'll see something like this:
-
-image::image2015-9-8-11-59-28.png[]
-
-
-
-You'll see the details concerning the stage, statistics (how many cases are in what state), and case details.
-The choice buttons are - of course - not clickable on this screen.
+.Campaign details view - Responses panel
+image::campaign-statistics-panel.png[75%]
 
 The stage can be closed either automatically (after defined time, in this case, 14 days), or manually by the owner, at any time.
+Let's click on *"Close stage"* button.
+Campaign status is changed to *"Review stage done"*.
+As the number of the defined stages is 1, the campaign is after all available stages.
+Now there is a possibility to start the remediation, if needed.
+After *"Start remediation"* button is clicked, the special task is created to process this action.
 
-So let's just click on blue "Close stage" button.
-The campaign list now looks like this:
+.Starting the remediation
+image::remediation-started.png[75%]
 
-image::image2015-9-8-12-3-19.png[]
+Remediation process removes all assignments marked as "Revoke".
+After a few seconds, after refreshing the screen, you see that this campaign is over:
 
+.Closed campaign
+image::closed-campaign.png[75%]
 
-
-We see that our campaign is after the review stage 1. We can start the remediation, if we wish.
-(By clicking on blue "Start remediation" button.) Because this certification campaign has automated remediation defined, a corresponding task is started in the background:
-
-image::image2015-9-8-12-4-46.png[]
-
-
-
-It removes all assignments marked as "Revoke".
-(None in this case - you don't want to lock itself out of midPoint, do you? ☺)
-
-After a few seconds, when refreshing the screen, you see that this campaign is over:
-
-image::image2015-9-8-12-6-8.png[]
-
-
-
-If you want, you can create a couple of users with a couple of assignments (role, orgs, resources), and start another campaign of this type.
-Play with various options, like Accept, Revoke, Reduce, etc, and see how it works.
+If needed, you can reiterate the campaign by clicking on the *"Reiterate campaign"* button.
