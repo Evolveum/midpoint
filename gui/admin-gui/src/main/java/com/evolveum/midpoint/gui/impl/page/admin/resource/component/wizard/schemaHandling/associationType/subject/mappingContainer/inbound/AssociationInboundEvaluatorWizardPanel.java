@@ -6,33 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardChoicePanelWithSeparatedCreatePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.ResourceAssociationTypeWizardChoicePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.ObjectAssociationStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.ResourceAssociationTypeBasicWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.ResourceAssociationTypeSubjectWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping.AssociationInboundMappingWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping.InboundMappingsTableWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.activation.ActivationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.synchronization.SynchronizationWizardPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSynchronizationExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeSubjectDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lskublik
@@ -59,18 +46,18 @@ public class AssociationInboundEvaluatorWizardPanel extends AbstractWizardChoice
                     case BASIC:
                         showChoiceFragment(target, createNewTypeWizard(getIdOfChoicePanel(), createHelper(true)));
                         break;
-//                    case MAPPING:
-//                        showTableForAttributesMappings(target);
-//                        break;
+                    case MAPPING:
+                        showTableForAttributesMappings(target);
+                        break;
                     case SYNCHRONIZATION:
                         showSynchronizationConfigWizard(target);
                         break;
                     case CORRELATION:
                         showCorrelationItemsTable(target);
                         break;
-                    case ACTIVATION:
-                        showActivationsWizard(target);
-                        break;
+//                    case ACTIVATION:
+//                        showActivationsWizard(target);
+//                        break;
                 }
 
             }
@@ -122,29 +109,15 @@ public class AssociationInboundEvaluatorWizardPanel extends AbstractWizardChoice
         );
     }
 
-//    private void showTableForAttributesMappings(AjaxRequestTarget target) {
-//        showWizardFragment(
-//                target,
-//                new AttributeMappingWizardPanel<>(
-//                        getIdOfWizardPanel(),
-//                        createHelper(
-//                                ItemPath.create(
-//                                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
-//                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION),
-//                                false))
-//        );
-//    }
-//
-//    private void showTableForReferenceMappings(AjaxRequestTarget target) {
-//        showWizardFragment(
-//                target,
-//                new ReferenceMappingWizardPanel(
-//                        getIdOfWizardPanel(),
-//                        createHelper(
-//                                ItemPath.create(
-//                                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
-//                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION),
-//                                false))
-//        );
-//    }
+    private void showTableForAttributesMappings(AjaxRequestTarget target) {
+        showWizardFragment(
+                target,
+                new AssociationInboundMappingWizardPanel(
+                        getIdOfWizardPanel(),
+                        createHelper(
+                                SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION,
+                                false))
+        );
+    }
+
 }

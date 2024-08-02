@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -23,7 +24,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -36,6 +36,12 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lskublik
@@ -80,6 +86,14 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                 super.onExitPerformed(target);
                 ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
             }
+
+            @Override
+            protected @NotNull IModel<String> getBreadcrumbLabel() {
+                if (showChoicePanel) {
+                    return Model.of();
+                }
+                return super.getBreadcrumbLabel();
+            }
         };
     }
 
@@ -106,13 +120,33 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                 selectSubject = false;
             }
 
+            PrismPropertyWrapper<ItemPathType> sourceAttributeRef =
+                    getValueModel().getObject().findProperty(
+                            ItemPath.create(
+                                    ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                                    ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                                    ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF));
+            sourceAttributeRef.getValue().setRealValue(new ItemPathType(ItemPath.create(value.getAssociationAttribute())));
+
+            String origLocalPart = value.getAssociationAttribute().getLocalPart();
+            QName refQName = value.getAssociationAttribute();
+            int index = 1;
+            while (AssociationChildWrapperUtil.existAssociationConfiguration(
+                    refQName.getLocalPart(),
+                    getValueModel().getObject().getParent())) {
+
+                refQName = new QName(refQName.getNamespaceURI(), origLocalPart + index, refQName.getPrefix());
+                index++;
+
+            }
+
             PrismPropertyWrapper<ItemPathType> refAttribute =
                     getValueModel().getObject().findProperty(
                             ItemPath.create(
                                     ShadowAssociationTypeDefinitionType.F_SUBJECT,
                                     ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
                                     ShadowAssociationDefinitionType.F_REF));
-            refAttribute.getValue().setRealValue(new ItemPathType(ItemPath.create(value.getAssociationAttribute())));
+            refAttribute.getValue().setRealValue(new ItemPathType(ItemPath.create(refQName)));
 
 
             boolean selectObject = true;

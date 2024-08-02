@@ -52,4 +52,8 @@ public abstract class WizardPanelHelper<C extends Containerable, AHD extends Ass
     public void setValueModel(IModel<PrismContainerValueWrapper<C>> newValueModel) {
         valueModel = newValueModel;
     }
+
+    public void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+        onExitPerformed(target);
+    }
 }

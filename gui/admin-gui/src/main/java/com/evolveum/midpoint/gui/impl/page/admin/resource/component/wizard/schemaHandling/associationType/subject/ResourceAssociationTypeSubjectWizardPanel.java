@@ -46,7 +46,7 @@ public class ResourceAssociationTypeSubjectWizardPanel extends AbstractWizardWit
 
     @Override
     protected void showTypePreviewFragment(AjaxRequestTarget target) {
-
+        showChoiceFragment(target, createTypePreview());
     }
 
     protected void initLayout() {
@@ -110,7 +110,7 @@ public class ResourceAssociationTypeSubjectWizardPanel extends AbstractWizardWit
         IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> model = new LoadableDetachableModel() {
             @Override
             protected Object load() {
-                return getValueModel().getObject().getParent();
+                return getValueModel().getObject().getParent().getParent();
             }
         };
         steps.add(new SubjectAssociationStepPanel(getAssignmentHolderModel(), model) {
@@ -127,6 +127,7 @@ public class ResourceAssociationTypeSubjectWizardPanel extends AbstractWizardWit
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
+                super.onSubmitPerformed(target);
                 OperationResult result = ResourceAssociationTypeSubjectWizardPanel.this.onSavePerformed(target);
                 if (result == null || result.isError()) {
                     target.add(getFeedback());

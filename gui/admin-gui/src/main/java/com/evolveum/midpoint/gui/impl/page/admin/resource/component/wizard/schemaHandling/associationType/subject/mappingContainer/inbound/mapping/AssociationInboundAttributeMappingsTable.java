@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.mapping;
 
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -14,7 +14,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping.AttributeMappingsTable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -24,7 +24,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.Component;
@@ -45,9 +44,9 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class InboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P, ResourceAttributeDefinitionType>{
-    public InboundAttributeMappingsTable(
-            String id, IModel<PrismContainerValueWrapper<P>> valueModel,
+public abstract class AssociationInboundAttributeMappingsTable extends AttributeMappingsTable<AssociationSynchronizationExpressionEvaluatorType, AttributeInboundMappingsDefinitionType> {
+    public AssociationInboundAttributeMappingsTable(
+            String id, IModel<PrismContainerValueWrapper<AssociationSynchronizationExpressionEvaluatorType>> valueModel,
             ContainerPanelConfigurationType config) {
         super(id, valueModel, config);
     }
@@ -59,7 +58,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
     @Override
     protected MappingDirection getMappingType() {
-        return MappingDirection.INBOUND;
+        return MappingDirection.ATTRIBUTE;
     }
 
     @Override
@@ -110,9 +109,9 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
         List<IColumn<PrismContainerValueWrapper<MappingType>, String>> columns = new ArrayList<>();
 
-        Model<PrismContainerDefinition<ResourceAttributeDefinitionType>> resourceAttributeDef =
+        Model<PrismContainerDefinition<AttributeInboundMappingsDefinitionType>> resourceAttributeDef =
                 Model.of(PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(
-                        ResourceAttributeDefinitionType.class));
+                        AttributeInboundMappingsDefinitionType.class));
 
         columns.add(createVirtualRefItemColumn(resourceAttributeDef, null));
 
@@ -169,7 +168,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                 headerId,
                 WebComponentUtil.createReadonlyModelFromEnum(MappingUsedFor.class),
                 Model.of(),
-                InboundAttributeMappingsTable.this,
+                AssociationInboundAttributeMappingsTable.this,
                 true,
                 getString("InboundAttributeMappingsTable.allMappings"));
         dropdown.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px;"));
@@ -185,13 +184,13 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
     @Override
     protected ISelectableDataProvider<PrismContainerValueWrapper<MappingType>> createProvider() {
         return new MultivalueContainerListDataProvider<>(
-                InboundAttributeMappingsTable.this,
+                AssociationInboundAttributeMappingsTable.this,
                 getSearchModel(),
                 new PropertyModel<>(getContainerModel(), "values")) {
 
             @Override
             protected PageStorage getPageStorage() {
-                return InboundAttributeMappingsTable.this.getPageStorage();
+                return AssociationInboundAttributeMappingsTable.this.getPageStorage();
             }
 
             @Override
@@ -229,11 +228,16 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
     @Override
     protected ItemName getItemNameOfRefAttribute() {
-        return ResourceAttributeDefinitionType.F_REF;
+        return AbstractAttributeMappingsDefinitionType.F_REF;
     }
 
     @Override
-    protected ItemPathType getAttributeRefAttributeValue(PrismContainerValueWrapper<ResourceAttributeDefinitionType> value) {
+    protected ItemPathType getAttributeRefAttributeValue(PrismContainerValueWrapper<AttributeInboundMappingsDefinitionType> value) {
         return value.getRealValue().getRef();
+    }
+
+    @Override
+    protected String getRefColumnPrefix() {
+        return "INBOUND.";
     }
 }

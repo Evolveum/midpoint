@@ -105,4 +105,9 @@ public abstract class AbstractAssociationMappingContainerTableWizardPanel extend
     protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getTextModel();
     }
+
+    @Override
+    protected boolean isSubmitButtonVisible() {
+        return false;
+    }
 }

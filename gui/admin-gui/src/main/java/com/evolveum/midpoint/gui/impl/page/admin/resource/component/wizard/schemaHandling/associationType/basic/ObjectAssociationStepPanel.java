@@ -3,11 +3,13 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.web.application.PanelType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -76,50 +79,52 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
 
     @Override
     protected List<ResourceObjectTypeDefinition> getListOfSupportedObjectTypeDef() throws SchemaException, ConfigurationException {
-        return List.of();
-//        List<ResourceObjectTypeDefinition> values = new ArrayList<>();
-//        PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeOfSubject =
-//                getValueModel().getObject().findContainer(ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE);
-//
-//        if (objectTypeOfSubject == null || objectTypeOfSubject.getValues().isEmpty()) {
-//            return values;
-//        }
-//
-//        ResourceObjectTypeIdentificationType bean = objectTypeOfSubject.getValues().iterator().next().getRealValue();
-//        CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
-//        @Nullable ResourceObjectTypeDefinition def = schema.getObjectTypeDefinition(ResourceObjectTypeIdentification.of(bean));
-//        if (def == null) {
-//            return values;
-//        }
-//
-//        List<? extends ShadowReferenceAttributeDefinition> referenceAttributes = def.getReferenceAttributeDefinitions();
-//        if (referenceAttributes.isEmpty()) {
-//            return values;
-//        }
-//
-//        referenceAttributes.forEach(referenceAttribute -> {
-//            List<ShadowRelationParticipantType> objectsDefs = ProvisioningObjectsUtil.getObjectsOfSubject(referenceAttribute);
-//
-//            objectsDefs.forEach(associationParticipantType -> {
-//                ResourceObjectDefinition targetDef = associationParticipantType.getObjectDefinition();
-//
-//                if (associationParticipantType.getTypeIdentification() != null) {
-//                    addObjectTypeDef(values, (ResourceObjectTypeDefinition) targetDef);
-//                } else {
-//                    schema.getObjectTypeDefinitions().stream()
-//                            .filter(objectTypeDef -> QNameUtil.match(objectTypeDef.getObjectClassName(), targetDef.getObjectClassName()))
-//                            .forEach(objectTypeDef -> addObjectTypeDef(values, objectTypeDef));
-//                }
-//            });
-//        });
-//        return values;
+        List<ResourceObjectTypeDefinition> values = new ArrayList<>();
+        PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeOfSubject =
+                getValueModel().getObject().findContainer(
+                        ItemPath.create(
+                                ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                                ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE));
+
+        if (objectTypeOfSubject == null || objectTypeOfSubject.getValues().isEmpty()) {
+            return values;
+        }
+
+        ResourceObjectTypeIdentificationType bean = objectTypeOfSubject.getValues().iterator().next().getRealValue();
+        CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
+        @Nullable ResourceObjectTypeDefinition def = schema.getObjectTypeDefinition(ResourceObjectTypeIdentification.of(bean));
+        if (def == null) {
+            return values;
+        }
+
+        List<? extends ShadowReferenceAttributeDefinition> referenceAttributes = def.getReferenceAttributeDefinitions();
+        if (referenceAttributes.isEmpty()) {
+            return values;
+        }
+
+        referenceAttributes.forEach(referenceAttribute -> {
+            List<ShadowRelationParticipantType> objectsDefs = ProvisioningObjectsUtil.getObjectsOfSubject(referenceAttribute);
+
+            objectsDefs.forEach(associationParticipantType -> {
+                ResourceObjectDefinition targetDef = associationParticipantType.getObjectDefinition();
+
+                if (associationParticipantType.getTypeIdentification() != null) {
+                    addObjectTypeDef(values, (ResourceObjectTypeDefinition) targetDef);
+                } else {
+                    schema.getObjectTypeDefinitions().stream()
+                            .filter(objectTypeDef -> QNameUtil.match(objectTypeDef.getObjectClassName(), targetDef.getObjectClassName()))
+                            .forEach(objectTypeDef -> addObjectTypeDef(values, objectTypeDef));
+                }
+            });
+        });
+        return values;
     }
 
     private void addObjectTypeDef(List<ResourceObjectTypeDefinition> values, ResourceObjectTypeDefinition objectTypeDef) {
         boolean match = values.stream()
                 .anyMatch(value -> objectTypeDef.getKind() == value.getKind()
                         && Objects.equals(objectTypeDef.getIntent(), value.getIntent()));
-        if (!match){
+        if (!match) {
             values.add(objectTypeDef);
         }
     }
@@ -127,39 +132,67 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
     protected void performSelectedObjects() {
         List<ParticipantObjectTypeWrapper> selectedNewItems = new ArrayList<>(getSelectedItemsModel().getObject());
 
-        PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> participantContainer = getValueModel().getObject();
+        PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationContainer = getValueModel().getObject();
         PrismContainerWrapper<ShadowAssociationTypeObjectDefinitionType> objectParticipantContainer;
         try {
-            objectParticipantContainer = participantContainer.findContainer(ShadowAssociationTypeDefinitionType.F_OBJECT);
+            objectParticipantContainer = associationContainer.findContainer(ShadowAssociationTypeDefinitionType.F_OBJECT);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't find object container in " + participantContainer);
+            LOGGER.error("Couldn't find object container in " + associationContainer);
             return;
         }
+        List<PrismContainerValueWrapper<ShadowAssociationTypeObjectDefinitionType>> objectValueForRemove = new ArrayList<>();
         for (PrismContainerValueWrapper<ShadowAssociationTypeObjectDefinitionType> objectValue : objectParticipantContainer.getValues()) {
-            PrismContainerValueWrapper<ResourceObjectTypeIdentificationType> value;
             try {
                 PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeContainer =
                         objectValue.findContainer(ShadowAssociationTypeObjectDefinitionType.F_OBJECT_TYPE);
                 if (objectTypeContainer == null || objectTypeContainer.getValues().isEmpty()) {
                     continue;
                 }
-                value = objectTypeContainer.getValues().iterator().next();
-            } catch (SchemaException e) {
-            LOGGER.error("Couldn't find object type subcontainer of " + getNameOfParticipant() + " objectParticipantContainer in " + objectValue);
-                continue;
-            }
-            boolean match = getSelectedItemsModel().getObject().stream()
-                    .anyMatch(wrapper -> equalValueAndObjectTypeWrapper(value, wrapper));
-            if (!match) {
-                try {
-                    objectParticipantContainer.remove(objectValue, getPageBase());
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't remove deselected value " + objectValue);
+                List<PrismContainerValueWrapper<ResourceObjectTypeIdentificationType>> valueForRemove = new ArrayList<>();
+                objectTypeContainer.getValues().forEach(value -> {
+                    boolean match = getSelectedItemsModel().getObject().stream()
+                            .anyMatch(wrapper -> equalValueAndObjectTypeWrapper(value, wrapper));
+
+                    if (!match) {
+                        if (ValueStatus.ADDED == value.getStatus()) {
+                            valueForRemove.add(value);
+                        } else {
+                            value.setStatus(ValueStatus.DELETED);
+                        }
+                    } else {
+                        selectedNewItems.removeIf(wrapper -> equalValueAndObjectTypeWrapper(value, wrapper));
+                    }
+                });
+
+                valueForRemove.forEach(value -> {
+                    try {
+                        objectTypeContainer.remove(value, getPageBase());
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't remove deselected value " + value);
+                    }
+                });
+
+                if (objectTypeContainer.getValues().isEmpty() || !objectTypeContainer.getValues().stream().anyMatch(value -> ValueStatus.DELETED != value.getStatus())) {
+                    if (ValueStatus.ADDED == objectValue.getStatus()) {
+                        objectValueForRemove.add(objectValue);
+                    } else {
+                        objectValue.setStatus(ValueStatus.DELETED);
+                    }
                 }
-            } else {
-                selectedNewItems.removeIf(wrapper -> equalValueAndObjectTypeWrapper(value, wrapper));
+
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find object type subcontainer of " + getNameOfParticipant() + " objectParticipantContainer in " + objectValue);
             }
         }
+
+        objectValueForRemove.forEach(objectValue -> {
+            try {
+                objectParticipantContainer.remove(objectValue, getPageBase());
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't remove deselected value " + objectValue);
+            }
+        });
+
         selectedNewItems.forEach(wrapper -> {
             try {
                 PrismContainerValue<ShadowAssociationTypeObjectDefinitionType> newValue = objectParticipantContainer.getItem().createNewValue();
@@ -171,5 +204,10 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
                 LOGGER.error("Couldn't create new value for ShadowAssociationTypeObjectDefinitionType in " + objectParticipantContainer);
             }
         });
+    }
+
+    @Override
+    protected ItemPath getPathForValueContainer() {
+        return ShadowAssociationTypeDefinitionType.F_OBJECT;
     }
 }

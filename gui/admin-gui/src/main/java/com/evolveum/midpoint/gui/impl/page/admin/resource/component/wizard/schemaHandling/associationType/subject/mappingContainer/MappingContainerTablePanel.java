@@ -47,7 +47,7 @@ public class MappingContainerTablePanel extends SingleSelectContainerTileTablePa
         MappingTile<PrismContainerValueWrapper<MappingType>> tile = new MappingTile<>(object);
         tile.setIcon(IconAndStylesUtil.createMappingIcon(object));
         tile.setTitle(GuiDisplayNameUtil.getDisplayName(object.getRealValue()));
-        tile.setDescription(WebPrismUtil.createMappingTypeDescription(object.getRealValue()));
+        tile.setDescription(WebPrismUtil.createMappingTypeDescription(object.getRealValue(), false));
         tile.setHelp(WebPrismUtil.createMappingTypeStrengthHelp(object.getRealValue()));
         return tile;
     }

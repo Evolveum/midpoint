@@ -22,7 +22,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -60,7 +60,7 @@ import java.util.Optional;
 /**
  * @author lskublik
  */
-public abstract class AttributeMappingsTable<P extends Containerable> extends AbstractWizardTable<MappingType, P> {
+public abstract class AttributeMappingsTable<P extends Containerable, AP extends Containerable> extends AbstractWizardTable<MappingType, P> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTable.class);
 
@@ -72,12 +72,12 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
 
     protected final PrismContainerValueWrapper createNewValue(PrismContainerValue<MappingType> value, AjaxRequestTarget target) {
         try {
-            PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
+            PrismContainerWrapper<AP> mappingAttributeContainer =
                     getValueModel().getObject().findContainer(getItemNameOfContainerWithMappings());
-            PrismContainerValue<ResourceAttributeDefinitionType> newMapping
+            PrismContainerValue<AP> newMapping
                     = mappingAttributeContainer.getItem().createNewValue();
 
-            ResourceAttributeMappingValueWrapper newAttributeMappingWrapper =
+            AttributeMappingValueWrapper newAttributeMappingWrapper =
                     WebPrismUtil.createNewValueWrapper(mappingAttributeContainer, newMapping, getPageBase(), target);
             newAttributeMappingWrapper.addAttributeMappingType(getMappingType());
 
@@ -156,13 +156,13 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                             getPageBase().createItemWrapper(def.instantiate(), ItemStatus.ADDED, new WrapperContext(task, result));
                     virtualMappingContainer.getValues().clear();
 
-                    PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
+                    PrismContainerWrapper<AP> mappingAttributeContainer =
                             getValueModel().getObject().findContainer(getItemNameOfContainerWithMappings());
 
                     PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
-                            ItemPath.create(getItemNameOfContainerWithMappings(), ResourceAttributeDefinitionType.F_REF));
+                            ItemPath.create(getItemNameOfContainerWithMappings(), getItemNameOfRefAttribute()));
 
-                    for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> value : mappingAttributeContainer.getValues()) {
+                    for (PrismContainerValueWrapper<AP> value : mappingAttributeContainer.getValues()) {
 
                         PrismContainerWrapper<MappingType> mappingContainer = value.findContainer(getPathBaseOnMappingType());
 
@@ -170,8 +170,8 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
 
                             if (mapping.getParent() != null
                                     && mapping.getParent().getParent() != null
-                                    && mapping.getParent().getParent() instanceof ResourceAttributeMappingValueWrapper
-                                    && ((ResourceAttributeMappingValueWrapper) mapping.getParent().getParent())
+                                    && mapping.getParent().getParent() instanceof AttributeMappingValueWrapper
+                                    && ((AttributeMappingValueWrapper) mapping.getParent().getParent())
                                     .getAttributeMappingTypes().contains(getMappingType())) {
 
                                 createVirtualItemInMapping(mapping, value, propertyDef);
@@ -190,30 +190,32 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
         };
     }
 
+    protected abstract ItemName getItemNameOfRefAttribute();
+
     protected abstract ItemName getItemNameOfContainerWithMappings();
 
     private void createVirtualItemInMapping(PrismContainerValueWrapper<MappingType> mapping) throws SchemaException {
         PrismContainerValueWrapper<P> container = getValueModel().getObject();
 
         PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
-                ItemPath.create(getItemNameOfContainerWithMappings(), ResourceAttributeDefinitionType.F_REF));
+                ItemPath.create(getItemNameOfContainerWithMappings(), getItemNameOfRefAttribute()));
 
         createVirtualItemInMapping(mapping, null, propertyDef);
     }
 
     private void createVirtualItemInMapping(
             PrismContainerValueWrapper<MappingType> mapping,
-            PrismContainerValueWrapper<ResourceAttributeDefinitionType> value,
+            PrismContainerValueWrapper<AP> value,
             PrismPropertyDefinition<Object> propertyDef)
             throws SchemaException {
-        if (mapping.findProperty(ResourceAttributeDefinitionType.F_REF) == null) {
+        if (mapping.findProperty(getItemNameOfRefAttribute()) == null) {
 
             Task task = getPageBase().createSimpleTask("Create virtual item");
             OperationResult result = task.getResult();
 
             @NotNull PrismProperty<Object> refvalue = propertyDef.instantiate();
             if (value != null && !ValueStatus.ADDED.equals(value.getStatus())) {
-                refvalue.addRealValue(value.getRealValue().getRef());
+                refvalue.addRealValue(getAttributeRefAttributeValue(value));
             }
 
             ItemWrapper refItemWrapper = getPageBase().createItemWrapper(
@@ -223,11 +225,11 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                     new WrapperContext(task, result));
 
             ((ItemWrapperImpl)refItemWrapper).setDisplayName(
-                    getString(getMappingType().name()+"."+ResourceAttributeDefinitionType.F_REF));
+                    getString(getMappingType().name() + "." + getItemNameOfRefAttribute()));
             ((ItemWrapperImpl)refItemWrapper).setDisplayOrder(1);
 
-            if (value != null && value.getRealValue() != null && value.getRealValue().getRef() != null) {
-                refItemWrapper.getValue().setRealValue(value.getRealValue().getRef().clone());
+            if (value != null && value.getRealValue() != null && getAttributeRefAttributeValue(value) != null) {
+                refItemWrapper.getValue().setRealValue(getAttributeRefAttributeValue(value).clone());
             }
 
             refItemWrapper.setVisibleOverwrite(UserInterfaceElementVisibilityType.HIDDEN);
@@ -235,6 +237,8 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
             mapping.getNonContainers().clear();
         }
     }
+
+    protected abstract ItemPathType getAttributeRefAttributeValue(PrismContainerValueWrapper<AP> value);
 
     @Override
     protected String getInlineMenuCssClass() {
@@ -362,7 +366,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
             IModel<? extends PrismContainerDefinition> resourceAttributeDef, String cssClasses) {
         return new PrismPropertyWrapperColumn(
                 resourceAttributeDef,
-                ResourceAttributeDefinitionType.F_REF,
+                getItemNameOfRefAttribute(),
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 getPageBase()) {
             @Override
@@ -384,7 +388,7 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                     @Override
                     protected Component createTitle(IModel<String> label) {
                         return super.createTitle(getPageBase().createStringResource(
-                                getMappingType().name()+"."+ResourceAttributeDefinitionType.F_REF));
+                                getRefColumnPrefix() + getMappingType().name() + "." + getItemNameOfRefAttribute()));
                     }
                 };
             }
@@ -394,5 +398,9 @@ public abstract class AttributeMappingsTable<P extends Containerable> extends Ab
                 return cssClasses;
             }
         };
+    }
+
+    protected String getRefColumnPrefix() {
+        return "";
     }
 }

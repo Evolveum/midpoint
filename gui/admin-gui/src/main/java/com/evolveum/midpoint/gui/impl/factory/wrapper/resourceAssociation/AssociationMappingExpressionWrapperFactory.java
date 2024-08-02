@@ -38,6 +38,10 @@ public abstract class AssociationMappingExpressionWrapperFactory<C extends Conta
             return false;
         }
 
+        if (parent == null) {
+            return false;
+        }
+
         if (!(ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_ASSOCIATION_TYPE,

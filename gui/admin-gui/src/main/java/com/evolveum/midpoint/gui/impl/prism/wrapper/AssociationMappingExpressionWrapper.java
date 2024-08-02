@@ -86,18 +86,28 @@ public abstract class AssociationMappingExpressionWrapper<C extends Containerabl
                     LOGGER.trace("Computed delta: \n {}", delta);
                     break;
                 case NOT_CHANGED:
+                    Collection<ItemDelta<? extends PrismValue, ? extends ItemDefinition>> subDeltas = new ArrayList<>();
                     for (ItemWrapper iw : pVal.getItems()) {
                         LOGGER.trace("Start computing modifications for {}", iw);
-                        Collection subDeltas = iw.getDelta();
-                        if (CollectionUtils.isNotEmpty(subDeltas)) {
-                            LOGGER.trace("Deltas computed for {}", iw);
-                            delta.addValueToAdd(
-                                    createSchemaValue(WebPrismUtil.cleanupEmptyContainerValue(pVal.getNewValue().clone())));
-                            deltas.add((D) delta);
+                        Collection itemDeltas = iw.getDelta();
+                        if (itemDeltas != null && !itemDeltas.isEmpty()) {
+                            subDeltas.addAll(itemDeltas);
                         }
-                        LOGGER.trace("Computed deltas:\n {}", subDeltas);
+                        LOGGER.trace("Deltas computed for {}", iw);
                     }
+                    LOGGER.trace("Computed deltas:\n {}", subDeltas);
 
+                    if (CollectionUtils.isNotEmpty(subDeltas)) {
+                        PrismContainerValue<C> newValue = (PrismContainerValue<C>) pVal.getOldValue().clone();
+                        subDeltas.forEach(subDelta -> subDelta.setParentPath(ItemPath.EMPTY_PATH));
+                        for (ItemDelta<? extends PrismValue, ? extends ItemDefinition> subDelta : subDeltas) {
+                            subDelta.applyTo(newValue);
+                        }
+
+                        delta.addValueToAdd(
+                                createSchemaValue(WebPrismUtil.cleanupEmptyContainerValue(newValue)));
+                        deltas.add((D) delta);
+                    }
                     break;
                 case DELETED:
                     PrismProperty<ExpressionType> schemaProperty = objectWrapper.getItem().findProperty(wrapperPath);

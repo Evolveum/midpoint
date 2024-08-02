@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -12,23 +12,22 @@ import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardChoicePanel;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ResourceAssociationTypeWizardChoicePanelOld
-        extends ResourceWizardChoicePanel<ResourceAssociationTypeWizardChoicePanelOld.ResourceAssociationTypePreviewTileType> {
+public abstract class AssociationOutboundWizardChoicePanel
+        extends ResourceWizardChoicePanel<AssociationOutboundWizardChoicePanel.AssociationOutboundEvaluatorTileType> {
 
-    private final WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper;
+    private final WizardPanelHelper<MappingType, ResourceDetailsModel> helper;
 
-    public ResourceAssociationTypeWizardChoicePanelOld(
+    public AssociationOutboundWizardChoicePanel(
             String id,
-            WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper) {
-        super(id, helper.getDetailsModel(), ResourceAssociationTypePreviewTileType.class);
+            WizardPanelHelper<MappingType, ResourceDetailsModel> helper) {
+        super(id, helper.getDetailsModel(), AssociationOutboundEvaluatorTileType.class);
         this.helper = helper;
     }
 
@@ -38,18 +37,15 @@ public abstract class ResourceAssociationTypeWizardChoicePanelOld
         add(AttributeAppender.append("class", "col-xxl-8 col-10 gap-3 m-auto"));
     }
 
-    public enum ResourceAssociationTypePreviewTileType implements TileEnum {
+    public enum AssociationOutboundEvaluatorTileType implements TileEnum {
 
         BASIC("fa fa-circle"),
-        ATTRIBUTE_MAPPING("fa fa-retweet"),
-        REFERENCE_MAPPING("fa fa-retweet"),
-        SYNCHRONIZATION("fa fa-arrows-rotate"),
-        CORRELATION("fa fa-code-branch"),
-        ACTIVATION("fa fa-toggle-off");
+        MAPPING("fa fa-arrow-right-from-bracket");
+//        ACTIVATION("fa fa-toggle-off");
 
         private final String icon;
 
-        ResourceAssociationTypePreviewTileType(String icon) {
+        AssociationOutboundEvaluatorTileType(String icon) {
             this.icon = icon;
         }
 
@@ -66,7 +62,7 @@ public abstract class ResourceAssociationTypeWizardChoicePanelOld
 
     @Override
     protected IModel<String> getExitLabel() {
-        return getPageBase().createStringResource("ResourceAssociationTypeWizardPreviewPanel.exit");
+        return getPageBase().createStringResource("AssociationOutboundWizardChoicePanel.exit");
     }
 
     @Override
@@ -79,7 +75,7 @@ public abstract class ResourceAssociationTypeWizardChoicePanelOld
         return true;
     }
 
-    protected IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> getValueModel() {
+    protected IModel<PrismContainerValueWrapper<MappingType>> getValueModel() {
         return helper.getValueModel();
     }
 
@@ -95,11 +91,11 @@ public abstract class ResourceAssociationTypeWizardChoicePanelOld
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("ShadowAssociationTypeDefinitionType.subText");
+        return getPageBase().createStringResource("AssociationOutboundWizardChoicePanel.subText");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("ShadowAssociationTypeDefinitionType.text");
+        return getPageBase().createStringResource("AssociationOutboundWizardChoicePanel.text");
     }
 }

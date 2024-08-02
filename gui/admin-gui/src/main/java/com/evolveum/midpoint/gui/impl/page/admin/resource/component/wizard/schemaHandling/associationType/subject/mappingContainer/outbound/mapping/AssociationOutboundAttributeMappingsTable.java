@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.mapping;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.input.FocusDefinitionsMappingProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping.AttributeMappingsTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
@@ -45,12 +46,12 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 /**
  * @author lskublik
  */
-public abstract class OutboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P, ResourceAttributeDefinitionType> {
+public abstract class AssociationOutboundAttributeMappingsTable extends AttributeMappingsTable<AssociationConstructionExpressionEvaluatorType, AttributeOutboundMappingsDefinitionType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(OutboundAttributeMappingsTable.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssociationOutboundAttributeMappingsTable.class);
 
-    public OutboundAttributeMappingsTable(
-            String id, IModel<PrismContainerValueWrapper<P>> valueModel, ContainerPanelConfigurationType config) {
+    public AssociationOutboundAttributeMappingsTable(
+            String id, IModel<PrismContainerValueWrapper<AssociationConstructionExpressionEvaluatorType>> valueModel, ContainerPanelConfigurationType config) {
         super(id, valueModel, config);
     }
 
@@ -66,7 +67,7 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
     @Override
     protected MappingDirection getMappingType() {
-        return MappingDirection.OUTBOUND;
+        return MappingDirection.ATTRIBUTE;
     }
 
     @Override
@@ -118,8 +119,8 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
                             }
                             Optional<PrismPropertyValueWrapper<VariableBindingDefinitionType>> found = sourceItem.getValues().stream()
                                     .filter(actualValue -> actualValue.getRealValue() != null
-                                                    && actualValue.getRealValue().getPath() != null
-                                                    && newValue.getPath().getItemPath().stripVariableSegment()
+                                            && actualValue.getRealValue().getPath() != null
+                                            && newValue.getPath().getItemPath().stripVariableSegment()
                                             .equals(actualValue.getRealValue().getPath().getItemPath().stripVariableSegment()))
                                     .findFirst();
                             if (found.isPresent()) {
@@ -216,9 +217,9 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
             }
         });
 
-        Model<PrismContainerDefinition<ResourceAttributeDefinitionType>> resourceAttributeDef =
+        Model<PrismContainerDefinition<AttributeOutboundMappingsDefinitionType>> resourceAttributeDef =
                 Model.of(PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(
-                        ResourceAttributeDefinitionType.class));
+                        AttributeOutboundMappingsDefinitionType.class));
 
         columns.add(createVirtualRefItemColumn(resourceAttributeDef, "col-xl-2 col-lg-2 col-md-3"));
 
@@ -232,11 +233,16 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
 
     @Override
     protected ItemName getItemNameOfRefAttribute() {
-        return ResourceAttributeDefinitionType.F_REF;
+        return AttributeOutboundMappingsDefinitionType.F_REF;
     }
 
     @Override
-    protected ItemPathType getAttributeRefAttributeValue(PrismContainerValueWrapper<ResourceAttributeDefinitionType> value) {
+    protected ItemPathType getAttributeRefAttributeValue(PrismContainerValueWrapper<AttributeOutboundMappingsDefinitionType> value) {
         return value.getRealValue().getRef();
+    }
+
+    @Override
+    protected String getRefColumnPrefix() {
+        return "OUTBOUND.";
     }
 }

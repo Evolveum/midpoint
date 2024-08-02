@@ -61,7 +61,7 @@ public abstract class AssociationSubjectWizardChoicePanel
 
     @Override
     protected IModel<String> getExitLabel() {
-        return getPageBase().createStringResource("AssociationSubjectWizardPreviewPanel.exit");
+        return getPageBase().createStringResource("AssociationSubjectWizardChoicePanel.exit");
     }
 
     @Override
@@ -80,16 +80,16 @@ public abstract class AssociationSubjectWizardChoicePanel
 
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
-        return getTextModel();
+        return getPageBase().createStringResource("AssociationSubjectWizardChoicePanel.breadcrumb");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("AssociationSubjectWizardPreviewPanel.subText");
+        return getPageBase().createStringResource("AssociationSubjectWizardChoicePanel.subText");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("AssociationSubjectWizardPreviewPanel.text");
+        return getPageBase().createStringResource("AssociationSubjectWizardChoicePanel.text");
     }
 }

@@ -42,9 +42,6 @@ public abstract class ResourceAssociationTypeWizardChoicePanel
         BASIC("fa fa-circle"),
         SUBJECT("fa fa-square"),
         OBJECT("fa-regular fa-square");
-//        SYNCHRONIZATION("fa fa-arrows-rotate"),
-//        CORRELATION("fa fa-code-branch"),
-//        ACTIVATION("fa fa-toggle-off");
 
         private final String icon;
 
@@ -65,7 +62,7 @@ public abstract class ResourceAssociationTypeWizardChoicePanel
 
     @Override
     protected IModel<String> getExitLabel() {
-        return getPageBase().createStringResource("ResourceAssociationTypeWizardPreviewPanel.exit");
+        return getPageBase().createStringResource("ResourceAssociationTypeWizardChoicePanel.exit");
     }
 
     @Override
@@ -94,11 +91,11 @@ public abstract class ResourceAssociationTypeWizardChoicePanel
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("ResourceAssociationTypeWizardPreviewPanel.subText");
+        return getPageBase().createStringResource("ResourceAssociationTypeWizardChoicePanel.subText");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("ResourceAssociationTypeWizardPreviewPanel.text");
+        return getPageBase().createStringResource("ResourceAssociationTypeWizardChoicePanel.text");
     }
 }

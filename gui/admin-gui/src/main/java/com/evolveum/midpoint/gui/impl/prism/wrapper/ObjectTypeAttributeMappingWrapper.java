@@ -36,11 +36,11 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<ResourceAttributeDefinitionType> {
+public class ObjectTypeAttributeMappingWrapper extends PrismContainerWrapperImpl<ResourceAttributeDefinitionType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributeMappingWrapper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeAttributeMappingWrapper.class);
 
-    public ResourceAttributeMappingWrapper(
+    public ObjectTypeAttributeMappingWrapper(
             @Nullable PrismContainerValueWrapper parent,
             PrismContainer<ResourceAttributeDefinitionType> container,
             ItemStatus status) {
@@ -53,9 +53,9 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             return null;
         }
 
-        List<ResourceAttributeMappingValueWrapper> valuesToAdd = new ArrayList<>();
-        List<ResourceAttributeMappingValueWrapper> valuesNotChanged = new ArrayList<>();
-        List<ResourceAttributeMappingValueWrapper> valuesToDelete = new ArrayList<>();
+        List<AttributeMappingValueWrapper> valuesToAdd = new ArrayList<>();
+        List<AttributeMappingValueWrapper> valuesNotChanged = new ArrayList<>();
+        List<AttributeMappingValueWrapper> valuesToDelete = new ArrayList<>();
 
         Collection<D> deltas = new ArrayList<>();
         for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> pVal : getValues()) {
@@ -73,10 +73,10 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
                         LOGGER.trace("Value is empty, skipping delta creation.");
                         break;
                     }
-                    if (pVal instanceof ResourceAttributeMappingValueWrapper
-                            && !((ResourceAttributeMappingValueWrapper) pVal).getAttributeMappingTypes().isEmpty()
-                            && ((ResourceAttributeMappingValueWrapper) pVal).getAttributeMappingTypes().size() == 1) {
-                        valuesToAdd.add((ResourceAttributeMappingValueWrapper) pVal);
+                    if (pVal instanceof AttributeMappingValueWrapper
+                            && !((AttributeMappingValueWrapper) pVal).getAttributeMappingTypes().isEmpty()
+                            && ((AttributeMappingValueWrapper) pVal).getAttributeMappingTypes().size() == 1) {
+                        valuesToAdd.add((AttributeMappingValueWrapper) pVal);
                     } else {
                         delta.addValueToAdd(valueToAdd);
                         deltas.add((D) delta);
@@ -84,9 +84,9 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
                     }
                     break;
                 case NOT_CHANGED:
-                    if (pVal instanceof ResourceAttributeMappingValueWrapper
-                            && !((ResourceAttributeMappingValueWrapper) pVal).getAttributeMappingTypes().isEmpty()) {
-                        valuesNotChanged.add((ResourceAttributeMappingValueWrapper) pVal);
+                    if (pVal instanceof AttributeMappingValueWrapper
+                            && !((AttributeMappingValueWrapper) pVal).getAttributeMappingTypes().isEmpty()) {
+                        valuesNotChanged.add((AttributeMappingValueWrapper) pVal);
                     } else {
                         for (ItemWrapper iw : pVal.getItems()) {
                             LOGGER.trace("Start computing modifications for {}", iw);
@@ -101,9 +101,9 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
 
                     break;
                 case DELETED:
-                    if (pVal instanceof ResourceAttributeMappingValueWrapper
-                            && !((ResourceAttributeMappingValueWrapper) pVal).getAttributeMappingTypes().isEmpty()) {
-                        valuesToDelete.add((ResourceAttributeMappingValueWrapper) pVal);
+                    if (pVal instanceof AttributeMappingValueWrapper
+                            && !((AttributeMappingValueWrapper) pVal).getAttributeMappingTypes().isEmpty()) {
+                        valuesToDelete.add((AttributeMappingValueWrapper) pVal);
                     } else {
                         delta.addValueToDelete(pVal.getOldValue().clone());
                         deltas.add((D) delta);
@@ -123,7 +123,7 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
                 .filter(v -> v.getAttributeMappingTypes().contains(MappingDirection.OVERRIDE))
                 .forEach(v -> deltaWrappers.add(new DeltaWrapper(v)));
 
-        for (ResourceAttributeMappingValueWrapper v : valuesNotChanged) {
+        for (AttributeMappingValueWrapper<?> v : valuesNotChanged) {
             if (v.getAttributeMappingTypes().contains(MappingDirection.INBOUND)
                     || v.getAttributeMappingTypes().contains(MappingDirection.OUTBOUND)) {
                 List<ItemPath> pathsForDelete = new ArrayList<>();
@@ -173,7 +173,7 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             }
         }
 
-        for (ResourceAttributeMappingValueWrapper v : valuesToDelete) {
+        for (AttributeMappingValueWrapper v : valuesToDelete) {
             if (v.getAttributeMappingTypes().contains(MappingDirection.INBOUND)
                     || v.getAttributeMappingTypes().contains(MappingDirection.OUTBOUND)) {
                 if (v.getAttributeMappingTypes().contains(MappingDirection.INBOUND)) {
@@ -191,7 +191,7 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             }
         }
 
-        for (ResourceAttributeMappingValueWrapper v : valuesToAdd) {
+        for (AttributeMappingValueWrapper v : valuesToAdd) {
             if (v.getAttributeMappingTypes().contains(MappingDirection.INBOUND)) {
                 processAddValues(v, deltas, deltaWrappers, ResourceAttributeDefinitionType.F_INBOUND);
             }
@@ -224,7 +224,7 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
     }
 
     private <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> void processAddValues(
-            ResourceAttributeMappingValueWrapper v,
+            AttributeMappingValueWrapper v,
             Collection<D> deltas,
             List<DeltaWrapper> deltaWrappers,
             ItemName containerPath) throws SchemaException {
@@ -369,7 +369,7 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
     }
 
     private <D extends ItemDelta> List<ItemPath> processAlreadyExistValue(
-            ResourceAttributeMappingValueWrapper v,
+            AttributeMappingValueWrapper v,
             Collection<D> deltas,
             List<DeltaWrapper> deltaWrappers,
             ItemName containerPath,
@@ -494,7 +494,7 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
 
     private class DeltaWrapper {
 
-        private ResourceAttributeMappingValueWrapper value;
+        private AttributeMappingValueWrapper value;
 
         private ItemPathType attributeRef;
 
@@ -506,7 +506,7 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             this.attributeRef = attributeRef;
         }
 
-        private DeltaWrapper(ResourceAttributeMappingValueWrapper value) {
+        private DeltaWrapper(AttributeMappingValueWrapper value) {
             this.value = value;
             try {
                 PrismPropertyWrapper<ItemPathType> refProperty = value.findProperty(ResourceAttributeDefinitionType.F_REF);

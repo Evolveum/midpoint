@@ -1,18 +1,14 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
@@ -69,9 +65,7 @@ public abstract class ParticipantAssociationStepPanel
     }
 
     @Override
-    protected ItemPath getPathForValueContainer() {
-        return ShadowAssociationTypeParticipantDefinitionType.F_OBJECT_TYPE;
-    }
+    protected abstract ItemPath getPathForValueContainer();
 
     private void initSelectedItemsModel() {
         try {
@@ -95,7 +89,8 @@ public abstract class ParticipantAssociationStepPanel
                     continue;
                 }
 
-                @NotNull ResourceObjectTypeDefinitionType objectType = objectTypeDef.getDefinitionBean();
+                @NotNull ResourceObjectTypeDefinitionType objectType = objectTypeDef.getDefinitionBean().clone();
+                objectType.setIntent(objectTypeDef.getIntent());
                 QName objectClass = getObjectClass(objectType);
                 ParticipantObjectTypeWrapper wrapper = new ParticipantObjectTypeWrapper(
                         objectType.getKind(),

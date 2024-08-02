@@ -40,6 +40,11 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
     }
 
     @Override
+    protected void onInitialize() {
+        super.onInitialize();
+    }
+
+    @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
         if (isShowChoicePanel()) {
@@ -65,6 +70,13 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
             }
 
             @Override
+            public void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+                getAssignmentHolderModel().reloadPrismObjectModel();
+                refreshValueModel();
+                showTypePreviewFragment(target);
+            }
+
+            @Override
             public IModel<PrismContainerValueWrapper<V>> getValueModel() {
                 return PrismContainerValueWrapperModel.fromContainerValueWrapper(AbstractWizardWithChoicePanel.this.getValueModel(), path);
             }
@@ -87,6 +99,13 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
                 checkDeltasExitPerformed(target);
+            }
+
+            @Override
+            public void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+                getAssignmentHolderModel().reloadPrismObjectModel();
+                refreshValueModel();
+                showTypePreviewFragment(target);
             }
 
             @Override

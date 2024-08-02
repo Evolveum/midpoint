@@ -42,8 +42,8 @@ public abstract class AssociationInboundWizardChoicePanel
         BASIC("fa fa-circle"),
         MAPPING("fa fa-arrow-right-to-bracket"),
         SYNCHRONIZATION("fa fa-arrows-rotate"),
-        CORRELATION("fa fa-code-branch"),
-        ACTIVATION("fa fa-toggle-off");
+        CORRELATION("fa fa-code-branch");
+//        ACTIVATION("fa fa-toggle-off");
 
         private final String icon;
 

@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
@@ -23,10 +20,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class AssociationInboundMappingContainerWizardPanel extends AbstractWizardPanel<ShadowAssociationDefinitionType, ResourceDetailsModel> {
 

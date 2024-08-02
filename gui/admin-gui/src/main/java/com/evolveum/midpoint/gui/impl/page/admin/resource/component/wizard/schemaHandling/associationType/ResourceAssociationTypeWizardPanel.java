@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.ResourceAssociationTypeBasicWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.ResourceAssociationTypeSubjectWizardPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -60,21 +59,6 @@ public class ResourceAssociationTypeWizardPanel extends AbstractWizardChoicePane
                                         getIdOfWizardPanel(),
                                         new WizardModel(createObjectStep())));
                         break;
-//                    case ATTRIBUTE_MAPPING:
-//                        showTableForAttributesMappings(target);
-//                        break;
-//                    case REFERENCE_MAPPING:
-//                        showTableForReferenceMappings(target);
-//                        break;
-//                    case SYNCHRONIZATION:
-//                        showSynchronizationConfigWizard(target);
-//                        break;
-//                    case CORRELATION:
-//                        showCorrelationItemsTable(target);
-//                        break;
-//                    case ACTIVATION:
-//                        showActivationsWizard(target);
-//                        break;
                 }
 
             }
@@ -113,6 +97,7 @@ public class ResourceAssociationTypeWizardPanel extends AbstractWizardChoicePane
 
             @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
+                super.onSubmitPerformed(target);
                 OperationResult result = ResourceAssociationTypeWizardPanel.this.onSavePerformed(target);
                 if (result == null || result.isError()) {
                     target.add(getFeedback());
@@ -130,72 +115,4 @@ public class ResourceAssociationTypeWizardPanel extends AbstractWizardChoicePane
         wizard.setShowChoicePanel(false);
         showChoiceFragment(target, wizard);
     }
-
-//    private void showCorrelationItemsTable(AjaxRequestTarget target) {
-//        showChoiceFragment(
-//                target,
-//                new CorrelationWizardPanel(
-//                        getIdOfChoicePanel(),
-//                        createHelper(
-//                                ItemPath.create(
-//                                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
-//                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION),
-//                                        //ShadowAssociationDefinitionType.F_CORRELATION),
-//                                false))
-//        );
-//    }
-//
-//    private void showSynchronizationConfigWizard(AjaxRequestTarget target) {
-//        showWizardFragment(
-//                target,
-//                new SynchronizationWizardPanel<>(
-//                        getIdOfWizardPanel(),
-//                        createHelper(
-//                                ItemPath.create(
-//                                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
-//                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION),
-//                                        //ShadowAssociationDefinitionType.F_SYNCHRONIZATION),
-//                                false))
-//        );
-//    }
-//
-//    private void showActivationsWizard(AjaxRequestTarget target) {
-//        showWizardFragment(
-//                target,
-//                new ActivationsWizardPanel(
-//                        getIdOfWizardPanel(),
-//                        createHelper(
-//                                ItemPath.create(
-//                                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
-//                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-//                                        ShadowAssociationDefinitionType.F_ACTIVATION),
-//                                false))
-//        );
-//    }
-//
-//    private void showTableForAttributesMappings(AjaxRequestTarget target) {
-//        showWizardFragment(
-//                target,
-//                new AttributeMappingWizardPanel<>(
-//                        getIdOfWizardPanel(),
-//                        createHelper(
-//                                ItemPath.create(
-//                                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
-//                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION),
-//                                false))
-//        );
-//    }
-//
-//    private void showTableForReferenceMappings(AjaxRequestTarget target) {
-//        showWizardFragment(
-//                target,
-//                new ReferenceMappingWizardPanel(
-//                        getIdOfWizardPanel(),
-//                        createHelper(
-//                                ItemPath.create(
-//                                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
-//                                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION),
-//                                false))
-//        );
-//    }
 }

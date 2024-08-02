@@ -10,8 +10,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundEvaluatorWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundMappingContainerTableWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundMappingContainerWizardPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
@@ -39,40 +45,43 @@ public class AssociationOutboundMappingContainerWizardPanel extends AbstractWiza
 
     private Component createTableWizardPanel() {
         return new AssociationOutboundMappingContainerTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
+
             @Override
             protected void onClickCreateMapping(PrismContainerValueWrapper<MappingType> valueWrapper, AjaxRequestTarget target) {
-                showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicStep(valueWrapper))));
+                showWizardPanel(target, valueWrapper, false);
             }
 
             @Override
             protected void onTileClick(AjaxRequestTarget target, MappingTile modelObject) {
-
+                showWizardPanel(target, (PrismContainerValueWrapper<MappingType>) modelObject.getValue(), true);
             }
         };
     }
 
-    private List<WizardStep> createBasicStep(PrismContainerValueWrapper<MappingType> valueWrapper) {
-        List<WizardStep> steps = new ArrayList<>();
-
-        steps.add(new BasicAssociationOutboundStepPanel(getAssignmentHolderModel(), Model.of(valueWrapper)) {
-
+    private void showWizardPanel(AjaxRequestTarget target, PrismContainerValueWrapper<MappingType> value, boolean showChoicePanel) {
+        WizardPanelHelper<MappingType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderModel()) {
             @Override
-            protected void onSubmitPerformed(AjaxRequestTarget target) {
-                OperationResult result = AssociationOutboundMappingContainerWizardPanel.this.onSavePerformed(target);
-                if (result == null || result.isError()) {
-                    target.add(getFeedback());
-                    refresh(target);
-                } else {
-                    onExitPerformed(target);
-                }
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
+            public void onExitPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTableWizardPanel());
             }
-        });
 
-        return steps;
+            @Override
+            public IModel<PrismContainerValueWrapper<MappingType>> getValueModel() {
+                return new LoadableDetachableModel<>() {
+                    @Override
+                    protected PrismContainerValueWrapper<MappingType> load() {
+                        return value;
+                    }
+                };
+            }
+
+            @Override
+            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                return AssociationOutboundMappingContainerWizardPanel.this.onSavePerformed(target);
+            }
+        };
+        AssociationOutboundEvaluatorWizardPanel panel = new AssociationOutboundEvaluatorWizardPanel(getIdOfChoicePanel(), helper);
+        panel.setShowChoicePanel(showChoicePanel);
+        showChoiceFragment(target, panel);
     }
 }

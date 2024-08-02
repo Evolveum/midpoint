@@ -8,9 +8,9 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,15 +18,15 @@ import java.util.List;
 /**
  * @author skublik
  */
-public class ResourceAttributeMappingValueWrapper extends PrismContainerValueWrapperImpl<ResourceAttributeDefinitionType>{
+public class AttributeMappingValueWrapper<C extends Containerable> extends PrismContainerValueWrapperImpl<C>{
 
     private static final long serialVersionUID = 1L;
 
     private List<MappingDirection> attributeMappingTypes = new ArrayList<>();
 
-    public ResourceAttributeMappingValueWrapper(
-            PrismContainerWrapper<ResourceAttributeDefinitionType> parent,
-            PrismContainerValue<ResourceAttributeDefinitionType> pcv,
+    public AttributeMappingValueWrapper(
+            PrismContainerWrapper<C> parent,
+            PrismContainerValue<C> pcv,
             ValueStatus status) {
         super(parent, pcv, status);
     }
