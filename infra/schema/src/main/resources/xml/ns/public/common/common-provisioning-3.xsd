@@ -5367,10 +5367,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="associated">
+            <xsd:enumeration value="association">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ASSOCIATED"/>
+                        <jaxb:typesafeEnumMember name="ASSOCIATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
