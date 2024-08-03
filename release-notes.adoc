@@ -90,6 +90,9 @@ Tree node search is now same for all nodes.
 ** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
 ** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
 
+* Shadow table Partitioning in Native PostgreSQL Repository
+** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.  
+
 === Other Improvements
 
 TODO
