@@ -1478,9 +1478,13 @@
                     <xsd:documentation>
                         What response types are available to reviewers? Empty list means all responses.
                         TODO should we configure also names of the responses? (probably no)
+
+                        DEPRECATED configure actions in the cert. items collection view instead.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AccessCertificationConfigurationType.availableResponse</a:displayName>
+                        <a:deprecatedSince>4.9</a:deprecatedSince>
+                        <a:deprecated/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
