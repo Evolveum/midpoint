@@ -155,9 +155,13 @@ For example, direct assignment handler provides the following ones:
 
 .. *includeServices* - should assignments/inducements of services be included in the certification? (default = true)
 
+.. *includeUsers* - should assignments/inducements of users (e.g. deputy relations) be included in the certification? (default = true)
+
 .. *enabledItemsOnly* - should we approve only assignments/inducements that are currently enabled? (I.e. with administrativeStatus either null or ENABLED) (default = true)
 
-
+.. *relation* - relation(s) which are to be considered.
+Value of q:any means "any relation".
+If no relation is present, org:default (i.e. null) is assumed.
 
 An example of more advanced scope definition:
 
@@ -230,10 +234,31 @@ All certification-related tasks are shown.
 
 image::scheduling.jpg[]
 
-=== Configuring choice buttons
+=== Access certification configuration in system configuration
 
-Unneeded choice buttons might be hidden at the level of the system configuration.
-The configuration is done by listing available buttons, like this:
+Access certification configuration can be defined as a part of the system configuration.
+This configuration is used globally in the system and applied to all campaigns.
+
+You can define the following items within the _accessCertification_ element:
+
+. *availableResponse* - what responses are available to reviewers? Empty list means all responses.
+
+WARNING: This element is deprecated.
+It is advised to use the configuration of the actions for certification items collection view.
+
+
+. *enableCertItemsCollectionView* - defines if the certification items collection view can be reached directly from main menu.
+If not defined (or set to false), the certification items collection view can be reached only from the active campaigns panel.
+
+. *multiselect* - defines the possibility to select multiple items in the certification items collection view table (possible values are: _selectAll_ - gives the possibility to select all items at once, _selectIndividualItems_ - gives the possibility to select individual items without possibility to select all at once, _noSelect_ - no possibility to select any items).
+
+. *defaultView* - defines the identifier of the collection view that should be used as a default view for the certification items.
+
+==== Configuring decision options for certification items
+
+It is possible to configure the available set of responses to be used while making a decision on a certification item(s).
+By default, there are 2 available responses in the system: accept and revoke.
+You can configure _availableResponse_ items in the _accessCertification_ element straight in the system configuration.
 
 [source,xml]
 ----
@@ -244,19 +269,40 @@ The configuration is done by listing available buttons, like this:
 </accessCertification>
 ----
 
-If there are no available responses listed, all 6 can be used (accept, revoke, reduce, notDecided, delegate, noResponse).
+WARNING: Be aware that _availableResponse_ element is deprecated therefore it's advised to use the configuration of the actions for certification items collection view.
 
-If there is a pre-existing response that is currently not among specified items, it is displayed as red button "Illegal Response" just to distinguish it from "no response" state.
-It can be changed to any of the available responses.
-Seems like this:
+=== Configuring collection views for certification items
 
-image::button-configuration.jpg[]
+Default certification items collection view can be configured in the _systemConfiguration -> adminGuiConfiguration -> objectCollectionViews -> objectCollectionView_.
+Collection view configuration should define identifier and type.
+Collection view can also contain columns and actions configuration.
 
-
-
-As for statistics, we currently list all 6 of responses.
-(Might be changed in the future.)
-
+[source,xml]
+----
+            <objectCollectionView>
+                <identifier>defaultCertItemsView</identifier>
+                <type>AccessCertificationWorkItemType</type>
+                <action>
+                    <identifier>certItemAccept</identifier>
+                    <panel>
+                        <display>
+                            <label>Make decision</label>
+                        </display>
+                        <container>
+                            <identifier>comment</identifier>
+                            <display>
+                                <label>Do you really want to accept this item?</label>
+                            </display>
+                            <item>
+                                <path>output/comment</path>
+                                <mandatory>true</mandatory>
+                            </item>
+                        </container>
+                        <type>AccessCertificationWorkItemType</type>
+                    </panel>
+                </action>
+            </objectCollectionView>
+----
 == Reporting
 
 There are four types of reports available: certification definitions, campaigns, campaign cases and campaign decisions.
