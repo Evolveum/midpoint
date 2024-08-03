@@ -21,11 +21,14 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -42,7 +45,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 /**
  * @author lskublik
  */
-public abstract class OutboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P> {
+public abstract class OutboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P, ResourceAttributeDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OutboundAttributeMappingsTable.class);
 
@@ -225,5 +228,15 @@ public abstract class OutboundAttributeMappingsTable<P extends Containerable> ex
     private boolean isMappingForAssociation() {
         var associationParent = getValueModel().getObject().getParentContainerValue(ShadowAssociationDefinitionType.class);
         return associationParent != null;
+    }
+
+    @Override
+    protected ItemName getItemNameOfRefAttribute() {
+        return ResourceAttributeDefinitionType.F_REF;
+    }
+
+    @Override
+    protected ItemPathType getAttributeRefAttributeValue(PrismContainerValueWrapper<ResourceAttributeDefinitionType> value) {
+        return value.getRealValue().getRef();
     }
 }

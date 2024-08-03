@@ -15,19 +15,19 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeSubjectDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 public class AssociationChildWrapperUtil {
@@ -124,5 +124,20 @@ public class AssociationChildWrapperUtil {
         }
 
         return null;
+    }
+
+    public static boolean existAssociationConfiguration(
+            String refAttribute, PrismContainerWrapper<ShadowAssociationTypeDefinitionType> association) throws SchemaException {
+        for (PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value : association.getValues()) {
+            PrismPropertyWrapper<ItemPathType> refProperty = value.findProperty(
+                    ItemPath.create(ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                            ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                            ShadowAssociationDefinitionType.F_REF));
+            if (refProperty.getValue().getRealValue() != null
+                    && refProperty.getValue().getRealValue().getItemPath().equivalent(ItemPath.create(refAttribute))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

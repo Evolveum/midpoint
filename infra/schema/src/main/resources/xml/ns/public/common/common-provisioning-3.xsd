@@ -3363,10 +3363,10 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AttributeOutboundMappingsDefinitionType">
+    <xsd:complexType name="AbstractAttributeMappingsDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines outbound mapping(s) for an attribute.
+                Defines mapping(s) for an attribute.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -3379,22 +3379,34 @@
                     <xsd:documentation>
                         Path of the attribute that this definition describes.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeOutboundMappingsDefinitionType.ref</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The mappings for the attribute.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeOutboundMappingsDefinitionType.mapping</a:displayName>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AttributeOutboundMappingsDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines outbound mapping(s) for an attribute.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAttributeMappingsDefinitionType">
+            <xsd:sequence>
+                <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The mappings for the attribute.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="attributeOutboundMappingsDefinition" type="tns:AttributeOutboundMappingsDefinitionType"/>
 
@@ -3408,38 +3420,32 @@
                 <a:since>4.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="ref" type="t:ItemPathType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Path of the attribute that this definition describes.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeInboundMappingsDefinitionType.ref</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="correlator" type="tns:ItemCorrelatorDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Creates a single-item correlator for this attribute.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeInboundMappingsDefinitionType.correlator</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="mapping" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The mappings for the attribute.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeInboundMappingsDefinitionType.mapping</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAttributeMappingsDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="correlator" type="tns:ItemCorrelatorDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Creates a single-item correlator for this attribute.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AttributeInboundMappingsDefinitionType.correlator</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="mapping" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The mappings for the attribute.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AttributeInboundMappingsDefinitionType.mapping</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="attributeInboundMappingsDefinition" type="tns:AttributeInboundMappingsDefinitionType"/>
 
@@ -5361,10 +5367,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="associated">
+            <xsd:enumeration value="association">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ASSOCIATED"/>
+                        <jaxb:typesafeEnumMember name="ASSOCIATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -7223,6 +7229,9 @@
             <xsd:documentation>
                 Creates association values by constructing it via mappings for individual attributes and object references.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
@@ -7259,6 +7268,9 @@
                 Synchronizes association values by correlating and mapping them to values of respective focus item
                 (typically, an assignment).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>

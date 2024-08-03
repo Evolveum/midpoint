@@ -934,6 +934,9 @@ call apply_change(43,$aa$
     CREATE TRIGGER "m_shadow_partition_def_bd" BEFORE DELETE ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_delete_partition();
 $aa$);
 
+call apply_change(44, $aa$
+ALTER TYPE ShadowKindType RENAME VALUE 'ASSOCIATED' TO 'ASSOCIATION';
+$aa$);
 
 
 ---

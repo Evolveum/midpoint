@@ -11,6 +11,7 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -41,6 +42,14 @@ public class AssociationAttributeMappingItemPathPanelFactory extends AttributeMa
 
     private static final long serialVersionUID = 1L;
 
+    private static final List<ItemPath> KINDS_OF_MAPPING = Arrays.asList(
+            ItemPath.create(
+                    ShadowAssociationDefinitionType.F_INBOUND,
+                    SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION),
+            ItemPath.create(
+                    ShadowAssociationDefinitionType.F_OUTBOUND,
+                    SchemaConstantsGenerated.C_ASSOCIATION_CONSTRUCTION));
+
     @Autowired private transient GuiComponentRegistry registry;
 
     @PostConstruct
@@ -50,37 +59,54 @@ public class AssociationAttributeMappingItemPathPanelFactory extends AttributeMa
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName())
-                && (wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_ASSOCIATION_TYPE,
-                ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                getItemNameForContainerOfAttributes(),
-                ResourceAttributeDefinitionType.F_REF))
-                || isVirtualPropertyOfMapping(wrapper));
+        if (!ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName())) {
+            return false;
+        }
+
+        for (ItemPath kindOfMappingPath : getKindsOfMapping()) {
+            if (wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
+//                            ResourceType.F_SCHEMA_HANDLING,
+//                            SchemaHandlingType.F_ASSOCIATION_TYPE,
+//                            ShadowAssociationTypeDefinitionType.F_SUBJECT,
+//                            ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION)
+                    kindOfMappingPath,
+                    getItemNameForContainerOfAttributes(),
+                    ResourceAttributeDefinitionType.F_REF))) {
+                return true;
+            }
+        }
+
+        return isVirtualPropertyOfMapping(wrapper);
+    }
+
+    private List<ItemPath> getKindsOfMapping() {
+        return KINDS_OF_MAPPING;
     }
 
     protected ItemName getItemNameForContainerOfAttributes() {
-        return ShadowAssociationDefinitionType.F_ATTRIBUTE;
+        return AssociationSynchronizationExpressionEvaluatorType.F_ATTRIBUTE;
     }
 
     private <IW extends ItemWrapper<?, ?>> boolean isVirtualPropertyOfMapping(IW wrapper) {
         return QNameUtil.match(wrapper.getItemName(), ResourceAttributeDefinitionType.F_REF)
                 && (wrapper.getParent().getPath().namedSegmentsOnly().equivalent(ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_ASSOCIATION_TYPE,
-                ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+//                ResourceType.F_SCHEMA_HANDLING,
+//                SchemaHandlingType.F_ASSOCIATION_TYPE,
+//                ShadowAssociationTypeDefinitionType.F_SUBJECT,
+//                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+//                ShadowAssociationDefinitionType.F_INBOUND,
+                SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION,
                 getItemNameForContainerOfAttributes(),
-                ResourceAttributeDefinitionType.F_INBOUND))
+                AttributeInboundMappingsDefinitionType.F_MAPPING))
                 || wrapper.getParent().getPath().namedSegmentsOnly().equivalent(ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_ASSOCIATION_TYPE,
-                ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+//                ResourceType.F_SCHEMA_HANDLING,
+//                SchemaHandlingType.F_ASSOCIATION_TYPE,
+//                ShadowAssociationTypeDefinitionType.F_SUBJECT,
+//                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+//                ShadowAssociationDefinitionType.F_OUTBOUND,
+                SchemaConstantsGenerated.C_ASSOCIATION_CONSTRUCTION,
                 getItemNameForContainerOfAttributes(),
-                ResourceAttributeDefinitionType.F_OUTBOUND)));
+                AttributeOutboundMappingsDefinitionType.F_MAPPING)));
     }
 
     @Override

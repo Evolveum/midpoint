@@ -557,5 +557,53 @@ public class WebPrismUtil {
 
         return findContainerValueParent(parentItem, clazz);
     }
+    public static String createMappingTypeDescription(MappingType mapping) {
+        return createMappingTypeDescription(mapping, true);
+    }
+
+    public static String createMappingTypeDescription(MappingType mapping, boolean showExpression) {
+        if (StringUtils.isNotEmpty(mapping.getDescription())) {
+            return mapping.getDescription();
+        }
+        String strength = translateStrength(mapping);
+
+        ExpressionType expressionBean = mapping.getExpression();
+        String description = LocalizationUtil.translate(
+                "AbstractSpecificMappingTileTable.tile.description.prefix",
+                new Object[] {strength});
+
+        if (showExpression) {
+            ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
+            if (expressionBean != null) {
+                String expression = ExpressionUtil.loadExpression(expressionBean, PrismContext.get(), LOGGER);
+                evaluatorType = ExpressionUtil.getExpressionType(expression);
+
+            }
+
+            if (evaluatorType == null) {
+                evaluatorType = ExpressionUtil.ExpressionEvaluatorType.AS_IS;
+            }
+
+            String evaluator = PageBase.createStringResourceStatic(null, evaluatorType).getString();
+
+            description += " " + LocalizationUtil.translate(
+                    "AbstractSpecificMappingTileTable.tile.description.suffix",
+                    new Object[] { evaluator });
+        }
+        return description;
+    }
+
+    public static String createMappingTypeStrengthHelp(MappingType mapping) {
+        String strength = translateStrength(mapping);
+        return LocalizationUtil.translate("AbstractSpecificMappingTileTable.tile.help", new Object[]{strength});
+    }
+
+    private static String translateStrength(MappingType mapping) {
+        MappingStrengthType strengthBean = mapping.getStrength();
+        if (strengthBean == null) {
+            strengthBean = MappingStrengthType.NORMAL;
+        }
+        return PageBase.createStringResourceStatic(null, strengthBean).getString().toLowerCase();
+    }
 
 }

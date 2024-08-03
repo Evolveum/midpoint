@@ -42,7 +42,7 @@
                 </association>
             </subject>
             <associationObject>
-                <kind>associated</kind>
+                <kind>association</kind>
                 <intent>contract</intent>
                 <delineation>
                     <objectClass>ri:contract</objectClass>

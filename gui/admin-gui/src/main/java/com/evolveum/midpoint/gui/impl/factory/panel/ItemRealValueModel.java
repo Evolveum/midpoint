@@ -21,5 +21,8 @@ public class ItemRealValueModel<T> extends PropertyModel<T>{
         super(modelObject, "realValue");
     }
 
-
+    @Override
+    public void setObject(T object) {
+        super.setObject(object);
+    }
 }

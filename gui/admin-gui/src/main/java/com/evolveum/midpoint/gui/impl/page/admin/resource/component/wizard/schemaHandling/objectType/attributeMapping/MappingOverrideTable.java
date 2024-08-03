@@ -16,7 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -69,7 +69,7 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
                 newMapping = mappingAttributeContainer.getItem().createNewValue();
             }
 
-            ResourceAttributeMappingValueWrapper newAttributeMappingWrapper =
+            AttributeMappingValueWrapper newAttributeMappingWrapper =
                     WebPrismUtil.createNewValueWrapper(mappingAttributeContainer, newMapping, getPageBase(), target);
             newAttributeMappingWrapper.addAttributeMappingType(MappingDirection.OVERRIDE);
 
@@ -100,8 +100,8 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
             protected List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> searchThroughList() {
                 List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> list = super.searchThroughList();
                 return list.stream().filter(value -> {
-                    if (value instanceof ResourceAttributeMappingValueWrapper) {
-                        return ((ResourceAttributeMappingValueWrapper) value).getAttributeMappingTypes()
+                    if (value instanceof AttributeMappingValueWrapper) {
+                        return ((AttributeMappingValueWrapper) value).getAttributeMappingTypes()
                                 .contains(MappingDirection.OVERRIDE);
                     }
                     return true;
