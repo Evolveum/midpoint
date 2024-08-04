@@ -273,7 +273,9 @@ WARNING: Be aware that _availableResponse_ element is deprecated therefore it's 
 
 === Configuring collection views for certification items
 
+Certification items collection view brings more extended configuration options.
 Default certification items collection view can be configured in the _systemConfiguration -> adminGuiConfiguration -> objectCollectionViews -> objectCollectionView_.
+To be used as a default view, the collection view identifier should be defined in the _accessCertification_ -> _defaultView_ element in the system configuration.
 Collection view configuration should define identifier and type.
 Collection view can also contain columns and actions configuration.
 
@@ -281,17 +283,32 @@ Collection view can also contain columns and actions configuration.
 ----
             <objectCollectionView>
                 <identifier>defaultCertItemsView</identifier>
+                <column>
+                    <name>stage</name>
+                    <path>stageNumber</path>
+                    <display>
+                        <label>Stage</label>
+                    </display>
+                </column>
+                <column>
+                    <name>comment</name>
+                    <path>output/comment</path>
+                    <display>
+                        <label/>
+                    </display>
+                </column>
+                <includeDefaultColumns>true</includeDefaultColumns>
                 <type>AccessCertificationWorkItemType</type>
                 <action>
                     <identifier>certItemAccept</identifier>
                     <panel>
                         <display>
-                            <label>Make decision</label>
+                            <label>Do you really want to accept the item?</label>
                         </display>
                         <container>
                             <identifier>comment</identifier>
                             <display>
-                                <label>Do you really want to accept this item?</label>
+                                <label>Please, provide a comment (required)</label>
                             </display>
                             <item>
                                 <path>output/comment</path>
@@ -303,6 +320,13 @@ Collection view can also contain columns and actions configuration.
                 </action>
             </objectCollectionView>
 ----
+
+To learn more about actions configuration, please follow to xref:/midpoint/reference/roles-policies/certification/actions/[GUI Actions] page.
+
+Object collection view configuration can be also defined within access certification definition (_view_ element).
+This configuration will be merged with the global one and applied to all campaigns created on the base of this definition.
+
+
 == Reporting
 
 There are four types of reports available: certification definitions, campaigns, campaign cases and campaign decisions.
