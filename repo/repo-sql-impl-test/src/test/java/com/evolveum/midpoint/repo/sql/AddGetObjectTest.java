@@ -15,15 +15,13 @@ import java.io.File;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-
-import org.hibernate.Session;
-import org.hibernate.query.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -489,12 +487,12 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         }
         Collections.sort(xmlShorts);
 
-        Session session = open();
+        EntityManager em = open();
         try {
-            Query query = session.createNativeQuery("select id from m_assignment where owner_oid=:oid");
+            Query query = em.createNativeQuery("select id from m_assignment where owner_oid=:oid");
             query.setParameter("oid", OID);
             List<Short> dbShorts = new ArrayList<>();
-            for (Number n : (List<Number>) query.list()) {
+            for (Number n : (List<Number>) query.getResultList()) {
                 dbShorts.add(n.shortValue());
             }
             Collections.sort(dbShorts);
@@ -503,7 +501,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     Arrays.toString(dbShorts.toArray()));
             AssertJUnit.assertArrayEquals(xmlShorts.toArray(), dbShorts.toArray());
         } finally {
-            close(session);
+            close(em);
         }
     }
 
@@ -698,9 +696,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = createOperationResult();
         String oid = repositoryService.addObject(task, null, result);
 
-        Session session = open();
+        EntityManager em = open();
         try {
-            RTask rTask = session.createQuery("from RTask t where t.oid=:oid", RTask.class)
+            RTask rTask = em.createQuery("from RTask t where t.oid=:oid", RTask.class)
                     .setParameter("oid", oid).getSingleResult();
             AssertJUnit.assertNotNull(rTask.getFullResult());
             AssertJUnit.assertEquals(ROperationResultStatus.IN_PROGRESS, rTask.getStatus());
@@ -711,7 +709,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             TaskType objType = obj.asObjectable();
             AssertJUnit.assertNull(objType.getResult());
         } finally {
-            close(session);
+            close(em);
         }
 
         task = repositoryService.getObject(TaskType.class, oid, null, result);

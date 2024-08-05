@@ -99,7 +99,7 @@ class AssignmentExtensionUpdate extends ExtensionUpdate<RAssignmentExtension, RA
 
         // Because ADD for single-valued container is the same as REPLACE (really?) we treat ADD as a REPLACE here.
         if (existingExtension != null) {
-            clearExtension(existingExtension, ctx.session);
+            clearExtension(existingExtension, ctx.entityManager);
         }
 
         if (delta.isAdd() || delta.isReplace()) {

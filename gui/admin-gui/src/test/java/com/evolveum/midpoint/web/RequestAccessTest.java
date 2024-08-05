@@ -110,11 +110,15 @@ public class RequestAccessTest extends AbstractGuiIntegrationTest {
         access.setRelation(relation);
 
         boolean canAddAssignment = access.canAddTemplateAssignment(targetRef);
-        Assertions.assertThat(canAddAssignment).isEqualTo(expectedCanAddAssignment);
+        Assertions.assertThat(canAddAssignment)
+                .withFailMessage("Can add assignment should be " + expectedCanAddAssignment + ", but it is " + canAddAssignment)
+                .isEqualTo(expectedCanAddAssignment);
 
         access.addAssignments(List.of(new AssignmentType().targetRef(targetRef)));
         List<ShoppingCartItem> items = access.getShoppingCartItems();
-        Assertions.assertThat(items).hasSize(expectedAllCartItemsCount);
+        Assertions.assertThat(items)
+                .withFailMessage("Shopping cart items count should be " + expectedAllCartItemsCount + ", but it is " + items.size())
+                .hasSize(expectedAllCartItemsCount);
 
         ShoppingCartItem item = items.stream().filter(sci -> {
             ObjectReferenceType ref = sci.getAssignment().getTargetRef();
@@ -123,7 +127,11 @@ public class RequestAccessTest extends AbstractGuiIntegrationTest {
 
         int itemCount = item != null ? item.getCount() : 0;
 
-        Assertions.assertThat(itemCount).isEqualTo(expectedOidRelationCartItemCount);
+        Assertions.assertThat(itemCount)
+                .withFailMessage(
+                        "Shopping cart item count for oid " + oid + " and relation " + relation
+                                + " should be " + expectedOidRelationCartItemCount + ", but it is " + itemCount)
+                .isEqualTo(expectedOidRelationCartItemCount);
     }
 
     @Test

@@ -9,9 +9,11 @@ package com.evolveum.midpoint.repo.sql.data.common.embedded;
 import static com.evolveum.midpoint.repo.sql.util.RUtil.*;
 
 import java.util.Objects;
-import jakarta.persistence.*;
 
+import jakarta.persistence.*;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.type.descriptor.jdbc.IntegerJdbcType;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
@@ -56,6 +58,7 @@ public class REmbeddedReference implements ObjectReference {
     }
 
     @Enumerated(EnumType.ORDINAL)
+    @JdbcType(IntegerJdbcType.class)
     @Override
     public RObjectType getTargetType() {
         return targetType;

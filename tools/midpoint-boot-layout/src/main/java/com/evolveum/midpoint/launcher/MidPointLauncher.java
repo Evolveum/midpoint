@@ -8,7 +8,7 @@ package com.evolveum.midpoint.launcher;
 
 import java.nio.file.Path;
 
-import org.springframework.boot.loader.PropertiesLauncher;
+import org.springframework.boot.loader.launch.PropertiesLauncher;
 
 /**
  * This is a "pre-launcher" to {@link PropertiesLauncher} which is the actual launcher.

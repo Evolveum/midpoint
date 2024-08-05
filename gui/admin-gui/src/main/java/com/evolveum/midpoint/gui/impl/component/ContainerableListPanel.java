@@ -161,7 +161,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
 
         String searchByName = getSearchByNameParameterValue();
-        return searchByName == null || !search.searchByNameEquals(searchByName);
+        return searchByName == null || search.searchByNameEquals(searchByName);
     }
 
     private LoadableDetachableModel<Search<C>> createSearchModel() {

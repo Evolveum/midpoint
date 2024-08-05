@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.checkerframework.checker.index.qual.SameLen;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.Select2MultiChoice;
@@ -370,9 +371,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                Collection<ObjectReferenceType> refs = multiselect.getModel().getObject();
-                updateSelectedGroupOfUsers(refs);
-
+                // model of multiselect was already updated, just "refresh" next button
                 target.add(PersonOfInterestPanel.this.getNext());
             }
         });
@@ -399,6 +398,9 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         return fragment;
     }
 
+    /**
+     * @param poiRefs this is always absolute state of autocomplete text field - all items that are currently in the field
+     */
     private void updateSelectedGroupOfUsers(Collection<ObjectReferenceType> poiRefs) {
         if (poiRefs == null) {
             selectedGroupOfUsers.setObject(createPoiMembershipMap(null));
@@ -585,7 +587,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             ObjectReferenceType poi = new ObjectReferenceType()
                     .oid(user.getOid())
                     .type(UserType.COMPLEX_TYPE)
-                    .targetName(WebComponentUtil.getDisplayNameOrName(user.asPrismObject()));
+                    .targetName(getDefaultUserDisplayName(user.asPrismObject()));
 
             List<ObjectReferenceType> refs = user.getRoleMembershipRef().stream()
                     .map(this::cloneObjectReference)
@@ -599,7 +601,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private void addUsersPerformed(AjaxRequestTarget target, List<UserType> users) {
         Map<ObjectReferenceType, List<ObjectReferenceType>> userMemberships = createPoiMembershipMap(users);
-        selectedGroupOfUsers.setObject(userMemberships);
+        selectedGroupOfUsers.getObject().putAll(userMemberships);
 
         page.hideMainPopup(target);
         target.add(getWizard().getPanel());
@@ -646,7 +648,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 ObjectReferenceType ref = new ObjectReferenceType()
                         .oid(principal.getOid())
                         .type(UserType.COMPLEX_TYPE)
-                        .targetName(principal.getName());
+                        .targetName(getDefaultUserDisplayName((PrismObject<UserType>) principal.getFocusPrismObject()));
 
                 List<ObjectReferenceType> memberships = principal.getFocus().getRoleMembershipRef()
                         .stream().map(this::cloneObjectReference).collect(Collectors.toList());

@@ -6,22 +6,19 @@
  */
 package com.evolveum.midpoint.web;
 
-import static org.testng.AssertJUnit.assertNotNull;
-
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -38,8 +35,8 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
     protected static final String FORM_SAVE_OLD = "save";
 
     protected static final String MAIN_FORM = "detailsView:mainForm";
-    protected static final String PATH_FORM_NAME = "mainPanel:properties:container:1:values:0:value:valueForm:valueContainer:"
-            + "input:propertiesLabel:properties:0:property:values:0:value:valueForm:valueContainer:input:originValueContainer:"
+    protected static final String PATH_FORM_NAME = "mainPanel:properties:container:1:valuesContainer:values:0:value:valueForm:valueContainer:"
+            + "input:propertiesLabel:properties:0:property:valuesContainer:values:0:value:valueForm:valueContainer:input:originValueContainer:"
             + "origValueWithButton:origValue:input";
     protected static final String FORM_SAVE = "buttons:buttons:2:";
 
@@ -57,6 +54,7 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         super.initSystem(initTask, initResult);
 
         modelService.postInit(initResult);
+        repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, RepoAddOptions.createOverwrite(), false, initResult);
         userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
         login(userAdministrator);
 
@@ -75,30 +73,6 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
     }
 
-    @Test
-    public void test000PreparationAndSanity() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        assertNotNull("No model service", modelService);
-
-        // WHEN
-        when("Jack is assigned with account");
-        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
-
-        // THEN
-        then("One link (account) is created");
-        result.computeStatus();
-        display(result);
-        TestUtil.assertSuccess(result);
-
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        display("User after change execution", userJack);
-        assertUserJack(userJack);
-        accountJackOid = getSingleLinkOid(userJack);
-    }
-
     protected Page renderPage(Class<? extends Page> expectedRenderedPageClass) {
         return renderPage(expectedRenderedPageClass, null);
     }
@@ -114,5 +88,10 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         tester.assertRenderedPage(expectedRenderedPageClass);
 
         return pageRole;
+    }
+
+    protected void choiceArchetype(int order) {
+        String tabPath = "detailsView:template:list:" + order + ":tile";
+        tester.executeAjaxEvent(tabPath, "click");
     }
 }

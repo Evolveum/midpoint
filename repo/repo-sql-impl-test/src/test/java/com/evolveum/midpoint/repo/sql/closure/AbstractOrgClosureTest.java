@@ -16,11 +16,11 @@ import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 import cern.colt.matrix.linalg.Algebra;
 import cern.jet.math.Functions;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.hibernate.type.StandardBasicTypes;
 import org.jgrapht.alg.TransitiveClosure;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
@@ -79,8 +79,8 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     // Beware! Access to this object should be synchronized (for multithreaded tests).
     protected SimpleDirectedGraph<String, DefaultEdge> orgGraph = new SimpleDirectedGraph<>(DefaultEdge.class);
 
-    protected Session openSession() {
-        return baseHelper.getSessionFactory().openSession();
+    protected EntityManager createEntityManager() {
+        return baseHelper.getEntityManagerFactory().createEntityManager();
     }
 
     protected void checkClosure(Set<String> oidsToCheck) throws SchemaException {
@@ -99,7 +99,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     }
 
     private void checkChildrenSets(Set<String> oidsToCheck) {
-        try (Session session = openSession()) {
+        try (EntityManager em = createEntityManager()) {
             //noinspection unchecked
             SimpleDirectedGraph<String, DefaultEdge> tc = (SimpleDirectedGraph<String, DefaultEdge>) orgGraph.clone();
             TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(tc);
@@ -111,7 +111,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 }
                 expectedChildren.add(subroot);
                 logger.trace("Expected children: {}", expectedChildren);
-                Set<String> actualChildren = getActualChildrenOf(subroot, session);
+                Set<String> actualChildren = getActualChildrenOf(subroot, em);
                 logger.trace("Actual children: {}", actualChildren);
 
                 Set<String> expectedMinusActual = new HashSet<>(expectedChildren);
@@ -135,7 +135,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
     private static final boolean DUMP_TC_MATRIX_DETAILS = true;
 
     protected boolean checkClosureMatrix() throws SchemaException {
-        try (Session session = openSession()) {
+        try (EntityManager em = createEntityManager()) {
             // we compute the closure table "by hand" as 1 + A + A^2 + A^3 + ... + A^n where n is the greatest expected path length
             int vertices = getVertices().size();
 
@@ -144,7 +144,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             // used to give indices to vertices
             List<String> vertexList = new ArrayList<>(getVertices());
 
-            if (DUMP_TC_MATRIX_DETAILS) { logger.info("Vertex list = {}", vertexList); }
+            if (DUMP_TC_MATRIX_DETAILS) {logger.info("Vertex list = {}", vertexList);}
 
             DoubleMatrix2D a = new SparseDoubleMatrix2D(vertices, vertices);
             //        for (int i = 0; i < vertices; i++) {
@@ -171,13 +171,10 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
             logger.info("TC matrix computed in {} ms", System.currentTimeMillis() - start);
 
-            if (DUMP_TC_MATRIX_DETAILS) { logger.info("TC matrix expected = {}", result); }
+            if (DUMP_TC_MATRIX_DETAILS) {logger.info("TC matrix expected = {}", result);}
 
-            Query q = session.createNativeQuery("select descendant_oid, ancestor_oid, val from m_org_closure")
-                    .addScalar("descendant_oid", StandardBasicTypes.STRING)
-                    .addScalar("ancestor_oid", StandardBasicTypes.STRING)
-                    .addScalar("val", StandardBasicTypes.LONG);
-            List<Object[]> list = q.list();
+            Query q = em.createNativeQuery("select descendant_oid, ancestor_oid, val from m_org_closure", "OrgClosureBasic");
+            List<Object[]> list = q.getResultList();
             logger.info("OrgClosure has {} rows", list.size());
 
             DoubleMatrix2D closureInDatabase = new SparseDoubleMatrix2D(vertices, vertices);
@@ -191,7 +188,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                         val);
             }
 
-            if (DUMP_TC_MATRIX_DETAILS) { logger.info("TC matrix fetched from db = {}", closureInDatabase); }
+            if (DUMP_TC_MATRIX_DETAILS) {logger.info("TC matrix fetched from db = {}", closureInDatabase);}
 
             double zSumResultBefore = result.zSum();
             double zSumClosureInDb = closureInDatabase.zSum();
@@ -200,7 +197,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             logger.info("Summary of items in closure computed: {}, in DB-stored closure: {}, delta: {}",
                     zSumResultBefore, zSumClosureInDb, zSumResultAfter);
 
-            if (DUMP_TC_MATRIX_DETAILS) { logger.info("Difference matrix = {}", result); }
+            if (DUMP_TC_MATRIX_DETAILS) {logger.info("Difference matrix = {}", result);}
 
             boolean problem = false;
             for (int i = 0; i < vertices; i++) {
@@ -255,8 +252,8 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         info("Graph is OK w.r.t. repo");
     }
 
-    protected Set<String> getActualChildrenOf(String ancestor, Session session) {
-        List<ROrgClosure> descendantRecords = getOrgClosureByAncestor(ancestor, session);
+    protected Set<String> getActualChildrenOf(String ancestor, EntityManager em) {
+        List<ROrgClosure> descendantRecords = getOrgClosureByAncestor(ancestor, em);
         Set<String> rv = new HashSet<>();
         for (ROrgClosure c : descendantRecords) {
             rv.add(c.getDescendantOid());
@@ -264,10 +261,10 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         return rv;
     }
 
-    private List<ROrgClosure> getOrgClosureByAncestor(String ancestorOid, Session session) {
-        Query<ROrgClosure> query = session.createQuery("from ROrgClosure where ancestorOid=:oid", ROrgClosure.class);
+    private List<ROrgClosure> getOrgClosureByAncestor(String ancestorOid, EntityManager em) {
+        TypedQuery<ROrgClosure> query = em.createQuery("from ROrgClosure where ancestorOid=:oid", ROrgClosure.class);
         query.setParameter("oid", ancestorOid);
-        return query.list();
+        return query.getResultList();
     }
 
     protected void removeObjectParent(ObjectType object, ObjectReferenceType parentOrgRef, boolean useReplace, OperationResult opResult) throws Exception {
@@ -435,9 +432,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
             }
         }
 
-        try (Session session = openSession()) {
+        try (EntityManager em = createEntityManager()) {
             for (String rootOid : rootOids) {
-                scanChildren(0, rootOid, opResult, session);
+                scanChildren(0, rootOid, opResult, em);
             }
         }
     }
@@ -450,13 +447,13 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         getUsersAtThisLevelSafe(level).add(oid);
     }
 
-    protected void scanChildren(int level, String parentOid, OperationResult opResult, Session session) throws SchemaException, ObjectNotFoundException {
+    protected void scanChildren(int level, String parentOid, OperationResult opResult, EntityManager em) throws SchemaException, ObjectNotFoundException {
 
         if (level > maxLevel) {
             maxLevel = level;
         }
 
-        List<String> children = getChildren(parentOid, session);
+        List<String> children = getChildren(parentOid, em);
         for (String childOid : children) {
             if (alreadyKnown(childOid)) {
                 continue;
@@ -468,7 +465,7 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
                 allOrgCreated.add((OrgType) objectType);
                 registerOrgToLevels(level + 1, objectType.getOid());
                 registerObject(objectType, false);          // children will be registered to graph later
-                scanChildren(level + 1, objectType.getOid(), opResult, session);
+                scanChildren(level + 1, objectType.getOid(), opResult, em);
             } else if (objectType instanceof UserType) {
                 allUsersCreated.add((UserType) objectType);
                 registerUserToLevels(level + 1, objectType.getOid());
@@ -555,21 +552,21 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         }
     }
 
-    protected List<String> getChildren(String oid, Session session) {
-        Query childrenQuery = session.createQuery("select distinct ownerOid from RObjectReference where targetOid=:oid and referenceType=0");
+    protected List<String> getChildren(String oid, EntityManager em) {
+        Query childrenQuery = em.createQuery("select distinct ownerOid from RObjectReference where targetOid=:oid and referenceType=0");
         childrenQuery.setParameter("oid", oid);
-        return childrenQuery.list();
+        return childrenQuery.getResultList();
     }
 
     private List<String> getOrgChildren(String oid) {
-        try (Session session = openSession()) {
-            Query childrenQuery = session.createQuery("select distinct parentRef.ownerOid from RObjectReference as parentRef" +
+        try (EntityManager em = createEntityManager()) {
+            Query childrenQuery = em.createQuery("select distinct parentRef.ownerOid from RObjectReference as parentRef" +
                     " join parentRef.owner as owner where parentRef.targetOid=:oid and parentRef.referenceType=0" +
                     " and owner.objectTypeClass = :orgType");
             childrenQuery.setParameter("orgType", RObjectType.ORG);         // TODO eliminate use of parameter here
             childrenQuery.setParameter("oid", oid);
             //noinspection unchecked
-            return childrenQuery.list();
+            return childrenQuery.getResultList();
         }
     }
 
@@ -744,10 +741,10 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         long start = System.currentTimeMillis();
         loadOrgStructure(0, null, "", opResult);
         System.out.println("Loaded " + allOrgCreated.size() + " orgs and " + (objectCount - allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + " ms");
-        try (Session session = openSession()) {
-            Query q = session.createNativeQuery("select count(*) from m_org_closure");
-            System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
-            closureSize = Long.parseLong(q.list().get(0).toString());
+        try (EntityManager em = createEntityManager()) {
+            Query q = em.createNativeQuery("select count(*) from m_org_closure");
+            System.out.println("OrgClosure table has " + q.getResultList().get(0) + " rows");
+            closureSize = Long.parseLong(q.getResultList().get(0).toString());
         }
     }
 
@@ -757,10 +754,10 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         long start = System.currentTimeMillis();
         scanOrgStructure(opResult);
         System.out.println("Found " + allOrgCreated.size() + " orgs and " + (objectCount - allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + " ms");
-        try (Session session = openSession()) {
-            Query q = session.createNativeQuery("select count(*) from m_org_closure");
-            System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
-            closureSize = Long.parseLong(q.list().get(0).toString());
+        try (EntityManager em = createEntityManager()) {
+            Query q = em.createNativeQuery("select count(*) from m_org_closure");
+            System.out.println("OrgClosure table has " + q.getResultList().get(0) + " rows");
+            closureSize = Long.parseLong(q.getResultList().get(0).toString());
         }
     }
 
@@ -977,9 +974,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         removeOrgStructure(opResult);
         System.out.println("Removed in " + (System.currentTimeMillis() - start) + " ms");
 
-        try (Session session = openSession()) {
-            Query q = session.createNativeQuery("select count(*) from m_org_closure");
-            System.out.println("OrgClosure table has " + q.list().get(0) + " rows");
+        try (EntityManager em = createEntityManager()) {
+            Query q = em.createNativeQuery("select count(*) from m_org_closure");
+            System.out.println("OrgClosure table has " + q.getResultList().get(0) + " rows");
         }
 
         logger.info("Finish.");
@@ -991,9 +988,9 @@ public abstract class AbstractOrgClosureTest extends BaseSQLRepoTest {
         randomRemoveOrgStructure(opResult);
         System.out.println("Removed in " + (System.currentTimeMillis() - start) + " ms");
 
-        try (Session session = openSession()) {
-            Query q = session.createNativeQuery("select count(*) from m_org_closure");
-            Object count = q.list().get(0);
+        try (EntityManager em = createEntityManager()) {
+            Query q = em.createNativeQuery("select count(*) from m_org_closure");
+            Object count = q.getResultList().get(0);
             System.out.println("OrgClosure table has " + count + " rows");
             assertEquals("Closure is not empty", "0", count.toString());
         }

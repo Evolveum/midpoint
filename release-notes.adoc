@@ -27,6 +27,13 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 {% include release-dedication.html content=dedicationContent %}
 ++++
 
+== Changes with Respect To Version 4.8.3
+
+* Spring Boot/hibernate upgrade
+** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
+** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
+* Request access wizard multiple fixes
+
 == Changes with Respect To Version 4.8.2
 
 * Tomcat container work directory size growing issue fixed. See bug:MID-9430[].

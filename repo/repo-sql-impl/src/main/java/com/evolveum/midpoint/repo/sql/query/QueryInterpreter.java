@@ -9,10 +9,8 @@ package com.evolveum.midpoint.repo.sql.query;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
-
+import jakarta.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -41,6 +39,7 @@ import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
@@ -100,7 +99,7 @@ public class QueryInterpreter {
 
     public HibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,
             Collection<SelectorOptions<GetOperationOptions>> options, @NotNull PrismContext prismContext,
-            @NotNull RelationRegistry relationRegistry, boolean countingObjects, @NotNull Session session) throws QueryException {
+            @NotNull RelationRegistry relationRegistry, boolean countingObjects, @NotNull EntityManager em) throws QueryException {
 
         boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
         LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}",
@@ -108,7 +107,7 @@ public class QueryInterpreter {
 
         // I'm sorry about the 7th parameter, but this will die with the old repo soon.
         InterpretationContext context = new InterpretationContext(this, type, prismContext,
-                relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
+                relationRegistry, extItemDictionary, em, repoConfiguration.getDatabaseType());
         interpretQueryFilter(context, query);
         String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
         ResultStyle resultStyle = getResultStyle(context);
@@ -138,7 +137,7 @@ public class QueryInterpreter {
         if (distinct && !distinctBlobCapable) {
             String subqueryText = "\n" + hibernateQuery.getAsHqlText(2, true);
             InterpretationContext wrapperContext = new InterpretationContext(
-                    this, type, prismContext, relationRegistry, extItemDictionary, session, repoConfiguration.getDatabaseType());
+                    this, type, prismContext, relationRegistry, extItemDictionary, em, repoConfiguration.getDatabaseType());
             try {
                 interpretPagingAndSorting(wrapperContext, query, false);
             } catch (QueryException e) {
@@ -295,7 +294,7 @@ public class QueryInterpreter {
                         baseEntityDefinition + " and this filter: " + valFilter.debugDump();
                 SingleLocalizableMessage message = new SingleLocalizableMessage(
                         "QueryModelMapping.item.not.searchable",
-                        new Object[]{definition != null ? definition.getItemName() : path.toStringStandalone()},
+                        new Object[] { definition != null ? definition.getItemName() : path.toStringStandalone() },
                         technicalMessage);
                 throw new QueryException(message);
             }

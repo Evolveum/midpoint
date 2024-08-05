@@ -10,11 +10,11 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 import jakarta.persistence.metamodel.ManagedType;
-
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import jakarta.persistence.EntityManager;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -67,7 +67,7 @@ public class ObjectDeltaUpdater {
      */
     public <T extends ObjectType> RObject modifyObject(Class<T> type, String oid,
             Collection<? extends ItemDelta<?, ?>> modifications,
-            PrismObject<T> prismObject, RepoModifyOptions modifyOptions, Session session,
+            PrismObject<T> prismObject, RepoModifyOptions modifyOptions, EntityManager em,
             ObjectUpdater.AttemptContext attemptContext) throws SchemaException {
 
         LOGGER.trace("Starting to build entity changes for {}, {}, \n{}", type, oid, DebugUtil.debugDumpLazily(modifications));
@@ -91,7 +91,7 @@ public class ObjectDeltaUpdater {
                 new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
         idGenerator.collectUsedIds(prismObject);
 
-        UpdateContext ctx = new UpdateContext(this, modifyOptions, idGenerator, session, attemptContext);
+        UpdateContext ctx = new UpdateContext(this, modifyOptions, idGenerator, em, attemptContext);
 
         // Preprocess modifications: We want to process only real modifications.
         //
@@ -111,7 +111,7 @@ public class ObjectDeltaUpdater {
         // different operational data or value metadata.
 
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
-        RObject object = session.byId(objectClass).getReference(oid);
+        RObject object = em.getReference(objectClass, oid);
 
         // Is this correct? should we get type from rObject?
         //ManagedType<T> mainEntityType = entityRegistry.getJaxbMapping(type);

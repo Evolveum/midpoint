@@ -14,7 +14,6 @@ import jakarta.persistence.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.ForeignKey;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -63,10 +62,10 @@ public class RObjectTextInfo implements Serializable {
         this.text = text;
     }
 
-    @ForeignKey(name = "fk_object_text_info_owner")
-    @MapsId("owner")
+    @MapsId("ownerOid")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
+    @JoinColumn(name = COLUMN_OWNER_OID, foreignKey = @ForeignKey(name = "fk_object_text_info_owner"))
     public RObject getOwner() {
         return owner;
     }

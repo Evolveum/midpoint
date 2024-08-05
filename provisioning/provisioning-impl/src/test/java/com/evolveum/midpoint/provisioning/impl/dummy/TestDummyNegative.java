@@ -625,7 +625,7 @@ public class TestDummyNegative extends AbstractDummyTest {
             asserter.assertOid();
         } else {
             asserter.assertNoOid()
-                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "could not execute batch");
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Error while committing the transaction");
         }
         // Primary identifier value is not here, because it is set as part of object shadowization (which failed)
         asserter.attributes()
@@ -742,7 +742,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .attributes()
                     .assertSize(3) // number, name, uid
                     .end()
-                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "could not execute batch");
+                .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Error while committing the transaction");
     }
 
     @Test
