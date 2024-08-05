@@ -4,17 +4,17 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<archetype oid="00000000-0000-0000-0000-000000000520"
+<archetype oid="00000000-0000-0000-0000-000000000534"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Certification-related task</name>
+    <name>Certification-campaign-open-next-stage task</name>
     <archetypePolicy>
         <display>
-            <label>Certification-related task</label>
+            <label>Certification campaign open next stage related task</label>
             <pluralLabel>
-                <orig>Certification-related tasks</orig>
+                <orig>Certification-campaign-open-next-stage-related tasks</orig>
                 <translation>
-                    <key>CertificationRelatedTasks.title</key>
+                    <key>CertificationCampaignOpenNextStageRelatedTasks.title</key>
                 </translation>
             </pluralLabel>
             <icon>
@@ -28,25 +28,32 @@
                 <type>TaskType</type>
                 <panel id="1">
                     <identifier>activity</identifier>
-                    <visibility>hidden</visibility>
+                    <visibility>visible</visibility>
+                    <panel id="2">
+                        <identifier>work</identifier>
+                        <container id="3">
+                            <identifier>certificationOpenNextStage</identifier>
+                            <path>activity/work/certificationOpenNextStage</path>
+                        </container>
+                    </panel>
                 </panel>
-                <panel id="2">
+                <panel id="4">
                     <identifier>taskBasic</identifier>
-                    <default>true</default>
+                    <default>false</default>
                 </panel>
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
-    <assignment id="3">
+    <assignment id="4">
         <identifier>holderType</identifier>
-        <assignmentRelation id="4">
+        <assignmentRelation id="5">
             <holderType>TaskType</holderType>
         </assignmentRelation>
     </assignment>
-    <inducement id="5">
+    <inducement id="6">
         <identifier>nameMapping</identifier>
         <focusMappings>
-            <mapping id="6">
+            <mapping id="7">
                 <strength>weak</strength>
                 <expression>
                     <script>
@@ -61,4 +68,5 @@
             </mapping>
         </focusMappings>
     </inducement>
+    <superArchetypeRef oid="00000000-0000-0000-0000-000000000520" type="c:ArchetypeType"/>
 </archetype>
