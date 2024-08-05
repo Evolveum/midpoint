@@ -1,4 +1,4 @@
-= Example of Audit search panel configuration
+= Example of custom collection view in searchbox
 :page-nav-title: Example: Custom collection in searchbox
 :page-wiki-name: Example of custom collection view in searchbox
 
