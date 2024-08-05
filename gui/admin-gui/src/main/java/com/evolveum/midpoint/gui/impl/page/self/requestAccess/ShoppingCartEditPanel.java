@@ -7,11 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.Serial;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
+
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -21,9 +28,11 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -74,6 +83,10 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private static final String ID_SAVE = "save";
     private static final String ID_CLOSE = "close";
     private static final String ID_RELATION = "relation";
+    private static final String ID_TENANT_REF = "tenantRef";
+    private static final String ID_ORG_REF = "orgRef";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_FOCUS_TYPE = "focusType";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_CUSTOM_VALIDITY = "customValidity";
     private static final String ID_EXTENSION = "extension";
@@ -232,11 +245,20 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     }
 
     private void initLayout() {
+        TextArea<String> description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<>(getModel(), "assignment.description"));
+        description.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        description.add(new VisibleBehaviour(() -> isItemVisible(AssignmentType.F_DESCRIPTION)));
+        description.setOutputMarkupId(true);
+        add(description);
 
         DropDownChoice relation = new DropDownChoice(ID_RELATION, () -> requestAccess.getObject().getRelation(), relationChoices,
                 RelationUtil.getRelationChoicesRenderer());
         relation.add(new EnableBehaviour(() -> false));
         add(relation);
+
+        initFocusTypePanel();
+        initTenantRefPanel();
+        initOrgRefPanel();
 
         AssignmentsDetailsPanel extension = new AssignmentsDetailsPanel(ID_EXTENSION, assignmentExtension, false, createExtensionPanelConfiguration()) {
 
@@ -323,6 +345,53 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                         || isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)),
                 () -> validitySettingsEnabled));
         add(customValidity);
+    }
+
+    private void initFocusTypePanel() {
+        List<QName> focusTypes = ObjectTypeListUtil.createFocusTypeList();
+        DropDownChoice<QName> focusType = new DropDownChoice<>(ID_FOCUS_TYPE,
+                new PropertyModel<>(getModel(), "assignment.focusType"),
+                Model.ofList(focusTypes), new QNameObjectTypeChoiceRenderer());
+        focusType.setOutputMarkupId(true);
+        focusType.add(new VisibleBehaviour(() -> isItemVisible(AssignmentType.F_FOCUS_TYPE)));
+        add(focusType);
+    }
+
+    private void initTenantRefPanel() {
+        ValueChoosePanel<ObjectReferenceType> valueChoosePanel = new ValueChoosePanel<>(ID_TENANT_REF,
+                new PropertyModel<>(getModel(), "assignment.tenantRef")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected ObjectFilter createCustomFilter() {
+                return getPageBase().getPrismContext().queryFor(OrgType.class)
+                        .item(OrgType.F_TENANT).eq(true)
+                        .buildFilter();
+            }
+
+            @Override
+            public List<QName> getSupportedTypes() {
+                return Collections.singletonList(OrgType.COMPLEX_TYPE);
+            }
+        };
+        valueChoosePanel.setOutputMarkupId(true);
+        valueChoosePanel.add(new VisibleBehaviour(() -> isItemVisible(AssignmentType.F_TENANT_REF)));
+        add(valueChoosePanel);
+    }
+
+    private void initOrgRefPanel() {
+        ValueChoosePanel<ObjectReferenceType> valueChoosePanel = new ValueChoosePanel<>(ID_ORG_REF,
+                new PropertyModel<>(getModel(), "assignment.orgRef")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public List<QName> getSupportedTypes() {
+                return Collections.singletonList(OrgType.COMPLEX_TYPE);
+            }
+        };
+        valueChoosePanel.setOutputMarkupId(true);
+        valueChoosePanel.add(new VisibleBehaviour(() -> isItemVisible(AssignmentType.F_ORG_REF)));
+        add(valueChoosePanel);
     }
 
     private boolean isItemVisible(ItemPath path) {
