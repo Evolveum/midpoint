@@ -1,5 +1,5 @@
-MidPoint 4.9 Development Branch
--------------------------------
+MidPoint 4.9 "Verne" Milestone 6
+--------------------------------
 
 General information:
 
