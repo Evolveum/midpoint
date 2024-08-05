@@ -9,7 +9,8 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <name>SystemConfiguration</name>
     <indestructible>true</indestructible>
@@ -168,6 +169,9 @@
                 </tracingTypeProfile>
             </profile>
         </tracing>
+        <repository>
+            <autoCreatePartitionsOnAdd>true</autoCreatePartitionsOnAdd>
+        </repository>
     </internals>
     <adminGuiConfiguration>
         <homePage id="21">
@@ -760,10 +764,24 @@
             </objectCollectionView>
             <objectCollectionView id="69">
                 <identifier>certification-tasks-view</identifier>
+                <display>
+                    <label>Certification-related task</label>
+                    <pluralLabel>
+                        <orig>Certification-related tasks</orig>
+                        <norm>certificationrelated tasks</norm>
+                        <translation>
+                            <key>CertificationRelatedTasks.title</key>
+                        </translation>
+                    </pluralLabel>
+                    <icon>
+                        <cssClass>fa fa-certificate</cssClass>
+                        <color>green</color>
+                    </icon>
+                </display>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000520" relation="org:default" type="c:ArchetypeType"/>
+                    <collectionRef oid="00000000-0000-0000-0002-000000000008" relation="org:default" type="c:ObjectCollectionType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView id="70">
@@ -934,12 +952,86 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView id="98"> <!-- TODO: change id as needed -->
+                <identifier>application-roles-view</identifier>
+                <display>
+                    <label>Application roles</label>
+                    <singularLabel>Application role</singularLabel>
+                    <tooltip>Application roles</tooltip>
+                </display>
+                <displayOrder>180</displayOrder>
+                <type>RoleType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="99"> <!-- TODO: change id as needed -->
+                <identifier>business-roles-view</identifier>
+                <display>
+                    <label>Business roles</label>
+                    <singularLabel>Business role</singularLabel>
+                    <tooltip>Business roles</tooltip>
+                </display>
+                <displayOrder>190</displayOrder>
+                <type>RoleType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="100"> <!-- TODO: change id as needed -->
+                <identifier>classification-view</identifier>
+                <display>
+                    <label>Classifications</label>
+                    <singularLabel>Classification</singularLabel>
+                    <tooltip>Information classifications (labels)</tooltip>
+                </display>
+                <displayOrder>200</displayOrder>
+                <type>PolicyType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000330" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="101"> <!-- TODO: change id as needed -->
+                <identifier>clearance-view</identifier>
+                <display>
+                    <label>Clearances</label>
+                    <singularLabel>Clearance</singularLabel>
+                    <tooltip>Security clearances</tooltip>
+                </display>
+                <displayOrder>210</displayOrder>
+                <type>PolicyType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000331" relation="org:default" type="c:ArchetypeType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
             <objectCollectionView id="254">
                 <identifier>shadow-reclassification-tasks-view</identifier>
                 <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000523" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="259">
+                <identifier>certification-campaign-open-next-stage-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000534" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView id="260">
+                <identifier>certification-campaign-remediation-tasks-view</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <refreshInterval>30</refreshInterval>
+                <type>TaskType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000535" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
         </objectCollectionViews>
@@ -1097,6 +1189,35 @@
                                 <visibility>hidden</visibility>
                                 <defaultValue>ServiceType</defaultValue>
                                 <supportedTypes>ServiceType</supportedTypes>
+                            </objectTypeConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
+                </panel>
+                <panel id="123">
+                    <identifier>clearances</identifier>
+                    <display>
+                        <label>Clearances</label>
+                        <icon>
+                            <cssClass>fa fa-award</cssClass>
+                        </icon>
+                    </display>
+                    <panelType>roleAssignments</panelType>
+                    <listView>
+                        <identifier>clearances-view</identifier>
+                        <type>c:AssignmentType</type>
+                        <dataProvider xsi:type="c:RepositoryAssignmentDataProviderType"/>
+                        <collection>
+                            <filter>
+                                <q:text>targetRef/@/archetypeRef matches ( oid = "00000000-0000-0000-0000-000000000331" )</q:text>
+                            </filter>
+                            <!--                            <collectionRef oid="00000000-0000-0000-0000-000000000331" type="c:ArchetypeType">
+                                                        </collectionRef> -->
+                        </collection>
+                        <searchBoxConfiguration>
+                            <objectTypeConfiguration>
+                                <visibility>hidden</visibility>
+                                <defaultValue>RoleType</defaultValue>
+                                <supportedTypes>RoleType</supportedTypes>
                             </objectTypeConfiguration>
                         </searchBoxConfiguration>
                     </listView>
@@ -1267,6 +1388,52 @@
                         <identifier>reaction</identifier>
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/synchronization/reaction</path>
+                    </container>
+                    <panelType>rw-synchronization-reaction-optional</panelType>
+                </panel>
+                <panel id="261">
+                    <identifier>rw-association-synchronization-reaction-main</identifier>
+                    <container id="262">
+                        <identifier>associationReactionMainSetting</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.synchronization.reaction.mainSettings</label>
+                        </display>
+                        <item id="263">
+                            <path>schemaHandling/associationType/subject/association/synchronization/reaction/name</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="264">
+                            <path>schemaHandling/associationType/subject/association/synchronization/reaction/description</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="265">
+                            <path>schemaHandling/associationType/subject/association/synchronization/reaction/situation</path>
+                            <visibility>visible</visibility>
+                        </item>
+                    </container>
+                    <container id="266">
+                        <identifier>associationReaction</identifier>
+                        <visibility>hidden</visibility>
+                        <path>schemaHandling/associationType/subject/association/synchronization/reaction</path>
+                    </container>
+                    <panelType>rw-synchronization-reaction-main</panelType>
+                </panel>
+                <panel id="255">
+                    <identifier>rw-association-synchronization-reaction-optional</identifier>
+                    <container id="256">
+                        <identifier>associationReactionOptionalSetting</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.synchronization.reaction.optionalSettings</label>
+                        </display>
+                        <item id="257">
+                            <path>schemaHandling/associationType/subject/association/synchronization/reaction/order</path>
+                            <visibility>visible</visibility>
+                        </item>
+                    </container>
+                    <container id="258">
+                        <identifier>associationReaction</identifier>
+                        <visibility>hidden</visibility>
+                        <path>schemaHandling/associationType/subject/association/synchronization/reaction</path>
                     </container>
                     <panelType>rw-synchronization-reaction-optional</panelType>
                 </panel>
@@ -1518,6 +1685,11 @@
             <identifier>admin-dashboard</identifier>
             <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001" relation="org:default" type="c:DashboardType"/>
         </configurableUserDashboard>
+        <configurableUserDashboard id="267">
+            <identifier>compliance-dashboard</identifier>
+            <configurableDashboardRef oid="00000000-0000-0000-0001-000000001001" relation="org:default" type="c:DashboardType"/>
+        </configurableUserDashboard>
+
         <accessRequest>
             <roleCatalog>
                 <collection id="215">
