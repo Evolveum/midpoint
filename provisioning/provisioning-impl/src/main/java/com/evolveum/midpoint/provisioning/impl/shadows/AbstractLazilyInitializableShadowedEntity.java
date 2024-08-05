@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.impl.LazilyInitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.AbstractLazilyInitializableResourceEntity;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.sync.NotApplicableException;
@@ -65,7 +64,7 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
      *
      * Can be null only for "delete" changes with no corresponding shadows.
      */
-    @Nullable RepoShadow repoShadow;
+    @Nullable RepoShadowWithState repoShadow;
 
     /**
      * Represents the post-processing of the shadow: classification, update, and combining the repo shadow with resource object.
@@ -92,7 +91,7 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
     }
 
     public void initializeInternalForPrerequisiteOk(Task task, OperationResult result)
-            throws CommonException, NotApplicableException, EncryptionException {
+            throws CommonException, NotApplicableException {
         classifyUpdateAndCombine(task, result);
         // Note that no futurization is done here, unlike in ShadowGetOperation.
     }
@@ -109,14 +108,15 @@ public abstract class AbstractLazilyInitializableShadowedEntity implements Lazil
 
     /** Classify the repo shadow, update it with the current knowledge, and create the shadowed object. */
     abstract void classifyUpdateAndCombine(Task task, OperationResult result)
-            throws CommonException, NotApplicableException, EncryptionException;
+            throws CommonException, NotApplicableException;
 
     /** Usually the full acquisition is done, but for delete deltas we just look for the existing repo (if any). */
-    protected abstract RepoShadow acquireOrLookupRepoShadow(OperationResult result)
+    protected abstract RepoShadowWithState acquireOrLookupRepoShadow(OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException;
 
     /** Looks up and creates (if needed) a shadow for the resource object. Deals with errors. */
-    @NotNull RepoShadow acquireRepoShadow(@NotNull ExistingResourceObjectShadow resourceObject, OperationResult result)
+    @NotNull
+    RepoShadowWithState acquireRepoShadow(@NotNull ExistingResourceObjectShadow resourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
 
         try {

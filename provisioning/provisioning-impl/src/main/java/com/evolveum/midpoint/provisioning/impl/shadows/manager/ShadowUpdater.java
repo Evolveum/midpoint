@@ -16,8 +16,10 @@ import java.util.List;
 import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.PendingOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 
 import com.google.common.base.Preconditions;
@@ -451,12 +453,13 @@ public class ShadowUpdater {
      * @return repository shadow as it should look like after the update
      * @see ShadowDeltaComputerAbsolute
      */
-    public @NotNull RepoShadow updateShadowInRepository(
+    public @NotNull RepoShadowWithState updateShadowInRepositoryAndInMemory(
             @NotNull ProvisioningContext ctx,
-            @NotNull RepoShadow repoShadow,
+            @NotNull RepoShadowWithState repoShadow,
             @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             @Nullable ResourceObjectClassification newClassification,
+            @NotNull EffectiveMarksAndPolicies effectiveMarksAndPolicies,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
@@ -470,7 +473,7 @@ public class ShadowUpdater {
                         Known resource object delta (for changes):
                         {}
                         New classification (if applicable): {}""",
-                repoShadow.debugDumpLazily(1),
+                repoShadow.shadow().debugDumpLazily(1),
                 resourceObject.debugDumpLazily(1),
                 DebugUtil.debugDumpLazily(resourceObjectDelta, 1),
                 newClassification);
@@ -481,7 +484,8 @@ public class ShadowUpdater {
                 ctx.getObjectDefinition(), resourceObject.getObjectDefinition());
 
         if (resourceObjectDelta == null) {
-            repoShadow = retrieveIndexOnlyAttributesIfNeeded(ctx, repoShadow, result);
+            var refreshedShadow = retrieveIndexOnlyAttributesIfNeeded(ctx, repoShadow.shadow(), result);
+            repoShadow = repoShadow.withShadow(refreshedShadow);
         } else {
             LOGGER.trace("Resource object delta is present. We assume we will be able to update the shadow without "
                     + "explicitly reading all index-only attributes."); // TODO check if this assumption is correct
@@ -489,9 +493,15 @@ public class ShadowUpdater {
 
         RepoShadowModifications shadowModifications =
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
-                        ctx, repoShadow, resourceObject, resourceObjectDelta, true);
+                        ctx, repoShadow.shadow(), resourceObject, resourceObjectDelta,
+                        effectiveMarksAndPolicies, true);
 
-        executeRepoShadowModifications(ctx, repoShadow, shadowModifications, result);
+        executeRepoShadowModifications(ctx, repoShadow.shadow(), shadowModifications, result);
+
+        // The effectiveMarkRefs were applied (via modifications above), but transient properties were net. Let's do that here.
+        repoShadow.getBean().setEffectiveOperationPolicy(effectiveMarksAndPolicies.effectiveOperationPolicy());
+        repoShadow.getBean().setProtectedObject(effectiveMarksAndPolicies.isProtected());
+
         return repoShadow;
     }
 

@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.AbstractLazilyInitializableResourceEntity;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectFound;
@@ -74,14 +73,13 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
 
     /** Executed for both OK and error scenarios. */
     @Override
-    protected RepoShadow acquireOrLookupRepoShadow(OperationResult result)
+    protected RepoShadowWithState acquireOrLookupRepoShadow(OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
         return acquireRepoShadow(resourceObjectFound.getResourceObject(), result);
     }
 
     @Override
-    public void classifyUpdateAndCombine(Task task, OperationResult result)
-            throws CommonException, EncryptionException {
+    public void classifyUpdateAndCombine(Task task, OperationResult result) throws CommonException {
 
         assert repoShadow != null;
 
@@ -117,7 +115,7 @@ public class ShadowedObjectFound extends AbstractLazilyInitializableShadowedEnti
         if (repoShadow != null) {
             try {
                 return ShadowedObjectConstruction
-                        .construct(effectiveCtx, repoShadow, getExistingResourceObjectRequired(), result)
+                        .construct(effectiveCtx, repoShadow.shadow(), getExistingResourceObjectRequired(), result)
                         .getBean();
             } catch (Exception e) {
                 LOGGER.debug("Couldn't create the shadowed object during error handling for {}, will use repo shadow", this, e);

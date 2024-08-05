@@ -207,11 +207,14 @@ public interface ResourceObjectDefinition
     SearchHierarchyScope getSearchHierarchyScope();
 
     /**
-     * Returns compiled patterns denoting protected objects.
+     * Returns compiled patterns denoting protected objects or other kinds of marks.
+     *
+     * Use only in the parsed state.
      *
      * @see ResourceObjectTypeDefinitionType#getProtected()
+     * @see ResourceObjectTypeDefinitionType#getMarking()
      */
-    @NotNull Collection<ResourceObjectPattern> getProtectedObjectPatterns();
+    @NotNull ShadowMarkingRules getShadowMarkingRules();
 
     /**
      * @see ResourceObjectTypeDefinitionType#getAuxiliaryObjectClassMappings()

@@ -188,7 +188,8 @@ class ShadowGetOperation {
             result.close();
         }
 
-        var shadowPostProcessor = new ShadowPostProcessor(ctx, repoShadow, resourceObject, null);
+        var shadowPostProcessor = new ShadowPostProcessor(
+                ctx, RepoShadowWithState.existing(repoShadow), resourceObject, null);
 
         // FIXME maybe special object type for combined object could be created
         var combinedObject = shadowPostProcessor.execute(parentResult);

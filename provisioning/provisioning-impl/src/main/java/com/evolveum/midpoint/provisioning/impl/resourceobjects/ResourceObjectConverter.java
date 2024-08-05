@@ -165,7 +165,7 @@ public class ResourceObjectConverter {
 
     public ResourceObjectAddReturnValue addResourceObject(
             ProvisioningContext ctx,
-            ResourceObjectShadow shadow,
+            ResourceObjectShadow shadowToAdd,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             boolean skipExplicitUniquenessCheck,
@@ -175,7 +175,7 @@ public class ResourceObjectConverter {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ADD_RESOURCE_OBJECT);
         try {
-            return ResourceObjectAddOperation.execute(ctx, shadow, scripts, connOptions, skipExplicitUniquenessCheck, result);
+            return ResourceObjectAddOperation.execute(ctx, shadowToAdd, scripts, connOptions, skipExplicitUniquenessCheck, result);
         } catch (Throwable t) {
             result.recordException("Could not create object on the resource: " + t.getMessage(), t);
             throw t;

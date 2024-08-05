@@ -636,41 +636,16 @@ class ResourceSchemaParser {
          * Parses protected objects, delineation, and so on.
          */
         private void parseOtherFeatures() throws ConfigurationException {
-            parseProtected();
+            parseMarkingRules();
             parseDelineation();
         }
 
         /**
          * Converts protected objects patterns from "bean" to "compiled" form.
          */
-        private void parseProtected() throws ConfigurationException {
-            List<ResourceObjectPatternType> protectedPatternBeans = definitionCI.value().getProtected();
-            if (protectedPatternBeans.isEmpty()) {
-                return;
-            }
-            var prismObjectDef = definition.getPrismObjectDefinition();
-            for (ResourceObjectPatternType protectedPatternBean : protectedPatternBeans) {
-                definition.addProtectedObjectPattern(
-                        convertToPattern(protectedPatternBean, prismObjectDef));
-            }
-        }
-
-        private ResourceObjectPattern convertToPattern(
-                ResourceObjectPatternType patternBean, PrismObjectDefinition<ShadowType> prismObjectDef)
-                throws ConfigurationException {
-            SearchFilterType filterBean =
-                    MiscUtil.configNonNull(
-                            patternBean.getFilter(),
-                            () -> "No filter in resource object pattern");
-            try {
-                ObjectFilter filter =
-                        MiscUtil.configNonNull(
-                                PrismContext.get().getQueryConverter().parseFilter(filterBean, prismObjectDef),
-                                () -> "No filter in resource object pattern");
-                return new ResourceObjectPattern(definition, filter);
-            } catch (SchemaException e) {
-                throw new ConfigurationException("Couldn't parse protected object filter: " + e.getMessage(), e);
-            }
+        private void parseMarkingRules() throws ConfigurationException {
+            definition.setShadowMarkingRules(
+                    ShadowMarkingRules.parse(definitionCI, definition));
         }
 
         private void parseDelineation() throws ConfigurationException {

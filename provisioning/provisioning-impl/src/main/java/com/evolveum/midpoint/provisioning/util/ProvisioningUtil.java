@@ -30,7 +30,6 @@ import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -137,45 +136,6 @@ public class ProvisioningUtil {
             LOGGER.trace("Narrowed delta: {}", DebugUtil.debugDumpLazily(filteredDelta));
         }
         return filteredDelta;
-    }
-
-    public static boolean isAddShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ResourceObjectShadow object, OperationResult result)
-            throws SchemaException {
-        return getEffectiveProvisioningPolicy(protectedAccountPatterns, object, result).getAdd().isEnabled();
-    }
-
-    public static boolean isModifyShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, RepoShadow shadow, OperationResult result)
-            throws SchemaException {
-        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getModify().isEnabled();
-    }
-
-    public static boolean isDeleteShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, RepoShadow shadow, OperationResult result)
-            throws SchemaException {
-        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getDelete().isEnabled();
-    }
-
-    private static ObjectOperationPolicyType getEffectiveProvisioningPolicy(
-            @NotNull Collection<ResourceObjectPattern> protectedAccountPatterns,
-            @NotNull AbstractShadow shadow,
-            @NotNull OperationResult result) throws SchemaException {
-        ObjectOperationPolicyType existingPolicy = shadow.getBean().getEffectiveOperationPolicy();
-        if (existingPolicy != null) {
-            return existingPolicy;
-        }
-        ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
-                protectedAccountPatterns, shadow, result);
-        return shadow.getBean().getEffectiveOperationPolicy();
-    }
-
-    public static void setEffectiveProvisioningPolicy (
-            ProvisioningContext ctx, AbstractShadow shadow, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException {
-        ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
-                ctx.getProtectedAccountPatterns(result), shadow, result);
     }
 
     public static void recordWarningNotRethrowing(Trace logger, OperationResult result, String message, Exception ex) {

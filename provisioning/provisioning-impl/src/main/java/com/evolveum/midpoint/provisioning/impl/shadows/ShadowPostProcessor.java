@@ -47,7 +47,7 @@ class ShadowPostProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(ShadowPostProcessor.class);
 
     @NotNull private ProvisioningContext ctx;
-    @NotNull private RepoShadow repoShadow;
+    @NotNull private RepoShadowWithState repoShadow;
     @NotNull private final ExistingResourceObjectShadow resourceObject;
     @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
 
@@ -60,7 +60,7 @@ class ShadowPostProcessor {
 
     ShadowPostProcessor(
             @NotNull ProvisioningContext ctx,
-            @NotNull RepoShadow repoShadow,
+            @NotNull RepoShadowWithState repoShadow,
             @NotNull ExistingResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta) {
         // We force the resource object definition into the context - just to relieve the caller from this responsibility.
@@ -74,25 +74,38 @@ class ShadowPostProcessor {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, EncryptionException {
 
+        // Classifies the object if needed. Applies the current definition (in all cases).
         classifyIfNeededAndApplyTheDefinition(result);
-        postProcessReferenceValues(result);
-        updateShadowInRepository(result);
-        createCombinedObject(result);
+
+        // Acquires/updates/combines shadow(s) embedded in the reference values, in both object and object delta.
+        postProcessShadowsInReferenceValues(result);
+
+        // Computes current marks and policies, taking into account both repo shadow (current marks, statements)
+        // and the current object (data). We must NOT apply policies to the shadow, in order to correctly determine the delta.
+        var marksAndPolicies = ctx.computeEffectiveMarksAndPolicies(repoShadow, resourceObject, result);
+
+        // Updates the shadow in repository (and in memory), based on the information obtained from the resource.
+        repoShadow = b.shadowUpdater.updateShadowInRepositoryAndInMemory(
+                ctx, repoShadow, resourceObject, resourceObjectDelta, newClassification, marksAndPolicies, result);
+
+        // Completes the shadow by adding attributes from the resource object.
+        combinedObject = ShadowedObjectConstruction.construct(ctx, repoShadow.shadow(), resourceObject, result);
 
         return combinedObject;
     }
 
-    /** Classifies the object if needed. */
     private void classifyIfNeededAndApplyTheDefinition(OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
+
+        var oldClassification = ResourceObjectClassification.of(repoShadow.shadow());
 
         if (b.classificationHelper.shouldClassify(ctx, repoShadow.getBean())) {
             // TODO is it OK that the classification helper updates the repository (and determines the tag)?
             //  Shouldn't we do that only during shadow update?
             //  Probably that's ok, because that's the place where we can redirect the delta to the simulation result.
             //  As part of general shadow update it is hidden among other deltas.
-            newClassification = b.classificationHelper.classify(ctx, repoShadow, resourceObject, result);
+            newClassification = b.classificationHelper.classify(ctx, repoShadow.shadow(), resourceObject, result);
             if (newClassification.isKnown()) {
                 ResourceObjectTypeDefinition newTypeDefinition = newClassification.getDefinitionRequired();
                 LOGGER.debug("Classified {} as {}", repoShadow, newTypeDefinition);
@@ -104,14 +117,18 @@ class ShadowPostProcessor {
                 ProvisioningUtil.removeExtraLegacyReferenceAttributes(resourceObject, compositeDefinition);
                 resourceObject.applyDefinition(compositeDefinition);
 
-                ProvisioningUtil.removeExtraLegacyReferenceAttributes(repoShadow, compositeDefinition);
-                repoShadow.applyDefinition(compositeDefinition);
+                ProvisioningUtil.removeExtraLegacyReferenceAttributes(repoShadow.shadow(), compositeDefinition);
+                repoShadow.shadow().applyDefinition(compositeDefinition);
+
+                if (!newClassification.equivalent(oldClassification)) {
+                    repoShadow = RepoShadowWithState.classified(repoShadow.shadow());
+                }
             }
         } else {
             // The classification was not changed; but we still should apply the correct definition to the resource object.
             var compositeDefinition =
                     ctx.computeCompositeObjectDefinition(
-                            repoShadow.getObjectDefinition(), resourceObject.getBean().getAuxiliaryObjectClass());
+                            repoShadow.shadow().getObjectDefinition(), resourceObject.getBean().getAuxiliaryObjectClass());
             ctx = ctx.spawnForDefinition(compositeDefinition);
 
             ProvisioningUtil.removeExtraLegacyReferenceAttributes(resourceObject, compositeDefinition);
@@ -119,19 +136,18 @@ class ShadowPostProcessor {
         }
     }
 
-    private void postProcessReferenceValues(OperationResult result)
+    private void postProcessShadowsInReferenceValues(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException, EncryptionException {
         for (var refAttrValue : ShadowReferenceAttributesCollection.ofShadow(resourceObject.getBean()).getAllReferenceValues()) {
-            processEmbeddedShadows(refAttrValue, result);
+            postProcessEmbeddedShadow(refAttrValue, result);
         }
         for (var refAttrValue : ShadowReferenceAttributesCollection.ofObjectDelta(resourceObjectDelta).getAllReferenceValues()) {
-            processEmbeddedShadows(refAttrValue, result);
+            postProcessEmbeddedShadow(refAttrValue, result);
         }
     }
 
-    /** Acquires/updates/combines shadow(s) embedded in the reference value. */
-    private void processEmbeddedShadows(@NotNull ShadowReferenceAttributeValue refAttrValue, @NotNull OperationResult result)
+    private void postProcessEmbeddedShadow(@NotNull ShadowReferenceAttributeValue refAttrValue, @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, EncryptionException, ObjectNotFoundException {
 
@@ -217,25 +233,6 @@ class ShadowPostProcessor {
         var shadowPostProcessor = new ShadowPostProcessor(
                 ctxEntitlement, repoShadow, existingResourceObject, null);
         return shadowPostProcessor.execute(result);
-    }
-
-    /**
-     * Updates the shadow in repository, based on the information obtained from the resource.
-     */
-    private void updateShadowInRepository(@NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
-        repoShadow = b.shadowUpdater.updateShadowInRepository(
-                ctx, repoShadow, resourceObject, resourceObjectDelta, newClassification, result);
-    }
-
-    /**
-     * Completes the shadow by adding attributes from the resource object.
-     * This also completes the associations by adding shadowRefs.
-     */
-    private void createCombinedObject(OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            SecurityViolationException, ExpressionEvaluationException, EncryptionException {
-        combinedObject = ShadowedObjectConstruction.construct(ctx, repoShadow, resourceObject, result);
     }
 
     ExistingResourceObjectShadow getCombinedObject() {

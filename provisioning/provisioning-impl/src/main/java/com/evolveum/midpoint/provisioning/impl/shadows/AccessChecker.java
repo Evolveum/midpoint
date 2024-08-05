@@ -36,7 +36,8 @@ class AccessChecker {
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
-    void checkAddAccess(ProvisioningContext ctx, ResourceObjectShadow resourceObject, OperationResult parentResult)
+    /** Does not enforce ADD operation restrictions on the whole object, just on individual attributes. */
+    void checkAttributesAddAccess(ProvisioningContext ctx, ResourceObjectShadow resourceObject, OperationResult parentResult)
             throws SecurityViolationException, SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
         try {
@@ -70,7 +71,8 @@ class AccessChecker {
         }
     }
 
-    void checkModifyAccess(
+    /** Does not enforce MODIFY operation restrictions on the whole object, just on individual attributes. */
+    void checkAttributesModifyAccess(
             ProvisioningContext ctx,
             Collection<? extends ItemDelta<?, ?>> modifications,
             OperationResult parentResult)
