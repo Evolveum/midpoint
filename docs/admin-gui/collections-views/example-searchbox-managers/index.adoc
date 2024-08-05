@@ -43,7 +43,7 @@ Paste the code into system configuration
 ----
 
 .Custom collection in sidemenu
-image::mngrs-cllctn.png[]
+image::mngrs-cllctn.png[width=100%]
 
 ==== 2. Custom toggle for fast filter in All users
 Create a new search panel item dedicated to filter only accounts that have an assignment with relation "manager" quickly.
@@ -74,9 +74,9 @@ Paste the code into system configuration
 ...
 ----
 .Custom toggle in the search bar for "All Users"
-image::mngrs-tggl-1.png[]
+image::mngrs-tggl-1.png[width=100%]
 
 .Custom toggle active in the search bar for "All Users"
-image::mngrs-tggl-2.png[]
+image::mngrs-tggl-2.png[width=100%]
 
 TIP: For better filtering you can use *roleMembershipRef matches ( relation = manager )* query if you wish to list all managers who got their role with "relation:manager" indirectly (from inducement)
