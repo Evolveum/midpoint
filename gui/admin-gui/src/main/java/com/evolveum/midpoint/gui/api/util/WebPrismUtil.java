@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -604,6 +605,18 @@ public class WebPrismUtil {
             strengthBean = MappingStrengthType.NORMAL;
         }
         return PageBase.createStringResourceStatic(null, strengthBean).getString().toLowerCase();
+    }
+
+    public static QName convertStringWithPrefixToQName(String object) {
+        if (StringUtils.isEmpty(object)) {
+            return null;
+        }
+
+        if (object.contains(":")) {
+            int index = object.indexOf(":");
+            return new QName(null, object.substring(index + 1), object.substring(0, index));
+        }
+        return new QName(object);
     }
 
 }
