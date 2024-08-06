@@ -17,9 +17,13 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,9 +48,12 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     private static final String ID_SUB_HEADER = "sub-header";
     private static final String ID_SUB_HEADER_ITEM = "sub-header-item";
     private static final String ID_BODY = "body";
-    private static final String ID_BODY_ITEM = "body-item";
     private static final String ID_FOOTER = "footer";
     private static final String ID_FOOTER_ITEM = "footer-item";
+
+    private static final String ID_PATTERNS = "patterns";
+    private static final String ID_PATTERN = "pattern";
+
 
     public RoleAnalysisTableOpPanelItemPanel(String id, LoadableDetachableModel<OperationPanelModel> model) {
         super(id, model);
@@ -54,7 +61,6 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     }
 
     WebMarkupContainer container;
-    RepeatingView bodyItems;
 
     private void initLayout() {
         container = new WebMarkupContainer(ID_CONTAINER);
@@ -81,10 +87,6 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
         body.setOutputMarkupId(true);
         container.add(body);
 
-        bodyItems = new RepeatingView(ID_BODY_ITEM);
-        bodyItems.setOutputMarkupId(true);
-        body.add(bodyItems);
-
         WebMarkupContainer footer = new WebMarkupContainer(ID_FOOTER);
         footer.setOutputMarkupId(true);
         container.add(footer);
@@ -95,8 +97,10 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
         initHeaderItem(headerItems);
         initSubHeaderItem(subHeaderItems);
-        initBodyItem(bodyItems);
+        initBodyItem(body);
         initFooterItem(footerItems);
+
+        add(AttributeAppender.append("class", () -> getModelObject().isPanelExpanded() ? "" : "op-panel-collapsed"));
     }
 
     protected void initHeaderItem(RepeatingView headerItems) {
@@ -108,8 +112,58 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
         addToggleModeItem(subHeaderItems);
     }
 
-    protected void initBodyItem(RepeatingView bodyItems) {
-        addPatternButtonItems(bodyItems);
+    private IModel<List<DetectedPattern>> createPatternsModel() {
+        return () -> {
+            if (getModelObject().isCandidateRoleView()) {
+                return getModelObject().getCandidatesRoles();
+            } else {
+                return getModelObject().getPatterns();
+            }
+        };
+    }
+
+    protected void initBodyItem(WebMarkupContainer bodyItems) {
+        ListView<DetectedPattern> patterns = new ListView<>(ID_PATTERNS, createPatternsModel()) {
+            @Override
+            protected void populateItem(ListItem<DetectedPattern> listItem) {
+
+                RoleAnalysisTableOpPanelPatternItem bodyItem = new RoleAnalysisTableOpPanelPatternItem(ID_PATTERN, listItem.getModel()) {
+                    @Override
+                    protected void onConfigure() {
+                        super.onConfigure();
+                    }
+
+                    @Override
+                    protected void performOnClick(AjaxRequestTarget ajaxRequestTarget) {
+                        handlePatternClick(ajaxRequestTarget, getModelObject());
+                    }
+
+                    @Contract(pure = true)
+                    @Override
+                    public @NotNull String appendIconPanelCssClass() {
+                        return " elevation-1";
+                    }
+
+                    @Contract(pure = true)
+                    @Override
+                    public @NotNull String replaceIconCssStyle() {
+                        return "width: 27px; height: 27px;";
+                    }
+
+                    @Contract(pure = true)
+                    @Override
+                    public @Nullable String replaceIconCssClass() {
+                        return null;
+                    }
+
+        @Serial
+                    private static final long serialVersionUID = 1L;
+                };
+                listItem.add(bodyItem);
+            }
+        };
+        bodyItems.add(patterns);
+//        addPatternButtonItems(bodyItems);
     }
 
     private void initFooterItem(RepeatingView footerItems) {
@@ -201,166 +255,6 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
         subHeaderItems.add(toggleModeItem);
     }
 
-    private void addPatternButtonItems(
-            @NotNull RepeatingView bodyItems) {
-        OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
-        boolean candidateRoleView = modelObject.isCandidateRoleView();
-        List<DetectedPattern> patterns = candidateRoleView ? modelObject.getCandidatesRoles() : modelObject.getPatterns();
-
-        for (int i = 0; i < patterns.size(); i++) {
-            DetectedPattern pattern = patterns.get(i);
-
-            String formattedReductionFactorConfidence = String.format("%.0f", pattern.getMetric());
-            String formattedItemConfidence = String.format("%.1f", pattern.getItemsConfidence());
-            int patternIndex = i;
-
-            int finalI = i;
-            RoleAnalysisTableOpPanelItem bodyItem = new RoleAnalysisTableOpPanelItem(bodyItems.newChildId(), getModel()) {
-                @Override
-                protected void onConfigure() {
-                    super.onConfigure();
-                }
-
-                @Override
-                protected void performOnClick(AjaxRequestTarget ajaxRequestTarget) {
-                    handlePatternClick(ajaxRequestTarget, modelObject, pattern);
-                }
-
-                @Contract(pure = true)
-                @Override
-                public @NotNull String appendIconPanelCssClass() {
-                    return " elevation-1";
-                }
-
-                @Contract(pure = true)
-                @Override
-                public @NotNull String appendIconPanelStyle() {
-                    if (candidateRoleView) {
-                        return "background-color: #DFF2E3;";
-                    } else {
-                        return "background-color: #E2EEF5;";
-                    }
-                }
-
-                @Override
-                public LoadableDetachableModel<String> getBackgroundColorStyle() {
-                    List<DetectedPattern> selectedPatterns = modelObject.getSelectedPatterns();
-                    for (DetectedPattern selectedPattern : selectedPatterns) {
-                        if (selectedPattern.getId().equals(pattern.getId())) {
-                            return new LoadableDetachableModel<>() {
-                                @Override
-                                protected String load() {
-                                    return "background-color: " + selectedPattern.getAssociatedColor() + ";";
-                                }
-                            };
-                        }
-                    }
-                    return super.getBackgroundColorStyle();
-                }
-
-                @Contract("_ -> new")
-                @Override
-                public @NotNull Component generateIconComponent(String idIcon) {
-                    String iconClass = modelObject.isCandidateRoleView()
-                            ? GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON
-                            : GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
-                    return new CompositedIconTextPanel(idIcon,
-                            "fa-2x " + iconClass + " text-dark",
-                            finalI + 1 + "",
-                            "text-secondary bg-white border border-white rounded-circle") {
-                        @Override
-                        protected String getBasicIconCssStyle() {
-                            return "font-size:25px; width:27px; height:27px;";
-                        }
-                    };
-                }
-
-                @Contract(pure = true)
-                @Override
-                public @NotNull String replaceIconCssStyle() {
-                    return "width: 27px; height: 27px;";
-                }
-
-                @Contract(pure = true)
-                @Override
-                public @Nullable String replaceIconCssClass() {
-                    return null;
-                }
-
-                @Override
-                public @NotNull Component getDescriptionTitleComponent(String id) {
-                    LoadableDetachableModel<String> model = new LoadableDetachableModel<>() {
-                        @Override
-                        protected @NotNull String load() {
-                            if (modelObject.isCandidateRoleView()) {
-                                return "Candidate role " + (pattern.getIdentifier());
-                            }
-
-                            return "Role suggestion #" + (patternIndex + 1);
-                        }
-                    };
-
-                    RepeatingView repeatingView = new RepeatingView(id);
-                    repeatingView.setOutputMarkupId(true);
-
-                    Label label = new Label(repeatingView.newChildId(), model);
-                    label.setOutputMarkupId(true);
-
-                    AjaxIconButton iconButton = new AjaxIconButton(repeatingView.newChildId(),
-                            Model.of("fa fa-list"), Model.of("")) {
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            if (modelObject.isCandidateRoleView()) {
-                                String roleOid = pattern.getRoleOid();
-                                dispatchToObjectDetailsPage(RoleType.class, roleOid, getPageBase(), true);
-                            }
-
-                            RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
-                                    ((PageBase) getPage()).getMainPopupBodyId(),
-                                    Model.of(pattern));
-                            ((PageBase) getPage()).showMainPopup(component, target);
-                        }
-                    };
-                    iconButton.setOutputMarkupId(true);
-                    iconButton.add(AttributeAppender.replace("class", "p-0"));
-                    repeatingView.add(label);
-                    repeatingView.add(iconButton);
-                    return repeatingView;
-                }
-
-                @Override
-                protected void addDescriptionComponents() {
-                    if (modelObject.isCandidateRoleView()) {
-                        Set<String> users = pattern.getUsers();
-                        Set<String> roles = pattern.getRoles();
-                        if (users != null && !users.isEmpty() && roles != null && !roles.isEmpty()) {
-                            appendIcon(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED, null);
-                            appendText(" " + pattern.getUsers().size(), null);
-                            appendText("users - ", null);
-                            appendIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, null);
-                            appendText(" " + pattern.getRoles().size(), null);
-                            appendText(" roles", null);
-                        }
-                    } else {
-                        appendIcon("fe fe-assignment", "color: red;");
-                        appendText(" " + formattedReductionFactorConfidence, null);
-                        appendText("relations - ", null);
-                        appendIcon("fa fa-leaf", "color: green");
-                        appendText(" " + formattedItemConfidence + "% ", null);
-                        appendText(" confidence", null);
-                    }
-                }
-
-                @Serial
-                private static final long serialVersionUID = 1L;
-            };
-
-            bodyItem.setOutputMarkupId(true);
-            bodyItem.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex align-self-stretch"));
-            bodyItems.add(bodyItem);
-        }
-    }
-
     private @NotNull RoleAnalysisTableOpPanelItem addFooterButtonItem(
             @NotNull RepeatingView footerItems) {
         return new RoleAnalysisTableOpPanelItem(footerItems.newChildId(), getModel()) {
@@ -375,16 +269,8 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
             }
 
             @Override
-            public String replaceIconCssClass() {
-                return RoleAnalysisTableOpPanelItemPanel.this.getModelObject()
-                        .isPanelExpanded()
-                        ? "fa-2x fa fa-align-justify text-dark"
-                        : "fa-2x fa fa-columns text-dark";
-            }
-
-            @Override
             public Component getDescriptionTitleComponent(String id) {
-                Label label = new Label(id, "Panel view");
+                Label label = new Label(id, "Panel view"); //TODO localization
                 label.setOutputMarkupId(true);
                 return label;
             }
@@ -392,25 +278,11 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
             @Override
             protected void addDescriptionComponents() {
                 appendText("Switch panel view.", null);
-            }
+            } // TODO localization
 
             @Serial
             private static final long serialVersionUID = 1L;
         };
-    }
-
-    private void handlePatternClick(
-            @NotNull AjaxRequestTarget ajaxRequestTarget,
-            @NotNull OperationPanelModel modelObject,
-            @NotNull DetectedPattern pattern) {
-        if (!modelObject.isCompareMode()) {
-            modelObject.addSelectedPatternSingleAllowed(pattern);
-        } else {
-            modelObject.addSelectedPattern(pattern);
-        }
-        ajaxRequestTarget.add(this);
-        ajaxRequestTarget.add(container);
-        onPatternSelectionPerform(ajaxRequestTarget);
     }
 
     public void onPatternSelectionPerform(@NotNull AjaxRequestTarget ajaxRequestTarget) {
@@ -419,25 +291,21 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     private void handleCompareModeClick(
             @NotNull AjaxRequestTarget ajaxRequestTarget) {
-        OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
+        OperationPanelModel modelObject = getModelObject();
         modelObject.clearSelectedPatterns();
         boolean compareMode = modelObject.isCompareMode();
         modelObject.setCompareMode(!compareMode);
-        ajaxRequestTarget.add(this);
-        ajaxRequestTarget.add(container);
+        ajaxRequestTarget.add(RoleAnalysisTableOpPanelItemPanel.this);
     }
 
+    //TODO refresh whole table
     private void handleCandidateRoleViewClick(
             @NotNull AjaxRequestTarget ajaxRequestTarget) {
-        OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
+        OperationPanelModel modelObject = getModelObject();
         modelObject.clearSelectedPatterns();
         boolean candidateRoleView = modelObject.isCandidateRoleView();
         modelObject.setCandidateRoleView(!candidateRoleView);
-
-        bodyItems.removeAll();
-        initBodyItem(bodyItems);
-        ajaxRequestTarget.add(this);
-        ajaxRequestTarget.add(container);
+        ajaxRequestTarget.add(RoleAnalysisTableOpPanelItemPanel.this);
     }
 
     private void handleExpandedStateClick(
@@ -457,6 +325,24 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     private @NotNull String getCandidateRoleViewIconCssClass() {
         OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
         return modelObject.isCandidateRoleView() ? "fa-2x fe fe-role text-secondary" : "fa-2x fa fa-cube text-dark";
+    }
+
+    private void handlePatternClick(
+            @NotNull AjaxRequestTarget ajaxRequestTarget,
+            @NotNull DetectedPattern pattern) {
+
+        boolean patternSelected = pattern.isPatternSelected();
+        OperationPanelModel modelObject = getModelObject();
+        if (!modelObject.isCompareMode()) {
+            modelObject.clearSelectedPatterns();
+        } else {
+            modelObject.removeFromPalette(pattern);
+        }
+
+        pattern.setPatternSelected(!patternSelected);
+        ajaxRequestTarget.add(this);
+        ajaxRequestTarget.add(container);
+        onPatternSelectionPerform(ajaxRequestTarget);
     }
 
 }

@@ -116,8 +116,8 @@ public class BusinessRoleWizardPanel extends AbstractWizardPanel<RoleType, Abstr
                 protected SelectableBeanObjectDataProvider<RoleType> createProvider(
                         SelectableBeanObjectDataProvider<RoleType> defaultProvider) {
 
-                    List<RoleType> prepareRoles = candidateRoles.stream()
-                            .map(candidateRole -> candidateRole.asObjectable()).toList();
+                    List<RoleType> prepareRoles = new ArrayList<>(candidateRoles.stream()
+                            .map(candidateRole -> candidateRole.asObjectable()).toList());
                     ObjectQuery customQuery = getCustomQuery();
                     Task task = getPageBase().createSimpleTask("Load roles for migration");
 

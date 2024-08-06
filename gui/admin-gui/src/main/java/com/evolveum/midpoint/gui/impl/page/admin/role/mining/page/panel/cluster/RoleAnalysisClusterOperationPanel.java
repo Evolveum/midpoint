@@ -15,6 +15,8 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
+
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -93,6 +95,9 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 Task task = getPageBase().createSimpleTask("Prepare mining structure");
                 OperationResult result = task.getResult();
 
+                model.setCandidateRoleView(getCandidateRoleContainerId() != null);
+
+                //TODO should be loaded together with detected patterns/candidate roles
                 List<DetectedPattern> patternsToAnalyze = loadPatternsToAnalyze(task, result);
                 model.addSelectedPattern(patternsToAnalyze);
                 return model;
@@ -175,7 +180,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                     membersOidSet,
                     clusterMetric,
                     null,
-                    roleOid);
+                    roleOid,
+                    BasePattern.PatternType.CANDIDATE);
             pattern.setIdentifier(rolePrismObject.getName().getOrig());
             pattern.setId(candidateRole.getId());
             pattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
@@ -353,22 +359,26 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                         return "fa-2x fas fa-expand text-dark";
                     }
 
-                    @Override
-                    public @NotNull Component getDescriptionTitleComponent(String id) {
-                        Label label = new Label(id, "Table view"); //TODO string resource model
-                        label.setOutputMarkupId(true);
-                        return label;
+
+                        @Override
+                        public @NotNull Component getDescriptionTitleComponent (String id){
+                            Label label = new Label(id, "Table view"); //TODO string resource model
+                            label.setOutputMarkupId(true);
+                            return label;
+                        }
+
+                        @Override
+                        protected void addDescriptionComponents () {
+                            appendText("Switch table view", null); //TODO string resource model
+                        }
                     }
 
-                    @Override
-                    protected void addDescriptionComponents() {
-                        appendText("Switch table view", null); //TODO string resource model
-                    }
-                };
-                refreshIcon.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex"
-                        + " align-self-stretch mt-1"));
+                    ;
+                refreshIcon.add(AttributeAppender.replace("class","btn btn-outline-dark border-0 d-flex"
+                        +" align-self-stretch mt-1"));
                 headerItems.add(refreshIcon);
-            }
+                }
+
 
         };
         itemPanel.setOutputMarkupId(true);
