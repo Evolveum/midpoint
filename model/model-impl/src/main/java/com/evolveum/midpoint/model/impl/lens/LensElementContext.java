@@ -439,6 +439,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         state.modifyPrimaryDelta(modifier);
     }
 
+    /** Modifies the secondary delta. Do not use! It is a hacking tool only. */
+    public void modifySecondaryDelta(DeltaModifier<O> modifier) throws SchemaException {
+        state.modifySecondaryDelta(modifier);
+    }
+
     public void setEstimatedOldValuesInPrimaryDelta() throws SchemaException {
         if (getPrimaryDelta() != null && getObjectOld() != null && isModify()) {
             state.modifyPrimaryDelta(delta -> {
