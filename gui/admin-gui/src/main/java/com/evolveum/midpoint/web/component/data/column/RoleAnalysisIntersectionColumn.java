@@ -54,24 +54,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
 
     private final B baseMiningChunk;
-
-
     private final RoleAnalysisTableTools.StyleResolution styleWidth;
 
 
     public RoleAnalysisIntersectionColumn(
             B baseMiningChunk,
             IModel<RoleAnalysisObjectDto> model,
-//            IModel<OperationPanelModel> opPanelModel,
-//            IModel<PrismObject<RoleAnalysisClusterType>> cluster,
-//            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
-//            LoadableModel<MiningOperationChunk> miningOperationChunk,
             PageBase pageBase) {
         super(model, pageBase);
-//
         this.baseMiningChunk = baseMiningChunk;
-//
-//        this.miningOperationChunk = miningOperationChunk;
         this.styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(baseMiningChunk.getUsers().size());
     }
 
@@ -243,7 +234,9 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
         });
     }
 
-    protected abstract Set<String> getMarkMemberObjects();
+    private Set<String> getMarkMemberObjects() {
+        return getModel().getObject().getMarkedUsers();
+    }
 
     protected abstract Set<String> getMarkPropertyObjects();
 

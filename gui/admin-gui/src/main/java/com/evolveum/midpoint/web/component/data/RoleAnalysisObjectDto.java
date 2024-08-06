@@ -9,7 +9,9 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.chunk.*;
@@ -45,6 +47,8 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     private RoleAnalysisClusterType cluster;
 
+    private Set<String> markedUsers = new HashSet<>();
+
     public RoleAnalysisObjectDto(RoleAnalysisClusterType cluster, List<DetectedPattern> detectedPatterns, Integer parameterTableSetting, PageBase pageBase) {
         loadObject(cluster, detectedPatterns, parameterTableSetting, pageBase);
     }
@@ -65,6 +69,7 @@ public class RoleAnalysisObjectDto implements Serializable {
             RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
             if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
                 this.isOutlierDetection = true;
+                collectMarkedUsers(roleAnalysisService, task, result);
             }
             mode = analysisOption.getProcessMode();
             this.isRoleMode = mode.equals(RoleAnalysisProcessModeType.ROLE);
@@ -88,6 +93,20 @@ public class RoleAnalysisObjectDto implements Serializable {
 
         return this;
 
+    }
+
+    private void collectMarkedUsers(RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
+        markedUsers = new HashSet<>();
+        List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(
+                cluster, task, result);
+        if (searchResultList != null && !searchResultList.isEmpty()) {
+            for (RoleAnalysisOutlierType outlier : searchResultList) {
+                ObjectReferenceType targetObjectRef = outlier.getTargetObjectRef();
+                if (targetObjectRef != null && targetObjectRef.getOid() != null) {
+                    markedUsers.add(targetObjectRef.getOid());
+                }
+            }
+        }
     }
 
     private DisplayValueOption loadDispayValueOption(RoleAnalysisClusterType cluster, Integer parameterTableSetting) {
@@ -225,5 +244,9 @@ public class RoleAnalysisObjectDto implements Serializable {
 
     public RoleAnalysisClusterType getCluster() {
         return cluster;
+    }
+
+    public Set<String> getMarkedUsers() {
+        return markedUsers;
     }
 }

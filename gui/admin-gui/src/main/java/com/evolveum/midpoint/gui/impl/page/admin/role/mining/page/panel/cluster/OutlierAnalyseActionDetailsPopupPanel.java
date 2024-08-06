@@ -185,24 +185,7 @@ public class OutlierAnalyseActionDetailsPopupPanel extends BasePanel<String> imp
         };
         RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = new RoleAnalysisTable<>(
                 "table",
-                miningOperationChunk
-//                () -> cluster.asPrismObject(),
-//                null,
-//                false
-        ) {
-
-            @Override
-            public boolean isOutlierDetection() {
-                return true;
-            }
-
-            @Override
-            protected Set<String> getMarkMemberObjects() {
-                Set<String> markObjects = new HashSet<>();
-                markObjects.add(userOid);
-                return markObjects;
-            }
-        };
+                miningOperationChunk);
 
         table.setOutputMarkupId(true);
         return table;

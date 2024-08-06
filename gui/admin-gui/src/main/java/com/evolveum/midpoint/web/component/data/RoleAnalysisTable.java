@@ -167,10 +167,6 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
                 return RoleAnalysisTable.this.getSelectedPatterns();
             }
 
-            @Override
-            protected boolean isOutlierDetection() {
-                return RoleAnalysisTable.this.isOutlierDetection();
-            }
 
             @Override
             protected void resetTable(AjaxRequestTarget target) {
@@ -192,11 +188,6 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
             B colChunk = mainChunk.get(i);
 
             column = new RoleAnalysisIntersectionColumn<>(colChunk, getModel(), getPageBase()) {
-
-                @Override
-                protected Set<String> getMarkMemberObjects() {
-                    return RoleAnalysisTable.this.getMarkMemberObjects();
-                }
 
                 @Override
                 protected Set<String> getMarkPropertyObjects() {
@@ -237,24 +228,10 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     }
 
     private void addHeaderToolbar(DataTable<A, String> table, ISortableDataProvider<A, ?> provider) {
-//        if (getModelObject().isOutlierDetection()) {
-//            TableHeadersToolbar<?> headersTop = new TableHeadersToolbar<>(table, provider) {
-//
-//                @Override
-//                protected void refreshTable(AjaxRequestTarget target) {
-//                    super.refreshTable(target);
-//                    target.add(getFooter());
-//                }
-//            };
-//
-//            headersTop.setOutputMarkupId(true);
-//            table.addTopToolbar(headersTop);
-//        } else {
             RoleAnalysisTableHeadersToolbar<?> headersTop = new RoleAnalysisTableHeadersToolbar<>(table, provider) {
 
                 @Override
                 protected void refreshTable(AjaxRequestTarget target) {
-//                    target.add(getFooter());
                     refreshTableRows(target);
                 }
             };
@@ -614,39 +591,11 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
         return null;
     }
 
-    public boolean isOutlierDetection() {
-        return false;
-    }
-
-    protected Set<String> getMarkMemberObjects() {
-        return null;
-    }
-
     protected Set<String> getMarkPropertyObjects(){
         return null;
     }
 
     protected void loadDetectedPattern(AjaxRequestTarget target) {
-//
-////        this.isRelationSelected = false;
-//        MiningOperationChunk chunk = getModelObject().getMininingOperationChunk();
-//
-//
-//        List<MiningUserTypeChunk> users = chunk.getMiningUserTypeChunks();
-//        List<MiningRoleTypeChunk> roles = chunk.getMiningRoleTypeChunks();
-//
-//        refreshCells(chunk.getProcessMode(), users, roles, chunk.getMinFrequency(), chunk.getMaxFrequency());
-//
-//
-//
-//        if (isPatternDetected()) {
-//            Task task = getPageBase().createSimpleTask("InitPattern");
-//            OperationResult result = task.getResult();
-//
-//            getPageBase().getRoleAnalysisService().updateChunkWithPatterns(chunk, getSelectedPatterns(), task, result);
-//        }
-//
-//        refreshTable(target);
     }
 
 

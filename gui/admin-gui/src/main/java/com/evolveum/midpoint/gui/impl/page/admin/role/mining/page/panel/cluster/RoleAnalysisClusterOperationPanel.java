@@ -67,16 +67,11 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     public static final String PARAM_DETECTED_PATER_ID = "detectedPatternId";
     public static final String PARAM_TABLE_SETTING = "tableSetting";
 
-
     private static final String DOT_CLASS = RoleAnalysisClusterOperationPanel.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
     private static final String ID_DATATABLE = "datatable";
     private static final String ID_OPERATION_PANEL = "panel";
-
-    boolean isOutlierDetection = false;
-    Set<String> markedUsers = new HashSet<>();
-
 
     private final LoadableDetachableModel<OperationPanelModel> operationPanelModel;
     private final LoadableModel<RoleAnalysisObjectDto> miningOperationChunk;
@@ -114,6 +109,12 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         };
     }
 
+    @Override
+    protected void initLayout() {
+        loadMiningTable();
+        initOperationPanel();
+    }
+
     private List<DetectedPattern> getClusterPatterns() {
         RoleAnalysisClusterType clusterType = getObjectWrapperObject().asObjectable();
         return transformDefaultPattern(clusterType);
@@ -139,7 +140,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             if (isMigrated) {
                 continue;
             }
-
 
             String roleOid = candidateRole.getCandidateRoleRef().getOid();
             //TODO does it make sense to create subresult for each iteration?
@@ -222,7 +222,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         return null;
     }
 
-
     private List<DetectedPattern> loadDetectedPattern() {
         RoleAnalysisClusterType cluster = getObjectWrapperObject().asObjectable();
         List<RoleAnalysisDetectionPatternType> detectedPattern = cluster.getDetectedPattern();
@@ -236,35 +235,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         return new ArrayList<>();
     }
 
-    @Override
-    protected void initLayout() {
-
-        if (isOutlierDetection) {
-            markedUsers = new HashSet<>();
-            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
-
-            Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
-            OperationResult result = task.getResult();
-
-            List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(
-                    getObjectWrapperObject().asObjectable(), task, result);
-            if (searchResultList != null && !searchResultList.isEmpty()) {
-                for (RoleAnalysisOutlierType outlier : searchResultList) {
-                    ObjectReferenceType targetObjectRef = outlier.getTargetObjectRef();
-                    if (targetObjectRef != null && targetObjectRef.getOid() != null) {
-                        markedUsers.add(targetObjectRef.getOid());
-                    }
-                }
-            }
-        }
-
-        loadMiningTable();
-        initOperationPanel();
-
-    }
-
-
     public Integer getParameterTableSetting() {
         StringValue stringValue = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
         if (!stringValue.isNull()) {
@@ -273,9 +243,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         return null;
     }
 
-
-    private <B extends MiningBaseTypeChunk, A extends  MiningBaseTypeChunk> void loadMiningTable() {
-    //TODO what exactly is this?
+    private <B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> void loadMiningTable() {
+        //TODO what exactly is this?
 //    RoleAnalysisDetectionOptionType detectionOption = getObjectDetailsModels().getObjectType().getDetectionOption();
 //        if (detectionOption == null || detectionOption.getFrequencyRange() == null) {
 //            return;
@@ -284,20 +253,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         RoleAnalysisTable<B, A> boxedTablePanel = new RoleAnalysisTable<>(
                 ID_DATATABLE,
                 miningOperationChunk) {
-
-            @Override
-            protected Set<String> getMarkMemberObjects() {
-                if (isOutlierDetection()) {
-                    return markedUsers;
-                }
-
-                return null;
-            }
-
-            @Override
-            public boolean isOutlierDetection() {
-                return isOutlierDetection;
-            }
 
             @Override
             protected List<DetectedPattern> getSelectedPatterns() {
@@ -319,9 +274,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     }
 
-
-
-        private void initOperationPanel() {
+    private void initOperationPanel() {
         RoleAnalysisTableOpPanelItemPanel itemPanel = new RoleAnalysisTableOpPanelItemPanel(ID_OPERATION_PANEL, operationPanelModel) {
 
             @Override
@@ -359,26 +312,22 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                         return "fa-2x fas fa-expand text-dark";
                     }
 
-
-                        @Override
-                        public @NotNull Component getDescriptionTitleComponent (String id){
-                            Label label = new Label(id, "Table view"); //TODO string resource model
-                            label.setOutputMarkupId(true);
-                            return label;
-                        }
-
-                        @Override
-                        protected void addDescriptionComponents () {
-                            appendText("Switch table view", null); //TODO string resource model
-                        }
+                    @Override
+                    public @NotNull Component getDescriptionTitleComponent(String id) {
+                        Label label = new Label(id, "Table view"); //TODO string resource model
+                        label.setOutputMarkupId(true);
+                        return label;
                     }
 
-                    ;
-                refreshIcon.add(AttributeAppender.replace("class","btn btn-outline-dark border-0 d-flex"
-                        +" align-self-stretch mt-1"));
+                    @Override
+                    protected void addDescriptionComponents() {
+                        appendText("Switch table view", null); //TODO string resource model
+                    }
+                };
+                refreshIcon.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex"
+                        + " align-self-stretch mt-1"));
                 headerItems.add(refreshIcon);
-                }
-
+            }
 
         };
         itemPanel.setOutputMarkupId(true);
@@ -386,22 +335,21 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     }
 
     @SuppressWarnings("rawtypes")
-        protected void toggleDetailsNavigationPanelVisibility(AjaxRequestTarget target) {
-            PageBase page = getPageBase();
-            if (page instanceof AbstractPageObjectDetails) {
-                AbstractPageObjectDetails<?, ?> pageObjectDetails = ((AbstractPageObjectDetails) page);
-                pageObjectDetails.toggleDetailsNavigationPanelVisibility(target);
-            }
+    protected void toggleDetailsNavigationPanelVisibility(AjaxRequestTarget target) {
+        PageBase page = getPageBase();
+        if (page instanceof AbstractPageObjectDetails) {
+            AbstractPageObjectDetails<?, ?> pageObjectDetails = ((AbstractPageObjectDetails) page);
+            pageObjectDetails.toggleDetailsNavigationPanelVisibility(target);
         }
+    }
 
-        protected void loadDetectedPattern(AjaxRequestTarget target) {
-                miningOperationChunk.getObject().updateWithPatterns(getSelectedPatterns(), getPageBase());
-                target.add(get(ID_DATATABLE));
-        }
+    protected void loadDetectedPattern(AjaxRequestTarget target) {
+        miningOperationChunk.getObject().updateWithPatterns(getSelectedPatterns(), getPageBase());
+        target.add(get(ID_DATATABLE));
+    }
 
     private List<DetectedPattern> getSelectedPatterns() {
         return operationPanelModel.getObject().getSelectedPatterns();
     }
-
 
 }

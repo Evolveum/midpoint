@@ -41,10 +41,6 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
     private static final String DOT_CLASS = RoleAnalysisMatrixColumn.class.getName() + ".";
     private static final String OP_PREPARE_OBJECTS = DOT_CLASS + "prepareObjects";
 
-//    private final IModel<OperationPanelModel> opPanelModel;
-//    private final IModel<PrismObject<RoleAnalysisClusterType>> clusterModel;
-//    private final LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
-//    private final IModel<MiningOperationChunk> miningOperationChunk;
     private final PageBase pageBase;
 
 
@@ -53,18 +49,9 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
 
     public RoleAnalysisMatrixColumn(
             IModel<RoleAnalysisObjectDto> model,
-
-//    IModel<OperationPanelModel> opPanelModel,
-//            IModel<PrismObject<RoleAnalysisClusterType>> clusterModel,
-//            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel,
-//            IModel<MiningOperationChunk> miningOperationChunk,
             PageBase pageBase) {
         super(new StringResourceModel(""));
         this.model = model;
-//        this.opPanelModel = opPanelModel;
-//        this.clusterModel = clusterModel;
-//        this.displayValueOptionModel = displayValueOptionModel;
-//        this.miningOperationChunk = miningOperationChunk;
         this.pageBase = pageBase;
     }
 
@@ -79,18 +66,6 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
         }
         return patternIds;
     }
-
-//    public List<DetectedPattern> getSelectedPatterns() {
-//        return opPanelModel.getObject().getSelectedPatterns();
-//    }
-//
-//    public IModel<OperationPanelModel> getOpPanelModel() {
-//        return opPanelModel;
-//    }
-
-//    public PrismObject<RoleAnalysisClusterType> getCluster() {
-//        return clusterModel.getObject();
-//    }
 
     public RoleAnalysisSortMode getRoleAnalysisSortMode() {
         RoleAnalysisSortMode sortMode = model.getObject().getSortMode();
@@ -112,10 +87,6 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
     protected PageBase getPageBase() {
         return pageBase;
     }
-
-//    protected DisplayValueOption getDisplayValueOption() {
-//        return displayValueOptionModel.getObject();
-//    }
 
     protected final <T extends MiningBaseTypeChunk> AjaxLinkTruncatePanelAction createColumnDisplayPanel(
             String componentId,
@@ -210,7 +181,7 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
     }
 
     protected abstract void refreshTable(AjaxRequestTarget target);
-//    protected abstract void resetCellsAndActionButton(AjaxRequestTarget target);
+
     protected abstract void setRelationSelected(boolean isRelationSelected);
 
     protected abstract List<DetectedPattern> getSelectedPatterns();
