@@ -59,7 +59,8 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
             @Override
             protected void lockoutStatusResetPerformed(boolean resetToInitialState) {
                 //todo hack to fix 9856: when lockout status is reset to Normal, also reset lockout expiration timestamp
-                PrismContainerValueWrapper<?> activationVW = panelCtx.getItemWrapperModel().getObject().getParent();
+                PrismPropertyWrapper<LockoutStatusType> lockoutStatusPW = panelCtx.unwrapWrapperModel();
+                PrismContainerValueWrapper<?> activationVW = lockoutStatusPW.getParent();
                 try {
                     PrismPropertyWrapper<XMLGregorianCalendar> lockoutExpirationPW =
                             activationVW.findProperty(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP);
@@ -74,6 +75,7 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
                         XMLGregorianCalendar oldValue = value.getOldValue() != null ? value.getOldValue().getValue() : null;
                         value.setRealValue(oldValue);
                         value.setStatus(ValueStatus.NOT_CHANGED);
+                        lockoutStatusPW.getValue().setStatus(ValueStatus.NOT_CHANGED);
                     } else {
                         value.setRealValue(null);
                         value.setStatus(ValueStatus.MODIFIED);
