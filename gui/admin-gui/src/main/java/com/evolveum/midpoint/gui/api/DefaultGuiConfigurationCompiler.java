@@ -67,7 +67,8 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.page.admin.resources",
             "com.evolveum.midpoint.web.page.admin.roles",
             "com.evolveum.midpoint.web.page.admin.services",
-            "com.evolveum.midpoint.web.page.admin.users"
+            "com.evolveum.midpoint.web.page.admin.users",
+            "com.evolveum.midpoint.web.page.admin.server"
     };
 
     private static final Map<Object, Collection<Class<?>>> SCANNED_CLASSES_MAP = new HashMap<>();
