@@ -13,9 +13,33 @@
     <div class="col-12">
         <div class="form-group">
             <label class="col-form-label font-weight-bold">
+                <wicket:message key="AssignmentType.description"/>
+            </label>
+            <textarea class="form-control"  wicket:id="description"/>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label font-weight-bold">
                 <wicket:message key="ObjectReferenceType.relation"/>
             </label>
             <select class="form-control" wicket:id="relation"/>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label font-weight-bold">
+                <wicket:message key="AssignmentType.focusType"/>
+            </label>
+            <select class="form-control" wicket:id="focusType"/>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label font-weight-bold">
+                <wicket:message key="AssignmentEditorPanel.tenantRef"/>
+            </label>
+            <div wicket:id="tenantRef"/>
+        </div>
+        <div class="form-group">
+            <label class="col-form-label font-weight-bold">
+                <wicket:message key="AssignmentEditorPanel.orgRef"/>
+            </label>
+            <div wicket:id="orgRef"/>
         </div>
     </div>
     <wicket:enclosure child="administrativeStatus">
