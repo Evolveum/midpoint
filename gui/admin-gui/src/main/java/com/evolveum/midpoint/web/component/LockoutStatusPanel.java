@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -57,7 +60,7 @@ public class LockoutStatusPanel extends Panel {
                 lockoutStatusResetPerformed(resetToInitialState);
                 resetToInitialState = !resetToInitialState;
 
-                target.add(LockoutStatusPanel.this.get(ID_CONTAINER));
+                reloadComponents(target);
             }
         };
         container.add(button);
@@ -65,6 +68,17 @@ public class LockoutStatusPanel extends Panel {
 
     protected void lockoutStatusResetPerformed(boolean resetToNormalState) {
         //to be overridden
+    }
+
+    //todo ugly hack to fix 9856: when lockout status is reset to Normal, also reset lockout expiration timestamp
+    private void reloadComponents(AjaxRequestTarget target) {
+        PrismContainerPanel<?,?> containerPanel = findParent(PrismContainerPanel.class);
+        if (containerPanel != null) {
+            containerPanel.visitChildren(FormComponent.class, (formComponent, object) -> {
+                target.add(formComponent);
+            });
+        }
+        target.add(LockoutStatusPanel.this.get(ID_CONTAINER));
     }
 
     private IModel<String> getButtonModel() {
