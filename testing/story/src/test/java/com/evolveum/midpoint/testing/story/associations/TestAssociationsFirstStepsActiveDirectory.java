@@ -20,7 +20,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -373,11 +376,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
 
         when("assignment providing membership of testers (simulation)");
         var simResult = executeWithSimulationResult(
-                List.of(deltaFor(UserType.class)
-                        .item(UserType.F_ASSIGNMENT)
-                        .add(new AssignmentType()
-                                .targetRef(testersOid, RoleType.COMPLEX_TYPE))
-                        .asObjectDelta(jim.getOid())),
+                List.of(createAssignmentDelta(jim.getOid(), testersOid)),
                 task, result);
 
         then("all is OK");
@@ -387,6 +386,14 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                 .assertState(ObjectProcessingStateType.MODIFIED)
                 .delta()
                 .assertModified(ShadowType.F_ASSOCIATIONS.append(RI_GROUP));
+
+        when("assignment providing membership of testers (preview changes)");
+        previewChanges(
+                createAssignmentDelta(jim.getOid(), testersOid),
+                null, task, result);
+
+        then("all is OK");
+        assertSuccess(result);
     }
 
     /**
@@ -412,11 +419,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
 
         when("assignment to testers is created (real)");
         executeChanges(
-                deltaFor(UserType.class)
-                        .item(UserType.F_ASSIGNMENT)
-                        .add(new AssignmentType()
-                                .targetRef(testersOid, RoleType.COMPLEX_TYPE))
-                        .asObjectDelta(jimOid),
+                createAssignmentDelta(jimOid, testersOid),
                 null, task, result);
 
         then("all is OK");
@@ -434,11 +437,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
 
         when("assignment providing membership of administrators is created (real)");
         executeChanges(
-                deltaFor(UserType.class)
-                        .item(UserType.F_ASSIGNMENT)
-                        .add(new AssignmentType()
-                                .targetRef(administratorsOid, RoleType.COMPLEX_TYPE))
-                        .asObjectDelta(jimOid),
+                createAssignmentDelta(jimOid, administratorsOid),
                 null, task, result);
 
         then("all is OK");
@@ -520,6 +519,43 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                 .by().objectType(ShadowType.class).find().assertState(ObjectProcessingStateType.UNMODIFIED).end();
     }
 
+    @Test
+    public void test360AddNewAssignment() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("reusing resource definition from previous test");
+
+        when("user with 'testers' assignments created");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .targetRef(testersOid, RoleType.COMPLEX_TYPE));
+        addObject(user, task, result);
+
+        when("assignment providing membership of 'administrators' (simulation)");
+        var simResult = executeWithSimulationResult(
+                List.of(createAssignmentDelta(user.getOid(), administratorsOid)),
+                task, result);
+
+        then("all is OK");
+        assertProcessedObjects(simResult, "after")
+                .display()
+                .by().objectType(ShadowType.class).find()
+                .assertState(ObjectProcessingStateType.MODIFIED)
+                .delta()
+                .assertModified(ShadowType.F_ASSOCIATIONS.append(RI_GROUP));
+
+        when("assignment providing membership of 'administrators' (preview changes)");
+        previewChanges(
+                createAssignmentDelta(user.getOid(), administratorsOid),
+                null, task, result);
+
+        then("all is OK");
+        assertSuccess(result);
+    }
+
     private void reimportDmsResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
         deleteObject(ResourceType.class, RESOURCE_AD_OID, task, result);
         initTestObjects(task, result, resource);
@@ -541,5 +577,13 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
                 .withNameValue(JACK)
                 .executeOnForeground(result);
+    }
+
+    private ObjectDelta<ObjectType> createAssignmentDelta(String userOid, String roleOid) throws SchemaException {
+        return deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType()
+                        .targetRef(roleOid, RoleType.COMPLEX_TYPE))
+                .asObjectDelta(userOid);
     }
 }

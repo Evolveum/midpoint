@@ -37,6 +37,7 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
+            <default>true</default>
             <delineation>
                 <objectClass>ri:account</objectClass>
             </delineation>
@@ -132,6 +133,7 @@
                 <association>
                     <ref>ri:group</ref>
                     <outbound>
+                        <strength>strong</strength>
                         <expression>
                             <associationConstruction>
                                 <objectRef>
@@ -148,6 +150,7 @@
                     </outbound>
                     <inbound>
                         <name>group-inbound</name>
+                        <strength>strong</strength>
                         <expression>
                             <associationSynchronization>
                                 <objectRef>

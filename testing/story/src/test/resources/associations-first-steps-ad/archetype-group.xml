@@ -9,5 +9,19 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="022a6a2d-b66a-44b6-9b27-6c9f0bf058c8">
     <name>group</name>
-    <!-- TODO -->
+    <inducement>
+        <identifier>create-entitlement</identifier>
+        <construction>
+            <resourceRef oid="11adacf4-6e5a-4775-931b-8af8cd4843f7"/> <!-- AD -->
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <identifier>create-group-membership</identifier>
+        <construction>
+            <resourceRef oid="11adacf4-6e5a-4775-931b-8af8cd4843f7"/> <!-- AD -->
+        </construction>
+        <order>2</order>
+    </inducement>
 </archetype>

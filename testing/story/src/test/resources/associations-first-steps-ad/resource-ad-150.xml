@@ -37,6 +37,7 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
+            <default>true</default>
             <delineation>
                 <objectClass>ri:account</objectClass>
             </delineation>
