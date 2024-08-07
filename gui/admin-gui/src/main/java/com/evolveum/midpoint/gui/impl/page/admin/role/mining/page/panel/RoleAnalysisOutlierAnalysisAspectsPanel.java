@@ -8,28 +8,40 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModelMain;
 
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+
+import java.io.Serial;
+import java.util.*;
 
 @PanelType(name = "outlierOverView", defaultContainerPath = "empty")
 @PanelInstance(identifier = "outlierOverView",
@@ -43,13 +55,17 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_HEADER_ITEMS = "header-items";
+    private static final String ID_ACCESS_PANEL = "accessPanel";
+    private static final String ID_PARTITION_PANEL = "partitionPanel";
 
-    public RoleAnalysisOutlierAnalysisAspectsPanel(String id, ObjectDetailsModels<RoleAnalysisOutlierType> model, ContainerPanelConfigurationType config) {
+    public RoleAnalysisOutlierAnalysisAspectsPanel(
+            @NotNull String id,
+            @NotNull ObjectDetailsModels<RoleAnalysisOutlierType> model,
+            @NotNull ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
     protected void initLayout() {
-
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
@@ -68,47 +84,506 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             container.add(label);
             return;
         }
-        String outlierName = outlierObjectModel.getOutlierName();
-        double outlierConfidence = outlierObjectModel.getOutlierConfidence();
-        String outlierDescription = outlierObjectModel.getOutlierDescription();
-        String timeCreated = outlierObjectModel.getTimeCreated();
 
-        OutlierResultPanel detailsPanel = new OutlierResultPanel(
-                ID_HEADER_ITEMS,
-                Model.of("Analyzed members details panel")) {
+//        RepeatingView cardBodyComponent = prepareHeadersOld(outlierObjectModel);
+//        container.add(cardBodyComponent);
 
+        initDashboard(container);
+
+        ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels = getObjectDetailsModels();
+
+        RoleAnalysisViewAllPanel accessPanel = new RoleAnalysisViewAllPanel(ID_ACCESS_PANEL, Model.of("Access anomalies")) {
+            @Contract(pure = true)
             @Override
-            public String getCardCssClass() {
-                return "";
+            protected @NotNull String getIconCssClass() {
+                return GuiStyleConstants.CLASS_ICON_ASSIGNMENTS;
+            }
+
+            @Contract(" -> new")
+            @Override
+            protected @NotNull IModel<String> getLinkModel() {
+                return Model.of("View all access anomalies");
             }
 
             @Override
-            public Component getCardHeaderBody(String componentId) {
-                OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
-                        outlierDescription, String.valueOf(outlierConfidence), timeCreated);
-                components.setOutputMarkupId(true);
-                return components;
+            protected void onLinkClick(AjaxRequestTarget target) {
+                super.onLinkClick(target);
             }
 
             @Override
-            public Component getCardBodyComponent(String componentId) {
-                //TODO just for testing
-                RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
-                outlierObjectModel.getOutlierItemModels()
-                        .forEach(outlierItemModel
-                                -> cardBodyComponent.add(
-                                new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel)));
+            protected @NotNull Component getPanelComponent(String id) {
+                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id,
+                        objectDetailsModels.getObjectType(), null, AnomalyTableCategory.OUTLIER_OVERVIEW) {
+
+                };
+
+                detectedAnomalyTable.setOutputMarkupId(true);
+                detectedAnomalyTable.add(AttributeAppender.append("style", "min-height: 400px;"));
+                return detectedAnomalyTable;
+            }
+        };
+
+        accessPanel.setOutputMarkupId(true);
+        container.add(accessPanel);
+
+        RoleAnalysisViewAllPanel<?> partitionPanel = new RoleAnalysisViewAllPanel<>(ID_PARTITION_PANEL, Model.of("Outlier partitions")) {
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getIconCssClass() {
+                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
+            }
+
+            @Contract(" -> new")
+            @Override
+            protected @NotNull IModel<String> getLinkModel() {
+                return Model.of("View all outlier partitions");
+            }
+
+            @Override
+            protected void onLinkClick(AjaxRequestTarget target) {
+                super.onLinkClick(target);
+            }
+
+            @Override
+            protected @NotNull Component getPanelComponent(String id) {
+                RoleAnalysisOutlierPartitionTable partitionTable = new RoleAnalysisOutlierPartitionTable(id,
+                        objectDetailsModels.getObjectType());
+                partitionTable.setOutputMarkupId(true);
+
+                partitionTable.add(AttributeAppender.append("style", "min-height: 400px;"));
+                return partitionTable;
+            }
+        };
+        partitionPanel.setOutputMarkupId(true);
+        container.add(partitionPanel);
+
+    }
+
+    @NotNull
+    private static RepeatingView prepareHeadersOld(OutlierObjectModel outlierObjectModel) {
+        RepeatingView cardBodyComponent = new RepeatingView(ID_HEADER_ITEMS);
+
+        outlierObjectModel.getOutlierItemModels()
+                .forEach(outlierItemModel
+                        -> {
+
+                    OutlierItemResultPanel components = new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel) {
+
+                        @Contract(pure = true)
+                        @Override
+                        protected @NotNull String getItemBoxCssStyle() {
+                            return "height:150px;";
+                        }
+
+                        @Contract(pure = true)
+                        @Override
+                        protected @NotNull String getItemBocCssClass() {
+                            return "small-box bg-white p-1";
+                        }
+
+                        @Contract(pure = true)
+                        @Override
+                        protected @NotNull String getLinkCssClass() {
+                            return "";
+                        }
+
+                        @Override
+                        protected String getInitialCssClass() {
+                            return "col-3";
+                        }
+                    };
+                    cardBodyComponent.add(components);
+                });
+        return cardBodyComponent;
+    }
+
+    protected void initDashboard(WebMarkupContainer container) {
+
+        RepeatingView cardBodyComponent = new RepeatingView(ID_HEADER_ITEMS);
+        cardBodyComponent.setOutputMarkupId(true);
+        container.add(cardBodyComponent);
+        RoleAnalysisOutlierDashboardPanel<?> statusHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
+                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.status")) {
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getIconCssClass() {
+                return GuiStyleConstants.CLASS_ICON_ASSIGNMENTS;
+            }
+
+            @Override
+            protected String getContainerCssClass() {
+                return super.getContainerCssClass();
+            }
+
+            @Override
+            protected @NotNull Component getPanelComponent(String id) {
+                IconWithLabel iconWithLabel = new IconWithLabel(id, Model.of("UNKNOWN (TBD)")) {
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull String getIconCssClass() {
+                        return "fas fa-sync";
+                    }
+
+                    @Override
+                    protected String getComponentCssClass() {
+                        return super.getComponentCssClass() + " gap-2";
+                    }
+
+                    @Override
+                    protected String getComponentCssStyle() {
+                        return "color: #18a2b8; font-size: 20px;";
+                    }
+                };
+
+                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 m-4 justify-content-center"));
+                iconWithLabel.add(AttributeAppender.append("style", "background-color: #dcf1f4;"));
+                return iconWithLabel;
+            }
+
+            @Override
+            protected Component getFooterComponent(String id) {
+                RepeatingView cardBodyComponent = new RepeatingView(id);
+                cardBodyComponent.setOutputMarkupId(true);
+
+                RoleAnalysisValueLabelPanel<?> pendingValueLabelPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull Component getTitleComponent(String id) {
+                        return new IconWithLabel(id, Model.of("Pending recertifications")) {
+                            @Override
+                            protected String getIconCssClass() {
+                                return "fas fa-sync text-muted";
+                            }
+
+                            @Override
+                            protected String getLabelComponentCssClass() {
+                                return "text-muted";
+                            }
+
+                            @Override
+                            protected String getComponentCssClass() {
+                                return super.getComponentCssClass() + " gap-2";
+                            }
+                        };
+                    }
+
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull Component getValueComponent(String id) {
+                        Label label = new Label(id, "0");
+                        label.add(AttributeAppender.append("class", "text-muted"));
+                        return label;
+                    }
+                };
+                pendingValueLabelPanel.setOutputMarkupId(true);
+                cardBodyComponent.add(pendingValueLabelPanel);
+
+                RoleAnalysisValueLabelPanel<?> solvedValueLabelPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
+
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull Component getTitleComponent(String id) {
+                        return new IconWithLabel(id, Model.of("Solved recertifications")) {
+                            @Override
+                            protected String getIconCssClass() {
+                                return "fas fa-trophy text-muted";
+                            }
+
+                            @Override
+                            protected String getLabelComponentCssClass() {
+                                return "text-muted";
+                            }
+
+                            @Override
+                            protected String getComponentCssClass() {
+                                return super.getComponentCssClass() + " gap-2";
+                            }
+                        };
+                    }
+
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull Component getValueComponent(String id) {
+                        Label label = new Label(id, "0");
+                        label.setOutputMarkupId(true);
+                        label.add(AttributeAppender.append("class", "text-muted"));
+                        return label;
+                    }
+
+                };
+                solvedValueLabelPanel.setOutputMarkupId(true);
+                cardBodyComponent.add(solvedValueLabelPanel);
                 return cardBodyComponent;
             }
+        };
+        statusHeader.setOutputMarkupId(true);
+        cardBodyComponent.add(statusHeader);
+
+        RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+        int partitionCount = outlierPartitions.size();
+        Set<String> anomalySet = new HashSet<>();
+        Set<RoleAnalysisOutlierNoiseCategoryType> outlierNoiseCategorySet = new HashSet<>();
+        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+            RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+            RoleAnalysisOutlierNoiseCategoryType outlierNoiseCategory = partitionAnalysis.getOutlierNoiseCategory();
+            outlierNoiseCategorySet.add(outlierNoiseCategory);
+            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {
+                anomalySet.add(anomalyResult.getTargetObjectRef().getOid());
+            }
+        }
+        int anomalyCount = anomalySet.size();
+        String outlierCategory = "UNKNOWN";
+        if (outlierNoiseCategorySet.size() == 1) {
+            outlierCategory = outlierNoiseCategorySet.iterator().next().value().toUpperCase();
+        } else if (outlierNoiseCategorySet.size() > 1) {
+            outlierCategory = "MIXED";
+        }
+
+        String finalOutlierCategory = outlierCategory;
+        RoleAnalysisOutlierDashboardPanel<?> characteristicHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
+                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics")) {
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getIconCssClass() {
+                return "fa fa-lock";
+            }
 
             @Override
-            public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                super.onClose(ajaxRequestTarget);
+            protected @NotNull Component getPanelComponent(String id) {
+                IconWithLabel iconWithLabel = new IconWithLabel(id, Model.of(finalOutlierCategory)) {
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull String getIconCssClass() {
+                        return "fas fa-chart-line";
+                    }
+
+                    @Override
+                    protected String getComponentCssStyle() {
+                        return "color: #28a745; font-size: 20px;";
+                    }
+
+                    @Override
+                    protected String getComponentCssClass() {
+                        return super.getComponentCssClass() + " gap-2";
+                    }
+                };
+
+                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 m-4 justify-content-center"));
+                iconWithLabel.add(AttributeAppender.append("style", "background-color: #dff2e3;"));
+                return iconWithLabel;
+            }
+
+            @Override
+            protected Component getFooterComponent(String id) {
+                RepeatingView cardBodyComponent = new RepeatingView(id);
+                cardBodyComponent.setOutputMarkupId(true);
+
+                RoleAnalysisValueLabelPanel<?> anomaliesPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull Component getTitleComponent(String id) {
+                        return new IconWithLabel(id,
+                                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics.anomalies")) {
+                            @Override
+                            protected String getIconCssClass() {
+                                return "fa fa-exclamation-triangle text-muted";
+                            }
+
+                            @Override
+                            protected String getLabelComponentCssClass() {
+                                return "text-muted";
+                            }
+
+                            @Override
+                            protected String getComponentCssClass() {
+                                return super.getComponentCssClass() + " gap-2";
+                            }
+                        };
+                    }
+
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull Component getValueComponent(String id) {
+                        Label label = new Label(id, anomalyCount);
+                        label.setOutputMarkupId(true);
+                        label.add(AttributeAppender.append("class", "text-muted"));
+                        return label;
+                    }
+                };
+                anomaliesPanel.setOutputMarkupId(true);
+                cardBodyComponent.add(anomaliesPanel);
+
+                RoleAnalysisValueLabelPanel<?> partitionPanel = new RoleAnalysisValueLabelPanel<>(cardBodyComponent.newChildId()) {
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull Component getTitleComponent(String id) {
+                        return new IconWithLabel(id,
+                                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics.partitions")) {
+                            @Override
+                            protected String getIconCssClass() {
+                                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON + " text-muted";
+                            }
+
+                            @Override
+                            protected String getLabelComponentCssClass() {
+                                return "text-muted";
+                            }
+
+                            @Override
+                            protected String getComponentCssClass() {
+                                return super.getComponentCssClass() + " gap-2";
+                            }
+                        };
+                    }
+
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull Component getValueComponent(String id) {
+                        Label label = new Label(id, partitionCount);
+                        label.setOutputMarkupId(true);
+                        label.add(AttributeAppender.append("class", "text-muted"));
+                        return label;
+                    }
+                };
+                partitionPanel.setOutputMarkupId(true);
+                cardBodyComponent.add(partitionPanel);
+                return cardBodyComponent;
+            }
+        };
+        characteristicHeader.setOutputMarkupId(true);
+        cardBodyComponent.add(characteristicHeader);
+
+        RoleAnalysisOutlierDashboardPanel<?> accessHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
+                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.access")) {
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getIconCssClass() {
+                return "fa fa-lock";
+            }
+
+            @Override
+            protected boolean isFooterVisible() {
+                return false;
+            }
+
+            @SuppressWarnings("rawtypes")
+            @Override
+            protected @NotNull Component getPanelComponent(String id) {
+
+                ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels = RoleAnalysisOutlierAnalysisAspectsPanel
+                        .this.getObjectDetailsModels();
+
+                RoleAnalysisOutlierType outlier = objectDetailsModels.getObjectType();
+                List<ObjectReferenceType> duplicatedRoleAssignment = outlier.getDuplicatedRoleAssignment();
+                PageBase pageBase = RoleAnalysisOutlierAnalysisAspectsPanel.this.getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                Task simpleTask = pageBase.createSimpleTask("loadOutlierDetails");
+                OperationResult result = simpleTask.getResult();
+                PrismObject<UserType> prismUser = roleAnalysisService
+                        .getUserTypeObject(outlier.getTargetObjectRef().getOid(), simpleTask, result);
+
+                if (prismUser == null) {
+                    return new WebMarkupContainer(id);
+                }
+
+                int directAssignment = 0;
+                Set<String> directAssignmentSet = new HashSet<>();
+                UserType user = prismUser.asObjectable();
+                for (AssignmentType assignment : user.getAssignment()) {
+                    if (assignment.getTargetRef() != null
+                            && assignment.getTargetRef().getType() != null
+                            && assignment.getTargetRef().getType().equals(RoleType.COMPLEX_TYPE)) {
+                        directAssignmentSet.add(assignment.getTargetRef().getOid());
+                        directAssignment++;
+                    }
+                }
+
+                int indirectAssignment = 0;
+                List<ObjectReferenceType> roleMembershipRef = user.getRoleMembershipRef();
+                for (ObjectReferenceType objectReferenceType : roleMembershipRef) {
+                    if (!directAssignmentSet.contains(objectReferenceType.getOid())) {
+                        indirectAssignment++;
+                    }
+                }
+
+                int duplicatedRoleAssignmentCount = duplicatedRoleAssignment.size();
+
+                int allAssignmentCount = directAssignment + indirectAssignment + duplicatedRoleAssignmentCount;
+
+                //TODO delete (just for test)
+                directAssignment = 30;
+                indirectAssignment = 20;
+                duplicatedRoleAssignmentCount = 3;
+                allAssignmentCount = 53;
+
+                int finalDirectAssignment = directAssignment;
+                int finalIndirectAssignment = indirectAssignment;
+                int finalDuplicatedRoleAssignmentCount = duplicatedRoleAssignmentCount;
+                int finalAllAssignmentCount = allAssignmentCount;
+                return new RoleAnalysisAccessDistributionPanel(id) {
+
+                    @Override
+                    protected String getCount() {
+                        return String.valueOf(finalAllAssignmentCount);
+                    }
+
+                    @Override
+                    protected String getAverageCount() {
+                        return "0 (TBD)";
+                    }
+
+                    @Override
+                    protected String getDirectCount() {
+                        return String.valueOf(finalDirectAssignment);
+                    }
+
+                    @Override
+                    protected String getIndirectCount() {
+                        return String.valueOf(finalIndirectAssignment);
+                    }
+
+                    @Override
+                    protected String getDuplicatedCount() {
+                        return String.valueOf(finalDuplicatedRoleAssignmentCount);
+                    }
+
+                    @Override
+                    protected Component getPanelComponent(String id1) {
+
+//                float completedDirect = (float) directAssignment / allAssignmentCount * 100;
+//                float completedIndirect = (float) indirectAssignment / allAssignmentCount * 100;
+//                float completedDuplicated = (float) duplicatedRoleAssignmentCount / allAssignmentCount * 100;
+
+                        List<ProgressBar> progressBars = new ArrayList<>();
+                        addProgressBar(progressBars, ProgressBar.State.SUCCESS, finalDirectAssignment, finalAllAssignmentCount);
+                        addProgressBar(progressBars, ProgressBar.State.WARNINIG, finalIndirectAssignment, finalAllAssignmentCount);
+                        addProgressBar(progressBars, ProgressBar.State.DANGER, finalDuplicatedRoleAssignmentCount, finalAllAssignmentCount);
+
+                        ProgressBarPanel components1 = new ProgressBarPanel(id1, new LoadableModel<>() {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected List<ProgressBar> load() {
+                                return progressBars;
+                            }
+                        });
+                        components1.add(AttributeAppender.append("class", "p-0 ml-4 mr-4 mt-3 mb-3 justify-content-center"));
+                        return components1;
+                    }
+                };
             }
 
         };
-        detailsPanel.setOutputMarkupId(true);
-        container.add(detailsPanel);
+
+        accessHeader.setOutputMarkupId(true);
+        cardBodyComponent.add(accessHeader);
+    }
+
+    private void addProgressBar(@NotNull List<ProgressBar> list, @NotNull ProgressBar.State state, int value, int totalValue) {
+        //disabled legend
+        list.add(new ProgressBar(value * 100 / (double) totalValue, state));
     }
 
 }

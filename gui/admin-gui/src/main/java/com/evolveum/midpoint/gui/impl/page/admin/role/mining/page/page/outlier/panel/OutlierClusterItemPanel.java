@@ -13,19 +13,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.OutlierAnalyseActionDetailsPopupPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.OutlierAnalyseActionDetailsPopupPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class OutlierClusterItemPanel<T extends Serializable>
         extends BasePanel<ListGroupMenuItem<T>> {
@@ -75,13 +78,13 @@ public class OutlierClusterItemPanel<T extends Serializable>
     }
 
     private @NotNull Component buildDetailsPanel(@NotNull String id) {
-        OutlierAnalyseActionDetailsPopupPanel detailsPanel = loadDetailsPanel(id);
+        RoleAnalysisWidgetsPanel detailsPanel = loadDetailsPanel(id);
         detailsPanel.setOutputMarkupId(true);
         return detailsPanel;
     }
 
     @NotNull
-    private OutlierAnalyseActionDetailsPopupPanel loadDetailsPanel(@NotNull String id) {
+    private RoleAnalysisWidgetsPanel loadDetailsPanel(@NotNull String id) {
         RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
@@ -89,10 +92,19 @@ public class OutlierClusterItemPanel<T extends Serializable>
         List<ObjectReferenceType> similarObjects = similarObjectAnalysis.getSimilarObjects();
         Set<String> similarObjectOids = similarObjects.stream().map(ObjectReferenceType::getOid).collect(Collectors.toSet());
 
-        return new OutlierAnalyseActionDetailsPopupPanel(
-                id,
-                Model.of("Analyzed members details panel"), outlier.getTargetObjectRef().getOid(),
-                similarObjectOids, partition.getTargetSessionRef().getOid()) {
+        return new RoleAnalysisWidgetsPanel(id, loadDetailsModel()) {
+            @Override
+            protected @NotNull Component getPanelComponent(String id1) {
+                OutlierAnalyseActionDetailsPopupPanel analyzedMembersDetailsPanel = new OutlierAnalyseActionDetailsPopupPanel(
+                        id1,
+                        Model.of("Analyzed members details panel"), outlier.getTargetObjectRef().getOid(),
+                        similarObjectOids, partition.getTargetSessionRef().getOid()) {
+                };
+                analyzedMembersDetailsPanel.setOutputMarkupId(true);
+                analyzedMembersDetailsPanel.add(AttributeAppender.append("class", "bg-white rounded elevation-1"));
+
+                return analyzedMembersDetailsPanel;
+            }
         };
     }
 
@@ -107,4 +119,93 @@ public class OutlierClusterItemPanel<T extends Serializable>
     public IModel<RoleAnalysisOutlierType> getOutlierModel() {
         return outlierModel;
     }
+
+    private @NotNull IModel<List<DetailsTableItem>> loadDetailsModel() {
+
+        List<DetailsTableItem> detailsModel = List.of(
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id, createStringResource("RoleAnalysisOutlierType.anomalyCount")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
+                            }
+                        };
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                            }
+                        };
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("Sort")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                            }
+                        };
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("Chart")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                            }
+                        };
+                    }
+                }
+        );
+
+        return Model.ofList(detailsModel);
+    }
+
 }

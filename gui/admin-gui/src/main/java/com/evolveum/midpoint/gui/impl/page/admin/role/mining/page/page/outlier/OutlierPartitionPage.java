@@ -10,11 +10,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier;
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.panel.*;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -24,10 +29,13 @@ import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -43,6 +51,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 @PageDescriptor(
         urls = {
@@ -170,6 +180,11 @@ public class OutlierPartitionPage extends PageAdmin {
                     public @NotNull String getTitle() {
                         return "OutlierGroupItemPanel.title";
                     }
+
+                    @Override
+                    public String getIconCss() {
+                        return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON + "fa-xl";
+                    }
                 };
 
                 initOverviewItem(menu);
@@ -197,10 +212,9 @@ public class OutlierPartitionPage extends PageAdmin {
         };
         add(menu);
 
-        Label panel = new Label(ID_PANEL, "Panel");
-        panel.setOutputMarkupId(true);
-        form.add(panel);
-
+        Component component = buildOutlierOverviewPanel();
+        component.setOutputMarkupId(true);
+        form.add(component);
     }
 
     @Override
@@ -232,9 +246,106 @@ public class OutlierPartitionPage extends PageAdmin {
         return get((getPageBase()).createComponentPath(ID_FORM, ID_PANEL));
     }
 
+    private @NotNull Component buildOutlierOverviewPanel() {
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+        Task task = getPageBase().createSimpleTask("loadOutlierDetails");
+
+        RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
+        RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
+
+        //TODO!
+        OutlierObjectModel outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier,
+                task, task.getResult(), partition, getPageBase());
+
+        if (outlierObjectModel == null) {
+            return new WebMarkupContainer(OutlierPartitionPage.ID_PANEL);
+        }
+
+        OutlierResultPanel detailsPanel = loadOutlierResultPanel(outlierObjectModel, OutlierPartitionPage.ID_PANEL);
+        detailsPanel.setOutputMarkupId(true);
+        return detailsPanel;
+    }
+
+    @NotNull
+    private OutlierResultPanel loadOutlierResultPanel(@NotNull OutlierObjectModel outlierObjectModel, @NotNull String id) {
+        String outlierName = outlierObjectModel.getOutlierName();
+        double outlierConfidence = outlierObjectModel.getOutlierConfidence();
+        String outlierDescription = outlierObjectModel.getOutlierDescription();
+        String timeCreated = outlierObjectModel.getTimeCreated();
+
+        return new OutlierResultPanel(
+                id,
+                Model.of("Analyzed members details panel")) {
+
+            @Override
+            protected boolean isBodyTitleVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isBodySubtitleVisible() {
+                return false;
+            }
+
+            @Override
+            public @NotNull Component getCardHeaderBody(String componentId) {
+                OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
+                        outlierDescription, String.valueOf(outlierConfidence), timeCreated);
+                components.setOutputMarkupId(true);
+                return components;
+            }
+
+            @Override
+            public Component getCardBodyComponent(String componentId) {
+                RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
+                outlierObjectModel.getOutlierItemModels().forEach(outlierItemModel -> {
+                    OutlierItemResultPanel component = new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel){
+                        @Contract(pure = true)
+                        @Override
+                        protected @NotNull String getItemBoxCssStyle() {
+                            return "height:150px;";
+                        }
+
+                        @Contract(pure = true)
+                        @Override
+                        protected @NotNull String getItemBocCssClass() {
+                            return "small-box bg-white";
+                        }
+
+                        @Contract(pure = true)
+                        @Override
+                        protected @NotNull String getLinkCssClass() {
+                            return "";
+                        }
+
+                        @Override
+                        protected String getInitialCssClass() {
+                            return "col-3";
+                        }
+                    };
+
+                    component.add(AttributeAppender.replace("class", "col-3"));
+
+                    cardBodyComponent.add(component);
+                });
+                return cardBodyComponent;
+            }
+
+        };
+    }
+
+    boolean isOutlierOverviewItemPanelActive = true;
+
     private void initOverviewItem(@NotNull ListGroupMenu<RoleAnalysisOutlierPartitionType> menu) {
+
         CustomListGroupMenuItem<RoleAnalysisOutlierPartitionType> outlierOverviewItemPanel = new CustomListGroupMenuItem<>(
                 "OutlierOverviewItemPanel.title") {
+
+            @Override
+            public boolean isActive() {
+                return isOutlierOverviewItemPanelActive;
+            }
+
             @Contract("_, _, _ -> new")
             @Override
             public @NotNull Component createMenuItemPanel(String id,
@@ -246,6 +357,9 @@ public class OutlierPartitionPage extends PageAdmin {
                     protected void onClickPerformed(@NotNull AjaxRequestTarget target, @NotNull Component panelComponent) {
                         super.onClickPerformed(target, panelComponent);
                         onClickHandler.accept(target, model.getObject());
+                        if (!isOutlierOverviewItemPanelActive) {
+                            isOutlierOverviewItemPanelActive = true;
+                        }
                     }
                 };
             }
@@ -268,6 +382,7 @@ public class OutlierPartitionPage extends PageAdmin {
                     protected void onClickPerformed(@NotNull AjaxRequestTarget target, @NotNull Component panelComponent) {
                         super.onClickPerformed(target, panelComponent);
                         onClickHandler.accept(target, model.getObject());
+                        isOutlierOverviewItemPanelActive = false;
                     }
                 };
             }
@@ -290,6 +405,7 @@ public class OutlierPartitionPage extends PageAdmin {
                     protected void onClickPerformed(@NotNull AjaxRequestTarget target, @NotNull Component panelComponent) {
                         super.onClickPerformed(target, panelComponent);
                         onClickHandler.accept(target, model.getObject());
+                        isOutlierOverviewItemPanelActive = false;
                     }
                 };
             }
@@ -312,6 +428,7 @@ public class OutlierPartitionPage extends PageAdmin {
                     protected void onClickPerformed(@NotNull AjaxRequestTarget target, @NotNull Component panelComponent) {
                         super.onClickPerformed(target, panelComponent);
                         onClickHandler.accept(target, model.getObject());
+                        isOutlierOverviewItemPanelActive = false;
                     }
                 };
             }
@@ -334,6 +451,7 @@ public class OutlierPartitionPage extends PageAdmin {
                     protected void onClickPerformed(@NotNull AjaxRequestTarget target, @NotNull Component panelComponent) {
                         super.onClickPerformed(target, panelComponent);
                         onClickHandler.accept(target, model.getObject());
+                        isOutlierOverviewItemPanelActive = false;
                     }
                 };
             }
@@ -356,6 +474,7 @@ public class OutlierPartitionPage extends PageAdmin {
                     protected void onClickPerformed(@NotNull AjaxRequestTarget target, @NotNull Component panelComponent) {
                         super.onClickPerformed(target, panelComponent);
                         onClickHandler.accept(target, model.getObject());
+                        isOutlierOverviewItemPanelActive = false;
                     }
                 };
             }

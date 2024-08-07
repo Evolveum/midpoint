@@ -140,7 +140,7 @@ public class OutlierObjectModel implements Serializable {
             Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
             Integer topPatternRelation = patternInfo.getTopPatternRelation();
             Integer totalRelations = patternInfo.getTotalRelations();
-            String value = detectedPatternCount + " pattern(s) detected";
+            String value = detectedPatternCount + " pattern(s)";
             int averageRelation = 0;
             if (totalRelations != 0 && detectedPatternCount != 0) {
                 averageRelation = totalRelations / detectedPatternCount;
@@ -159,7 +159,6 @@ public class OutlierObjectModel implements Serializable {
         outlierObjectModel.addOutlierItemModel(clusterItemModel);
 
         List<ObjectReferenceType> duplicatedRoleAssignment = outlierResult.getDuplicatedRoleAssignment();
-        String duplicatedRoleAssignmentDescription = "Duplicated role assignments/inducements of the outlier object.";
         int numberOfDuplicatedRoleAssignment = 0;
         if (duplicatedRoleAssignment != null) {
             if (duplicatedRoleAssignment.size() == 1) {
@@ -173,14 +172,10 @@ public class OutlierObjectModel implements Serializable {
                 numberOfDuplicatedRoleAssignment = duplicatedRoleAssignment.size();
             }
         }
-        OutlierItemModel duplicatedRoleAssignmentModel = new OutlierItemModel(String.valueOf(numberOfDuplicatedRoleAssignment),
-                duplicatedRoleAssignmentDescription, "fa fa-cogs");
-        outlierObjectModel.addOutlierItemModel(duplicatedRoleAssignmentModel);
-
         List<String> rolesOid = getRolesOidAssignment(userTypeObject.asObjectable());
 
         int directRoles = 0;
-        String directRolesDescription = "Direct role assignments of the outlier object.";
+        String directRolesDescription = "Direct/Indirect/Duplicate";
         int indirectRoles = 0;
         String indirectRolesDescription = "Indirect role assignments of the outlier object.";
         for (String roleOid : rolesOid) {
@@ -196,27 +191,33 @@ public class OutlierObjectModel implements Serializable {
             }
         }
 
-        OutlierItemModel directRolesItemModel = new OutlierItemModel(String.valueOf(directRoles),
+
+        OutlierItemModel directRolesItemModel = new OutlierItemModel(directRoles + "/" + indirectRoles + "/" + numberOfDuplicatedRoleAssignment,
                 directRolesDescription, "fe fe-role");
         outlierObjectModel.addOutlierItemModel(directRolesItemModel);
 
-        OutlierItemModel indirectRolesItemModel = new OutlierItemModel(String.valueOf(indirectRoles),
-                indirectRolesDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(indirectRolesItemModel);
 
-        int rolesByCondition = 0;
-        String rolesByConditionDescription = "Role assignments of the outlier object by condition. (?)";
+        OutlierItemModel stateItemModel = new OutlierItemModel("TBD",
+                "Outlier category", "fe fe-role");
+        outlierObjectModel.addOutlierItemModel(stateItemModel);
 
-        OutlierItemModel rolesByConditionItemModel = new OutlierItemModel(String.valueOf(rolesByCondition),
-                rolesByConditionDescription, "fe fe-role");
-        outlierObjectModel.addOutlierItemModel(rolesByConditionItemModel);
-
-        int outdatedAccessRights = 0;
-        String outdatedAccessRightsDescription = "Outdated access rights of the outlier object.";
-
-        OutlierItemModel outdatedAccessRightsItemModel = new OutlierItemModel(String.valueOf(outdatedAccessRights),
-                outdatedAccessRightsDescription, "fa fa-key");
-        outlierObjectModel.addOutlierItemModel(outdatedAccessRightsItemModel);
+//        OutlierItemModel indirectRolesItemModel = new OutlierItemModel(String.valueOf(indirectRoles),
+//                indirectRolesDescription, "fe fe-role");
+//        outlierObjectModel.addOutlierItemModel(indirectRolesItemModel);
+//
+//        int rolesByCondition = 0;
+//        String rolesByConditionDescription = "Role assignments of the outlier object by condition. (?)";
+//
+//        OutlierItemModel rolesByConditionItemModel = new OutlierItemModel(String.valueOf(rolesByCondition),
+//                rolesByConditionDescription, "fe fe-role");
+//        outlierObjectModel.addOutlierItemModel(rolesByConditionItemModel);
+//
+//        int outdatedAccessRights = 0;
+//        String outdatedAccessRightsDescription = "Outdated access rights of the outlier object.";
+//
+//        OutlierItemModel outdatedAccessRightsItemModel = new OutlierItemModel(String.valueOf(outdatedAccessRights),
+//                outdatedAccessRightsDescription, "fa fa-key");
+//        outlierObjectModel.addOutlierItemModel(outdatedAccessRightsItemModel);
 
         return outlierObjectModel;
     }
@@ -275,7 +276,7 @@ public class OutlierObjectModel implements Serializable {
             Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
             Integer topPatternRelation = patternInfo.getTopPatternRelation();
             Integer totalRelations = patternInfo.getTotalRelations();
-            String value = detectedPatternCount + " pattern(s) detected";
+            String value = detectedPatternCount + " pattern(s)";
             int averageRelation = 0;
             if (totalRelations != 0 && detectedPatternCount != 0) {
                 averageRelation = totalRelations / detectedPatternCount;
@@ -634,7 +635,7 @@ public class OutlierObjectModel implements Serializable {
             Integer detectedPatternCount = patternInfo.getDetectedPatternCount();
             Integer topPatternRelation = patternInfo.getTopPatternRelation();
             Integer totalRelations = patternInfo.getTotalRelations();
-            String value = detectedPatternCount + " pattern(s) detected";
+            String value = detectedPatternCount + " pattern(s)";
             int averageRelation = 0;
             if (totalRelations != 0 && detectedPatternCount != 0) {
                 averageRelation = totalRelations / detectedPatternCount;

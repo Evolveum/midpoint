@@ -49,6 +49,16 @@ public class RoleAnalysisTableTools {
 
     }
 
+    public static @NotNull String densityBasedColorOposite(double density) {
+
+        if (density >= 90) {
+            return "#CA444B";
+        } else {
+            return "#528BB8";
+        }
+
+    }
+
     /**
      * Generate a script for applying table scale adjustments.
      *

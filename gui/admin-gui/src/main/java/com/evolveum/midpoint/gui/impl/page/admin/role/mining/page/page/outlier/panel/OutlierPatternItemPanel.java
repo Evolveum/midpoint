@@ -12,26 +12,33 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.o
 
 import java.io.Serial;
 import java.io.Serializable;
-
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetails;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisPatternAnalysis;
 
 public class OutlierPatternItemPanel<T extends Serializable>
         extends BasePanel<ListGroupMenuItem<T>> {
@@ -95,57 +102,64 @@ public class OutlierPatternItemPanel<T extends Serializable>
             return new WebMarkupContainer(id);
         }
 
-        RoleAnalysisDetectedPatternDetails detailsPanel = loadOutlierDetailsPanel(id);
+        RoleAnalysisWidgetsPanel detailsPanel = loadOutlierDetailsPanel(id);
         detailsPanel.setOutputMarkupId(true);
         return detailsPanel;
     }
 
     @NotNull
-    private RoleAnalysisDetectedPatternDetails loadOutlierDetailsPanel(@NotNull String id) {
+    private RoleAnalysisWidgetsPanel loadOutlierDetailsPanel(@NotNull String id) {
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
         RoleAnalysisPatternAnalysis patternAnalysis = partition.getPartitionAnalysis().getPatternAnalysis();
         RoleAnalysisDetectionPatternType topDetectedPattern = patternAnalysis.getTopDetectedPattern();
         DetectedPattern pattern = transformPatternWithAttributes(topDetectedPattern);
-        RoleAnalysisDetectedPatternDetails statisticsPanel = new RoleAnalysisDetectedPatternDetails(id,
-                Model.of(pattern)) {
 
-            @Contract(pure = true)
+        return new RoleAnalysisWidgetsPanel(id, loadDetailsModel()) {
             @Override
-            protected @NotNull String getCssClassForCardContainer() {
-                return "m-0 border-0";
-            }
+            protected @NotNull Component getPanelComponent(String id1) {
+                RoleAnalysisDetectedPatternDetails statisticsPanel = new RoleAnalysisDetectedPatternDetails(id1,
+                        Model.of(pattern)) {
 
-            @Override
-            protected String getIconBoxContainerCssStyle() {
-                return "width:40px";
-            }
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull String getCssClassForCardContainer() {
+                        return "m-0 border-0";
+                    }
 
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getCssClassForHeaderItemsContainer() {
-                return "row pl-4 pr-4 pt-4";
-            }
+                    @Override
+                    protected String getIconBoxContainerCssStyle() {
+                        return "width:40px";
+                    }
 
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getCssClassForStatisticsPanelContainer() {
-                return "col-12 p-0 border-top";
-            }
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull String getCssClassForHeaderItemsContainer() {
+                        return "row pl-4 pr-4 pt-4";
+                    }
 
-            @Contract(pure = true)
-            @Override
-            protected @NotNull String getCssClassForStatisticsPanel() {
-                return "col-12 p-0";
-            }
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull String getCssClassForStatisticsPanelContainer() {
+                        return "col-12 p-0 border-top";
+                    }
 
-            @Override
-            protected String getInfoBoxClass() {
-                return super.getInfoBoxClass();
+                    @Contract(pure = true)
+                    @Override
+                    protected @NotNull String getCssClassForStatisticsPanel() {
+                        return "col-12 p-0";
+                    }
+
+                    @Override
+                    protected String getInfoBoxClass() {
+                        return super.getInfoBoxClass();
+                    }
+                };
+                statisticsPanel.setOutputMarkupId(true);
+                statisticsPanel.add(AttributeAppender.append("class", "bg-white rounded elevation-1"));
+
+                return statisticsPanel;
             }
         };
-        statisticsPanel.setOutputMarkupId(true);
-
-        return statisticsPanel;
     }
 
     protected @NotNull Component getDetailsPanelComponent() {
@@ -159,4 +173,93 @@ public class OutlierPatternItemPanel<T extends Serializable>
     public IModel<RoleAnalysisOutlierType> getOutlierModel() {
         return outlierModel;
     }
+
+    private @NotNull IModel<List<DetailsTableItem>> loadDetailsModel() {
+
+        List<DetailsTableItem> detailsModel = List.of(
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id, createStringResource("RoleAnalysisOutlierType.anomalyCount")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
+                            }
+                        };
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                            }
+                        };
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("Sort")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                            }
+                        };
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("Chart")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                            }
+                        };
+                    }
+                }
+        );
+
+        return Model.ofList(detailsModel);
+    }
+
 }

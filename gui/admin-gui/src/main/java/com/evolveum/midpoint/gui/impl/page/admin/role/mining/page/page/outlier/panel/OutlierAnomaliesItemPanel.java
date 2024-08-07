@@ -7,27 +7,34 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.panel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
-import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.panel.RoleAnalysisDetectedAnomalyTable;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serial;
-import java.io.Serializable;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.AnomalyTableCategory;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedAnomalyTable;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 public class OutlierAnomaliesItemPanel<T extends Serializable>
         extends BasePanel<ListGroupMenuItem<T>> {
@@ -85,23 +92,31 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
 
         //TODO!
         OutlierObjectModel outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier,
-                task, task.getResult(),partition,getPageBase());
+                task, task.getResult(), partition, getPageBase());
 
         if (outlierObjectModel == null) {
             return new WebMarkupContainer(id);
         }
 
-        RoleAnalysisDetectedAnomalyTable detailsPanel = loadDetailsPanel(id);
+        RoleAnalysisWidgetsPanel detailsPanel = loadDetailsPanel(id);
         detailsPanel.setOutputMarkupId(true);
+
+
         return detailsPanel;
     }
 
     @NotNull
-    private RoleAnalysisDetectedAnomalyTable loadDetailsPanel(@NotNull String id) {
-        RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id,
-                getOutlierModel().getObject(), getPartitionModel().getObject());
-        detectedAnomalyTable.setOutputMarkupId(true);
-        return detectedAnomalyTable;
+    private RoleAnalysisWidgetsPanel loadDetailsPanel(@NotNull String id) {
+
+        return new RoleAnalysisWidgetsPanel(id, loadDetailsModel()) {
+            @Override
+            protected @NotNull Component getPanelComponent(String id1) {
+                RoleAnalysisDetectedAnomalyTable detectedAnomalyTable = new RoleAnalysisDetectedAnomalyTable(id1,
+                        getOutlierModel().getObject(), getPartitionModel().getObject(), AnomalyTableCategory.PARTITION_ANOMALY);
+                detectedAnomalyTable.setOutputMarkupId(true);
+                return detectedAnomalyTable;
+            }
+        };
     }
 
     protected @NotNull Component getDetailsPanelComponent() {
@@ -115,4 +130,93 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
     public IModel<RoleAnalysisOutlierType> getOutlierModel() {
         return outlierModel;
     }
+
+    private @NotNull IModel<List<DetailsTableItem>> loadDetailsModel() {
+
+        List<DetailsTableItem> detailsModel = List.of(
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id, createStringResource("RoleAnalysisOutlierType.anomalyCount")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
+                            }
+                        };
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                            }
+                        };
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("Sort")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                            }
+                        };
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(""),
+                        Model.of("Chart")) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        Label label = new Label(id, "0 (todo)");
+                        label.add(AttributeAppender.append("class", " h4"));
+                        return label;
+                    }
+
+                    @Override
+                    public Component createLabelComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                            }
+                        };
+                    }
+                }
+        );
+
+        return Model.ofList(detailsModel);
+    }
+
 }

@@ -6,18 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
+import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisOutlierOperationButtonPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisOutlierSummaryPanel;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -28,19 +23,28 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisOutlierOperationButtonPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisOutlierSummaryPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -75,6 +79,39 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
         return isWizardPanel;
     }
 
+    @Override
+    protected String getAdditionalMainPanelCssClass() {
+        return "col p-0 rounded";
+    }
+
+    @Override
+    public void addAdditionalButtons(RepeatingView repeatingView) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                GuiStyleConstants.CLASS_ICON_RECYCLE, LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton recertifyButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
+                createStringResource("PageRoleAnalysisOutlier.button.reCertify.outlier")){
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                //TODO
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        recertifyButton.titleAsLabel(true);
+        recertifyButton.setOutputMarkupId(true);
+        recertifyButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        repeatingView.add(recertifyButton);
+
+        Form<?> form = recertifyButton.findParent(Form.class);
+        if (form != null) {
+            form.setDefaultButton(recertifyButton);
+        }
+    }
     public PageRoleAnalysisOutlier() {
         super();
     }

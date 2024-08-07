@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -33,6 +36,7 @@ public class OutlierResultPanel extends BasePanel<String> implements Popupable {
     private static final String ID_CARD_FOOTER_BODY = "card-footer-body";
 
     private static final String ID_CARD_BODY_COMPONENT = "card-body-component";
+    private static final String ID_CARD_BODY_COMPONENT_CONTAINER = "card-body-component-container";
 
     private static final String ID_BODY_TITLE = "body-title";
     private static final String ID_BODY_SUBTITLE = "body-subtitle";
@@ -72,21 +76,33 @@ public class OutlierResultPanel extends BasePanel<String> implements Popupable {
 
         cardHeader.add(getCardHeaderBody(ID_CARD_HEADER_BODY));
 
-        cardBodyBody.add(getCardBodyComponent(ID_CARD_BODY_COMPONENT));
+        Component cardBodyComponent = getCardBodyComponent(ID_CARD_BODY_COMPONENT);
+        cardBodyBody.add(cardBodyComponent);
+
 
         cardFooter.add(getCardFooterBody(ID_CARD_FOOTER_BODY));
 
         Label bodyTitle = new Label(ID_BODY_TITLE, getBodyTitle());
         bodyTitle.setOutputMarkupId(true);
+        bodyTitle.add(new VisibleBehaviour(this::isBodyTitleVisible));
         cardBody.add(bodyTitle);
 
         Label bodySubtitle = new Label(ID_BODY_SUBTITLE, getBodySubtitle());
         bodySubtitle.setOutputMarkupId(true);
+        bodySubtitle.add(new VisibleBehaviour(this::isBodySubtitleVisible));
         cardBody.add(bodySubtitle);
     }
 
+    protected boolean isBodyTitleVisible() {
+        return true;
+    }
+
+    protected boolean isBodySubtitleVisible() {
+        return true;
+    }
+
     public String getCardCssClass() {
-        return "card";
+        return "card m-0 p-0";
     }
 
     public String getBodyTitle() {

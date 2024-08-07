@@ -7,16 +7,17 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColorOposite;
+
 import java.io.Serial;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.SimulationPage;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -34,9 +35,12 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.form.SwitchBoxPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarNew;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -56,6 +60,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DetectedAnomalyResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 @PageDescriptor(
         urls = {
@@ -113,8 +118,24 @@ public class PageOutliers extends PageAdmin {
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
+                menuItems.add(PageOutliers.this.createRecertifyInlineMenu());
                 menuItems.add(PageOutliers.this.createDeleteInlineMenu());
                 return menuItems;
+            }
+
+            @Override
+            protected void addBasicActions(List<InlineMenuItem> menuItems) {
+                //TODO TBD
+            }
+
+            @Override
+            protected String getInlineMenuItemCssClass() {
+                return "btn btn-default btn-sm";
+            }
+
+            @Override
+            public InlineMenuItem createMarkInlineMenuAction() {
+                return super.createMarkInlineMenuAction();
             }
 
             @Override
@@ -160,6 +181,16 @@ public class PageOutliers extends PageAdmin {
                         return false;
                     }
 
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysisOutlierTable.outlier.properties")){
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierTable.outlier.properties.help");
+                            }
+                        };
+                    }
                 };
                 defaultColumns.add(column);
                 column = new AbstractExportableColumn<>(
@@ -185,11 +216,21 @@ public class PageOutliers extends PageAdmin {
                         return false;
                     }
 
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysisOutlierTable.outlier.partitions")){
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierTable.outlier.partitions.help");
+                            }
+                        };
+                    }
                 };
                 defaultColumns.add(column);
 
                 column = new AbstractExportableColumn<>(
-                        createStringResource("Confidence")) {
+                        createStringResource("RoleAnalysisOutlierTable.outlier.confidence")) {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
@@ -204,10 +245,7 @@ public class PageOutliers extends PageAdmin {
 
                         Double clusterConfidence = outlier.getOverallConfidence();
                         double clusterConfidenceValue = clusterConfidence != null ? clusterConfidence : 0;
-
-                        String formattedClusterConfidence = String.format("%.2f", clusterConfidenceValue);
-                        cellItem.add(new Label(componentId, formattedClusterConfidence + " %"));
-
+                        initDensityProgressPanel(cellItem, componentId, clusterConfidenceValue);
                     }
 
                     @Override
@@ -215,11 +253,22 @@ public class PageOutliers extends PageAdmin {
                         return false;
                     }
 
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysisOutlierTable.outlier.confidence")){
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierTable.outlier.confidence.help");
+                            }
+                        };
+                    }
+
                 };
                 defaultColumns.add(column);
 
                 column = new AbstractExportableColumn<>(
-                        createStringResource("PageOutliers.table.column.type")) {
+                        createStringResource("RoleAnalysisOutlierTable.outlier.mark")) {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
@@ -230,24 +279,24 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>>
                             cellItem, String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-                        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(componentId, Model.of("test")) {
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                RoleAnalysisOutlierType outlier = model.getObject().getValue();
-                                RoleAnalysisOutlierPartitionType partitionType = outlier.getOutlierPartitions().get(0);
-                                PageParameters parameters = new PageParameters();
-                                parameters.add(OutlierPartitionPage.PARAM_OUTLIER_OID, outlier.getOid());
-                                parameters.add(OutlierPartitionPage.PARAM_SESSION_OID, partitionType.getTargetSessionRef().getOid());
-                                navigateToNext(OutlierPartitionPage.class, parameters);
-                            }
-                        };
-                        ajaxLinkPanel.setOutputMarkupId(true);
-                        cellItem.add(ajaxLinkPanel);
+                        SwitchBoxPanel check = new SwitchBoxPanel(componentId, new Model<>(false));
+                        cellItem.add(check);
                     }
 
                     @Override
                     public boolean isSortable() {
                         return false;
+                    }
+
+                    @Override
+                    public Component getHeader(String componentId) {
+                        return new LabelWithHelpPanel(componentId,
+                                createStringResource("RoleAnalysisOutlierTable.outlier.mark")){
+                            @Override
+                            protected IModel<String> getHelpModel() {
+                                return createStringResource("RoleAnalysisOutlierTable.outlier.mark.help");
+                            }
+                        };
                     }
 
                 };
@@ -291,7 +340,7 @@ public class PageOutliers extends PageAdmin {
         return new ButtonInlineMenuItem(createStringResource("MainObjectListPanel.menu.delete")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
+                return getDefaultCompositedIconBuilder("fa fa-minus-circle");
             }
 
             public InlineMenuItemAction initAction() {
@@ -347,4 +396,70 @@ public class PageOutliers extends PageAdmin {
             }
         };
     }
+
+    private static void initDensityProgressPanel(
+            Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
+            @NotNull String componentId,
+            @NotNull Double density) {
+
+        BigDecimal bd = new BigDecimal(Double.toString(density));
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        double pointsDensity = bd.doubleValue();
+
+        String colorClass = densityBasedColorOposite(pointsDensity);
+
+        ProgressBarNew progressBar = new ProgressBarNew(componentId) {
+
+            @Override
+            public boolean isInline() {
+                return true;
+            }
+
+            @Override
+            public double getActualValue() {
+                return pointsDensity;
+            }
+
+            @Override
+            public String getProgressBarColor() {
+                return colorClass;
+            }
+
+            @Override
+            public String getBarTitle() {
+                return "";
+            }
+        };
+        progressBar.setOutputMarkupId(true);
+        cellItem.add(progressBar);
+    }
+
+    @Contract(" -> new")
+    private @NotNull InlineMenuItem createRecertifyInlineMenu() {
+        ButtonInlineMenuItem buttonInlineMenuItem = new ButtonInlineMenuItem(
+                createStringResource("RoleAnalysisDetectedAnomalyTable.inline.recertify.title")) {
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_RECYCLE);
+            }
+
+            @Override
+            public boolean isLabelVisible() {
+                return true;
+            }
+
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<RoleType>>() {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+
+                        //TODO
+                    }
+                };
+            }
+        };
+
+        return buttonInlineMenuItem;
+    }
+
 }

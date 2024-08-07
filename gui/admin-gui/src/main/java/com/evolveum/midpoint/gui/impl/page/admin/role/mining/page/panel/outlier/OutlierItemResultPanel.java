@@ -35,8 +35,12 @@ public class OutlierItemResultPanel extends BasePanel<IModel<OutlierItemModel>> 
 
     private void initLayout() {
 
+        add(AttributeModifier.append("class", getInitialCssClass()));
+
         WebMarkupContainer itemBox = new WebMarkupContainer(ID_ITEM_BOX);
         itemBox.setOutputMarkupId(true);
+        itemBox.add(AttributeModifier.append("style", getItemBoxCssStyle()));
+        itemBox.add(AttributeModifier.append("class", getItemBocCssClass()));
         add(itemBox);
 
         Label value = new Label(ID_VALUE, getValue());
@@ -53,6 +57,7 @@ public class OutlierItemResultPanel extends BasePanel<IModel<OutlierItemModel>> 
 
         WebMarkupContainer link = new WebMarkupContainer(ID_LINK);
         link.setOutputMarkupId(true);
+        link.add(AttributeModifier.replace("class", getLinkCssClass()));
         itemBox.add(link);
     }
 
@@ -83,5 +88,21 @@ public class OutlierItemResultPanel extends BasePanel<IModel<OutlierItemModel>> 
             return icon;
         }
         return "fa fa-question";
+    }
+
+    protected String getItemBoxCssStyle() {
+        return null;
+    }
+
+    protected String getItemBocCssClass() {
+        return "small-box bg-primary";
+    }
+
+    protected String getLinkCssClass() {
+        return "small-box-footer";
+    }
+
+    protected String getInitialCssClass() {
+        return "col-xl-6";
     }
 }

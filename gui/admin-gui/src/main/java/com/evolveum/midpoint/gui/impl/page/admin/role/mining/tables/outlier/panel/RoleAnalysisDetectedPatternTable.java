@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.panel;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
@@ -74,7 +74,6 @@ import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTa
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 

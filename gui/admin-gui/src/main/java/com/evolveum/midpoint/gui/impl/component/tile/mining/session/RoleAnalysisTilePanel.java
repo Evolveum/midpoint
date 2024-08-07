@@ -192,7 +192,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     private void initDefaultCssStyle() {
         setOutputMarkupId(true);
 
-        add(AttributeAppender.append("class", "catalog-tile-panel "
+        add(AttributeAppender.append("class", "bg-white "
                 + "d-flex flex-column align-items-center"
                 + " bordered w-100 h-100 p-3 elevation-1"));
 

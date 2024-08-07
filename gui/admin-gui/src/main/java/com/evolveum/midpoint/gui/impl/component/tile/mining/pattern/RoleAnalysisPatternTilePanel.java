@@ -214,7 +214,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         setOutputMarkupId(true);
 
         add(AttributeAppender.append("class",
-                "catalog-tile-panel d-flex flex-column align-items-center border w-100 h-100 p-3"));
+                "bg-white d-flex flex-column align-items-center border w-100 h-100 p-3"));
 
         add(AttributeAppender.append("style", "width:25%"));
     }

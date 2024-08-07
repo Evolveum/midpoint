@@ -25,9 +25,9 @@ public class IconWithLabel extends BasePanel<String> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_TEXT = "label";
+    private static final String ID_ICON_CONTAINER = "iconContainer";
     private static final String ID_ICON = "icon";
-
+    private static final String ID_TEXT = "label";
     private static final String ID_SUB_COMPONENT = "subComponent";
 
     public IconWithLabel(String id, IModel<String> model) {
@@ -37,12 +37,19 @@ public class IconWithLabel extends BasePanel<String> {
 
     private void initLayout() {
         add(AttributeAppender.append("class", getComponentCssClass()));
+        add(AttributeAppender.append("style", getComponentCssStyle()));
+
+        WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);
+        iconContainer.setOutputMarkupId(true);
+        iconContainer.add(AttributeAppender.replace("class", getIconContainerCssClass()));
+        iconContainer.add(AttributeAppender.replace("style", getIconContainerCssStyle()));
+        add(iconContainer);
 
         Label image = new Label(ID_ICON);
         image.add(AttributeModifier.replace("class", getIconCssClass()));
         image.add(AttributeModifier.replace("style", getIconComponentCssStyle()));
         image.setOutputMarkupId(true);
-        add(image);
+        iconContainer.add(image);
 
         Component subComponent = getSubComponent(ID_SUB_COMPONENT);
         subComponent.setOutputMarkupId(true);
@@ -89,9 +96,21 @@ public class IconWithLabel extends BasePanel<String> {
         return null;
     }
 
+    protected String getIconContainerCssClass() {
+        return null;
+    }
+
+    protected String getIconContainerCssStyle() {
+        return null;
+    }
+
     protected Component getSubComponent(String id) {
         WebMarkupContainer container = new WebMarkupContainer(id);
         container.add(AttributeModifier.remove("class"));
         return container;
+    }
+
+    protected String getComponentCssStyle() {
+        return null;
     }
 }

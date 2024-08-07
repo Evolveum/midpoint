@@ -19,6 +19,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -52,6 +53,13 @@ public class OutlierOverviewItemPanel<T extends Serializable>
         this.partitionModel = selectionModel;
         this.outlierModel = outlierModel;
         initLayout();
+        if (isActive()) {
+            onClickPerformed(null, getDetailsPanelComponent());
+        }
+    }
+
+    public boolean isActive() {
+        return false;
     }
 
     private void initLayout() {
@@ -89,7 +97,7 @@ public class OutlierOverviewItemPanel<T extends Serializable>
 
         //TODO!
         OutlierObjectModel outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier,
-                task, task.getResult(),partition,getPageBase());
+                task, task.getResult(), partition, getPageBase());
 
         if (outlierObjectModel == null) {
             return new WebMarkupContainer(id);
@@ -112,6 +120,16 @@ public class OutlierOverviewItemPanel<T extends Serializable>
                 Model.of("Analyzed members details panel")) {
 
             @Override
+            protected boolean isBodyTitleVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isBodySubtitleVisible() {
+                return false;
+            }
+
+            @Override
             public @NotNull Component getCardHeaderBody(String componentId) {
                 OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
                         outlierDescription, String.valueOf(outlierConfidence), timeCreated);
@@ -122,8 +140,34 @@ public class OutlierOverviewItemPanel<T extends Serializable>
             @Override
             public Component getCardBodyComponent(String componentId) {
                 RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
-                outlierObjectModel.getOutlierItemModels().forEach(outlierItemModel -> cardBodyComponent
-                        .add(new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel)));
+                outlierObjectModel.getOutlierItemModels().forEach(outlierItemModel -> {
+                    OutlierItemResultPanel component = new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel) {
+                        @Contract(pure = true)
+                        @Override
+                        protected @NotNull String getItemBoxCssStyle() {
+                            return "height:150px;";
+                        }
+
+                        @Contract(pure = true)
+                        @Override
+                        protected @NotNull String getItemBocCssClass() {
+                            return "small-box bg-white";
+                        }
+
+                        @Contract(pure = true)
+                        @Override
+                        protected @NotNull String getLinkCssClass() {
+                            return "";
+                        }
+
+                        @Override
+                        protected String getInitialCssClass() {
+                            return "col-3";
+                        }
+                    };
+
+                    cardBodyComponent.add(component);
+                });
                 return cardBodyComponent;
             }
 

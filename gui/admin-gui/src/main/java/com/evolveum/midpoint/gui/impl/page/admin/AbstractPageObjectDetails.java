@@ -801,6 +801,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         Component panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, objectDetailsModels, panelConfig);
         if (panel != null) {
+            panel.add(AttributeAppender.replace("class", getAdditionalMainPanelCssClass()));
             panel.add(AttributeAppender.append("class", () -> {
                 List panels = getPanelConfigurations().getObject();
                 if (panels == null || panels.size() <= 1) {
@@ -814,6 +815,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         }
 
         addErrorPanel(true, form, MessagePanel.MessagePanelType.ERROR, "AbstractPageObjectDetails.panelErrorInitialization", panelConfig.getIdentifier(), panelType);
+    }
+
+    protected String getAdditionalMainPanelCssClass() {
+        return null;
     }
 
     private void addErrorPanel(boolean force, MidpointForm form, MessagePanel.MessagePanelType type, String message, Object... params) {
