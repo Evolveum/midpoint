@@ -99,6 +99,10 @@ public enum AnomalyTableCategory implements Serializable {
                 SelectableBean<RoleType> object = model.getObject();
                 RoleType role = object.getValue();
                 String oid = role.getOid();
+                List<DetectedAnomalyResult> detectedAnomalyResults = anomalyResultMap.get(oid);
+                if (detectedAnomalyResults.size() != 1) {
+                    throw new IllegalStateException("DetectedAnomalyResult is null or size is not 1");
+                }
                 DetectedAnomalyResult anomalyResult = anomalyResultMap.get(oid).get(0);
                 double confidence = anomalyResult.getStatistics().getConfidence();
                 initDensityProgressPanelNew(cellItem, componentId, confidence);
@@ -394,7 +398,7 @@ public enum AnomalyTableCategory implements Serializable {
             @Override
             public Component getHeader(String componentId) {
                 return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.confidence.title"));
+                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.average.confidence.title"));
             }
 
             @Override
@@ -674,7 +678,7 @@ public enum AnomalyTableCategory implements Serializable {
             @Override
             public Component getHeader(String componentId) {
                 return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.confidence.title"));
+                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.average.confidence.title"));
             }
 
             @Override
@@ -685,12 +689,16 @@ public enum AnomalyTableCategory implements Serializable {
                 String oid = role.getOid();
 
                 List<DetectedAnomalyResult> detectedAnomalyResults = anomalyResultMap.get(oid);
-                if (detectedAnomalyResults.size() != 1) {
-                    return;
+                double averageConfidence = 0.0;
+                for (DetectedAnomalyResult detectedAnomalyResult : detectedAnomalyResults) {
+                    double confidence = detectedAnomalyResult.getStatistics().getConfidence();
+                    averageConfidence += confidence;
                 }
-                DetectedAnomalyResult detectedAnomalyResult = detectedAnomalyResults.get(0);
-                double confidence = detectedAnomalyResult.getStatistics().getConfidence();
-                initDensityProgressPanelNew(cellItem, componentId, confidence);
+                averageConfidence = averageConfidence / detectedAnomalyResults.size();
+                BigDecimal bd = new BigDecimal(Double.toString(averageConfidence));
+                bd = bd.setScale(2, RoundingMode.HALF_UP);
+                double pointsConfidence = bd.doubleValue();
+                initDensityProgressPanelNew(cellItem, componentId, pointsConfidence);
             }
 
             @Override
