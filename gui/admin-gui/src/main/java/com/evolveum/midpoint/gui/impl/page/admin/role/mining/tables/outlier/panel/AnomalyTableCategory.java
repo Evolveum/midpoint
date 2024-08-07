@@ -778,7 +778,7 @@ public enum AnomalyTableCategory implements Serializable {
                 String expiring = "Not defined";
                 ActivationType activation = assignmentType.getActivation();
                 if (activation != null) {
-                    expiring = activation.getEnableTimestamp().toString();
+                    expiring = activation.getEnableTimestamp() != null ? activation.getEnableTimestamp().toString() : "Not defined";
                 }
 
                 userDirectRoleAssignmentMap.put(assignmentType.getTargetRef().getOid(), expiring);

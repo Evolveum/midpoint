@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.util.AccessMetadataUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -126,7 +128,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                     @Override
                     protected void processVariables(VariablesMap variablesMap, ObjectReferenceType rowValue) {
                         super.processVariables(variablesMap, rowValue);
-                        variablesMap.put("metadata", collectProvenanceMetadata(rowValue.asReferenceValue()), ProvenanceMetadataType.class);
+                        variablesMap.put("metadata", AccessMetadataUtil.collectProvenanceMetadata(rowValue.asReferenceValue()), ProvenanceMetadataType.class);
                         variablesMap.put("activation", getActivation(rowValue), ProvenanceMetadataType.class);
                         variablesMap.put("assignment", getAssignment(rowValue), ProvenanceMetadataType.class);
                         variablesMap.put("owner", getObjectDetailsModels().getObjectType(), UserType.class);
@@ -157,16 +159,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ObjectReferenceType>>> cellItem, String componentId, IModel<SelectableBean<ObjectReferenceType>> rowModel) {
-                List<ProvenanceMetadataType> metadataValues = collectProvenanceMetadata(rowModel.getObject().getValue().asReferenceValue());
-                if (metadataValues == null) {
-                    return;
-                }
-                List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
-                for (ProvenanceMetadataType metadataType : metadataValues) {
-                    assignmentPaths.add(metadataType.getAssignmentPath());
-                }
-
-                AssignmentPathPanel panel = new AssignmentPathPanel(componentId, Model.ofList(assignmentPaths));
+                AssignmentPathPanel panel = new AssignmentPathPanel(componentId, Model.ofList(AccessMetadataUtil.computeAssignmentPaths(rowModel.getObject().getValue())));
                 cellItem.add(panel);
 
             }
@@ -239,7 +232,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         var since = new AbstractExportableColumn<SelectableBean<ObjectReferenceType>, String>(createStringResource("AllAccessListPanel.sinceColumnTitle")) {
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<ObjectReferenceType>> iModel) {
-                List<StorageMetadataType> storageMetadataTypes = collectStorageMetadata(iModel.getObject().getValue().asReferenceValue());
+                List<StorageMetadataType> storageMetadataTypes = AccessMetadataUtil.collectStorageMetadata(iModel.getObject().getValue().asReferenceValue());
                 Optional<XMLGregorianCalendar> since = storageMetadataTypes.stream()
                         .map(m -> m.getCreateTimestamp())
                         .findFirst();
@@ -273,15 +266,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
     }
 
     private List<String> resolvedPaths(SelectableBean<ObjectReferenceType> ref) {
-        List<ProvenanceMetadataType> metadataValues = collectProvenanceMetadata(ref.getValue().asReferenceValue());
-        if (metadataValues == null) {
-            return null;
-        }
-        List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
-        for (ProvenanceMetadataType metadataType : metadataValues) {
-            assignmentPaths.add(metadataType.getAssignmentPath());
-        }
-
+        List<AssignmentPathMetadataType> assignmentPaths = AccessMetadataUtil.computeAssignmentPaths(ref.getValue());
         List<String> resolvedPaths = new ArrayList<>();
         for (AssignmentPathMetadataType assignmentPathType : assignmentPaths) {
             List<AssignmentPathSegmentMetadataType> segments = assignmentPathType.getSegment();
@@ -314,38 +299,6 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
         return assignment != null
                 ? assignment.getActivation()
                 : new ActivationType().effectiveStatus(ActivationStatusType.ENABLED);
-    }
-
-    private <PV extends PrismValue> List<ProvenanceMetadataType> collectProvenanceMetadata(PV rowValue) {
-        List<ValueMetadataType> valueMetadataValues = collectValueMetadata(rowValue);
-        if (valueMetadataValues == null) {
-            return null;
-        }
-
-        return valueMetadataValues.stream()
-                .map(valueMetadata -> valueMetadata.getProvenance())
-                .collect(Collectors.toList());
-
-    }
-
-    private <PV extends PrismValue> List<StorageMetadataType> collectStorageMetadata(PV rowValue){
-        List<ValueMetadataType> valueMetadataValues = collectValueMetadata(rowValue);
-        if (valueMetadataValues == null) {
-            return null;
-        }
-
-        return valueMetadataValues.stream()
-                .map(valueMetadataType -> valueMetadataType.getStorage())
-                .collect(Collectors.toList());
-    }
-
-    private <PV extends PrismValue> List<ValueMetadataType> collectValueMetadata(PV rowValue) {
-        PrismContainer<ValueMetadataType> valueMetadataContainer = rowValue.getValueMetadataAsContainer();
-        if (valueMetadataContainer == null) {
-            return null;
-        }
-        return (List<ValueMetadataType>) valueMetadataContainer.getRealValues();
-
     }
 
     private <R extends AbstractRoleType> R getResolvedTarget(ObjectReferenceType rowValue) {

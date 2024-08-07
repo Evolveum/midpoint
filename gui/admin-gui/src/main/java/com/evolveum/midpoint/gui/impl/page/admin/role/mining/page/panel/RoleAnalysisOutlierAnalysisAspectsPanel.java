@@ -11,10 +11,13 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.o
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.util.AccessMetadataUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -488,41 +491,62 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                     return new WebMarkupContainer(id);
                 }
 
-                int directAssignment = 0;
-                Set<String> directAssignmentSet = new HashSet<>();
                 UserType user = prismUser.asObjectable();
-                for (AssignmentType assignment : user.getAssignment()) {
-                    if (assignment.getTargetRef() != null
-                            && assignment.getTargetRef().getType() != null
-                            && assignment.getTargetRef().getType().equals(RoleType.COMPLEX_TYPE)) {
-                        directAssignmentSet.add(assignment.getTargetRef().getOid());
-                        directAssignment++;
-                    }
-                }
+                List<ObjectReferenceType> refsToRoles = user.getRoleMembershipRef()
+                        .stream()
+                        .filter(ref -> QNameUtil.match(ref.getType(), RoleType.COMPLEX_TYPE)) //TODO maybe also check relation?
+                        .toList();
 
+                int allAssignmentCount = refsToRoles.size();
+
+                //TODO maybe think about collecting oids so you can later show them
+                int directAssignment = 0;
                 int indirectAssignment = 0;
-                List<ObjectReferenceType> roleMembershipRef = user.getRoleMembershipRef();
-                for (ObjectReferenceType objectReferenceType : roleMembershipRef) {
-                    if (!directAssignmentSet.contains(objectReferenceType.getOid())) {
-                        indirectAssignment++;
+                int duplicatedRoleAssignmentCount = 0;
+
+
+                for (ObjectReferenceType ref : refsToRoles) {
+                    List<AssignmentPathMetadataType> metadataPaths = AccessMetadataUtil.computeAssignmentPaths(ref);
+                    if (metadataPaths.size() == 1) {
+                        List<AssignmentPathSegmentMetadataType> segments = metadataPaths.get(0).getSegment();
+                        if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
+                            directAssignment++;
+                        } else {
+                            indirectAssignment++;
+                        }
+                    } else {
+                        boolean foundDirect = false;
+                        boolean foundIndirect = false;
+                        for (AssignmentPathMetadataType metadata : metadataPaths) {
+                            List<AssignmentPathSegmentMetadataType> segments = metadata.getSegment();
+                            if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
+                                foundDirect = true;
+                                if (foundIndirect) {
+                                    indirectAssignment--;
+                                    duplicatedRoleAssignmentCount++;
+                                } else {
+                                    directAssignment++;
+                                }
+
+                            } else {
+                                foundIndirect = true;
+                                if (foundDirect) {
+                                    directAssignment--;
+                                    duplicatedRoleAssignmentCount++;
+                                } else {
+                                    indirectAssignment++;
+                                }
+                            }
+                        }
                     }
+
                 }
-
-                int duplicatedRoleAssignmentCount = duplicatedRoleAssignment.size();
-
-                int allAssignmentCount = directAssignment + indirectAssignment + duplicatedRoleAssignmentCount;
-
-                //TODO delete (just for test)
-                directAssignment = 30;
-                indirectAssignment = 20;
-                duplicatedRoleAssignmentCount = 3;
-                allAssignmentCount = 53;
 
                 int finalDirectAssignment = directAssignment;
                 int finalIndirectAssignment = indirectAssignment;
                 int finalDuplicatedRoleAssignmentCount = duplicatedRoleAssignmentCount;
                 int finalAllAssignmentCount = allAssignmentCount;
-                return new RoleAnalysisAccessDistributionPanel(id) {
+                return new RoleAnalysisAccessDistributionPanel(id) { //TODO create model - this overriding is not very good. might be oneliner when the model is properly created
 
                     @Override
                     protected String getCount() {
