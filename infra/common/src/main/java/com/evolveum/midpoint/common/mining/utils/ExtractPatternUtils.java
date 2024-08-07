@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
@@ -76,7 +78,7 @@ public class ExtractPatternUtils {
 
             detectedPattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
             mergedIntersection.add(detectedPattern);
-
+            detectedPattern.setPatternType(BasePattern.PatternType.PATTERN);
         }
 
         return mergedIntersection;

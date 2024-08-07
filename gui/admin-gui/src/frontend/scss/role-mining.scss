@@ -119,3 +119,10 @@ $role-mining-static-header-level-5: 100px;
     border-left: none !important;
     border-right: none !important;
 }
+
+.op-panel-collapsed {
+
+  .operation-panel-item {
+    display: none;
+  }
+}

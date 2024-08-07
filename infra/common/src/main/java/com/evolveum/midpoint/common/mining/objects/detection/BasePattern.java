@@ -30,6 +30,10 @@ public abstract class BasePattern implements Serializable {
     RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
     RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
 
+    private PatternType patternType;
+
+    private boolean patternSelected;
+
     public BasePattern(Set<String> roles,
             Set<String> users,
             Double metric,
@@ -76,7 +80,8 @@ public abstract class BasePattern implements Serializable {
     }
 
     public BasePattern(Set<String> roles, Set<String> users,
-            double clusterMetric, Long patternId, String roleOid) {
+            double clusterMetric, Long patternId, String roleOid,
+            PatternType patternType) {
         this.roles = roles;
         this.users = users;
         this.metric = clusterMetric;
@@ -88,6 +93,7 @@ public abstract class BasePattern implements Serializable {
         }
         this.associatedColor = null;
         this.roleOid = roleOid;
+        this.patternType = patternType;
     }
 
     public Set<String> getRoles() {
@@ -176,4 +182,25 @@ public abstract class BasePattern implements Serializable {
     public void setRoleOid(String roleOid) {
         this.roleOid = roleOid;
     }
+
+    public PatternType getPatternType() {
+        return patternType;
+    }
+
+    public void setPatternType(PatternType patternType) {
+        this.patternType = patternType;
+    }
+
+    public boolean isPatternSelected() {
+        return patternSelected;
+    }
+
+    public void setPatternSelected(boolean patternSelected) {
+        this.patternSelected = patternSelected;
+    }
+
+    public enum PatternType {
+        PATTERN, CANDIDATE, OUTLIER;
+    }
+
 }

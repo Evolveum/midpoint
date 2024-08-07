@@ -200,7 +200,9 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
         return "role-mining-static-row-header";
     }
 
-    protected abstract boolean isOutlierDetection();
+    private boolean isOutlierDetection() {
+        return getModel().getObject().isOutlierDetection();
+    }
     protected abstract void resetTable(AjaxRequestTarget target);
 
     @Override

@@ -32,6 +32,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.Nullable;
@@ -79,25 +80,7 @@ public class RoleAnalysisPagingColumns extends Fragment {
                 LayeredIconCssStyle.IN_ROW_STYLE);
 
         AjaxCompositedIconSubmitButton editButton = new AjaxCompositedIconSubmitButton("process_selections_id",
-                iconBuilder.build(), new LoadableModel<>() {
-            @Override
-            protected String load() {
-                @Nullable Set<RoleAnalysisCandidateRoleType> candidateRoleContainers = getCandidateRoleContainer();
-                if (candidateRoleContainers != null) {
-                    List<RoleAnalysisCandidateRoleType> candidateRoleTypes = new ArrayList<>(candidateRoleContainers);
-                    if (candidateRoleTypes.size() == 1) {
-                        PolyStringType targetName = candidateRoleTypes.get(0).getCandidateRoleRef().getTargetName();
-                        WebComponentUtil.getPageBase(RoleAnalysisPagingColumns.this).createStringResource("RoleMining.button.title.edit.candidate",
-                                targetName).getString();
-                        return createStringResource("RoleMining.button.title.edit.candidate", targetName).getString();
-                    } else {
-                        return createStringResource("RoleMining.button.title.edit.candidate").getString();
-                    }
-                } else {
-                    return createStringResource("RoleMining.button.title.candidate").getString();
-                }
-            }
-        }) {
+                iconBuilder.build(), getButtonLabelModel()) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -217,6 +200,28 @@ public class RoleAnalysisPagingColumns extends Fragment {
     }
 
     protected void refreshTable(long fromCol, long toCol, AjaxRequestTarget target) {
+    }
+
+    private LoadableModel<String> getButtonLabelModel() {
+        return new LoadableModel<>() {
+            @Override
+            protected String load() {
+                @Nullable Set<RoleAnalysisCandidateRoleType> candidateRoleContainers = getCandidateRoleContainer();
+                if (candidateRoleContainers != null) {
+                    List<RoleAnalysisCandidateRoleType> candidateRoleTypes = new ArrayList<>(candidateRoleContainers);
+                    if (candidateRoleTypes.size() == 1) {
+                        PolyStringType targetName = candidateRoleTypes.get(0).getCandidateRoleRef().getTargetName();
+                        WebComponentUtil.getPageBase(RoleAnalysisPagingColumns.this).createStringResource("RoleMining.button.title.edit.candidate",
+                                targetName).getString();
+                        return createStringResource("RoleMining.button.title.edit.candidate", targetName).getString();
+                    } else {
+                        return createStringResource("RoleMining.button.title.edit.candidate").getString();
+                    }
+                } else {
+                    return createStringResource("RoleMining.button.title.candidate").getString();
+                }
+            }
+        };
     }
 
 }
