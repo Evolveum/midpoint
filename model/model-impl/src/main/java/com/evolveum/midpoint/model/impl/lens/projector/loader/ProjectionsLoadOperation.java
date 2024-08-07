@@ -23,7 +23,9 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.LensContext.GetOrCreateProjectionContextResult;
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -86,7 +88,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
     public void load(OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
         OperationResult result = parentResult.subresult(OP_LOAD)
                 .setMinor()
@@ -136,7 +138,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
     private void getOrCreateProjectionContextsFromFocusPrimaryDelta(OperationResult result) throws SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
         LOGGER.trace("Loading projection contexts from focus primary delta starting");
 
@@ -228,15 +230,60 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     private void getOrCreateContextsForValuesToDelete(
             @Nullable Collection<PrismReferenceValue> valuesToDelete, @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
-        for (PrismReferenceValue refVal : emptyIfNull(valuesToDelete)) {
+            SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException {
+        var inactiveLinksToDelete = new ArrayList<PrismReferenceValue>();
+        for (var refVal : emptyIfNull(valuesToDelete)) {
             if (isInactive(refVal.asReferencable())) {
-                LOGGER.trace("getOrCreateContextsForValuesToDelete: Skipping inactive linkRef to delete (relation={}): {}",
-                        refVal.getRelation(), refVal);
+                inactiveLinksToDelete.add(refVal);
             } else {
                 LOGGER.trace("getOrCreateContextsForValuesToDelete: Processing value to delete: {}", refVal);
                 new LinkLevelLoadOperation(refVal.asReferencable())
                         .getOrCreateForValueToDelete(result);
+            }
+        }
+        processInactiveLinkRefDeletion(inactiveLinksToDelete, result);
+    }
+
+    /**
+     * Inactive linkRefs (pointing to dead shadows) are executed immediately. Doing that via {@link ChangeExecutor} would
+     * require excessive changes, because that would require creating projection contexts, which we don't do now.
+     *
+     * This is much simpler; and perhaps appropriate, as this operation is not really a part of the main processing.
+     * Moreover, it is not going to the simulation result (just like manipulation of link status is not there).
+     */
+    private void processInactiveLinkRefDeletion(
+            @NotNull Collection<PrismReferenceValue> linksToDelete, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, PolicyViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        if (linksToDelete.isEmpty()) {
+            return;
+        } else if (!task.isExecutionFullyPersistent()) {
+            LOGGER.trace("Ignoring inactive linkRef values to delete, because of the simulation mode: {}", linksToDelete);
+            return;
+        }
+
+        var itemDeltas = PrismContext.get().deltaFor(FocusType.class)
+                .item(FocusType.F_LINK_REF)
+                .delete(CloneUtil.cloneCollectionMembers(linksToDelete))
+                .asItemDeltas();
+        LOGGER.debug("Removing inactive linkRef values from focus:\n{}", DebugUtil.debugDumpLazily(itemDeltas, 1));
+        beans.cacheRepositoryService.modifyObject(
+                focusContext.getObjectTypeClass(),
+                focusContext.getObjectCurrent().getOid(),
+                itemDeltas,
+                result);
+
+        for (PrismReferenceValue link : linksToDelete) {
+            if (link.getObject() != null) {
+                String oid = link.getOid();
+                LOGGER.debug("Deleting dead shadow {}", oid);
+                try {
+                    // Note that the repo shadow may or may not be really deleted. It depends e.g. on the shadow retention policy.
+                    beans.provisioningService.deleteObject(ShadowType.class, oid, null, null, task, result);
+                } catch (ObjectNotFoundException e) {
+                    LOGGER.debug("Dead shadow {} not found, not deleting it", oid);
+                }
             }
         }
     }
