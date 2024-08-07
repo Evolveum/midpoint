@@ -533,7 +533,7 @@ public enum AnomalyTableCategory implements Serializable {
 
         Set<String> duplicatedRoleSet = loadUserDuplicatedRoleSet(outlierModel.getObject());
 
-        Set<String> userDirectRoleAssignemntSet = loadUserDirectAssignmentRoleSet(pageBase, outlierModel, new HashMap<>());
+        Set<String> userDirectRoleAssignemntSet = loadUserDirectAssignmentRoleSet(pageBase, outlierModel);
 
         List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
@@ -660,8 +660,7 @@ public enum AnomalyTableCategory implements Serializable {
 
         Set<String> duplicatedRoleSet = loadUserDuplicatedRoleSet(outlierModel.getObject());
 
-        Map<String, String> userDirectRoleAssignmentExpiringMap = new HashMap<>();
-        Set<String> userDirectRoleAssignemntSet = loadUserDirectAssignmentRoleSet(pageBase, outlierModel, userDirectRoleAssignmentExpiringMap);
+        Set<String> userDirectRoleAssignemntSet = loadUserDirectAssignmentRoleSet(pageBase, outlierModel);
 
         List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
@@ -720,7 +719,7 @@ public enum AnomalyTableCategory implements Serializable {
             @Override
             public Component getHeader(String componentId) {
                 return new Label(componentId,
-                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.expiring.title"));
+                        pageBase.createStringResource("RoleAnalysisDetectedAnomalyTable.header.state.title"));
             }
 
             @Override
@@ -728,11 +727,8 @@ public enum AnomalyTableCategory implements Serializable {
                     String componentId, IModel<SelectableBean<RoleType>> model) {
                 RoleType role = model.getObject().getValue();
                 String oid = role.getOid();
-                String expireDate = userDirectRoleAssignmentExpiringMap.get(oid);
-                String title = "Not defined";
-                if (expireDate != null) {
-                    title = expireDate;
-                }
+                String title = "TBD";
+
                 Label label = new Label(componentId, title);
                 label.setOutputMarkupId(true);
                 cellItem.add(label);
@@ -758,7 +754,7 @@ public enum AnomalyTableCategory implements Serializable {
     }
 
     private static @NotNull Set<String> loadUserDirectAssignmentRoleSet(@NotNull PageBase pageBase,
-            @NotNull IModel<RoleAnalysisOutlierType> outlierModel, Map<String, String> userDirectRoleAssignmentMap) {
+            @NotNull IModel<RoleAnalysisOutlierType> outlierModel) {
         RoleAnalysisOutlierType outlier = outlierModel.getObject();
         ObjectReferenceType outlierUserRef = outlier.getTargetObjectRef();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
@@ -775,13 +771,6 @@ public enum AnomalyTableCategory implements Serializable {
         for (AssignmentType assignmentType : assignment) {
             if (assignmentType.getTargetRef().getType().equals(RoleType.COMPLEX_TYPE)) {
                 assignmentOids.add(assignmentType.getTargetRef().getOid());
-                String expiring = "Not defined";
-                ActivationType activation = assignmentType.getActivation();
-                if (activation != null) {
-                    expiring = activation.getEnableTimestamp().toString();
-                }
-
-                userDirectRoleAssignmentMap.put(assignmentType.getTargetRef().getOid(), expiring);
             }
         }
         return assignmentOids;
