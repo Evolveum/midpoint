@@ -359,6 +359,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public boolean isFocusDeleted() {
+        var lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        var focusContext = lensContext != null ? lensContext.getFocusContext() : null;
+        return focusContext != null && focusContext.isDelete();
+    }
+
+    @Override
     public <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid) {
         for (AssignmentType assignment : focusType.getAssignment()) {
             ObjectReferenceType targetRef = assignment.getTargetRef();

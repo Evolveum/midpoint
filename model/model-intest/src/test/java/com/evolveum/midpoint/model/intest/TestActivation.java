@@ -80,6 +80,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     private static final TestResource RESOURCE_DUMMY_PRECREATE = new TestResource(TEST_DIR, "resource-dummy-precreate.xml", "f18711a2-5db5-4562-b50d-3ef4c74f2e1d");
     private static final String RESOURCE_DUMMY_PRECREATE_NAME = "precreate";
+    private static final TestResource RESOURCE_DUMMY_FIXED_EXISTENCE = new TestResource(TEST_DIR, "resource-dummy-fixed-existence.xml", "8ba303ee-3f07-4163-aa46-508cbc496ff4");
+    private static final String RESOURCE_DUMMY_FIXED_EXISTENCE_NAME = "fixed-existence";
 
     private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
@@ -108,6 +110,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     private ResourceType resourceDummyPrecreateType;
     private PrismObject<ResourceType> resourceDummyPrecreate;
 
+    private DummyResource dummyResourceFixedExistence;
+    private DummyResourceContoller dummyResourceCtlFixedExistence;
+    private ResourceType resourceDummyFixedExistenceType;
+    private PrismObject<ResourceType> resourceDummyFixedExistence;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
@@ -133,6 +140,14 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyPrecreate = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PRECREATE.file, RESOURCE_DUMMY_PRECREATE.oid, initTask, initResult);
         resourceDummyPrecreateType = resourceDummyPrecreate.asObjectable();
         dummyResourceCtlPrecreate.setResource(resourceDummyPrecreate);
+
+        dummyResourceCtlFixedExistence = DummyResourceContoller.create(RESOURCE_DUMMY_FIXED_EXISTENCE_NAME, resourceDummyFixedExistence);
+        dummyResourceCtlFixedExistence.populateWithDefaultSchema();
+        dummyResourceFixedExistence = dummyResourceCtlFixedExistence.getDummyResource();
+        resourceDummyFixedExistence = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FIXED_EXISTENCE.file, RESOURCE_DUMMY_FIXED_EXISTENCE.oid, initTask, initResult);
+        resourceDummyFixedExistenceType = resourceDummyFixedExistence.asObjectable();
+        dummyResourceCtlFixedExistence.setResource(resourceDummyFixedExistence);
+        initDummyResource(RESOURCE_DUMMY_FIXED_EXISTENCE_NAME, dummyResourceCtlFixedExistence);
 //
 //        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
@@ -2762,6 +2777,33 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertUser(user.getOid(), "after")
                 .display()
                 .assertAssignments(0);
+    }
+
+    /** When deleting focus with persistent projection, we want to keep the projection intact. MID-9669. */
+    @Test
+    public void test820FixedExistence() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+        var fullName = "Mr. " + userName;
+
+        given("a user with a single account exists");
+        var user = new UserType()
+                .name(userName)
+                .fullName(fullName)
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_FIXED_EXISTENCE.oid, ResourceType.COMPLEX_TYPE)));
+        addObject(user.asPrismObject(), task, result);
+
+        when("user is deleted");
+        deleteObject(UserType.class, user.getOid(), task, result);
+
+        then("everything is OK, user is gone, and the account still exists");
+        assertSuccess(result);
+        assertNoObject(UserType.class, user.getOid());
+        assertDummyAccountByUsername(RESOURCE_DUMMY_FIXED_EXISTENCE_NAME, userName)
+                .assertFullName(fullName);
     }
 
     private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException, InterruptedException {

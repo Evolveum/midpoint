@@ -1260,4 +1260,7 @@ public interface MidpointFunctions {
     }
 
     String describeResourceObjectSet(ResourceObjectSetType set) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+
+    /** Does the current clockwork operation delete the focus? */
+    boolean isFocusDeleted();
 }
