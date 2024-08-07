@@ -522,6 +522,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                         getFocusContextRequired().getObjectNew()));
     }
 
+    @Override
+    public boolean isFocusDeleted() {
+        var lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        var focusContext = lensContext != null ? lensContext.getFocusContext() : null;
+        return focusContext != null && focusContext.isDelete();
+    }
+
     @NotNull
     private static <O extends ObjectType> LensFocusContext<O> getFocusContextRequired() {
         //noinspection unchecked

@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -90,6 +92,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     private static final DummyTestResource RESOURCE_DUMMY_FULL_VALIDITY = new DummyTestResource(TEST_DIR,
             "resource-dummy-full-validity.xml", "729b0fc8-261b-476b-bfcc-9ac2be3ecd8a", "full-validity",
             c -> c.extendSchemaPirate());
+    private static final DummyTestResource RESOURCE_DUMMY_FIXED_EXISTENCE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-fixed-existence.xml", "8ba303ee-3f07-4163-aa46-508cbc496ff4", "fixed-existence");
 
     private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
@@ -124,9 +128,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         dummyResourceCtlCoral.setResource(resourceDummyCoral);
         dummyResourceCollection.initDummyResource(RESOURCE_DUMMY_CORAL_NAME, dummyResourceCtlCoral);
 
-        RESOURCE_DUMMY_KHAKI.init(this, initTask, initResult);
-        RESOURCE_DUMMY_PRECREATE.init(this, initTask, initResult);
-        RESOURCE_DUMMY_FULL_VALIDITY.init(this, initTask, initResult);
+        initTestObjects(initTask, initResult,
+                RESOURCE_DUMMY_KHAKI,
+                RESOURCE_DUMMY_PRECREATE,
+                RESOURCE_DUMMY_FULL_VALIDITY,
+                RESOURCE_DUMMY_FIXED_EXISTENCE);
 
         resourceDummyKhaki = modelService
                 .getObject(ResourceType.class, RESOURCE_DUMMY_KHAKI.oid, null, initTask, initResult)
@@ -3046,7 +3052,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_KHAKI.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEFAULT))
                 .withNameValue(userName)
                 .executeOnForeground(result);
 
@@ -3064,6 +3070,32 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertThat(PrismValueCollectionsUtil.getRealValuesOfCollection(statusDelta.getEstimatedOldValues()))
                 .as("status estimated old values")
                 .containsExactlyInAnyOrder(ActivationStatusType.ENABLED);
+    }
+
+    /** When deleting focus with persistent projection, we want to keep the projection intact. MID-9669. */
+    @Test
+    public void test820FixedExistence() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+        var fullName = "Mr. " + userName;
+
+        given("a user with a single account exists");
+        var user = new UserType()
+                .name(userName)
+                .fullName(fullName)
+                .assignment(
+                        RESOURCE_DUMMY_FIXED_EXISTENCE.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT));
+        addObject(user, task, result);
+
+        when("user is deleted");
+        deleteObject(UserType.class, user.getOid(), task, result);
+
+        then("everything is OK, user is gone, and the account still exists");
+        assertSuccess(result);
+        assertNoObject(UserType.class, user.getOid());
+        assertDummyAccountByUsername(RESOURCE_DUMMY_FIXED_EXISTENCE.name, userName)
+                .assertFullName(fullName);
     }
 
     private void assertDummyActivationEnabledState(String userId, Boolean expectedEnabled) throws SchemaViolationException, ConflictException, InterruptedException {

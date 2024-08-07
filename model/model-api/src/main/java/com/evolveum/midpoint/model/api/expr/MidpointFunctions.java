@@ -1575,4 +1575,7 @@ public interface MidpointFunctions {
      * (So, previously it existed and was effectively enabled.)
      */
     boolean isFocusDeactivated();
+
+    /** Does the current clockwork operation delete the focus? */
+    boolean isFocusDeleted();
 }
