@@ -59,27 +59,18 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 
     @Override
     public boolean appliesToFocusWithAnyRelation(RelationRegistry relationRegistry) {
-        // TODO clean up this method
-        if (appliesToFocus()) {
+        if (appliesToFocus() || isDirectlyAssigned()) {
             // This covers any indirectly assigned targets, like user -> org -> parent-org -> root-org -(I)-> role
             // And directly assigned membership relations as well.
+            // All delegations + directly/indirectly assigned via membership.
             return true;
         }
-        // And this covers any directly assigned non-membership relations (like approver or owner).
-        // Actually I think these should be also covered by appliesToFocus() i.e. their isMatchingOrder should be true.
-        // But for some reason it is currently not so.
-        EvaluationOrder order = assignmentPath.last().getEvaluationOrder();
-        if (order.getSummaryOrder() == 1) {
-            return true;
+        // Treating delegation at the beginning + optionally one arbitrary step (like approver or owner)
+        int i = 0;
+        while (i < assignmentPath.size() && assignmentPath.getSegment(i).isDelegation()) {
+            i++;
         }
-        if (order.getSummaryOrder() != 0) {
-            return false;
-        }
-        int delegationCount = 0;
-        for (QName delegationRelation : relationRegistry.getAllRelationsFor(RelationKindType.DELEGATION)) {
-            delegationCount += order.getMatchingRelationOrder(delegationRelation);
-        }
-        return delegationCount > 0;
+        return i >= assignmentPath.size() - 1; // Either all delegation, or delegation + one step
     }
 
     @Override
