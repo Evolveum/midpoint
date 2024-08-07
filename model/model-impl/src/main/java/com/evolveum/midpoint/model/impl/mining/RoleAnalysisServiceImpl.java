@@ -1005,6 +1005,12 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
         MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, option, processMode, result, task);
         updateChunkWithPatterns(basicChunk, detectedPatterns, task, result);
+
+        RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
+        RangeType frequencyRange = detectionOption.getFrequencyRange();
+        Double sensitivity = detectionOption.getSensitivity();
+        resolveOutliersZScore(basicChunk.getMiningRoleTypeChunks(), frequencyRange, sensitivity);
+
         return basicChunk;
     }
 
