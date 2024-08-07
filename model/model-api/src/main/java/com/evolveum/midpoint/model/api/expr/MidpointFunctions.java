@@ -1584,6 +1584,9 @@ public interface MidpointFunctions {
      */
     boolean isFocusDeactivated();
 
+    /** Does the current clockwork operation delete the focus? */
+    boolean isFocusDeleted();
+
     /**
      * Returns the object reference for a given association value.
      * Assumes that the association has no content and exactly one object.
