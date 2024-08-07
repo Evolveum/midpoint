@@ -479,7 +479,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                         .this.getObjectDetailsModels();
 
                 RoleAnalysisOutlierType outlier = objectDetailsModels.getObjectType();
-                List<ObjectReferenceType> duplicatedRoleAssignment = outlier.getDuplicatedRoleAssignment();
+
                 PageBase pageBase = RoleAnalysisOutlierAnalysisAspectsPanel.this.getPageBase();
                 RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
                 Task simpleTask = pageBase.createSimpleTask("loadOutlierDetails");

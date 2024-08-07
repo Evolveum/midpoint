@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.common.mining.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,6 +46,10 @@ public class ExtractPatternUtils {
     }
 
     public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster) {
+        return transformDefaultPattern(cluster, null);
+    }
+
+    public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster, Long selectedPatternId) {
         List<RoleAnalysisDetectionPatternType> defaultDetection = cluster.getDetectedPattern();
         List<DetectedPattern> mergedIntersection = new ArrayList<>();
 
@@ -52,26 +57,26 @@ public class ExtractPatternUtils {
             return new ArrayList<>();
         }
 
-        for (RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType : defaultDetection) {
+        for (RoleAnalysisDetectionPatternType roleAnalysisDetectionPattern : defaultDetection) {
 
-            List<ObjectReferenceType> rolesRef = roleAnalysisClusterDetectionType.getRolesOccupancy();
+            List<ObjectReferenceType> rolesRef = roleAnalysisDetectionPattern.getRolesOccupancy();
 
-            List<ObjectReferenceType> usersRef = roleAnalysisClusterDetectionType.getUserOccupancy();
+            List<ObjectReferenceType> usersRef = roleAnalysisDetectionPattern.getUserOccupancy();
 
             Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
             Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
-            Long id = roleAnalysisClusterDetectionType.getId();
+            Long id = roleAnalysisDetectionPattern.getId();
             DetectedPattern detectedPattern = prepareDetectedPattern(roles,
                     users, id);
 
-            detectedPattern.setRoleAttributeAnalysisResult(roleAnalysisClusterDetectionType.getRoleAttributeAnalysisResult());
-            detectedPattern.setUserAttributeAnalysisResult(roleAnalysisClusterDetectionType.getUserAttributeAnalysisResult());
-            Double itemConfidence = roleAnalysisClusterDetectionType.getItemConfidence();
+            detectedPattern.setRoleAttributeAnalysisResult(roleAnalysisDetectionPattern.getRoleAttributeAnalysisResult());
+            detectedPattern.setUserAttributeAnalysisResult(roleAnalysisDetectionPattern.getUserAttributeAnalysisResult());
+            Double itemConfidence = roleAnalysisDetectionPattern.getItemConfidence();
             if (itemConfidence != null) {
                 detectedPattern.setItemsConfidence(itemConfidence);
             }
-            Double reductionConfidence = roleAnalysisClusterDetectionType.getReductionConfidence();
+            Double reductionConfidence = roleAnalysisDetectionPattern.getReductionConfidence();
             if (reductionConfidence != null) {
                 detectedPattern.setReductionFactorConfidence(reductionConfidence);
             }
@@ -79,9 +84,21 @@ public class ExtractPatternUtils {
             detectedPattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
             mergedIntersection.add(detectedPattern);
             detectedPattern.setPatternType(BasePattern.PatternType.PATTERN);
+            if (selectedPatternId != null) {
+                detectedPattern.setPatternSelected(isPatternSelected(roleAnalysisDetectionPattern, selectedPatternId));
+            }
         }
 
         return mergedIntersection;
+    }
+
+    private static boolean isPatternSelected(RoleAnalysisDetectionPatternType roleAnalysisDetectionPattern, Long patternId) {
+        Long id = roleAnalysisDetectionPattern.getId();
+        if (id.equals(patternId)) {
+            return true;
+        }
+
+        return false;
     }
 
     public static @NotNull DetectedPattern transformPattern(@NotNull RoleAnalysisDetectionPatternType pattern) {

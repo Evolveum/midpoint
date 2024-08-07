@@ -43,8 +43,6 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 
 public interface RoleAnalysisService {
 
-//    ModelService getModelService();
-
     /**
      * Retrieves a PrismObject of UserType object based on its OID.
      *
@@ -1040,9 +1038,5 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    List<DetectedPattern> findDetectedPatterns(
-            RoleAnalysisClusterType cluster,
-            List<String> candidateRolesIds,
-            Task task,
-            OperationResult result);
+
 }

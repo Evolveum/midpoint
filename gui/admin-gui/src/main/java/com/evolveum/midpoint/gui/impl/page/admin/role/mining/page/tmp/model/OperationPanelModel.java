@@ -18,7 +18,6 @@ public class OperationPanelModel implements Serializable {
 
     public static final String F_PALLET_COLORS = "palletColors";
 
-//    private @NotNull List<DetectedPattern> selectedPatterns = new ArrayList<>();
     private Map<String, String> palletColors = new HashMap<>();
     private String patternIconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " fa-2x text-primary";
     private String candidateRoleIconClass = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " fa-2x text-success";
@@ -71,22 +70,6 @@ public class OperationPanelModel implements Serializable {
                 .toList();
         this.palletColors = generateObjectColors(selectedPatterns); //TODO generate properly
         return selectedPatterns;
-    }
-
-    public void addSelectedPattern(List<DetectedPattern> patterns) {
-        if (patterns == null) {
-            return;
-        }
-
-        for (DetectedPattern pattern : allPatterns) {
-            for (DetectedPattern selectedPattern : patterns) {
-                if (selectedPattern.getIdentifier().equals(pattern.getIdentifier())) {
-                    boolean patternSelected = selectedPattern.isPatternSelected();
-                    pattern.setPatternSelected(!patternSelected);
-                }
-            }
-        }
-        this.palletColors = generateObjectColors(this.getSelectedPatterns());
     }
 
     public boolean isCompareMode() {
