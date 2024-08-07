@@ -316,7 +316,6 @@ class AuthenticationWrapper {
         if (mpAuthentication == null) {
             return;
         }
-        mpAuthentication.getAuthModules().clear();
         mpAuthentication.setAuthModules(authModules);
         mpAuthentication.setSequence(sequence);
     }
