@@ -153,14 +153,15 @@ public class OutliersDetectionUtil {
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result,
+            @Nullable List<String> allowedProperties) {
         RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
 
         DetectionOption detectionOption = new DetectionOption(
                 10, 100, 2, 2);
         List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
                 .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
-                        Collections.singletonList(userOid), null, processingTimes);
+                        Collections.singletonList(userOid), allowedProperties, processingTimes);
 
         int patternCount = totalRelationOfPatternsForCell.size();
         int totalRelations = 0;
@@ -229,39 +230,40 @@ public class OutliersDetectionUtil {
     }
 
     //TODO this is just for USER MODE! (Experimental) Need to be optimized (MAJOR).
-    static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
-            @NotNull MiningRoleTypeChunk miningRoleTypeChunk,
-            @NotNull String user,
-            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            BasicOutlierDetectionStrategy.ProcessingTimes processingTimes) {
-        List<String> allowedProperties = miningRoleTypeChunk.getProperties();
-        DetectionOption detectionOption = new DetectionOption(
-                10, 100, 2, 2);
-        List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
-                .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
-                        Collections.singletonList(user), allowedProperties, processingTimes);
-
-        int patternCount = totalRelationOfPatternsForCell.size();
-        int totalRelations = 0;
-        int topPatternRelation = 0;
-        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
-            int relations = simpleHeatPattern.getTotalRelations();
-            totalRelations += relations;
-            if (relations > topPatternRelation) {
-                topPatternRelation = relations;
-            }
-        }
-
-        int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
-        RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
-        double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
-        patternInfo.setConfidence(topPatternCoverage);
-        patternInfo.setDetectedPatternCount(patternCount);
-        patternInfo.setTopPatternRelation(topPatternRelation);
-        patternInfo.setTotalRelations(totalRelations);
-        patternInfo.setClusterRelations(clusterRelations);
-        return patternInfo;
-    }
+//    static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
+//            @NotNull MiningRoleTypeChunk miningRoleTypeChunk,
+//            @NotNull String user,
+//            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+//            BasicOutlierDetectionStrategy.ProcessingTimes processingTimes) {
+//
+//        List<String> allowedProperties = miningRoleTypeChunk.getProperties();
+//        DetectionOption detectionOption = new DetectionOption(
+//                10, 100, 2, 2);
+//        List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
+//                .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
+//                        Collections.singletonList(user), allowedProperties, processingTimes);
+//
+//        int patternCount = totalRelationOfPatternsForCell.size();
+//        int totalRelations = 0;
+//        int topPatternRelation = 0;
+//        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
+//            int relations = simpleHeatPattern.getTotalRelations();
+//            totalRelations += relations;
+//            if (relations > topPatternRelation) {
+//                topPatternRelation = relations;
+//            }
+//        }
+//
+//        int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
+//        RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
+//        double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
+//        patternInfo.setConfidence(topPatternCoverage);
+//        patternInfo.setDetectedPatternCount(patternCount);
+//        patternInfo.setTopPatternRelation(topPatternRelation);
+//        patternInfo.setTotalRelations(totalRelations);
+//        patternInfo.setClusterRelations(clusterRelations);
+//        return patternInfo;
+//    }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
 
@@ -314,6 +316,12 @@ public class OutliersDetectionUtil {
         RoleAnalysisAttributeAnalysisResult compareAttributeResult = roleAnalysisService
                 .resolveSimilarAspect(userAttributes, roleAnalysisAttributeAnalysisResult);
 
+        DetectedAnomalyStatistics statistics = outlierResult.getStatistics();
+        AttributeAnalysis attributeAnalysisContainer = new AttributeAnalysis();
+        attributeAnalysisContainer.setUserRoleMembersCompare(compareAttributeResult);
+        attributeAnalysisContainer.setRoleAttributeAnalysisResult(roleAnalysisAttributeAnalysisResult);
+        statistics.setAttributeAnalysis(attributeAnalysisContainer);
+
         double averageItemsOccurs = 0;
         assert compareAttributeResult != null;
         List<RoleAnalysisAttributeAnalysis> attributeAnalysis = compareAttributeResult.getAttributeAnalysis();
@@ -324,11 +332,11 @@ public class OutliersDetectionUtil {
             }
         }
 
-        outlierResult.getStatistics().setItemFactorConfidence(averageItemsOccurs / attributeAnalysis.size());
-
-        if (averageItemsOccurs == 0) {
+        if (averageItemsOccurs == 0 || attributeAnalysis.isEmpty()) {
             return 0;
         }
+
+        statistics.setItemFactorConfidence(averageItemsOccurs / attributeAnalysis.size());
 
         return averageItemsOccurs / attributeAnalysis.size();
     }

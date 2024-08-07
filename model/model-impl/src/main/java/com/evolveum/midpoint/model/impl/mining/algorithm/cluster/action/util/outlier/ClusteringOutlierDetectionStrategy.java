@@ -127,8 +127,9 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
 
                     PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
                             memberOid, task, result);
-                    RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(
-                            miningRoleTypeChunk, memberOid, miningRoleTypeChunks, processingTimes);
+                    List<String> allowedProperties = miningRoleTypeChunk.getProperties();
+                    RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(memberOid, miningRoleTypeChunks,
+                            processingTimes, session, roleAnalysisService, task, result,allowedProperties);
                     statistics.setPatternAnalysis(patternAnalysis);
                     double anomalyConfidence = calculateAssignmentAnomalyConfidence(
                             roleAnalysisService, attributesForUserAnalysis, userTypeObject, userCountInRepo, anomalyResult,
@@ -203,7 +204,8 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
                 userTypeObject, countOfRoles);
         partitionAnalysis.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
 
-        RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(memberOid, miningRoleTypeChunks, null, session, roleAnalysisService, task, result);
+        RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(memberOid, miningRoleTypeChunks, null,
+                session, roleAnalysisService, task, result,null);
         partitionAnalysis.setPatternAnalysis(roleAnalysisPatternInfo);
 
         double outlierConfidenceBasedAssignment = 0;

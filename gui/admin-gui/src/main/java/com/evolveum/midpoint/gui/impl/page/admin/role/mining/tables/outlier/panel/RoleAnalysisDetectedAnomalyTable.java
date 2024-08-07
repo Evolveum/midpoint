@@ -10,10 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 import java.io.Serial;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.PartitionPopup;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
@@ -35,6 +31,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisAnomalyResultTabPopup;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -49,6 +46,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
     private static final String ID_DATATABLE = "datatable";
@@ -128,7 +126,6 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
 
         MainObjectListPanel<RoleType> table = new MainObjectListPanel<>(ID_DATATABLE, RoleType.class, null) {
 
-
             @Contract(pure = true)
             @Override
             public @NotNull String getAdditionalBoxCssClasses() {
@@ -139,7 +136,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
             @Override
             protected @NotNull @Unmodifiable List<Component> createToolbarButtonsList(String buttonId) {
                 if (category.equals(AnomalyTableCategory.OUTLIER_OVERVIEW)) {
-                return List.of();
+                    return List.of();
                 }
                 return List.of(RoleAnalysisDetectedAnomalyTable.this.createRefreshButton(buttonId));
             }
@@ -193,7 +190,6 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
                 return null;
             }
 
-
             @Override
             protected boolean isHeaderVisible() {
                 return false;
@@ -211,7 +207,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
 
             @Override
             protected @NotNull ISelectableDataProvider<SelectableBean<RoleType>> createProvider() {
-                return RoleAnalysisDetectedAnomalyTable.this.createProvider(getPartitionModelObject());
+                return RoleAnalysisDetectedAnomalyTable.this.createProvider();
             }
 
             @Override
@@ -240,22 +236,7 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
         return refreshIcon;
     }
 
-    private @NotNull AjaxLinkPanel createViewAll(@NotNull String buttonId) {
-        AjaxLinkPanel viewAllIcon = new AjaxLinkPanel(buttonId,
-                createStringResource("RoleAnalysisDetectedAnomalyTable.view.all")) {
-
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                //TODO navigate to partition panel
-            }
-        };
-        viewAllIcon.setOutputMarkupId(true);
-        return viewAllIcon;
-    }
-
-    private SelectableBeanObjectDataProvider<RoleType> createProvider(List<RoleAnalysisOutlierPartitionType> partition) {
+    private SelectableBeanObjectDataProvider<RoleType> createProvider() {
 
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
@@ -318,82 +299,6 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
         };
     }
 
-    @Contract(" -> new")
-    private @NotNull InlineMenuItem createMarkInlineMenu() {
-        ButtonInlineMenuItem buttonInlineMenuItem = new ButtonInlineMenuItem(
-                createStringResource("RoleAnalysisDetectedAnomalyTable.inline.mark.title")) {
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_MARK);
-            }
-
-            @Override
-            public boolean isLabelVisible() {
-                return true;
-            }
-
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<RoleType>>() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-
-                        onRefresh(target);
-                    }
-                };
-            }
-
-            @Override
-            public IModel<String> getConfirmationMessageModel() {
-                ColumnMenuAction<?> action = (ColumnMenuAction<?>) getAction();
-                return RoleAnalysisDetectedAnomalyTable.this.getConfirmationMessageModel(action);
-            }
-        };
-
-        return buttonInlineMenuItem;
-    }
-
-    @Contract(" -> new")
-    private @NotNull InlineMenuItem createFullDetailsInlineMenu() {
-        ButtonInlineMenuItem buttonInlineMenuItem = new ButtonInlineMenuItem(
-                createStringResource("RoleAnalysisDetectedAnomalyTable.inline.full.details.title")) {
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON);
-            }
-
-            @Override
-            public boolean isLabelVisible() {
-                return true;
-            }
-
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<RoleType>>() {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-
-                        onRefresh(target);
-                    }
-                };
-            }
-
-            @Override
-            public IModel<String> getConfirmationMessageModel() {
-                ColumnMenuAction<?> action = (ColumnMenuAction<?>) getAction();
-                return RoleAnalysisDetectedAnomalyTable.this.getConfirmationMessageModel(action);
-            }
-        };
-
-        return buttonInlineMenuItem;
-    }
-
-    private IModel<String> getConfirmationMessageModel(@NotNull ColumnMenuAction<?> action) {
-        if (action.getRowModel() == null) {
-            return createStringResource("RoleAnalysisCandidateRoleTable.message.deleteActionAllObjects");
-        } else {
-            return createStringResource("RoleAnalysisCandidateRoleTable.message.deleteAction");
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private MainObjectListPanel<RoleType> getTable() {
         return (MainObjectListPanel<RoleType>) get(ID_DATATABLE);
@@ -437,8 +342,15 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
 
     @Contract(" -> new")
     private @NotNull InlineMenuItem createViewDetailsMenu() {
-        ButtonInlineMenuItem buttonInlineMenuItem = new ButtonInlineMenuItem(
+
+        return new ButtonInlineMenuItem(
                 createStringResource("RoleAnalysisDetectedAnomalyTable.inline.view.details.title")) {
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_SEARCH);
@@ -450,16 +362,34 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
             }
 
             public InlineMenuItemAction initAction() {
+                //TODO check models think about the logic
                 return new ColumnMenuAction<SelectableBean<RoleType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        PartitionPopup detailsPanel = new PartitionPopup(((PageBase) getPage()).getMainPopupBodyId(),
+                        RoleAnalysisAnomalyResultTabPopup detailsPanel = new RoleAnalysisAnomalyResultTabPopup(((PageBase) getPage()).getMainPopupBodyId(),
                                 new LoadableDetachableModel<>() {
                                     @Override
                                     protected RoleAnalysisOutlierPartitionType load() {
                                         return getPartitionSingleModelObject();
                                     }
-                                });
+                                }
+                                ,
+
+                                new LoadableDetachableModel<>() {
+                                    @Override
+                                    protected DetectedAnomalyResult load() {
+                                        //TODO
+                                        return getAnomalyResultMapModelObject().get(getRowModel().getObject().getValue().getOid()).get(0);
+                                    }
+                                },
+                                new LoadableDetachableModel<>() {
+                                    @Override
+                                    protected RoleAnalysisOutlierType load() {
+                                        return getOutlierModelObject();
+                                    }
+                                }
+
+                        );
                         ((PageBase) getPage()).showMainPopup(detailsPanel, target);
                     }
                 };
@@ -470,12 +400,11 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
                 return false;
             }
         };
-
-        return buttonInlineMenuItem;
     }
 
     private @NotNull InlineMenuItem createRecertifyInlineMenu() {
-        ButtonInlineMenuItem buttonInlineMenuItem = new ButtonInlineMenuItem(
+
+        return new ButtonInlineMenuItem(
                 createStringResource("RoleAnalysisDetectedAnomalyTable.inline.recertify.title")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -497,8 +426,6 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
                 };
             }
         };
-
-        return buttonInlineMenuItem;
     }
 
     @Contract(" -> new")
