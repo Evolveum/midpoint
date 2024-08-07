@@ -10,10 +10,10 @@ import org.springframework.util.Assert;
 import java.util.function.Supplier;
 
 public class MidpointSecurityContextHolderStrategy implements SecurityContextHolderStrategy {
-    private static final ThreadLocal<Supplier<SecurityContext>> contextHolder = new ThreadLocal<>();
+    private static final ThreadLocal<Supplier<SecurityContext>> CONTEXT_HOLDER = new ThreadLocal<>();
 
     public void clearContext() {
-        contextHolder.remove();
+        CONTEXT_HOLDER.remove();
     }
 
     public SecurityContext getContext() {
@@ -21,11 +21,11 @@ public class MidpointSecurityContextHolderStrategy implements SecurityContextHol
     }
 
     public Supplier<SecurityContext> getDeferredContext() {
-        Supplier<SecurityContext> result = contextHolder.get();
+        Supplier<SecurityContext> result = CONTEXT_HOLDER.get();
         if (result == null) {
             SecurityContext context = this.createEmptyContext();
             result = () -> context;
-            contextHolder.set(result);
+            CONTEXT_HOLDER.set(result);
         }
 
         return result;
@@ -33,7 +33,7 @@ public class MidpointSecurityContextHolderStrategy implements SecurityContextHol
 
     public void setContext(SecurityContext context) {
         Assert.notNull(context, "Only non-null SecurityContext instances are permitted");
-        contextHolder.set(() -> context);
+        CONTEXT_HOLDER.set(() -> context);
     }
 
     public void setDeferredContext(Supplier<SecurityContext> deferredContext) {
@@ -43,7 +43,7 @@ public class MidpointSecurityContextHolderStrategy implements SecurityContextHol
             Assert.notNull(result, "A Supplier<SecurityContext> returned null and is not allowed.");
             return result;
         };
-        contextHolder.set(notNullDeferredContext);
+        CONTEXT_HOLDER.set(notNullDeferredContext);
     }
 
     public SecurityContext createEmptyContext() {
