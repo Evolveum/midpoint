@@ -1236,6 +1236,7 @@ public interface MidpointFunctions {
 
     RepositoryService getRepositoryService();
 
+    /** Creates an {@link OptimizingTriggerCreator} that is able to create triggers only if they are not already present. */
     @NotNull
     OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin);
 
