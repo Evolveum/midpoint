@@ -101,4 +101,9 @@ public class TestOpenDjDumber extends TestOpenDj {
         then();
         assertFailure(result);
     }
+
+    @Override
+    protected boolean isActivationCapabilityClassSpecific() {
+        return false;
+    }
 }

@@ -220,6 +220,15 @@ class ShadowRefreshHelper {
                         + "Skipping refresh of this operation.", repoShadow, e);
                 parentResult.recordPartialError(e);
                 continue;
+            } catch (ObjectNotFoundException e) {
+                if (CaseType.class.equals(e.getType())) {
+                    LOGGER.debug("The case was not found while trying to refresh pending operation of {}. "
+                            + "Skipping refresh of this operation.", repoShadow, e);
+                    parentResult.recordPartialError(e);
+                    continue;
+                } else {
+                    throw e;
+                }
             }
             OperationResultStatus newStatus = refreshAsyncResult.getOperationResult().getStatus();
 

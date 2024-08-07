@@ -999,7 +999,7 @@ public class ShadowUtil {
      */
     public static boolean isGone(@NotNull ShadowType shadow) {
         ShadowLifecycleStateType state = shadow.getShadowLifecycleState();
-        stateCheck(state != null, "Unknown lifecycle state of %s", shadow);
+        stateCheck(state != null, "Missing lifecycle state of %s", shadow);
         return state == ShadowLifecycleStateType.CORPSE || state == ShadowLifecycleStateType.TOMBSTONE;
     }
 

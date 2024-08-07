@@ -76,6 +76,17 @@ public class ResourceObjectTypeDefinitionTypeUtil {
         }
     }
 
+    // TEMPORARY, see the idea of moving ResourceSchemaAdjuster to the parsing stage
+    public static boolean isDefaultForObjectClass(@NotNull ResourceObjectTypeDefinitionType definitionBean) {
+        if (definitionBean.isDefaultForObjectClass() != null) {
+            return definitionBean.isDefaultForObjectClass();
+        } else if (definitionBean.isDefault() != null) {
+            return definitionBean.isDefault();
+        } else {
+            return false;
+        }
+    }
+
     /** Reference to a super-type of an object type. */
     public static class SuperReference {
 

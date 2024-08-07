@@ -1733,6 +1733,70 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
             PrismObject<ShadowType> originalShadowAfterRecreation = getShadowModel(shadowOid);
             display("Original shadow after re-creation", originalShadowAfterRecreation);
         }
+
+        // To avoid messing with downstream tests
+        for (var linkRef : linkRefs) {
+            repositoryService.deleteObject(ShadowType.class, linkRef.getOid(), result);
+        }
+    }
+
+    /** If a case is deleted manually, midPoint should treat it gracefully. MID-9286. */
+    @Test
+    public void test440DeleteCaseManually() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("there is a user");
+        var user = new UserType()
+                .name(userName)
+                .fullName("Full name of " + userName)
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(getResourceOid(), ResourceType.COMPLEX_TYPE)));
+        var userOid = addObject(user, task, result);
+
+        clockForward("PT3M"); // Make sure the operation will be picked up by propagation task
+        runPropagation();
+
+        var shadowOid = getSingleLinkOid(getUser(userOid));
+        var shadowAfterCreation = getShadowModel(shadowOid);
+        display("Shadow after creation and propagation (model)", shadowAfterCreation);
+
+        var pendingOperation = assertSinglePendingOperation(
+                shadowAfterCreation, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+        var caseOid = pendingOperation.getAsynchronousOperationReference();
+        assertCase(caseOid, "case after creation")
+                .display();
+
+        when("the case is deleted manually and user is recomputed");
+        repositoryService.deleteObject(CaseType.class, caseOid, result);
+        recomputeUser(userOid, task, result);
+
+        then("everything is OK");
+        assertInProgressOrSuccess(result);
+
+        var shadowOidAfterRecomputation = getSingleLinkOid(getUser(userOid));
+        var shadowAfterRecomputation = getShadowModel(shadowOidAfterRecomputation, null, false);
+        display("Shadow after recomputation (model)", shadowAfterRecomputation);
+
+        var pendingOperationAfterRecomputation = assertSinglePendingOperation(
+                shadowAfterRecomputation, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+        var caseOidAfterRecomputation = pendingOperationAfterRecomputation.getAsynchronousOperationReference();
+        displayValue("Case OID after recomputation", caseOidAfterRecomputation);
+
+        // There should be no removal/recreation of the shadow.
+        assertThat(shadowOidAfterRecomputation).isEqualTo(shadowOid);
+
+        // The current behavior is that the orphaned case OID is kept intact.
+        // In the future, we may implement some auto-healing mechanism that would re-create the case.
+        // For now, it is left to the administrator: you broke it, you fix it.
+        assertThat(caseOidAfterRecomputation)
+                .as("case OID after recomputation")
+                .isEqualTo(caseOid);
+
+        // To avoid messing with downstream tests
+        repositoryService.deleteObject(ShadowType.class, shadowOidAfterRecomputation, result);
     }
 
     protected boolean are9xxTestsEnabled() {

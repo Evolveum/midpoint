@@ -26,4 +26,7 @@
         <ri:homeDirectory>/home/scotland</ri:homeDirectory>
         <ri:loginShell>/bin/whisky</ri:loginShell>
     </attributes>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus> <!-- MID-9765 -->
+    </activation>
 </shadow>

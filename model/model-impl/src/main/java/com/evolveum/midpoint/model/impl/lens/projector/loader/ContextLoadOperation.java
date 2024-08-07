@@ -58,7 +58,7 @@ class ContextLoadOperation<F extends ObjectType> {
 
     public void load(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
         OperationResult result = parentResult.createMinorSubresult(OPERATION_LOAD);
         createTraceIfNeeded(result);
@@ -81,7 +81,7 @@ class ContextLoadOperation<F extends ObjectType> {
                     loadProjections(result);
                 }
 
-                for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+                for (var projectionContext : context.getProjectionContexts()) {
                     if (projectionContext.getSynchronizationIntent() != null) {
                         // Accounts with explicitly set intent are never rotten. These are explicitly requested actions
                         // if they fail then they really should fail.
@@ -95,7 +95,7 @@ class ContextLoadOperation<F extends ObjectType> {
             } else {
 
                 // Projection contexts are not rotten in this case. There is no focus so there is no way to refresh them.
-                for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+                for (var projectionContext : context.getProjectionContexts()) {
                     projectionContext.setFresh(true);
                 }
             }
@@ -104,7 +104,7 @@ class ContextLoadOperation<F extends ObjectType> {
 
             context.checkConsistenceIfNeeded();
 
-            for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+            for (var projectionContext : context.getProjectionContexts()) {
                 context.checkAbortRequested();
                 updateProjection(projectionContext, result);
             }
@@ -139,7 +139,7 @@ class ContextLoadOperation<F extends ObjectType> {
 
     private void loadProjections(OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
         //noinspection unchecked
         new ProjectionsLoadOperation<>((LensContext<? extends FocusType>) context, task)
                 .load(result); // this also removes the accountRef deltas (???)
