@@ -499,6 +499,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
 
                     double overallConfidence = 0;
                     double anomalyObjectsConfidence = 0;
+
+
+
                     for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
                         if (outlierPartition.getTargetClusterRef().getOid().equals(cluster.getOid())) {
                             partitionToDelete = outlierPartition;
@@ -508,8 +511,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService, Serializabl
                         }
                     }
 
-                    overallConfidence = overallConfidence / outlierPartitions.size();
-                    anomalyObjectsConfidence = anomalyObjectsConfidence / outlierPartitions.size();
+                    int partitionCount = outlierPartitions.size();
+                    if (partitionToDelete != null) {
+                        partitionCount--;
+                    }
+
+                    overallConfidence = overallConfidence / partitionCount;
+                    anomalyObjectsConfidence = anomalyObjectsConfidence / partitionCount;
 
                     if (partitionToDelete == null) {
                         return true;
