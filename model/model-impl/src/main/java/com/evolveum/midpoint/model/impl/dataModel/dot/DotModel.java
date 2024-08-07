@@ -256,10 +256,11 @@ public class DotModel {
             sb.append(definition.getDisplayName());
             sb.append(formatted ? LF : "/");
         }
-        if (definition instanceof ResourceObjectTypeDefinition) {
-            sb.append(ResourceTypeUtil.fillDefault(((ResourceObjectTypeDefinition) definition).getKind()));
+        var typeDefinition = definition.getTypeDefinition();
+        if (typeDefinition != null) {
+            sb.append(typeDefinition.getKind());
             sb.append(formatted ? LF : "/");
-            sb.append(ResourceTypeUtil.fillDefault(((ResourceObjectTypeDefinition) definition).getIntent()));
+            sb.append(typeDefinition.getIntent());
             sb.append(formatted ? LF : "/");
         } else {
             sb.append(definition.getObjectClassName().getLocalPart());

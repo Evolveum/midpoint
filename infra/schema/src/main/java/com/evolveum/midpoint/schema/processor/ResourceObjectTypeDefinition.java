@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
@@ -87,6 +88,9 @@ public interface ResourceObjectTypeDefinition
 
     /** Returns the configured capability of given class, if present. */
     @Nullable <T extends CapabilityType> T getConfiguredCapability(Class<T> capabilityClass);
+
+    /** Returns all configured capabilities, if present. */
+    @Nullable CapabilityCollectionType getSpecificCapabilities();
 
     /** Returns the correlation definition bean, if present here. (It may be standalone.) */
     @Nullable CorrelationDefinitionType getCorrelationDefinitionBean();

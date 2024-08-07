@@ -13,6 +13,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,13 +123,7 @@ public final class ResourceObjectTypeDefinitionImpl
     @Override
     public boolean isDefaultForObjectClass() {
         // Note that this value cannot be defined on a parent.
-        if (definitionBean.isDefaultForObjectClass() != null) {
-            return definitionBean.isDefaultForObjectClass();
-        } else if (definitionBean.isDefault() != null) {
-            return definitionBean.isDefault();
-        } else {
-            return false;
-        }
+        return ResourceObjectTypeDefinitionTypeUtil.isDefaultForObjectClass(definitionBean);
     }
 
     @Override
@@ -367,7 +365,12 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public <T extends CapabilityType> @Nullable T getConfiguredCapability(Class<T> capabilityClass) {
-        return CapabilityUtil.getCapability(definitionBean.getConfiguredCapabilities(), capabilityClass);
+        return CapabilityUtil.getCapability(getSpecificCapabilities(), capabilityClass);
+    }
+
+    @Override
+    public @Nullable CapabilityCollectionType getSpecificCapabilities() {
+        return definitionBean.getConfiguredCapabilities();
     }
 
     @Override

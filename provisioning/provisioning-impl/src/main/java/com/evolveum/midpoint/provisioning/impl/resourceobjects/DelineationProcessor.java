@@ -123,7 +123,7 @@ class DelineationProcessor {
     @NotNull
     private ResourceObjectDefinition getEffectiveDefinition(ProvisioningContext ctx) {
         ResourceObjectDefinition definition = ctx.getObjectDefinitionRequired();
-        if (!(definition instanceof ResourceObjectTypeDefinition)) {
+        if (definition.getTypeDefinition() == null) {
             return definition;
         }
 
