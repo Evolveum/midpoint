@@ -141,7 +141,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
                 executeAuthenticationFilter(mpAuthentication, authWrapper, httpRequest, response, chain);
             }
         } finally {
-            removingFiltersAfterProcessing(mpAuthentication, httpRequest);
+            removingFiltersAfterProcessing(mpAuthentication, authWrapper, httpRequest);
         }
     }
 
@@ -224,9 +224,15 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private void removingFiltersAfterProcessing(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
-        if (!AuthSequenceUtil.isClusterSequence(httpRequest) && httpRequest.getSession(false) == null && mpAuthentication != null) {
-            removeUnusedSecurityFilterPublisher.publishCustomEvent(mpAuthentication.getAuthModules());
+    private void removingFiltersAfterProcessing(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
+        if (!AuthSequenceUtil.isClusterSequence(httpRequest) && httpRequest.getSession(false) == null) {
+            if (mpAuthentication == null) {
+                if (authWrapper != null && authWrapper.getAuthModules() != null) {
+                    removeUnusedSecurityFilterPublisher.publishCustomEvent(authWrapper.getAuthModules());
+                }
+            } else {
+                removeUnusedSecurityFilterPublisher.publishCustomEvent(mpAuthentication.getAuthModules());
+            }
         }
     }
 
