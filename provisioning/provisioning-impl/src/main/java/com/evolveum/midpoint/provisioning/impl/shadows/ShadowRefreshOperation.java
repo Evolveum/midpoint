@@ -14,11 +14,12 @@ import java.util.Collection;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
@@ -227,6 +228,15 @@ class ShadowRefreshOperation {
                         + "Skipping refresh of this operation.", shadow, e);
                 result.recordPartialError(e);
                 continue;
+            } catch (ObjectNotFoundException e) {
+                if (CaseType.class.equals(e.getType())) {
+                    LOGGER.debug("The case was not found while trying to refresh pending operation of {}. "
+                            + "Skipping refresh of this operation.", shadow, e);
+                    result.recordPartialError(e);
+                    continue;
+                } else {
+                    throw e;
+                }
             }
             var newStatus = refreshAsyncResult.getOperationResult().getStatus();
             if (newStatus == null) {

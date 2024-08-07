@@ -306,7 +306,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // Although connector does not support activation, the resource specifies a way how to simulate it.
         // Therefore the following should succeed
         capAct = ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class);
-        assertNotNull("activation capability not found", capAct);
+        if (isActivationCapabilityClassSpecific()) {
+            assertNull("activation capability should not be present at the resource level", capAct);
+        } else {
+            assertNotNull("activation capability not found", capAct);
+        }
 
         PagedSearchCapabilityType capPage = ResourceTypeUtil.getEnabledCapability(resource, PagedSearchCapabilityType.class);
         assertNotNull("paged search capability not present", capPage);
@@ -3536,5 +3540,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 .item(ShadowType.F_ASSOCIATIONS, assocName)
                 .add(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
+    }
+
+    protected boolean isActivationCapabilityClassSpecific() {
+        return true;
     }
 }
