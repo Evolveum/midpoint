@@ -8,14 +8,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
-import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformPattern;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidInducements;
 
 import java.io.Serial;
 import java.util.*;
-
-import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
 
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
@@ -30,17 +27,18 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisTableOpPanelItem;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisTableOpPanelItemPanel;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -86,15 +84,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 OperationPanelModel model = new OperationPanelModel();
                 model.createDetectedPatternModel(getClusterPatterns());
                 model.createCandidatesRolesRoleModel(getClusterCandidateRoles());
-
-                Task task = getPageBase().createSimpleTask("Prepare mining structure");
-                OperationResult result = task.getResult();
-
-                model.setCandidateRoleView(getCandidateRoleContainerId() != null);
-
-                //TODO should be loaded together with detected patterns/candidate roles
-                List<DetectedPattern> patternsToAnalyze = loadPatternsToAnalyze(task, result);
-                model.addSelectedPattern(patternsToAnalyze);
+                model.setCandidateRoleView(!getCandidateRoleContainerId().isEmpty());
                 return model;
             }
         };
@@ -117,7 +107,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     private List<DetectedPattern> getClusterPatterns() {
         RoleAnalysisClusterType clusterType = getObjectWrapperObject().asObjectable();
-        return transformDefaultPattern(clusterType);
+        return transformDefaultPattern(clusterType, getDetectedPatternContainerId());
     }
 
     private List<DetectedPattern> getClusterCandidateRoles() {
@@ -127,91 +117,96 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     private @NotNull List<DetectedPattern> loadAllCandidateRoles(@NotNull RoleAnalysisClusterType cluster) {
         List<RoleAnalysisCandidateRoleType> clusterCandidateRoles = cluster.getCandidateRoles();
-        List<DetectedPattern> candidateRoles = new ArrayList<>();
         Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS); //TODO task name?
         OperationResult result = task.getResult();
-        for (RoleAnalysisCandidateRoleType candidateRole : clusterCandidateRoles) {
-
-            RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
-            boolean isMigrated = operationStatus != null
-                    && operationStatus.getOperationChannel() != null
-                    && operationStatus.getOperationChannel().equals(RoleAnalysisOperation.MIGRATION);
-
-            if (isMigrated) {
-                continue;
-            }
-
-            String roleOid = candidateRole.getCandidateRoleRef().getOid();
-            //TODO does it make sense to create subresult for each iteration?
-            PrismObject<RoleType> rolePrismObject = getPageBase().getRoleAnalysisService().getRoleTypeObject(
-                    roleOid, task, result);
-            List<String> rolesOidInducements;
-            if (rolePrismObject == null) {
-                return new ArrayList<>();
-            }
-
-            //TODO what is this?
-            rolesOidInducements = getRolesOidInducements(rolePrismObject);
-            List<String> rolesOidAssignment = getRolesOidAssignment(rolePrismObject.asObjectable());
-
-            Set<String> accessOidSet = new HashSet<>(rolesOidInducements);
-            accessOidSet.addAll(rolesOidAssignment);
-
-            ListMultimap<String, String> mappedMembers = getPageBase().getRoleAnalysisService().extractUserTypeMembers(new HashMap<>(),
-                    null,
-                    Collections.singleton(roleOid),
-                    getPageBase().createSimpleTask(OP_PREPARE_OBJECTS),
-                    result);
-
-            List<ObjectReferenceType> candidateMembers = candidateRole.getCandidateMembers();
-            Set<String> membersOidSet = new HashSet<>();
-            for (ObjectReferenceType candidateMember : candidateMembers) {
-                String oid = candidateMember.getOid();
-                if (oid != null) {
-                    membersOidSet.add(oid);
-                }
-            }
-
-            membersOidSet.addAll(mappedMembers.get(roleOid));
-            double clusterMetric = (accessOidSet.size() * membersOidSet.size()) - membersOidSet.size();
-
-            DetectedPattern pattern = new DetectedPattern(
-                    accessOidSet,
-                    membersOidSet,
-                    clusterMetric,
-                    null,
-                    roleOid,
-                    BasePattern.PatternType.CANDIDATE);
-            pattern.setIdentifier(rolePrismObject.getName().getOrig());
-            pattern.setId(candidateRole.getId());
-            pattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
-
-            candidateRoles.add(pattern);
-        }
-        return candidateRoles;
+        return clusterCandidateRoles.stream()
+                .filter(candidateRole -> !isRoleMigrated(candidateRole))
+                .map(candidateRole -> transformCandidateRole(candidateRole, cluster, task, result))
+                .filter(Objects::nonNull)
+                .toList();
     }
 
-    private List<DetectedPattern> loadPatternsToAnalyze(Task task, OperationResult result) {
-        if (getCandidateRoleContainerId() != null) {
-            return analysePattersForCandidateRole(task, result);
+    private boolean isRoleMigrated(RoleAnalysisCandidateRoleType candidateRole) {
+        RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
+        return operationStatus != null
+                && operationStatus.getOperationChannel() != null
+                && operationStatus.getOperationChannel().equals(RoleAnalysisOperation.MIGRATION);
+    }
+
+    private DetectedPattern transformCandidateRole(RoleAnalysisCandidateRoleType candidateRole, RoleAnalysisClusterType cluster, Task task, OperationResult result) {
+        String roleOid = candidateRole.getCandidateRoleRef().getOid();
+        PrismObject<RoleType> rolePrismObject = WebModelServiceUtils.loadObject(RoleType.class, roleOid, getPageBase(), task, result);
+        if (rolePrismObject == null) {
+            return null;
         }
 
-        return loadDetectedPattern();
+        Set<String> membersOidSet = computeMembersSet(candidateRole, task, result);
+        Set<String> accessOidSet = computeAccessSet(rolePrismObject);
+
+        double clusterMetric = (accessOidSet.size() * membersOidSet.size()) - membersOidSet.size();
+
+        DetectedPattern pattern = new DetectedPattern(
+                accessOidSet,
+                membersOidSet,
+                clusterMetric,
+                null,
+                roleOid,
+                BasePattern.PatternType.CANDIDATE);
+        pattern.setIdentifier(rolePrismObject.getName().getOrig());
+        pattern.setId(candidateRole.getId());
+        pattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
+        pattern.setPatternSelected(isCandidateRoleSelected(candidateRole));
+        return pattern;
     }
 
-    private List<DetectedPattern> analysePattersForCandidateRole(Task task, OperationResult result) {
-        RoleAnalysisClusterType cluster = getObjectWrapperObject().asObjectable();
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        return roleAnalysisService.findDetectedPatterns(cluster, getCandidateRoleContainerId(), task, result);
+    private Set<String> computeMembersSet(RoleAnalysisCandidateRoleType candidateRole, Task task, OperationResult result) {
+        String roleOid = candidateRole.getCandidateRoleRef().getOid();
+        ListMultimap<String, String> mappedMembers = getPageBase().getRoleAnalysisService().extractUserTypeMembers(new HashMap<>(),
+                null,
+                Collections.singleton(roleOid),
+                task,
+                result);
+
+        List<ObjectReferenceType> candidateMembers = candidateRole.getCandidateMembers();
+        Set<String> membersOidSet = new HashSet<>();
+        for (ObjectReferenceType candidateMember : candidateMembers) {
+            String oid = candidateMember.getOid();
+            if (oid != null) {
+                membersOidSet.add(oid);
+            }
+        }
+
+        membersOidSet.addAll(mappedMembers.get(roleOid));
+        return membersOidSet;
     }
 
-    public List<String> getCandidateRoleContainerId() {
+    private Set<String> computeAccessSet(PrismObject<RoleType> rolePrismObject) {
+        //TODO this might work only in simple scenarios? what about conditions? role hierarchies?
+        List<String> rolesOidInducements = getRolesOidInducements(rolePrismObject);
+        List<String> rolesOidAssignment = getRolesOidAssignment(rolePrismObject.asObjectable()); //TODO why assignments
+
+        Set<String> accessOidSet = new HashSet<>(rolesOidInducements);
+        accessOidSet.addAll(rolesOidAssignment);
+        return accessOidSet;
+    }
+
+    private boolean isCandidateRoleSelected(RoleAnalysisCandidateRoleType candidateRole) {
+        List<String> candidateRoles = getCandidateRoleContainerId();
+        for (String candidateRoleId : candidateRoles) {
+            if (candidateRoleId.equals(candidateRole.getId().toString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @NotNull  public List<String> getCandidateRoleContainerId() {
         StringValue stringValue = getPageBase().getPageParameters().get(PARAM_CANDIDATE_ROLE_ID);
         if (!stringValue.isNull()) {
             String[] split = stringValue.toString().split(",");
             return Arrays.asList(split);
         }
-        return null;
+        return new ArrayList<>();
     }
 
     public Long getDetectedPatternContainerId() {
@@ -220,19 +215,6 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             return Long.valueOf(stringValue.toString());
         }
         return null;
-    }
-
-    private List<DetectedPattern> loadDetectedPattern() {
-        RoleAnalysisClusterType cluster = getObjectWrapperObject().asObjectable();
-        List<RoleAnalysisDetectionPatternType> detectedPattern = cluster.getDetectedPattern();
-
-        for (RoleAnalysisDetectionPatternType pattern : detectedPattern) {
-            Long id = pattern.getId();
-            if (id.equals(getDetectedPatternContainerId())) {
-                return Collections.singletonList(transformPattern(pattern));
-            }
-        }
-        return new ArrayList<>();
     }
 
     public Integer getParameterTableSetting() {

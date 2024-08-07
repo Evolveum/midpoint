@@ -290,6 +290,8 @@ public enum AnomalyTableCategory implements Serializable {
                 DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
                 Double itemConfidence = statistics.getItemFactorConfidence();
 
+                itemConfidence = Double.isNaN(itemConfidence) ? 0 : itemConfidence;
+
                 BigDecimal bd = new BigDecimal(Double.toString(itemConfidence));
                 bd = bd.setScale(2, RoundingMode.HALF_UP);
                 double pointsConfidence = bd.doubleValue();
