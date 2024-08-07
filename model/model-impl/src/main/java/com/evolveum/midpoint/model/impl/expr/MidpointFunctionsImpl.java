@@ -2301,7 +2301,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @NotNull
     @Override
     public OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin) {
-        return new OptimizingTriggerCreatorImpl(triggerCreatorGlobalState, this, fireAfter, safetyMargin);
+        return new OptimizingTriggerCreatorImpl(
+                triggerCreatorGlobalState,
+                this,
+                fireAfter,
+                safetyMargin);
     }
 
     @NotNull
