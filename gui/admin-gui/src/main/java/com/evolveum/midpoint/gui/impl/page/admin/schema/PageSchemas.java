@@ -48,7 +48,7 @@ import java.util.List;
                         label = "PageSchemas.auth.schemas.label",
                         description = "PageSchemas.auth.schemas.description"),
         })
-@CollectionInstance(identifier = "allUsers", applicableForType = UserType.class,
+@CollectionInstance(identifier = "allSchemas", applicableForType = SchemaType.class,
         display = @PanelDisplay(label = "PageAdmin.menu.top.schemas.list", singularLabel = "ObjectType.schema", icon = GuiStyleConstants.CLASS_OBJECT_USER_ICON))
 public class PageSchemas extends PageAdmin {
 
