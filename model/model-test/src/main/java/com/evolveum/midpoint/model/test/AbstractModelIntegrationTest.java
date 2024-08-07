@@ -7183,7 +7183,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void dumpStatistics(Task task) {
-        OperationStatsType stats = task.getStoredOperationStatsOrClone();
+        dumpStatistics(task.getStoredOperationStatsOrClone());
+    }
+
+    protected void dumpStatistics(PrismObject<TaskType> task) {
+        dumpStatistics(task.asObjectable().getOperationStats());
+    }
+
+    private void dumpStatistics(OperationStatsType stats) {
         displayValue("Provisioning statistics", ProvisioningStatistics.format(
                 stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics()));
     }
