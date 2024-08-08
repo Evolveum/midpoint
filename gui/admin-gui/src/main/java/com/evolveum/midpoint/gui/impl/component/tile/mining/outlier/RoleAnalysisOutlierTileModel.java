@@ -78,7 +78,7 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         }
 
         this.outlierObjectModel = generateAssignmentOutlierResultModel(
-                roleAnalysisService, descriptionType,partition, task, task.getResult(), userTypeObject, outlierParent);
+                roleAnalysisService, descriptionType,partition, userTypeObject, outlierParent, task, task.getResult());
     }
 
     @Override

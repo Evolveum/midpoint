@@ -857,7 +857,7 @@ public class RoleAnalysisOutlierPropertyTileTable extends BasePanel<RoleAnalysis
                 }
 
                 OutlierObjectModel outlierObjectModel = generateAssignmentOutlierResultModel(
-                        roleAnalysisService, rowModel.getObject(),getModelObject(), task, task.getResult(), userTypeObject, outlierParent);
+                        roleAnalysisService, rowModel.getObject(),getModelObject(), userTypeObject, outlierParent, task, task.getResult());
 
                 String outlierName = outlierObjectModel.getOutlierName();
                 Double outlierConfidence = outlierObjectModel.getOutlierConfidence();

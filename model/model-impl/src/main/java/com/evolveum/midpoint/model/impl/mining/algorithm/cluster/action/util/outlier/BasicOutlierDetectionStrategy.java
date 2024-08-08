@@ -140,8 +140,9 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                                 user, task, result);
                         //TODO
                         long startTimeP = System.currentTimeMillis();
-                        RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(
-                                miningRoleTypeChunk, user, miningRoleTypeChunks, processingTimes);
+                        List<String> allowedProperties = miningRoleTypeChunk.getProperties();
+                        RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(user, miningRoleTypeChunks,
+                                processingTimes, session, roleAnalysisService, task, result, allowedProperties);
                         long endTimeP = System.currentTimeMillis();
                         double totalProcessingTimeP = (double) (endTimeP - startTimeP) / 1000.0;
                         totalTimeInSecPatternAnalysis += totalProcessingTimeP;
@@ -237,7 +238,7 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
             partitionAnalysis.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
 
             RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(
-                    userOid, miningRoleTypeChunks, null, session, roleAnalysisService, task, result);
+                    userOid, miningRoleTypeChunks, null, session, roleAnalysisService, task, result, null);
             partitionAnalysis.setPatternAnalysis(roleAnalysisPatternInfo);
 
             double outlierConfidenceBasedAssignment = 0;

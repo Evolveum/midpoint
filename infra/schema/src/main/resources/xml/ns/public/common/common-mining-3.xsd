@@ -482,6 +482,19 @@
         </xsd:annotation>
         <xsd:sequence>
 
+            <xsd:element name="attributeAnalysis" type="c:AttributeAnalysis" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Contains information about the user(outlier) attribute analysis result vs role members.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AttributeAnalysis.attributeAnalysis</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="confidenceDeviation" type="xsd:double" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -680,6 +693,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

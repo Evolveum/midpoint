@@ -16,6 +16,8 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -25,6 +27,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -171,7 +174,12 @@ public class RoleAnalysisOutlierPartitionTable extends BasePanel<String> {
                     if (sessionTypeObject != null) {
                         sessionName = sessionTypeObject.asObjectable().getName().getOrig();
                     }
-                    item.add(new Label(componentId, sessionName));
+                    item.add(new AjaxLinkPanel(componentId, Model.of(sessionName)) {
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            //TODO
+                        }
+                    });
 
                 }
             }
