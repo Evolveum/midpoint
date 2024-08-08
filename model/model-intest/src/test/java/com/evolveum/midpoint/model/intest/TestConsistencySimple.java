@@ -6,11 +6,30 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.INTENT_DEFAULT;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
+import java.io.File;
+import java.util.List;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
+
+import com.evolveum.icf.dummy.resource.BreakMode;
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -19,20 +38,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.Test;
-
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Tests various aspects of consistency mechanism. Unlike the complex story test,
@@ -48,9 +59,18 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
     private static final boolean ASSERT_SUCCESS = true;
 
+    private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "consistency-simple");
+
+    private static final DummyTestResource RESOURCE_MAPPING_STRENGTHS = new DummyTestResource(
+            TEST_DIR, "resource-mapping-strengths.xml", "3bbe4c63-ff4f-489e-9a94-977adec4b24d",
+            "mapping-strengths",
+            c -> c.extendSchemaPirate());
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+
+        initDummyResource(RESOURCE_MAPPING_STRENGTHS, initTask, initResult);
 
         login(USER_ADMINISTRATOR_USERNAME);
     }
@@ -154,7 +174,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
         cleanUpBeforeTest(task, result);
 
-        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, INTENT_DEFAULT, task, result);
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("Jack with account", jack);
         assertEquals("Unexpected # of accounts for jack", 1, jack.asObjectable().getLinkRef().size());
@@ -262,7 +282,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("Jack on start", jack);
         if (!jack.asObjectable().getAssignment().isEmpty()) {
-            unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+            unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, INTENT_DEFAULT, task, result);
             jack = getUser(USER_JACK_OID);
             display("Jack after initial unassign", jack);
         }
@@ -281,7 +301,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
     }
 
     private void cleanUpAfterTest(Task task, OperationResult result) throws Exception {
-        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, INTENT_DEFAULT, task, result);
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         display("Jack after cleanup", jack);
         assertEquals("Unexpected # of accounts for jack after cleanup", 0, jack.asObjectable().getLinkRef().size());
@@ -301,5 +321,72 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                         getAccountObjectClassDefinition().findAttributeDefinition(SchemaConstants.ICFS_NAME)).eq("jack")
                 .build();
         return repositoryService.searchObjects(ShadowType.class, shadowQuery, null, result);
+    }
+
+    /**
+     * There are mappings of various strengths.
+     *
+     * - fullname mapping is weak
+     * - description mapping is normal
+     * - location mapping is strong
+     *
+     * The resource is not reachable, and these mappings are executed in midPoint.
+     * Only the results of normal and strong mappings should be propagated to the resource.
+     *
+     * MID-9861
+     */
+    @Test
+    public void test310WeakMappingWithUnreachableResource() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+        var dummyResource = getDummyResource(RESOURCE_MAPPING_STRENGTHS.name);
+
+        given("a user with an account on the resource");
+        var user = new UserType()
+                .name(userName)
+                .assignment(RESOURCE_MAPPING_STRENGTHS.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT));
+        addObject(user.asPrismObject(), task, result);
+
+        and("attributes are set externally for the account and resource is made unreachable");
+        var account = dummyResource.getAccountByUsername(userName);
+        account.addAttributeValue(DummyAccount.ATTR_FULLNAME_NAME, "Mr. Dummy");
+        account.addAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "from dummy");
+        account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "dummy");
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        when("respective properties are set in midPoint (to values different from the above ones)");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_FULL_NAME)
+                        .replace(PolyString.fromOrig("Mr. MidPoint"))
+                        .item(UserType.F_DESCRIPTION)
+                        .replace("from midpoint")
+                        .item(UserType.F_LOCALITY)
+                        .replace(PolyString.fromOrig("midpoint"))
+                        .asObjectDelta(user.getOid()),
+                null, task, result);
+
+        var shadow = findShadowByPrismName(userName, RESOURCE_MAPPING_STRENGTHS.controller.getResource(), result);
+        displayDumpable("shadow after user is changed but resource is unreachable", shadow);
+
+        and("resource is made reachable and pending changes are executed (via shadow refresh)");
+        dummyResource.setBreakMode(BreakMode.NONE);
+        provisioningService.refreshShadow(shadow, null, task, result);
+
+        then("full name should be kept intact, others should be changed");
+        assertDummyAccountByUsername(RESOURCE_MAPPING_STRENGTHS.name, userName)
+                .assertFullName("Mr. Dummy")
+                .assertDescription("from midpoint")
+                .assertLocation("midpoint");
+
+        when("user is reconciled (just for sure)");
+        reconcileUser(user.getOid(), task, result);
+
+        then("full name should be kept intact, description should be changed");
+        assertDummyAccountByUsername(RESOURCE_MAPPING_STRENGTHS.name, userName)
+                .assertFullName("Mr. Dummy")
+                .assertDescription("from midpoint")
+                .assertLocation("midpoint");
     }
 }
