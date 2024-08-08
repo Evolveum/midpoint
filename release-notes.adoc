@@ -33,6 +33,11 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 ** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
 ** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
 * Request access wizard multiple fixes
+* Checking for conflicts for single-valued items was fixed (strengthened).
+In 4.8.3 and before, there were situations that two strong mappings produced different values for a given single-valued item, yet no error was produced.
+(If the item contained the same value that was produced by one of these mappings.)
+Such configurations are in principle unstable, so this kind of errors should be identified and fixed.
+Please see bug:MID-9621[] and https://github.com/Evolveum/midpoint/commit/607236b4d357c9aa67d563d13d434edba6c61d02[this commit].
 
 == Changes with Respect To Version 4.8.2
 
