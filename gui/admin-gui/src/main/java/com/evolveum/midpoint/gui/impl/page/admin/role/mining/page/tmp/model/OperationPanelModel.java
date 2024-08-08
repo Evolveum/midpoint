@@ -94,8 +94,8 @@ public class OperationPanelModel implements Serializable {
     }
 
     public boolean isOutlierView() {
-        return outlierPatterns != null;
-    }
+        return !outlierPatterns.isEmpty();
+    } //TODO fix this properly
 
     public List<DetectedPattern> getOutlierPatterns() {
         return outlierPatterns;
