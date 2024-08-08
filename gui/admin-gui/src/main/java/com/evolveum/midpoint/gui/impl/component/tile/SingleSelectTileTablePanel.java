@@ -151,11 +151,17 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
             @Override
             protected Search load() {
                 return new SearchBuilder(getType())
+                        .collectionView(getCompiledCollectionViewFromPanelConfiguration())
                         .modelServiceLocator(getPageBase())
                         .additionalSearchContext(getAdditionalSearchContext())
+                        .setFullTextSearchEnabled(isFullTextSearchEnabled())
                         .build();
             }
         };
+    }
+
+    protected boolean isFullTextSearchEnabled() {
+        return true;
     }
 
     protected SearchContext getAdditionalSearchContext() {
