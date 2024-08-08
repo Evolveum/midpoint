@@ -69,6 +69,9 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
 
     private String computeAssignmentStorageKey() {
         String key = SessionStorage.KEY_ASSIGNMENTS_TAB;
+        if (getAssignmentHolderType() != null) {
+            key += "_" + getAssignmentHolderType().getSimpleName();
+        }
         if (getAssignmentType() != null) {
             key += "_" + getAssignmentType().getLocalPart();
         }

@@ -79,11 +79,17 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
             @Override
             protected Search load() {
                 return new SearchBuilder(getType())
+                        .collectionView(getCompiledCollectionViewFromPanelConfiguration())
                         .modelServiceLocator(getPageBase())
                         .additionalSearchContext(getAdditionalSearchContext())
+                        .setFullTextSearchEnabled(isFullTextSearchEnabled())
                         .build();
             }
         };
+    }
+
+    protected boolean isFullTextSearchEnabled() {
+        return true;
     }
 
     protected abstract Class<? extends Containerable> getType();
