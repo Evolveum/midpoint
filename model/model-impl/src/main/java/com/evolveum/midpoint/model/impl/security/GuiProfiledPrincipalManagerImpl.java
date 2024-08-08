@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.authentication.api.MidpointSessionRegistry;
 import com.evolveum.midpoint.security.api.ProfileCompilerOptions;
 
 import jakarta.annotation.PostConstruct;
@@ -110,7 +111,7 @@ public class GuiProfiledPrincipalManagerImpl
 
     // registry is not available e.g. during tests
     @Autowired(required = false)
-    private SessionRegistry sessionRegistry;
+    private MidpointSessionRegistry sessionRegistry;
 
     @Override
     public void setMessageSource(@NotNull MessageSource messageSource) {
@@ -224,7 +225,7 @@ public class GuiProfiledPrincipalManagerImpl
                     continue;
                 }
 
-                List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
+                List<SessionInformation> sessionInfos = sessionRegistry.getLoggedInUsersSession(principal);
                 if (sessionInfos == null || sessionInfos.isEmpty()) {
                     continue;
                 }
@@ -259,7 +260,7 @@ public class GuiProfiledPrincipalManagerImpl
                     continue;
                 }
 
-                List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
+                List<SessionInformation> sessionInfos = sessionRegistry.getLoggedInUsersSession(principal);
                 if (sessionInfos == null || sessionInfos.isEmpty()) {
                     continue;
                 }
@@ -439,7 +440,7 @@ public class GuiProfiledPrincipalManagerImpl
                 continue;
             }
 
-            List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
+            List<SessionInformation> sessionInfos = sessionRegistry.getLoggedInUsersSession(principal);
             if (sessionInfos == null || sessionInfos.isEmpty()) {
                 continue;
             }
