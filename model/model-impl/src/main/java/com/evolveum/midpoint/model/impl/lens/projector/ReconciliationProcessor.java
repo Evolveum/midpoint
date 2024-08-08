@@ -123,6 +123,11 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         if (!projCtx.isFullShadow()) {
             contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
+            if (!projCtx.isFullShadow()) {
+                LOGGER.trace("Full shadow is not available, skipping the reconciliation of {}", projCtx.getHumanReadableName());
+                result.recordNotApplicable("Full shadow is not available");
+                return;
+            }
         }
 
         LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());

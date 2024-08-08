@@ -380,8 +380,16 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                 .assertDescription("from midpoint")
                 .assertLocation("midpoint");
 
-        when("user is reconciled (just for sure)");
+        when("resource is made unreachable again and the user is reconciled");
+        dummyResource.setBreakMode(BreakMode.NETWORK);
         reconcileUser(user.getOid(), task, result);
+
+        shadow = findShadowByPrismName(userName, RESOURCE_MAPPING_STRENGTHS.controller.getResource(), result);
+        displayDumpable("shadow after user is reconciled but resource is unreachable", shadow);
+
+        and("resource is made reachable and pending changes are executed (via shadow refresh)");
+        dummyResource.setBreakMode(BreakMode.NONE);
+        provisioningService.refreshShadow(shadow, null, task, result);
 
         then("full name should be kept intact, description should be changed");
         assertDummyAccountByUsername(RESOURCE_MAPPING_STRENGTHS.name, userName)
