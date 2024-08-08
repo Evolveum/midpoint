@@ -142,9 +142,18 @@ public abstract class MultiSelectObjectTypeTileWizardStepPanel<SI extends Serial
             public boolean skipSearch() {
                 return MultiSelectObjectTypeTileWizardStepPanel.this.skipSearch();
             }
+
+            @Override
+            protected boolean isFullTextSearchEnabled() {
+                return MultiSelectObjectTypeTileWizardStepPanel.this.isFullTextSearchEnabled();
+            }
         };
         tilesTable.setOutputMarkupId(true);
         return tilesTable;
+    }
+
+    protected boolean isFullTextSearchEnabled() {
+        return true;
     }
 
     protected boolean skipSearch() {

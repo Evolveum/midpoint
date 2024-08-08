@@ -462,4 +462,9 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
         fragment.add(reloadButton);
         return fragment;
     }
+
+    @Override
+    protected boolean isFullTextSearchEnabled() {
+        return false;
+    }
 }
