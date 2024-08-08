@@ -25,6 +25,8 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
 /**
  * Definition of a {@link ShadowAssociation}, e.g., `ri:group`.
  *
@@ -41,13 +43,10 @@ public interface ShadowAssociationDefinition
                 .isTargetingSingleEmbeddedObjectClass();
     }
 
-    /**
-     * For associations with the association object, returns its definition.
-     *
-     * For trivial associations, it will either fail (as there can be more target participant types)
-     * or provide imprecise information (ignoring the association type definition).
-     */
+    /** Returns the association object definition (for complex associations), or fails (for trivial ones). */
     default @NotNull ResourceObjectDefinition getAssociationObjectDefinition() {
+        stateCheck(hasAssociationObject(), "No association object in " + this);
+
         var immediateTargets = getReferenceAttributeDefinition().getTargetParticipantTypes();
         return MiscUtil.extractSingletonRequired(
                         immediateTargets,

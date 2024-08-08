@@ -948,4 +948,24 @@ public class ShadowAssociationDefinitionImpl
             @Nullable MappingType outboundMappingBean,
             @NotNull List<InboundMappingType> inboundMappingBeans) implements Serializable {
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("SAssocDef");
+        sb.append(getMutabilityFlag());
+        sb.append(": ").append(getItemName());
+
+        if (getDisplayName() != null) {
+            sb.append(",Disp");
+        }
+        if (!getExplicitOutboundMappingBeans().isEmpty()) {
+            sb.append(",OUT");
+        }
+        if (!getExplicitInboundMappingBeans().isEmpty()) {
+            sb.append(",IN");
+        }
+        return sb.toString();
+    }
 }

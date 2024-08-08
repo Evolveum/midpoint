@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.session;
 
+import com.evolveum.midpoint.authentication.api.MidpointSessionRegistry;
 import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
@@ -17,20 +18,22 @@ import org.springframework.security.core.session.AbstractSessionEvent;
 import org.springframework.security.core.session.SessionDestroyedEvent;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.util.Assert;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.List;
 
 /**
  * @author skublik
  */
 
-public class MidpointSessionRegistry extends SessionRegistryImpl {
+public class MidpointSessionRegistryImpl extends SessionRegistryImpl implements MidpointSessionRegistry {
 
     private final RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher;
+    private boolean getLoggedInUsersProcessing = false;
 
-    public MidpointSessionRegistry(RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher){
+    public MidpointSessionRegistryImpl(RemoveUnusedSecurityFilterPublisher removeUnusedSecurityFilterPublisher){
         this.removeUnusedSecurityFilterPublisher = removeUnusedSecurityFilterPublisher;
     }
 
@@ -50,6 +53,10 @@ public class MidpointSessionRegistry extends SessionRegistryImpl {
     }
 
     public SessionInformation getSessionInformation(String sessionId) {
+        if (getLoggedInUsersProcessing) {
+            return super.getSessionInformation(sessionId);
+        }
+
         HttpServletRequest request = getRequest();
         if (AuthSequenceUtil.isRecordSessionLessAccessChannel(request)) {
             return null;
@@ -63,5 +70,17 @@ public class MidpointSessionRegistry extends SessionRegistryImpl {
             return ((ServletRequestAttributes)requestAttributes).getRequest();
         }
         return null;
+    }
+
+    @Override
+    public List<SessionInformation> getLoggedInUsersSession(Object principal) {
+        synchronized (this) {
+            getLoggedInUsersProcessing = true;
+            try {
+                return getAllSessions(principal, false);
+            } finally {
+                getLoggedInUsersProcessing = false;
+            }
+        }
     }
 }

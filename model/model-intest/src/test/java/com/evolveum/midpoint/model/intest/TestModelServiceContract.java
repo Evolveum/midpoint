@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -38,6 +40,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -449,7 +452,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createNoFetchCollection();
+        Collection<SelectorOptions<GetOperationOptions>> options = createNoFetchCollection();
 
         when();
         PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountJackOid, options, task, result);
@@ -4043,6 +4046,74 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2 + accessesMetadataAuditOverhead(1));
         dummyAuditService.assertSimpleRecordSanity();
+    }
+
+    /** The clockwork should be able to unlink also dead shadows. MID-9668. */
+    @Test
+    public void test780UnlinkDeadShadow() throws Exception {
+        testUnlinkOrDeleteDeadShadow(false);
+    }
+
+    /** The clockwork should be able to delete also dead shadows. MID-9668. */
+    @Test
+    public void test785DeleteDeadShadow() throws Exception {
+        testUnlinkOrDeleteDeadShadow(true);
+    }
+
+    private void testUnlinkOrDeleteDeadShadow(boolean delete) throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        if (isCached()) {
+            throw new SkipException("Temporarily disabled");
+        }
+
+        given("a user with a dead shadow");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)));
+        var userOid = addObject(user, task, result);
+
+        dummyResourceCtl.deleteAccount(userName);
+        reconcileUser(userOid, task, result);
+
+        var deadLinkRefVal = assertUserBefore(userOid)
+                .assertLinks(1, 1)
+                .links()
+                .singleDead()
+                .getRefVal();
+
+        PrismObject<ShadowType> shadowToDelete;
+        if (delete) {
+            shadowToDelete = provisioningService.getObject(
+                    ShadowType.class,
+                    deadLinkRefVal.getOid(),
+                    createNoFetchCollection(),
+                    task, result);
+        } else {
+            shadowToDelete = null;
+        }
+        deadLinkRefVal.setObject(shadowToDelete);
+
+        when("the dead shadow is " + (delete ? "deleted" : "unlinked"));
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .delete(deadLinkRefVal.clone())
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("the dead linkRef is not there anymore");
+        assertUserAfter(userOid)
+                .assertLinks(1, 0);
+
+        and("the shadow still exists (even when unlinked - because of the dead shadow retention by provisioning");
+        assertRepoShadow(deadLinkRefVal.getOid())
+                .display()
+                .assertDead();
     }
 
     private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {

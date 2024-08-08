@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -66,19 +68,40 @@ public class ResolveItemPanel extends ActionConfigurationPanel implements Popupa
 
             @Override
             protected void populateItem(ListItem<AccessCertificationResponseType> item) {
-                ResponseSelectablePanel widget = new ResponseSelectablePanel(ID_RESPONSE_PANEL, item.getModel()) {
-                    @Serial private static final long serialVersionUID = 1L;
+                CertificationItemResponseHelper responseHelper = new CertificationItemResponseHelper(item.getModelObject());
+                SelectableInfoBoxPanel<AccessCertificationResponseType> widget =
+                        new SelectableInfoBoxPanel<>(ID_RESPONSE_PANEL, item.getModel()) {
+                            @Serial private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected void responseSelectedPerformed(AccessCertificationResponseType response, AjaxRequestTarget target) {
-                        selectedResponse = response;
-                        target.add(ResolveItemPanel.this);
-                    }
+                            @Override
+                            protected void itemSelectedPerformed(AccessCertificationResponseType response, AjaxRequestTarget target) {
+                                selectedResponse = response;
+                                target.add(ResolveItemPanel.this);
+                            }
 
-                    protected IModel<String> getAdditionalLinkStyle(AccessCertificationResponseType response) {
-                        return getItemPanelAdditionalStyle(response);
-                    }
-                };
+                            @Override
+                            protected IModel<String> getIconClassModel() {
+                                return () -> {
+                                    String iconCssClass = GuiDisplayTypeUtil.getIconCssClass(responseHelper.getResponseDisplayType());
+                                    String iconBgColor = responseHelper.getBackgroundCssClass();
+                                    return iconCssClass + " " + iconBgColor;
+                                };
+                            }
+
+                            @Override
+                            protected IModel<String> getLabelModel() {
+                                return () -> GuiDisplayTypeUtil.getTranslatedLabel(responseHelper.getResponseDisplayType());
+                            }
+
+                            @Override
+                            protected IModel<String> getDescriptionModel() {
+                                return () -> GuiDisplayTypeUtil.getHelp(responseHelper.getResponseDisplayType());
+                            }
+
+                            protected IModel<String> getAdditionalLinkStyle() {
+                                return getItemPanelAdditionalStyle(item.getModelObject());
+                            }
+                        };
                 widget.add(new VisibleBehaviour(() -> isResponseVisible(item.getModelObject())));
                 item.add(widget);
             }
@@ -86,40 +109,6 @@ public class ResolveItemPanel extends ActionConfigurationPanel implements Popupa
         responsesPanel.setOutputMarkupId(true);
         responsesPanel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(responses)));
         add(responsesPanel);
-
-
-//        TextArea<String> comment = new TextArea<>(ID_COMMENT, Model.of(""));
-//        comment.setOutputMarkupId(true);
-//        comment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//        add(comment);
-//
-//        AjaxButton saveButton = new AjaxButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                if (selectedResponse == null) {
-//                    warn(getString("PageCertDecisions.message.noItemSelected"));
-//                    target.add(ResolveItemPanel.this);
-//                    return;
-//                }
-//                savePerformed(target, selectedResponse, getComment());
-//                getPageBase().hideMainPopup(target);
-//            }
-//        };
-//        add(saveButton);
-
-//        AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON, createStringResource("Button.cancel")) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                cancelPerformed(target);
-//            }
-//        };
-//        add(cancelButton);
-//
-
     }
 
     @Override

@@ -73,6 +73,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             "com.evolveum.midpoint.web.page.admin.roles",
             "com.evolveum.midpoint.web.page.admin.services",
             "com.evolveum.midpoint.web.page.admin.users",
+            "com.evolveum.midpoint.web.page.admin.server",
             "com.evolveum.midpoint.web.component.action"
     };
 

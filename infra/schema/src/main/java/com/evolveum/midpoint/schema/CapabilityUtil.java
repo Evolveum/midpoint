@@ -461,23 +461,39 @@ public class CapabilityUtil {
         return capabilities != null ? capabilities.asPrismContainerValue().size() : 0;
     }
 
+    public static <T extends CapabilityType> T getCapability(
+            @NotNull ResourceType resource, @NotNull Class<T> capabilityClass) {
+        return getCapability(resource, (CapabilityCollectionType) null, capabilityClass);
+    }
+
     /**
      * Gets a specific capability from resource/connectors/object-class.
      *
      * Notes:
      *
      * - Resource vs connector: The capability from specific connector is used only if it's enabled.
+     *
+     * TODO allow configured capabilities also for refined object classes
      */
     public static <T extends CapabilityType> T getCapability(
             @NotNull ResourceType resource,
             @Nullable ResourceObjectDefinition objectDefinition,
             @NotNull Class<T> capabilityClass) {
 
-        if (objectDefinition instanceof ResourceObjectTypeDefinition) {
-            // TODO allow configured capabilities also for refined object classes
-            T inType = ((ResourceObjectTypeDefinition) objectDefinition).getConfiguredCapability(capabilityClass);
-            if (inType != null) {
-                return inType;
+        var typeDefinition = objectDefinition != null ? objectDefinition.getTypeDefinition() : null;
+        var specificCapabilities = typeDefinition != null ? typeDefinition.getSpecificCapabilities() : null;
+        return getCapability(resource, specificCapabilities, capabilityClass);
+    }
+
+    public static <T extends CapabilityType> T getCapability(
+            @NotNull ResourceType resource,
+            @Nullable CapabilityCollectionType specificObjectTypeOrClassCapabilities,
+            @NotNull Class<T> capabilityClass) {
+
+        if (specificObjectTypeOrClassCapabilities != null) {
+            T inSpecific = CapabilityUtil.getCapability(specificObjectTypeOrClassCapabilities, capabilityClass);
+            if (inSpecific != null) {
+                return inSpecific;
             }
         }
 

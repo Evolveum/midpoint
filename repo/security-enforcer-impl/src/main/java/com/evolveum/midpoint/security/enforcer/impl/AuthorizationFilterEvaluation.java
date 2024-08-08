@@ -76,7 +76,7 @@ class AuthorizationFilterEvaluation<T> extends AuthorizationEvaluation {
 
         String selectorDesc = TracingUtil.getHumanReadableDesc(selector);
         SelectorWithItems baseSelector =
-                SelectorWithItems.of(selector, authorization.getItems(), authorization.getExceptItems(), selectorDesc);
+                SelectorWithItems.of(selector, authorization.getItems(), authorization.getExceptItems(), selectorDesc, authorization.isExceptMetadata());
         SelectorWithItems adjustedSelector = baseSelector.adjustToSubObjectFilter(filterType);
         if (adjustedSelector == null) {
             traceAutzProcessingNote("No adjustment for selector exists (to %s): %s",

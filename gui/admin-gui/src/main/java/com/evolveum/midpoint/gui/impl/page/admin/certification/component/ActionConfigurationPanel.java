@@ -309,7 +309,7 @@ public class ActionConfigurationPanel extends BasePanel<ContainerPanelConfigurat
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("pageUsers.message.configureActionPopupTitle");
+        return createStringResource("ActionConfigurationPanel.title");
     }
 
 }

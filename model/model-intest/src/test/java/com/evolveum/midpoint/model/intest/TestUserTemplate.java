@@ -956,8 +956,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         List<? extends PrismValue> oldValues = (List<? extends PrismValue>) badLuckDelta.getEstimatedOldValues();
         assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
         ItemFactory factory = prismContext.itemFactory();
+
         PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues",
-                oldValues, factory.createPropertyValue(123L), factory.createPropertyValue(456L));
+                oldValues.stream().map(p -> p.getRealValue()).toList(), 123L, 456L);
     }
 
     @Test

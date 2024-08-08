@@ -155,8 +155,8 @@ public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpa
 
     @Override
     public boolean isAccountNonLocked() {
-        // TODO
-        return true;
+        ActivationType activation = focus.getActivation();
+        return activation == null || activation.getLockoutStatus() != LockoutStatusType.LOCKED;
     }
 
     @Override

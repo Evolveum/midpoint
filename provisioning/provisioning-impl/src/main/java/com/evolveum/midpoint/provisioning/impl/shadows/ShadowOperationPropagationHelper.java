@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperat
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +23,6 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
@@ -85,6 +86,7 @@ class ShadowOperationPropagationHelper {
         RepoShadow repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
         ObjectDelta<ShadowType> aggregateDelta = computeAggregatedDelta(ctx, sortedOperations);
 
+        ctx.setOperationContext(new ProvisioningOperationContext()); // TODO are we able to set something meaningful there?
         LOGGER.trace("Merged operation for {}:\n{} ", repoShadow, aggregateDelta.debugDumpLazily(1));
 
         if (aggregateDelta.isAdd()) {

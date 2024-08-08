@@ -338,7 +338,12 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
             // Object is not in repo. Let us provide any IDs that are not used among assignments yet.
             var max = allElements.stream()
                     .filter(element -> !element.isVirtual())
-                    .map(element -> element.getBuiltInAssignmentId())
+                    .map(element -> {
+                        if (element.getBuiltInAssignmentId() == null) {
+                            return assignmentIdStore.getKnownExternalId(element.getAssignment());
+                        }
+                        return element.getBuiltInAssignmentId();
+                    })
                     .filter(Objects::nonNull)
                     .mapToLong(Long::longValue)
                     .max()

@@ -54,5 +54,6 @@ public interface PrismEntityOpConstraints extends DebugDumpable {
          * See {@link CompileConstraintsOptions#skipSubObjectSelectors}.
          */
         @NotNull PrismEntityOpConstraints.ForValueContent getValueConstraints(@NotNull ItemPath nameOnlyPath);
+        @NotNull PrismEntityOpConstraints.ForItemContent getMetadataConstraints();
     }
 }

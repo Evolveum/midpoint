@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2023 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="022a6a2d-b66a-44b6-9b27-6c9f0bf058c8">
+    <name>group</name>
+    <inducement>
+        <identifier>create-entitlement</identifier>
+        <construction>
+            <resourceRef oid="11adacf4-6e5a-4775-931b-8af8cd4843f7"/> <!-- AD -->
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+    </inducement>
+    <inducement>
+        <identifier>create-group-membership</identifier>
+        <construction>
+            <resourceRef oid="11adacf4-6e5a-4775-931b-8af8cd4843f7"/> <!-- AD -->
+        </construction>
+        <order>2</order>
+    </inducement>
+</archetype>

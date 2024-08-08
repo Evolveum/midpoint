@@ -1478,9 +1478,13 @@
                     <xsd:documentation>
                         What response types are available to reviewers? Empty list means all responses.
                         TODO should we configure also names of the responses? (probably no)
+
+                        DEPRECATED configure actions in the cert. items collection view instead.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AccessCertificationConfigurationType.availableResponse</a:displayName>
+                        <a:deprecatedSince>4.9</a:deprecatedSince>
+                        <a:deprecated/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1500,9 +1504,9 @@
             <xsd:element name="enableCertItemsCollectionView" minOccurs="0" type="xsd:boolean" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines if the certification items collection view can be reached directly through
-                        navigation menu. If not, the certification items collection view can be reached only
-                        through the active campaigns panel.
+                        Defines if the certification items collection view can be reached directly from the main menu.
+                        If not defined (or set to false), the certification items collection view can be reached only
+                        from the active campaigns panel.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

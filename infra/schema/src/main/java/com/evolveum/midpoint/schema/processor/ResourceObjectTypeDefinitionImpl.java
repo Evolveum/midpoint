@@ -6,26 +6,30 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
-import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
-import com.evolveum.midpoint.schema.util.AbstractShadow;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.DeepCloneOperation;
+import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.SmartVisitation;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schemaContext.SchemaContextDefinition;
 import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ObjectSynchronizationReactionDefinition;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 /**
@@ -380,7 +384,12 @@ public final class ResourceObjectTypeDefinitionImpl
 
     @Override
     public <T extends CapabilityType> @Nullable T getConfiguredCapability(Class<T> capabilityClass) {
-        return CapabilityUtil.getCapability(definitionBean.getConfiguredCapabilities(), capabilityClass);
+        return CapabilityUtil.getCapability(getSpecificCapabilities(), capabilityClass);
+    }
+
+    @Override
+    public @Nullable CapabilityCollectionType getSpecificCapabilities() {
+        return definitionBean.getConfiguredCapabilities();
     }
 
     @Override

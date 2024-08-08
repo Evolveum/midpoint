@@ -10,6 +10,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     @Serial private static final long serialVersionUID = 1L;
 
     @NotNull private final AuthorizationType authorizationBean;
+    private final boolean exceptMetadata;
     private String sourceDescription;
 
     @NotNull private final PathSet items;
@@ -46,6 +48,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
         this.authorizationBean = authorizationBean;
         items = parseItems(this.authorizationBean.getItem());
         exceptItems = parseItems(this.authorizationBean.getExceptItem());
+        exceptMetadata = Optional.ofNullable(authorizationBean.getExceptMetadata()).orElse(false);
     }
 
     public static Authorization create(@NotNull AuthorizationType authorizationBean, String sourceDescription) {
@@ -233,6 +236,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
     @Override
     public String toString() {
         return "Authorization(" + authorizationBean.getAction() + ")";
+    }
+
+    public boolean isExceptMetadata() {
+        return exceptMetadata;
     }
 
     @Override

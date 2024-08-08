@@ -7966,6 +7966,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="exceptMetadata" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If true metadata access will not be allowed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: more elements will be added in the future: condition, parameters -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
