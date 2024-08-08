@@ -25,10 +25,7 @@
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${midpoint.home}/log/midpoint-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-            <maxHistory>10</maxHistory>
-            <totalSizeCap>1GB</totalSizeCap>
-            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            <maxFileSize>1GB</maxFileSize> <!-- hopefully overridden by the system configuration -->
         </rollingPolicy>
     </appender>
 
@@ -44,10 +41,7 @@
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${midpoint.home}/log/midpoint-profile-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-            <maxHistory>10</maxHistory>
-            <totalSizeCap>1GB</totalSizeCap>
-            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            <maxFileSize>1GB</maxFileSize> <!-- hopefully overridden by the system configuration -->
         </rollingPolicy>
     </appender>
     <!-- Appender for profiling purposes -->

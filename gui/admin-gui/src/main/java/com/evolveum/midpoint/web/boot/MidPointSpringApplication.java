@@ -11,6 +11,8 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.apache.catalina.Context;
 import org.apache.catalina.Manager;
 import org.apache.catalina.Valve;
@@ -108,6 +110,8 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
         System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
         String mode = args != null && args.length > 0 ? args[0] : null;
+
+        InternalsConfig.shadowCachingOnByDefault = true; // FIXME temporary; implement more seriously before 4.9 release
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
