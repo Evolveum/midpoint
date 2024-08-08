@@ -170,7 +170,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
             @Override
             protected void resetTable(AjaxRequestTarget target) {
-                getModelObject().recomputeChunks(getPageBase());
+                getModelObject().recomputeChunks(RoleAnalysisTable.this.getSelectedPatterns(), getPageBase());
                 RoleAnalysisTable.this.refreshTable(target);
             }
 
@@ -512,7 +512,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
     protected void resetTable(AjaxRequestTarget target) {
         //getModel().reset(); //TODO
-        getModelObject().recomputeChunks(getPageBase());
+        getModelObject().recomputeChunks(getSelectedPatterns(), getPageBase());
         refreshTable(target);
     }
 
