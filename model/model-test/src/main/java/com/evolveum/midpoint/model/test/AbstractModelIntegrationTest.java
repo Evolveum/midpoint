@@ -68,6 +68,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.FilterInvocation;
+import org.springframework.security.web.SecurityFilterChain;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
@@ -4787,6 +4788,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @Override
             public List<AuthenticationProvider> getAuthenticationProviders() {
                 //TODO
+                return null;
+            }
+
+            @Override
+            public SecurityFilterChain getSecurityFilterChain() {
                 return null;
             }
         };
