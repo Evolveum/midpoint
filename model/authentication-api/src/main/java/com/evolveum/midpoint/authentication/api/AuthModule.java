@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.api;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.List;
 
@@ -33,5 +34,7 @@ public interface AuthModule<MA extends ModuleAuthentication> {
     Integer getOrder();
 
     List<AuthenticationProvider> getAuthenticationProviders();
+
+    SecurityFilterChain getSecurityFilterChain();
 
 }
