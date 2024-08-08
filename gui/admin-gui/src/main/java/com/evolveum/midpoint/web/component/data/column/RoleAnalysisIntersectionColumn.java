@@ -87,17 +87,13 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                 setRelationSelected(true);
             }
 
-            boolean mark = false;
-            Set<String> markMemberObjects = getMarkMemberObjects();
-            Set<String> markPropertyObjects = getMarkPropertyObjects();
-            if (markMemberObjects != null && markMemberObjects.containsAll(baseMiningChunk.getMembers())) {
-                mark = true;
-            } else if (markPropertyObjects != null && markPropertyObjects.containsAll(baseMiningChunk.getProperties())) {
-                mark = true;
-            }
+            RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
+            if (roleAnalysis.isOutlierDetection()) {
+                if (RoleAnalysisOperationMode.INCLUDE == baseMiningChunk.getObjectStatus().getRoleAnalysisOperationMode()
+                        && RoleAnalysisOperationMode.NEGATIVE_EXCLUDE == rowChunk.getObjectStatus().getRoleAnalysisOperationMode()) {
+                    cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
+                }
 
-            if (!isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_NONE) && mark) {
-                cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
             }
 
             RoleAnalysisChunkAction chunkAction = getChunkAction();
@@ -233,12 +229,6 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             }
         });
     }
-
-    private Set<String> getMarkMemberObjects() {
-        return getModel().getObject().getMarkedUsers();
-    }
-
-    protected abstract Set<String> getMarkPropertyObjects();
 
     protected abstract void loadDetectedPattern(AjaxRequestTarget target);
 

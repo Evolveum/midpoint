@@ -189,10 +189,10 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
             column = new RoleAnalysisIntersectionColumn<>(colChunk, getModel(), getPageBase()) {
 
-                @Override
-                protected Set<String> getMarkPropertyObjects() {
-                    return RoleAnalysisTable.this.getMarkPropertyObjects();
-                }
+//                @Override
+//                protected Set<String> getMarkPropertyObjects() {
+//                    return RoleAnalysisTable.this.getMarkPropertyObjects();
+//                }
 
 
                 @Override
@@ -591,9 +591,9 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
         return null;
     }
 
-    protected Set<String> getMarkPropertyObjects(){
-        return null;
-    }
+//    protected Set<String> getMarkPropertyObjects(){
+//        return null;
+//    }
 
     protected void loadDetectedPattern(AjaxRequestTarget target) {
     }

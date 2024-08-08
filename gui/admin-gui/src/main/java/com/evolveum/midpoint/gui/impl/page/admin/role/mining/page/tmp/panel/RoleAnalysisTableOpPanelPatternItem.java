@@ -98,7 +98,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
             @Override
             public void onConfigure(Component component) {
                 super.onConfigure(component);
-                icon.add(AttributeAppender.replace("class", replaceIconCssClass()));
+//                icon.add(AttributeAppender.replace("class", replaceIconCssClass()));
                 icon.add(AttributeAppender.replace("style", replaceIconCssStyle()));
             }
         });
@@ -108,12 +108,6 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
 
         WebMarkupContainer descriptionPanel = new WebMarkupContainer(ID_DESCRIPTION_PANEL);
         descriptionPanel.setOutputMarkupId(true);
-//        descriptionPanel.add(new VisibleEnableBehaviour() {
-//            @Override
-//            public boolean isVisible() {
-//                return getModelObject().isPanelExpanded();
-//            }
-//        });
         container.add(descriptionPanel);
 
         Component descriptionTitle = getDescriptionTitleComponent(ID_DESCRIPTION_TITLE);
@@ -128,9 +122,12 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
 
     public Component generateIconComponent(String idIcon) {
 
-        String iconClass = getModelObject().getPatternType() == BasePattern.PatternType.CANDIDATE
-                ? GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON
-                : GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
+        String iconClass = GuiStyleConstants.CLASS_GROUP_ICON; //TODO default?
+        switch (getModelObject().getPatternType()) {
+            case CANDIDATE -> iconClass = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON;
+            case PATTERN -> iconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
+            case OUTLIER -> iconClass = GuiStyleConstants.CLASS_ICON_OUTLIER;
+        }
         return new CompositedIconTextPanel(idIcon,
                 "fa-2x " + iconClass + " text-dark",
                 0 + 1 + "", //TODO number of pattern
@@ -144,27 +141,45 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
 
     protected void addDescriptionComponents() {
         DetectedPattern pattern = getModelObject();
-        if (pattern.getPatternType() == BasePattern.PatternType.CANDIDATE) {
-            Set<String> users = pattern.getUsers();
-            Set<String> roles = pattern.getRoles();
-            if (users != null && !users.isEmpty() && roles != null && !roles.isEmpty()) {
-                appendIcon(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED, null);
-                appendText(" " + pattern.getUsers().size(), null);
-                appendText("users - ", null);
-                appendIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, null);
-                appendText(" " + pattern.getRoles().size(), null);
-                appendText(" roles", null);
-            }
-        } else {
-            String formattedReductionFactorConfidence = String.format("%.0f", pattern.getMetric());
-            String formattedItemConfidence = String.format("%.1f", pattern.getItemsConfidence());
-            appendIcon("fe fe-assignment", "color: red;");
-            appendText(" " + formattedReductionFactorConfidence, null);
-            appendText("relations - ", null);
-            appendIcon("fa fa-leaf", "color: green");
-            appendText(" " + formattedItemConfidence + "% ", null);
-            appendText(" confidence", null);
+        switch (pattern.getPatternType()) {
+            case CANDIDATE -> appendCandidateRolePanel(pattern);
+            case OUTLIER -> appendOutlierPanel(pattern);
+            default -> appendRoleSuggestionPanel(pattern);
         }
+    }
+
+    private void appendCandidateRolePanel(DetectedPattern pattern) {
+        Set<String> users = pattern.getUsers();
+        Set<String> roles = pattern.getRoles();
+        if (users != null && !users.isEmpty() && roles != null && !roles.isEmpty()) {
+            appendIcon(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED, null);
+            appendText(" " + pattern.getUsers().size(), null);
+            appendText("users - ", null);
+            appendIcon(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED, null);
+            appendText(" " + pattern.getRoles().size(), null);
+            appendText(" roles", null);
+        }
+    }
+
+    private void appendRoleSuggestionPanel(DetectedPattern pattern) {
+        String formattedReductionFactorConfidence = String.format("%.0f", pattern.getMetric());
+        String formattedItemConfidence = String.format("%.1f", pattern.getItemsConfidence());
+        appendIcon("fe fe-assignment", "color: red;");
+        appendText(" " + formattedReductionFactorConfidence, null);
+        appendText("relations - ", null);
+        appendIcon("fa fa-leaf", "color: green");
+        appendText(" " + formattedItemConfidence + "% ", null);
+        appendText(" confidence", null);
+    }
+
+    private void appendOutlierPanel(DetectedPattern pattern) {
+        String overallConfidence = String.format("%.0f", pattern.getMetric());
+        appendIcon("fa fa-exclamation-circle", "color: red;");
+        appendText(" " + overallConfidence, null);
+        appendText("confidence ", null);
+//        appendIcon("fa fa-leaf", "color: green");
+//        appendText(" " + formattedItemConfidence + "% ", null);
+//        appendText(" confidence", null);
     }
 
     public String appendIconPanelCssClass() {
@@ -177,17 +192,12 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
             case CANDIDATE -> "background-color: #E2EEF5;";
             case OUTLIER -> "background-color: #F8D7DA;";
         };
-//        if (getModelObject().) {
-//            return "background-color: #DFF2E3;";
-//        } else {
-//            return "background-color: #E2EEF5;";
-//        }
-//        return null;
     }
 
-    public String replaceIconCssClass() {
-        return "fa-2x fa fa-hashtag";
-    }
+    //TODO collapse/expand icon
+//    public String replaceIconCssClass() {
+//        return "fa-2x fa fa-hashtag";
+//    }
 
     public String replaceIconCssStyle() {
         return null;
@@ -199,10 +209,18 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
             protected @NotNull String load() {
                 DetectedPattern pattern = getModelObject();
                 String identifier = pattern.getIdentifier();
-                if (pattern.getPatternType() == BasePattern.PatternType.CANDIDATE) {
-                    return "Candidate role " + (identifier); //TODO localization
+                switch (pattern.getPatternType()) {
+                    case PATTERN -> {
+                        return "Role suggestion #" + (identifier + 1);
+                    }
+                    case CANDIDATE -> {
+                        return "Candidate role " + (identifier);
+                    }
+                    case OUTLIER -> {
+                        return "Outlier pattern #" + (identifier + 1);
+                    }
                 }
-                return "Role suggestion #" + (identifier + 1);
+                return "pattern type not found";
             }
         };
 

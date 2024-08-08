@@ -114,6 +114,9 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     private IModel<List<DetectedPattern>> createPatternsModel() {
         return () -> {
+            if (getModelObject().isOutlierView()) {
+                return getModelObject().getOutlierPatterns();
+            }
             if (getModelObject().isCandidateRoleView()) {
                 return getModelObject().getCandidatesRoles();
             } else {
@@ -150,14 +153,6 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                         return "width: 27px; height: 27px;";
                     }
 
-                    @Contract(pure = true)
-                    @Override
-                    public @Nullable String replaceIconCssClass() {
-                        return null;
-                    }
-
-        @Serial
-                    private static final long serialVersionUID = 1L;
                 };
                 listItem.add(bodyItem);
             }
@@ -302,8 +297,11 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     private void handleCandidateRoleViewClick(
             @NotNull AjaxRequestTarget ajaxRequestTarget) {
         OperationPanelModel modelObject = getModelObject();
-        modelObject.clearSelectedPatterns();
+        if (modelObject.isOutlierView()) {
+            return;
+        }
         boolean candidateRoleView = modelObject.isCandidateRoleView();
+        modelObject.clearSelectedPatterns();
         modelObject.setCandidateRoleView(!candidateRoleView);
         ajaxRequestTarget.add(RoleAnalysisTableOpPanelItemPanel.this);
     }
@@ -324,6 +322,9 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     private @NotNull String getCandidateRoleViewIconCssClass() {
         OperationPanelModel modelObject = RoleAnalysisTableOpPanelItemPanel.this.getModelObject();
+        if (modelObject.isOutlierView()) {
+            return "fa-2x fa fa-user-circle text-danger";
+        }
         return modelObject.isCandidateRoleView() ? "fa-2x fe fe-role text-secondary" : "fa-2x fa fa-cube text-dark";
     }
 

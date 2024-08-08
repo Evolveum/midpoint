@@ -14,6 +14,8 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRol
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -84,6 +86,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 OperationPanelModel model = new OperationPanelModel();
                 model.createDetectedPatternModel(getClusterPatterns());
                 model.createCandidatesRolesRoleModel(getClusterCandidateRoles());
+                model.createOutlierPatternModel(getOutlierPatterns());
                 model.setCandidateRoleView(!getCandidateRoleContainerId().isEmpty());
                 return model;
             }
@@ -113,6 +116,35 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     private List<DetectedPattern> getClusterCandidateRoles() {
         RoleAnalysisClusterType clusterType = getObjectWrapperObject().asObjectable();
         return loadAllCandidateRoles(clusterType);
+    }
+
+    private List<DetectedPattern> getOutlierPatterns() {
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+        RoleAnalysisClusterType cluster = getObjectWrapperObject().asObjectable();
+
+        List<DetectedPattern> outlierPatterns = new ArrayList<>();
+
+        Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS); //TODO task name?
+        OperationResult result = task.getResult();
+        List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(cluster, task, result);
+        for (RoleAnalysisOutlierType outlier : searchResultList) {
+
+            Set<String> roles = new HashSet<>();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
+            for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+                for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+                    roles.add(detectedAnomaly.getTargetObjectRef().getOid());
+//                    anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
+                }
+            }
+            Set<String> users = Collections.singleton(outlier.getTargetObjectRef().getOid());
+            DetectedPattern detectedPattern = new DetectedPattern(roles, users, outlier.getOverallConfidence(), null);
+            detectedPattern.setPatternType(BasePattern.PatternType.OUTLIER);
+            outlierPatterns.add(detectedPattern);
+        }
+        return outlierPatterns;
+
     }
 
     private @NotNull List<DetectedPattern> loadAllCandidateRoles(@NotNull RoleAnalysisClusterType cluster) {

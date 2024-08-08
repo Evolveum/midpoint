@@ -22,9 +22,12 @@ public class OperationPanelModel implements Serializable {
     private String patternIconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " fa-2x text-primary";
     private String candidateRoleIconClass = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " fa-2x text-success";
     private String bgIconClass;
-    private List<DetectedPattern> patterns = new ArrayList<>();
     private String selectedButtonColor = "#627383";
+
+    private List<DetectedPattern> patterns = new ArrayList<>();
     private List<DetectedPattern> candidatesRoles = new ArrayList<>();
+    private List<DetectedPattern> outlierPatterns = new ArrayList<>();
+
     private boolean isCompareMode = false;
     private boolean isCandidateRoleView = false;
 
@@ -47,6 +50,12 @@ public class OperationPanelModel implements Serializable {
         this.candidatesRoles = candidatesRoles;
         this.bgIconClass = "bg-light";
         this.allPatterns.addAll(candidatesRoles);
+    }
+
+    public void createOutlierPatternModel(List<DetectedPattern> outlierPatterns) {
+        this.outlierPatterns = outlierPatterns;
+        this.bgIconClass = "bg-danger";
+        this.allPatterns.addAll(outlierPatterns);
     }
 
     public String getBgIconClass() {
@@ -82,6 +91,14 @@ public class OperationPanelModel implements Serializable {
 
     public boolean isCandidateRoleView() {
         return isCandidateRoleView;
+    }
+
+    public boolean isOutlierView() {
+        return outlierPatterns != null;
+    }
+
+    public List<DetectedPattern> getOutlierPatterns() {
+        return outlierPatterns;
     }
 
     public void setCandidateRoleView(boolean candidateRoleView) {
