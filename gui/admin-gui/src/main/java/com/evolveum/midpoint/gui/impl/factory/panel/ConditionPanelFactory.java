@@ -41,7 +41,10 @@ public class ConditionPanelFactory extends ExpressionPanelFactory implements Ser
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return QNameUtil.match(ExpressionType.COMPLEX_TYPE, wrapper.getTypeName())
-                && wrapper.getItemName().getLocalPart().toLowerCase().contains(MappingType.F_CONDITION.getLocalPart());
+                && (wrapper.getItemName().getLocalPart().toLowerCase().contains(MappingType.F_CONDITION.getLocalPart())
+                || (wrapper.getParent() != null
+                    && wrapper.getParent().getParent() != null
+                    && wrapper.getParent().getParent().getItemName().getLocalPart().toLowerCase().contains(MappingType.F_CONDITION.getLocalPart())));
     }
 
     @Override
