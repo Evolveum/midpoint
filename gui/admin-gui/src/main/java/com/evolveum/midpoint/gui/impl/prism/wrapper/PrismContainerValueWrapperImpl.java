@@ -517,8 +517,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
     private void addVirtualContainers(List<PrismContainerWrapper<?>> containers) {
         if (this instanceof PrismContainerValueWrapper<?>) {
             addVirtualContainersFrom(this, containers);
-            return;
+            if (!containers.isEmpty() || this instanceof PrismObjectValueWrapper) {
+                return;
+            }
         }
+
         if (getParent() == null) {
             return;
         }
