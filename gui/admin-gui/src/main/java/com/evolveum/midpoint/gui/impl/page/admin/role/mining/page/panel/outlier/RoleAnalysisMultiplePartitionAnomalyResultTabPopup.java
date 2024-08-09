@@ -204,72 +204,6 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
             }
         });
 
-        DetectedAnomalyStatistics anomalyStatistics = getAnomalyModelStatistics();
-        RoleAnalysisPatternAnalysis patternAnalysis = anomalyStatistics.getPatternAnalysis();
-        RoleAnalysisDetectionPatternType topDetectedPattern = patternAnalysis.getTopDetectedPattern();
-
-        if (topDetectedPattern != null) {
-            tabs.add(new PanelTab(
-                    getPageBase().createStringResource("RoleAnalysisAnomalyResultTabPopup.tab.title.pattern"),
-                    new VisibleEnableBehaviour()) {
-
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                public WebMarkupContainer createPanel(String panelId) {
-                    DetectedPattern pattern = transformPatternWithAttributes(topDetectedPattern);
-
-                    return new RoleAnalysisWidgetsPanel(panelId, loadOutlierVsRoleMemberModel()) {
-                        @Override
-                        protected @NotNull Component getPanelComponent(String id1) {
-                            RoleAnalysisDetectedPatternDetails statisticsPanel = new RoleAnalysisDetectedPatternDetails(id1,
-                                    Model.of(pattern)) {
-
-                                @Contract(pure = true)
-                                @Override
-                                protected @NotNull String getCssClassForCardContainer() {
-                                    return "m-0 border-0";
-                                }
-
-                                @Override
-                                protected String getIconBoxContainerCssStyle() {
-                                    return "width:40px";
-                                }
-
-                                @Contract(pure = true)
-                                @Override
-                                protected @NotNull String getCssClassForHeaderItemsContainer() {
-                                    return "row pl-4 pr-4 pt-4";
-                                }
-
-                                @Contract(pure = true)
-                                @Override
-                                protected @NotNull String getCssClassForStatisticsPanelContainer() {
-                                    return "col-12 p-0 border-top";
-                                }
-
-                                @Contract(pure = true)
-                                @Override
-                                protected @NotNull String getCssClassForStatisticsPanel() {
-                                    return "col-12 p-0";
-                                }
-
-                                @Override
-                                protected String getInfoBoxClass() {
-                                    return super.getInfoBoxClass();
-                                }
-                            };
-                            statisticsPanel.setOutputMarkupId(true);
-                            statisticsPanel.add(
-                                    AttributeAppender.append("class", "bg-white rounded elevation-1"));
-
-                            return statisticsPanel;
-                        }
-                    };
-                }
-            });
-        }
-
         return tabs;
     }
 
@@ -521,43 +455,6 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
 
                     @Override
                     public Component createTitleComponent(String id) {
-                        return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.patterns"));
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        String localizedKey = "RoleAnalysisOutlierType.widget.patterns.description.single";
-                        if (patternAnalysis.getDetectedPatternCount() > 1) {
-                            localizedKey = "RoleAnalysisOutlierType.widget.patterns.description.multiple";
-                        }
-                        return new Label(id, createStringResource(localizedKey, patternAnalysis.getTotalRelations()));
-                    }
-
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Double confidence = patternAnalysis.getConfidence();
-                        String title = createStringResource("RoleAnalysisOutlierType.widget.patterns.confidence")
-                                .getString();
-                        return getDensityProgressPanel(id, confidence, title);
-                    }
-
-                    @Override
-                    protected String replaceValueCssClass() {
-                        return "pt-3 pb-1";
-                    }
-
-                    @Override
-                    public Component createFooterComponent(String id) {
-                        return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.patterns.footer",
-                                patternAnalysis.getDetectedPatternCount()));
-                    }
-                },
-
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("")) {
-
-                    @Override
-                    public Component createTitleComponent(String id) {
                         return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.attribute"));
                     }
 
@@ -695,77 +592,8 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
                         return "pt-3 pb-1 mt-4";
                     }
 
-                },
-
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("")) {
-
-                    @Override
-                    public Component createTitleComponent(String id) {
-                        return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.anomaly.cluster.coverage"));
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        String localizedKey = "RoleAnalysisOutlierType.widget.anomaly.cluster.coverage.description";
-                        return new Label(id, createStringResource(localizedKey));
-                    }
-
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Double memberCoverageConfidence = anomalyModelStatistics.getOutlierCoverageConfidence();
-                        if (memberCoverageConfidence == null) {
-                            memberCoverageConfidence = 0.0;
-                        }
-                        BigDecimal bd = new BigDecimal(memberCoverageConfidence);
-                        bd = bd.setScale(2, RoundingMode.HALF_UP);
-                        double pointsDensity = bd.doubleValue();
-                        String title = createStringResource("RoleAnalysisOutlierType.widget.anomaly.cluster.coverage.confidence")
-                                .getString();
-                        return getDensityProgressPanel(id, pointsDensity, title);
-                    }
-
-                    @Override
-                    protected String replaceValueCssClass() {
-                        return "pt-3 pb-1 mt-4";
-                    }
-
-                },
-
-                new WidgetItemModel(createStringResource(""),
-                        Model.of("")) {
-
-                    @Override
-                    public Component createTitleComponent(String id) {
-                        return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.deviation"));
-                    }
-
-                    @Override
-                    public Component createDescriptionComponent(String id) {
-                        String localizedKey = "RoleAnalysisOutlierType.widget.deviation.description";
-                        return new Label(id, createStringResource(localizedKey));
-                    }
-
-                    @Override
-                    public Component createValueComponent(String id) {
-                        Double confidenceDeviation = anomalyModelStatistics.getConfidenceDeviation();
-                        if (confidenceDeviation == null) {
-                            confidenceDeviation = 0.0;
-                        }
-                        BigDecimal bd = new BigDecimal(confidenceDeviation);
-                        bd = bd.setScale(2, RoundingMode.HALF_UP);
-                        double pointsDensity = bd.doubleValue();
-                        String title = createStringResource("RoleAnalysisOutlierType.widget.deviation.confidence")
-                                .getString();
-                        return getDensityProgressPanel(id, pointsDensity, title);
-                    }
-
-                    @Override
-                    protected String replaceValueCssClass() {
-                        return "pt-3 pb-1 ";
-                    }
-
                 }
+
 
         );
 
