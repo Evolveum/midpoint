@@ -16,6 +16,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.OutlierPartitionPage;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 import org.apache.wicket.Component;
@@ -29,6 +30,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -282,7 +284,12 @@ public class RoleAnalysisOutlierPartitionTable extends BasePanel<String> {
 
                         @Override
                         protected void onSubmit(AjaxRequestTarget target) {
-                            //TODO
+                            RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
+                            RoleAnalysisOutlierPartitionType partitionType = rowModel.getObject();
+                            PageParameters parameters = new PageParameters();
+                            parameters.add(OutlierPartitionPage.PARAM_OUTLIER_OID, outlier.getOid());
+                            parameters.add(OutlierPartitionPage.PARAM_SESSION_OID, partitionType.getTargetSessionRef().getOid());
+                            getPageBase().navigateToNext(OutlierPartitionPage.class, parameters);
                         }
 
                         @Override

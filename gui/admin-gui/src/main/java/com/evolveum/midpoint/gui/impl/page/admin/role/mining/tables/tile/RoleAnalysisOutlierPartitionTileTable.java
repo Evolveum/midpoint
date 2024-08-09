@@ -10,6 +10,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -45,10 +48,6 @@ import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
     private static final String ID_DATATABLE = "datatable";
@@ -91,7 +90,7 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
     public TileTablePanel<RoleAnalysisOutlierPartitionTileModel<RoleAnalysisOutlierPartitionType>, RoleAnalysisOutlierPartitionType> initTable() {
 
         RoleMiningProvider<RoleAnalysisOutlierPartitionType> provider = new RoleMiningProvider<>(
-                this, new ListModel<>(getOutlierModel().getObject().getOutlierPartitions()) {
+                this, new ListModel<>(getOutlierPartitionsToDisplay()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
@@ -287,7 +286,32 @@ public class RoleAnalysisOutlierPartitionTileTable extends BasePanel<String> {
 
     }
 
+    protected String getAnomalyOid() {
+        return null;
+    }
+
+    private List<RoleAnalysisOutlierPartitionType> getOutlierPartitionsToDisplay() {
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = getOutlierModel().getObject().getOutlierPartitions();
+
+        String anomalyOid = getAnomalyOid();
+        if (anomalyOid == null) {
+            return outlierPartitions;
+        }
+
+        return outlierPartitions.stream()
+                .filter(outlierPartition -> outlierPartition.getDetectedAnomalyResult().stream()
+                        .anyMatch(detectedAnomaly -> detectedAnomaly.getTargetObjectRef().getOid().equals(anomalyOid)))
+                .collect(Collectors.toList());
+    }
+
     public IModel<RoleAnalysisOutlierType> getOutlierModel() {
         return outlierModel;
     }
+
+    @Override
+    protected void onDetach() {
+        super.onDetach();
+    }
+
+
 }

@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierPartitionTileTable;
@@ -30,7 +32,9 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
+import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @PanelType(name = "outlierPartitions")
 @PanelInstance(
@@ -46,6 +50,7 @@ public class OutlierPartitionPanel extends AbstractObjectMainPanel<RoleAnalysisO
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
+    public static final String PARAM_ANOMALY_OID = "anomaly";
 
     public OutlierPartitionPanel(String id, ObjectDetailsModels<RoleAnalysisOutlierType> model,
             ContainerPanelConfigurationType config) {
@@ -77,7 +82,21 @@ public class OutlierPartitionPanel extends AbstractObjectMainPanel<RoleAnalysisO
             protected void onRefresh(AjaxRequestTarget target) {
                 performOnRefresh();
             }
+
+            @Override
+            protected String getAnomalyOid() {
+                return getAnomalyParamOid();
+            }
         };
+    }
+
+    @Nullable
+    public String getAnomalyParamOid() {
+        StringValue stringValue = getPageBase().getPageParameters().get(PARAM_ANOMALY_OID);
+        if (!stringValue.isNull()) {
+            return stringValue.toString();
+        }
+        return null;
     }
 
     private void performOnRefresh() {

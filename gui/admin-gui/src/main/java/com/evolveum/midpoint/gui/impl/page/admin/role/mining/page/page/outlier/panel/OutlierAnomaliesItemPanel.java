@@ -11,7 +11,12 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.o
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DetectedAnomalyResult;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -131,20 +136,22 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
         return outlierModel;
     }
 
-    private @NotNull IModel<List<DetailsTableItem>> loadDetailsModel() {
+    private @NotNull IModel<List<WidgetItemModel>> loadDetailsModel() {
+        RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
+        List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
 
-        List<DetailsTableItem> detailsModel = List.of(
-                new DetailsTableItem(createStringResource(""),
+        List<WidgetItemModel> detailsModel = List.of(
+                new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+                        Label label = new Label(id, detectedAnomalyResult.size());
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
+                    public Component createDescriptionComponent(String id) {
                         return new LabelWithHelpPanel(id, createStringResource("RoleAnalysisOutlierType.anomalyCount")) {
                             @Override
                             protected IModel<String> getHelpModel() {
@@ -154,17 +161,25 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
                     }
                 },
 
-                new DetailsTableItem(createStringResource(""),
+                new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+                        Double anomalyObjectsConfidence = partition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+                        if (anomalyObjectsConfidence == null) {
+                            anomalyObjectsConfidence = 0.0;
+                        }
+                        BigDecimal bd = new BigDecimal(anomalyObjectsConfidence);
+                        bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+                        double confidence = bd.doubleValue();
+
+                        Label label = new Label(id, confidence + "%");
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
+                    public Component createDescriptionComponent(String id) {
                         return new LabelWithHelpPanel(id,
                                 createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence")) {
                             @Override
@@ -175,7 +190,7 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
                     }
                 },
 
-                new DetailsTableItem(createStringResource(""),
+                new WidgetItemModel(createStringResource(""),
                         Model.of("Sort")) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -185,8 +200,8 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                    public Component createDescriptionComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("Pending cert.")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
@@ -195,7 +210,7 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
                     }
                 },
 
-                new DetailsTableItem(createStringResource(""),
+                new WidgetItemModel(createStringResource(""),
                         Model.of("Chart")) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -205,8 +220,8 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                    public Component createDescriptionComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("Closed cert.")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");

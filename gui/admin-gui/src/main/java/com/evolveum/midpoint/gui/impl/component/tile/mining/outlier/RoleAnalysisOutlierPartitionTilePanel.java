@@ -301,7 +301,26 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
             @Override
             protected @NotNull Component getValueComponent(String id) {
-                Label label = new Label(id, "TODO (0.00%)");
+                AttributeAnalysis attributeAnalysis = partition.getPartitionAnalysis().getAttributeAnalysis();
+                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
+                List<RoleAnalysisAttributeAnalysis> attributeAnalysisCluster = userAttributeAnalysisResult.getAttributeAnalysis();
+
+                double totalDensity = 0.0;
+                int totalCount = 0;
+                if (attributeAnalysisCluster != null) {
+                    totalDensity += calculateDensity(attributeAnalysisCluster);
+                    totalCount += attributeAnalysisCluster.size();
+                }
+
+                int itemCount = (attributeAnalysisCluster != null ? attributeAnalysisCluster.size() : 0);
+
+                double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
+
+                BigDecimal bd = new BigDecimal(itemsConfidence);
+                bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+                itemsConfidence = bd.doubleValue();
+
+                Label label = new Label(id, itemsConfidence + "%");
                 label.setOutputMarkupId(true);
                 label.add(AttributeAppender.append("class", "font-weight-bold"));
                 return label;
@@ -309,32 +328,6 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         };
         attributeAnalysisPanel.setOutputMarkupId(true);
         items.add(attributeAnalysisPanel);
-
-        MetricValuePanel accessPanel = new MetricValuePanel(items.newChildId()) {
-
-            @Override
-            protected @NotNull Component getTitleComponent(String id) {
-                LabelWithHelpPanel label = new LabelWithHelpPanel(id,
-                        createStringResource("RoleAnalysisOutlierPartitionTilePanel.accessAnalysis")) {
-                    @Override
-                    protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisOutlierPartitionTilePanel.attributeAnalysis.help");
-                    }
-                };
-                label.setOutputMarkupId(true);
-                return label;
-            }
-
-            @Override
-            protected @NotNull Component getValueComponent(String id) {
-                Label label = new Label(id, " (0/0/0)");
-                label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "font-weight-bold"));
-                return label;
-            }
-        };
-        accessPanel.setOutputMarkupId(true);
-        items.add(accessPanel);
 
     }
 
@@ -466,4 +459,14 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         add(confidencePanel);
     }
 
+    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
+        double totalDensity = 0.0;
+        for (RoleAnalysisAttributeAnalysis attributeAnalysis : attributeAnalysisList) {
+            Double density = attributeAnalysis.getDensity();
+            if (density != null) {
+                totalDensity += density;
+            }
+        }
+        return totalDensity;
+    }
 }

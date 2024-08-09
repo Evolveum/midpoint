@@ -7,14 +7,19 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModelMain;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierPartitionPanel.PARAM_ANOMALY_OID;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisOutlier;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.OutlierPartitionPage;
 import com.evolveum.midpoint.gui.impl.util.AccessMetadataUtil;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -26,6 +31,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,6 +72,13 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             @NotNull ObjectDetailsModels<RoleAnalysisOutlierType> model,
             @NotNull ContainerPanelConfigurationType config) {
         super(id, model, config);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        //TODO tbd
+        getPageBase().getPageParameters().remove(PARAM_ANOMALY_OID);
     }
 
     protected void initLayout() {
@@ -110,7 +123,13 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected void onLinkClick(AjaxRequestTarget target) {
-                super.onLinkClick(target);
+                RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, outlier.getOid());
+                parameters.add("panelId", "anomalyAccess");
+                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                        .getObjectDetailsPage(RoleAnalysisOutlierType.class);
+                ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);
             }
 
             @Override
@@ -144,7 +163,13 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected void onLinkClick(AjaxRequestTarget target) {
-                super.onLinkClick(target);
+                RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
+                PageParameters parameters = new PageParameters();
+                parameters.add(OnePageParameterEncoder.PARAMETER, outlier.getOid());
+                parameters.add("panelId", "outlierPartitions");
+                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
+                        .getObjectDetailsPage(RoleAnalysisOutlierType.class);
+                ((PageBase) getPage()).navigateToNext(detailsPageClass, parameters);
             }
 
             @Override

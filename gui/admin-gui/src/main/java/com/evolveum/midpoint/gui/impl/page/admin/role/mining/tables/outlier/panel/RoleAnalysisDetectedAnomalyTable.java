@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.pan
 import java.io.Serial;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisMultiplePartitionAnomalyResultTabPopup;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.Component;
@@ -31,7 +33,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisAnomalyResultTabPopup;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisSinglePartitionAnomalyResultTabPopup;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -366,31 +368,65 @@ public class RoleAnalysisDetectedAnomalyTable extends BasePanel<String> {
                 return new ColumnMenuAction<SelectableBean<RoleType>>() {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        RoleAnalysisAnomalyResultTabPopup detailsPanel = new RoleAnalysisAnomalyResultTabPopup(((PageBase) getPage()).getMainPopupBodyId(),
-                                new LoadableDetachableModel<>() {
-                                    @Override
-                                    protected RoleAnalysisOutlierPartitionType load() {
-                                        return getPartitionSingleModelObject();
+                        if (category.equals(AnomalyTableCategory.OUTLIER_OVERVIEW)) {
+                            RoleAnalysisMultiplePartitionAnomalyResultTabPopup detailsPanel =
+                                    new RoleAnalysisMultiplePartitionAnomalyResultTabPopup(
+                                            ((PageBase) getPage()).getMainPopupBodyId(),
+                                    new LoadableDetachableModel<>() {
+                                        @Override
+                                        protected List<RoleAnalysisOutlierPartitionType> load() {
+                                            return getPartitionModelObject();
+                                        }
                                     }
-                                }
-                                ,
+                                    ,
 
-                                new LoadableDetachableModel<>() {
-                                    @Override
-                                    protected DetectedAnomalyResult load() {
-                                        //TODO
-                                        return getAnomalyResultMapModelObject().get(getRowModel().getObject().getValue().getOid()).get(0);
+                                    new LoadableDetachableModel<>() {
+                                        @Override
+                                        protected DetectedAnomalyResult load() {
+                                            //TODO
+                                            return getAnomalyResultMapModelObject()
+                                                    .get(getRowModel().getObject().getValue().getOid()).get(0);
+                                        }
+                                    },
+                                    new LoadableDetachableModel<>() {
+                                        @Override
+                                        protected RoleAnalysisOutlierType load() {
+                                            return getOutlierModelObject();
+                                        }
                                     }
-                                },
-                                new LoadableDetachableModel<>() {
-                                    @Override
-                                    protected RoleAnalysisOutlierType load() {
-                                        return getOutlierModelObject();
-                                    }
-                                }
 
-                        );
-                        ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                            );
+                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                        } else {
+                            RoleAnalysisSinglePartitionAnomalyResultTabPopup detailsPanel =
+                                    new RoleAnalysisSinglePartitionAnomalyResultTabPopup(
+                                            ((PageBase) getPage()).getMainPopupBodyId(),
+                                    new LoadableDetachableModel<>() {
+                                        @Override
+                                        protected RoleAnalysisOutlierPartitionType load() {
+                                            return getPartitionSingleModelObject();
+                                        }
+                                    }
+                                    ,
+
+                                    new LoadableDetachableModel<>() {
+                                        @Override
+                                        protected DetectedAnomalyResult load() {
+                                            //TODO
+                                            return getAnomalyResultMapModelObject()
+                                                    .get(getRowModel().getObject().getValue().getOid()).get(0);
+                                        }
+                                    },
+                                    new LoadableDetachableModel<>() {
+                                        @Override
+                                        protected RoleAnalysisOutlierType load() {
+                                            return getOutlierModelObject();
+                                        }
+                                    }
+
+                            );
+                            ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+                        }
                     }
                 };
             }

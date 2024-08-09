@@ -8,6 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -45,6 +48,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
         WebMarkupContainer headerItemsContainer = new WebMarkupContainer(ID_HEADER_ITEMS_CONTAINER);
         headerItemsContainer.setOutputMarkupId(true);
+        headerItemsContainer.add(new VisibleBehaviour(this::isWidgetsPanelVisible));
         headerItemsContainer.add(AttributeModifier.replace("class", getCssClassForHeaderItemsContainer()));
         container.add(headerItemsContainer);
 
@@ -62,6 +66,9 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         initStatisticsPanel(statisticsPanelContainer);
     }
 
+    protected boolean isWidgetsPanelVisible() {
+        return true;
+    }
     protected String getCssClassForHeaderItemsContainer() {
         return "row";
     }

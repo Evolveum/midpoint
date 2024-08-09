@@ -11,9 +11,12 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.o
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -133,7 +136,6 @@ public class OutlierAttributeItemPanel<T extends Serializable>
 
         Set<String> finalUserPathToMark = userPathToMark;
 
-
         return new RoleAnalysisWidgetsPanel(id, loadDetailsModel()) {
             @Override
             protected @NotNull Component getPanelComponent(String id1) {
@@ -170,21 +172,44 @@ public class OutlierAttributeItemPanel<T extends Serializable>
         return outlierModel;
     }
 
-    private @NotNull IModel<List<DetailsTableItem>> loadDetailsModel() {
+    private @NotNull IModel<List<WidgetItemModel>> loadDetailsModel() {
 
-        List<DetailsTableItem> detailsModel = List.of(
-                new DetailsTableItem(createStringResource(""),
+        RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+        AttributeAnalysis attributeAnalysis = partitionAnalysis.getAttributeAnalysis();
+        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResult clusterCompare = attributeAnalysis.getUserClusterCompare();
+
+        List<WidgetItemModel> detailsModel = List.of(
+                new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+                        List<RoleAnalysisAttributeAnalysis> attributeAnalysisCluster = userAttributeAnalysisResult.getAttributeAnalysis();
+
+                        double totalDensity = 0.0;
+                        int totalCount = 0;
+                        if (attributeAnalysisCluster != null) {
+                            totalDensity += calculateDensity(attributeAnalysisCluster);
+                            totalCount += attributeAnalysisCluster.size();
+                        }
+
+                        int itemCount = (attributeAnalysisCluster != null ? attributeAnalysisCluster.size() : 0);
+
+                        double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
+
+                        BigDecimal bd = new BigDecimal(itemsConfidence);
+                        bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+                        itemsConfidence = bd.doubleValue();
+
+                        Label label = new Label(id, itemsConfidence + "%");
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
-                        return new LabelWithHelpPanel(id, createStringResource("RoleAnalysisOutlierType.anomalyCount")) {
+                    public Component createDescriptionComponent(String id) {
+                        return new LabelWithHelpPanel(id, createStringResource("Cluster item confidence")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
@@ -193,19 +218,33 @@ public class OutlierAttributeItemPanel<T extends Serializable>
                     }
                 },
 
-                new DetailsTableItem(createStringResource(""),
+                new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+
+                        List<RoleAnalysisAttributeAnalysis> attributeAnalysisCluster = clusterCompare.getAttributeAnalysis();
+
+                        double totalDensity = 0.0;
+                        int totalCount = 0;
+                        if (attributeAnalysisCluster != null) {
+                            totalDensity += calculateDensity(attributeAnalysisCluster);
+                            totalCount += attributeAnalysisCluster.size();
+                        }
+
+                        int itemCount = (attributeAnalysisCluster != null ? attributeAnalysisCluster.size() : 0);
+
+                        double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
+
+                        Label label = new Label(id, itemsConfidence + "%");
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
+                    public Component createDescriptionComponent(String id) {
                         return new LabelWithHelpPanel(id,
-                                createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence")) {
+                                createStringResource("Outlier vs cluster item confidence")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
@@ -214,18 +253,25 @@ public class OutlierAttributeItemPanel<T extends Serializable>
                     }
                 },
 
-                new DetailsTableItem(createStringResource(""),
+                new WidgetItemModel(createStringResource(""),
                         Model.of("Sort")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+                        List<RoleAnalysisAttributeAnalysis> attributeAnalysisCluster = clusterCompare.getAttributeAnalysis();
+
+                        int items = 0;
+                        if (attributeAnalysisCluster != null) {
+                            items = attributeAnalysisCluster.size();
+                        }
+
+                        Label label = new Label(id, items);
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                    public Component createDescriptionComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("Analysis items")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
@@ -234,18 +280,22 @@ public class OutlierAttributeItemPanel<T extends Serializable>
                     }
                 },
 
-                new DetailsTableItem(createStringResource(""),
+                new WidgetItemModel(createStringResource(""),
                         Model.of("Chart")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+                        Integer similarObjectsCount = partitionAnalysis.getSimilarObjectAnalysis().getSimilarObjectsCount();
+                        if (similarObjectsCount == null) {
+                            similarObjectsCount = 0;
+                        }
+                        Label label = new Label(id, similarObjectsCount);
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                    public Component createDescriptionComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("Analysed users")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
@@ -258,4 +308,14 @@ public class OutlierAttributeItemPanel<T extends Serializable>
         return Model.ofList(detailsModel);
     }
 
+    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
+        double totalDensity = 0.0;
+        for (RoleAnalysisAttributeAnalysis attributeAnalysis : attributeAnalysisList) {
+            Double density = attributeAnalysis.getDensity();
+            if (density != null) {
+                totalDensity += density;
+            }
+        }
+        return totalDensity;
+    }
 }

@@ -16,10 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.panel.*;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierHeaderResultPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierResultPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -29,13 +26,10 @@ import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -261,77 +255,14 @@ public class OutlierPartitionPage extends PageAdmin {
             return new WebMarkupContainer(OutlierPartitionPage.ID_PANEL);
         }
 
-        OutlierResultPanel detailsPanel = loadOutlierResultPanel(outlierObjectModel, OutlierPartitionPage.ID_PANEL);
+        Component detailsPanel = loadOutlierResultPanel();
         detailsPanel.setOutputMarkupId(true);
         return detailsPanel;
     }
 
     @NotNull
-    private OutlierResultPanel loadOutlierResultPanel(@NotNull OutlierObjectModel outlierObjectModel, @NotNull String id) {
-        String outlierName = outlierObjectModel.getOutlierName();
-        double outlierConfidence = outlierObjectModel.getOutlierConfidence();
-        String outlierDescription = outlierObjectModel.getOutlierDescription();
-        String timeCreated = outlierObjectModel.getTimeCreated();
-
-        return new OutlierResultPanel(
-                id,
-                Model.of("Analyzed members details panel")) {
-
-            @Override
-            protected boolean isBodyTitleVisible() {
-                return false;
-            }
-
-            @Override
-            protected boolean isBodySubtitleVisible() {
-                return false;
-            }
-
-            @Override
-            public @NotNull Component getCardHeaderBody(String componentId) {
-                OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
-                        outlierDescription, String.valueOf(outlierConfidence), timeCreated);
-                components.setOutputMarkupId(true);
-                return components;
-            }
-
-            @Override
-            public Component getCardBodyComponent(String componentId) {
-                RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
-                outlierObjectModel.getOutlierItemModels().forEach(outlierItemModel -> {
-                    OutlierItemResultPanel component = new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel){
-                        @Contract(pure = true)
-                        @Override
-                        protected @NotNull String getItemBoxCssStyle() {
-                            return "height:150px;";
-                        }
-
-                        @Contract(pure = true)
-                        @Override
-                        protected @NotNull String getItemBocCssClass() {
-                            return "small-box bg-white";
-                        }
-
-                        @Contract(pure = true)
-                        @Override
-                        protected @NotNull String getLinkCssClass() {
-                            return "";
-                        }
-
-                        @Override
-                        protected String getInitialCssClass() {
-                            return "col-3";
-                        }
-                    };
-
-                    component.add(AttributeAppender.replace("class", "col-3"));
-
-                    cardBodyComponent.add(component);
-                });
-                return cardBodyComponent;
-            }
-
-        };
+    private Component loadOutlierResultPanel() {
+        return new RoleAnalysisPartitionOverviewPanel(OutlierPartitionPage.ID_PANEL, getPartitionModel(), getOutlierModel());
     }
 
     boolean isOutlierOverviewItemPanelActive = true;
@@ -339,7 +270,7 @@ public class OutlierPartitionPage extends PageAdmin {
     private void initOverviewItem(@NotNull ListGroupMenu<RoleAnalysisOutlierPartitionType> menu) {
 
         CustomListGroupMenuItem<RoleAnalysisOutlierPartitionType> outlierOverviewItemPanel = new CustomListGroupMenuItem<>(
-                "OutlierOverviewItemPanel.title") {
+                "PartitionOverviewItemPanel.title") {
 
             @Override
             public boolean isActive() {
@@ -352,7 +283,7 @@ public class OutlierPartitionPage extends PageAdmin {
                     IModel<ListGroupMenuItem<RoleAnalysisOutlierPartitionType>> model,
                     SerializableBiConsumer<AjaxRequestTarget, ListGroupMenuItem<RoleAnalysisOutlierPartitionType>> onClickHandler) {
 
-                return new OutlierOverviewItemPanel<>(id, model, getPartitionModel(), getOutlierModel()) {
+                return new PartitionOverviewItemPanel<>(id, model, getPartitionModel(), getOutlierModel()) {
                     @Override
                     protected void onClickPerformed(@NotNull AjaxRequestTarget target, @NotNull Component panelComponent) {
                         super.onClickPerformed(target, panelComponent);

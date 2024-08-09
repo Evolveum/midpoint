@@ -14,6 +14,8 @@ import com.evolveum.midpoint.common.mining.objects.analysis.cache.RoleMemberCoun
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context.OutlierPatternResolver;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,8 +63,18 @@ public class OutliersDetectionUtil {
                 userOid, task, result);
 
         if (outlierObject == null) {
+            PrismObject<UserType> userPrismObject = roleAnalysisService.getUserTypeObject(userOid, task, result);
+            if (userPrismObject == null) {
+                return;
+            }
+
+            PolyStringType name = userPrismObject.asObjectable().getName();
+
             RoleAnalysisOutlierType roleAnalysisOutlierType = new RoleAnalysisOutlierType();
-            roleAnalysisOutlierType.setTargetObjectRef(new ObjectReferenceType().oid(userOid).type(UserType.COMPLEX_TYPE));
+            roleAnalysisOutlierType.setTargetObjectRef(new ObjectReferenceType()
+                    .oid(userOid)
+                    .type(UserType.COMPLEX_TYPE)
+                    .targetName(name.getOrig()));
             roleAnalysisOutlierType.getOutlierPartitions().add(partition);
             roleAnalysisOutlierType.setAnomalyObjectsConfidence(partition.getPartitionAnalysis().getAnomalyObjectsConfidence());
             roleAnalysisOutlierType.setOverallConfidence(partition.getPartitionAnalysis().getOverallConfidence());

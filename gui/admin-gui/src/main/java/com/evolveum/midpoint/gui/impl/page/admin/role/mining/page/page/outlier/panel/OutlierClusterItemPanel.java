@@ -7,8 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.panel;
 
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.LOGGER;
+
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,17 +23,35 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.OutlierAnalyseActionDetailsPopupPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
+import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 public class OutlierClusterItemPanel<T extends Serializable>
         extends BasePanel<ListGroupMenuItem<T>> {
@@ -85,27 +108,133 @@ public class OutlierClusterItemPanel<T extends Serializable>
 
     @NotNull
     private RoleAnalysisWidgetsPanel loadDetailsPanel(@NotNull String id) {
+
+        return new RoleAnalysisWidgetsPanel(id, loadDetailsModel()) {
+            @Override
+            protected @NotNull Component getPanelComponent(String id1) {
+                DisplayValueOption displayValueOption = new DisplayValueOption();
+                RoleAnalysisClusterType cluster = prepareTemporaryCluster(displayValueOption);
+                if (cluster == null) {
+                    return super.getPanelComponent(id1);
+                }
+
+                RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadTable(id1, displayValueOption, cluster);
+                table.setOutputMarkupId(true);
+                return table;
+            }
+        };
+    }
+
+    //TODO this is temporary solution for testing
+    private @Nullable RoleAnalysisClusterType prepareTemporaryCluster(DisplayValueOption displayValueOption) {
         RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
         RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
         List<ObjectReferenceType> similarObjects = similarObjectAnalysis.getSimilarObjects();
         Set<String> similarObjectOids = similarObjects.stream().map(ObjectReferenceType::getOid).collect(Collectors.toSet());
+        String sessionOid = partition.getTargetSessionRef().getOid();
+        String userOid = outlier.getTargetObjectRef().getOid();
 
-        return new RoleAnalysisWidgetsPanel(id, loadDetailsModel()) {
+        PageBase pageBase = getPageBase();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask("Idk");
+        OperationResult result = task.getResult();
+
+        PrismObject<RoleAnalysisSessionType> sessionObject = roleAnalysisService.getSessionTypeObject(sessionOid, task, result);
+
+        if (sessionObject == null) {
+            LOGGER.error("Session object is null");
+            return null;
+        }
+
+        RoleAnalysisSessionType session = sessionObject.asObjectable();
+        RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
+
+        double minFrequency = 2;
+        double maxFrequency = 2;
+
+        if (defaultDetectionOption != null) {
+            if (defaultDetectionOption.getFrequencyRange() != null) {
+                RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
+                if (frequencyRange.getMin() != null) {
+                    minFrequency = frequencyRange.getMin().intValue();
+                }
+                if (frequencyRange.getMax() != null) {
+                    maxFrequency = frequencyRange.getMax().intValue();
+                }
+            }
+        }
+
+        displayValueOption.setProcessMode(RoleAnalysisProcessModeType.USER);
+        displayValueOption.setChunkMode(RoleAnalysisChunkMode.EXPAND);
+        displayValueOption.setSortMode(RoleAnalysisSortMode.JACCARD);
+        displayValueOption.setChunkAction(RoleAnalysisChunkAction.EXPLORE_DETECTION);
+        RoleAnalysisClusterType cluster = new RoleAnalysisClusterType();
+        for (String element : similarObjectOids) {
+            cluster.getMember().add(new ObjectReferenceType()
+                    .oid(element).type(UserType.COMPLEX_TYPE));
+        }
+
+        RoleAnalysisDetectionOptionType detectionOption = new RoleAnalysisDetectionOptionType();
+        detectionOption.setFrequencyRange(new RangeType().min(minFrequency).max(maxFrequency));
+        cluster.setDetectionOption(detectionOption);
+
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster, displayValueOption,
+                RoleAnalysisProcessModeType.USER, result, task);
+
+        RangeType frequencyRange = detectionOption.getFrequencyRange();
+        Double sensitivity = detectionOption.getSensitivity();
+
+        RoleAnalysisSortMode sortMode = displayValueOption.getSortMode();
+        if (sortMode == null) {
+            displayValueOption.setSortMode(RoleAnalysisSortMode.NONE);
+            sortMode = RoleAnalysisSortMode.NONE;
+        }
+
+        List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks(sortMode);
+
+        if (frequencyRange != null) {
+            roleAnalysisService.resolveOutliersZScore(roles, frequencyRange, sensitivity);
+        }
+
+        cluster.setRoleAnalysisSessionRef(new ObjectReferenceType().type(RoleAnalysisSessionType.COMPLEX_TYPE).oid(sessionOid));
+        cluster.setClusterStatistics(new AnalysisClusterStatisticType()
+                .rolesCount(roles.size())
+                .usersCount(similarObjectOids.size()));
+
+        cluster.setDescription(userOid);
+        return cluster;
+    }
+
+    @NotNull
+    private RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> loadTable(
+            String id,
+            DisplayValueOption displayValueOption,
+            @NotNull RoleAnalysisClusterType cluster) {
+
+        LoadableModel<RoleAnalysisObjectDto> miningOperationChunk = new LoadableModel<>(false) {
+
+            @Contract(" -> new")
             @Override
-            protected @NotNull Component getPanelComponent(String id1) {
-                OutlierAnalyseActionDetailsPopupPanel analyzedMembersDetailsPanel = new OutlierAnalyseActionDetailsPopupPanel(
-                        id1,
-                        Model.of("Analyzed members details panel"), outlier.getTargetObjectRef().getOid(),
-                        similarObjectOids, partition.getTargetSessionRef().getOid()) {
-                };
-                analyzedMembersDetailsPanel.setOutputMarkupId(true);
-                analyzedMembersDetailsPanel.add(AttributeAppender.append("class", "bg-white rounded elevation-1"));
+            protected @NotNull RoleAnalysisObjectDto load() {
+                return new RoleAnalysisObjectDto(cluster, new ArrayList<>(), 0, getPageBase());
 
-                return analyzedMembersDetailsPanel;
             }
         };
+        LoadableDetachableModel<DisplayValueOption> option = new LoadableDetachableModel<>() {
+            @Override
+            protected DisplayValueOption load() {
+                return displayValueOption;
+            }
+        };
+
+        RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = new RoleAnalysisTable<>(
+                id,
+                miningOperationChunk);
+
+        table.setOutputMarkupId(true);
+        return table;
     }
 
     protected @NotNull Component getDetailsPanelComponent() {
@@ -120,21 +249,24 @@ public class OutlierClusterItemPanel<T extends Serializable>
         return outlierModel;
     }
 
-    private @NotNull IModel<List<DetailsTableItem>> loadDetailsModel() {
+    private @NotNull IModel<List<WidgetItemModel>> loadDetailsModel() {
+        RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+        RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
 
-        List<DetailsTableItem> detailsModel = List.of(
-                new DetailsTableItem(createStringResource(""),
+        List<WidgetItemModel> detailsModel = List.of(
+                new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+                        Label label = new Label(id, similarObjectAnalysis.getSimilarObjectsCount());
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
-                        return new LabelWithHelpPanel(id, createStringResource("RoleAnalysisOutlierType.anomalyCount")) {
+                    public Component createDescriptionComponent(String id) {
+                        return new LabelWithHelpPanel(id, createStringResource("Similar objects")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyCount.help");
@@ -143,19 +275,26 @@ public class OutlierClusterItemPanel<T extends Serializable>
                     }
                 },
 
-                new DetailsTableItem(createStringResource(""),
+                new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+                        Double similarObjectsDensity = similarObjectAnalysis.getSimilarObjectsDensity();
+                        if (similarObjectsDensity == null) {
+                            similarObjectsDensity = 0.0;
+                        }
+                        BigDecimal value = BigDecimal.valueOf(similarObjectsDensity);
+                        value = value.setScale(2, RoundingMode.HALF_UP);
+                        double doubleValue = value.doubleValue();
+                        Label label = new Label(id, doubleValue + "%");
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
+                    public Component createDescriptionComponent(String id) {
                         return new LabelWithHelpPanel(id,
-                                createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence")) {
+                                createStringResource("Density")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
@@ -164,18 +303,25 @@ public class OutlierClusterItemPanel<T extends Serializable>
                     }
                 },
 
-                new DetailsTableItem(createStringResource(""),
+                new WidgetItemModel(createStringResource(""),
                         Model.of("Sort")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+                        Double outlierAssignmentFrequencyConfidence = partitionAnalysis.getOutlierAssignmentFrequencyConfidence();
+                        if (outlierAssignmentFrequencyConfidence == null) {
+                            outlierAssignmentFrequencyConfidence = 0.0;
+                        }
+                        BigDecimal value = BigDecimal.valueOf(outlierAssignmentFrequencyConfidence);
+                        value = value.setScale(2, RoundingMode.HALF_UP);
+                        double doubleValue = value.doubleValue();
+                        Label label = new Label(id, doubleValue + "%");
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                    public Component createDescriptionComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("Assignments frequency")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
@@ -184,18 +330,18 @@ public class OutlierClusterItemPanel<T extends Serializable>
                     }
                 },
 
-                new DetailsTableItem(createStringResource(""),
+                new WidgetItemModel(createStringResource(""),
                         Model.of("Chart")) {
                     @Override
                     public Component createValueComponent(String id) {
-                        Label label = new Label(id, "0 (todo)");
+                        Label label = new Label(id, similarObjectAnalysis.getSimilarObjectsThreshold() + "%");
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;
                     }
 
                     @Override
-                    public Component createLabelComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("TBD")) {
+                    public Component createDescriptionComponent(String id) {
+                        return new LabelWithHelpPanel(id, Model.of("Similarity threshold")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");

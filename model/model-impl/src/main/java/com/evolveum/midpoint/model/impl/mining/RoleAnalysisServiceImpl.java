@@ -94,7 +94,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     transient @Autowired ModelService modelService;
     transient @Autowired RepositoryService repositoryService;
 
-
     @Override
     public @Nullable PrismObject<UserType> getUserTypeObject(
             @NotNull String oid,
@@ -496,8 +495,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     double overallConfidence = 0;
                     double anomalyObjectsConfidence = 0;
 
-
-
                     for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
                         if (outlierPartition.getTargetClusterRef().getOid().equals(cluster.getOid())) {
                             partitionToDelete = outlierPartition;
@@ -767,7 +764,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         userExistCache.put(userOid, user);
 
-
         return user;
     }
 
@@ -798,7 +794,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return 0;
     }
 
-//    @Override
+    //    @Override
     //TODO redundant, remove
     public @NotNull PrismObject<RoleType> generateBusinessRole(
             @NotNull Set<AssignmentType> assignmentTypes,
@@ -1149,7 +1145,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
         }
     }
-
 
     @Override
     public @NotNull MiningOperationChunk prepareExpandedMiningStructure(
@@ -1953,6 +1948,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 roleAttributeAnalysisStructures = this
                         .roleTypeAttributeAnalysis(roles, 100.0, task, result, attributeRoleDefSet);
             }
+
+            double totalDensity = 0.0;
+            int totalCount = 0;
+
             if (userAttributeAnalysisStructures != null) {
                 RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
                 for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
@@ -1960,6 +1959,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     if (density == 0) {
                         continue;
                     }
+
+                    totalDensity += density;
+
                     RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                     roleAnalysisAttributeAnalysis.setDensity(density);
                     roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
@@ -1974,6 +1976,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 }
 
                 detectedPattern.setUserAttributeAnalysisResult(userAnalysis);
+                totalCount += userAnalysis.getAttributeAnalysis().size();
             }
 
             if (roleAttributeAnalysisStructures != null) {
@@ -1983,6 +1986,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     if (density == 0) {
                         continue;
                     }
+
+                    totalDensity += density;
+
                     RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                     roleAnalysisAttributeAnalysis.setDensity(density);
                     roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
@@ -1996,8 +2002,30 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 }
 
                 detectedPattern.setRoleAttributeAnalysisResult(roleAnalysis);
+                totalCount += roleAnalysis.getAttributeAnalysis().size();
+            }
+
+            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
+            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
+
+            int itemCount = (roleAttributeAnalysisResult != null
+                    ? roleAttributeAnalysisResult.getAttributeAnalysis().size() : 0)
+                    + (userAttributeAnalysisResult != null ? userAttributeAnalysisResult.getAttributeAnalysis().size() : 0);
+
+            double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
+            detectedPattern.setItemConfidence(itemsConfidence);
+        }
+    }
+
+    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
+        double totalDensity = 0.0;
+        for (RoleAnalysisAttributeAnalysis attributeAnalysis : attributeAnalysisList) {
+            Double density = attributeAnalysis.getDensity();
+            if (density != null) {
+                totalDensity += density;
             }
         }
+        return totalDensity;
     }
 
     @Override
@@ -2542,10 +2570,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         MetadataType metadata = new MetadataType();
         metadata.setCreateTimestamp(getCurrentXMLGregorianCalendar());
         outlier.setMetadata(metadata);
-            ObjectDelta<RoleAnalysisOutlierType> outlierDelta = PrismContext.get().deltaFactory().object().create(RoleAnalysisOutlierType.class, ChangeType.ADD);
-            outlierDelta.setObjectToAdd(outlier.asPrismObject());
+        ObjectDelta<RoleAnalysisOutlierType> outlierDelta = PrismContext.get().deltaFactory().object().create(RoleAnalysisOutlierType.class, ChangeType.ADD);
+        outlierDelta.setObjectToAdd(outlier.asPrismObject());
 
-            //TODO exception handler
+        //TODO exception handler
         try {
             repositoryService.addObject(outlier.asPrismObject(), null, result);
         } catch (ObjectAlreadyExistsException e) {
@@ -2926,6 +2954,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return 1 - (sensitivity * 0.01);
     }
 
+    //TODO
     @NotNull
     public List<RoleAnalysisOutlierType> findClusterOutliers(
             @NotNull RoleAnalysisClusterType cluster,
@@ -2933,6 +2962,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result) {
         List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
         String clusterOid = cluster.getOid();
+
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
             RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
@@ -2948,8 +2978,23 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         };
 
         try {
-            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
-                    null, task, result);
+
+            if (clusterOid == null) {
+                String outlierOid = cluster.getDescription();
+                ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisOutlierType.class)
+                        .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF)
+                        .ref(outlierOid).build();
+
+                SearchResultList<PrismObject<RoleAnalysisOutlierType>> prismObjects = modelService.searchObjects(
+                        RoleAnalysisOutlierType.class, query, null, task, result);
+
+                if (prismObjects != null && prismObjects.size() == 1) {
+                    searchResultList.add(prismObjects.get(0).asObjectable());
+                }
+            } else {
+                modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+                        null, task, result);
+            }
         } catch (Exception ex) {
             throw new RuntimeException("Couldn't search outliers", ex);
         }

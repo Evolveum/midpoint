@@ -9,20 +9,25 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="row">
-        <div class="col-md-12">
+
+
+
             <div wicket:id="container">
-                <div class="col-12 d-flex gap-3 p-0">
-                    <div class="col bg-white p-3 elevation-1 rounded mb-3" wicket:id="header-items">
-                        <div class="d-flex align-items-center" wicket:id="label"></div>
-                        <div class="d-flex align-items-center" wicket:id="value"></div>
+                <div class="d-flex flex-wrap p-0">
+                    <div class="col mb-3" wicket:id="header-items">
+                        <div class="bg-white p-3 elevation-1 rounded h-100">
+                            <div class="d-flex align-items-center" wicket:id="title" style="font-size:18px"></div>
+                            <div class="d-flex align-items-center text-muted" wicket:id="description" style="font-size:15px"></div>
+                            <div class="d-flex align-items-center" wicket:id="value"></div>
+                            <div class="d-flex align-items-center text-muted" wicket:id="footer" style="font-size:15px"></div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="col-12 card p-0" wicket:id="panelId"></div>
+                <div class="col card m-2 p-0" wicket:id="panelId"></div>
             </div>
-        </div>
-    </div>
+
+
 
 </wicket:panel>
 </html>

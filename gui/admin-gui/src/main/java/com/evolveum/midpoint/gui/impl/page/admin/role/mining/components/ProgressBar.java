@@ -61,6 +61,7 @@ public class ProgressBar extends BasePanel<String> {
         super.onInitialize();
 
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
+        container.add(AttributeModifier.replace("style",getProgressBarContainerStyle()));
         container.setOutputMarkupId(true);
         add(container);
 
@@ -237,5 +238,9 @@ public class ProgressBar extends BasePanel<String> {
 
     public boolean isInline() {
         return false;
+    }
+
+    protected String getProgressBarContainerStyle() {
+        return null;
     }
 }
