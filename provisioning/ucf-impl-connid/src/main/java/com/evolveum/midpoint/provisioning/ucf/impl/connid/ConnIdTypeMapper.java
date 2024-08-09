@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMappe
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
 import org.identityconnectors.common.security.GuardedByteArray;
@@ -34,7 +36,7 @@ class ConnIdTypeMapper {
      * The "subtype" parameter is currently applicable only to connector object attributes.
      */
     static @NotNull QName connIdTypeToXsdTypeName(
-            String name, Class<?> type, String subtype, boolean isConfidential)
+            Class<?> type, String subtype, boolean isConfidential, Supplier<String> referenceTypeNameSupplier)
             throws SchemaException {
 
         if (Map.class.isAssignableFrom(type)) {
@@ -53,9 +55,7 @@ class ConnIdTypeMapper {
             // GuardedByteArray is a special case. It is a ICF-specific type implementing Potemkin-like security.
             return ProtectedByteArrayType.COMPLEX_TYPE;
         } else if (ConnectorObjectReference.class.equals(type)) {
-            schemaCheck(subtype != null,
-                    "reference attribute '%s' has no subtype", name);
-            return typeNameInRi(subtype);
+            return typeNameInRi(Objects.requireNonNullElseGet(subtype, referenceTypeNameSupplier));
         } else {
             return XsdTypeMapper.toXsdType(type);
         }

@@ -399,6 +399,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Value metadata computer to be used when expression is evaluated.
      */
     transient private TransformationValueMetadataComputer valueMetadataComputer;
+    private List<MappingSpecificationType> mappingAliasSpecifications;
     //endregion
 
     //region Constructors and (relatively) simple getters
@@ -431,6 +432,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         targetItemName = builder.targetItemName;
         mappingSpecification = builder.getMappingSpecification() != null ?
                 builder.getMappingSpecification() : createDefaultSpecification();
+        mappingAliasSpecifications = createMappingAliasSpecifications(mappingSpecification,mappingBean.getMappingAlias());
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
@@ -973,12 +975,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 ModelCommonBeans.get().expressionFactory,
                 name,
                 mappingSpecification,
+                mappingAliasSpecifications,
                 "range",
                 "range of " + name + " in " + getMappingContextDescription(),
                 task, result);
         rangeSetDef.init();
         rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
+            // FIXME: Migrate legacy to new?
+
             if (rangeSetDef.contains(originalValue)) {
                 addToMinusIfNecessary(originalValue, rangeSetDef);
             }
@@ -1663,5 +1668,22 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     boolean shouldUseMatchingProvenance() {
         return getOutputDefinition() != null && getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
+    }
+
+    private static MappingSpecificationType createMappingAliasSpecification(MappingSpecificationType spec, String alias) {
+        if (spec == null || alias == null || alias.isEmpty()) {
+            return null;
+        }
+        return new MappingSpecificationType()
+                .definitionObjectRef(spec.getDefinitionObjectRef().clone())
+                .mappingName(alias);
+    }
+
+    private static List<MappingSpecificationType> createMappingAliasSpecifications(MappingSpecificationType spec, List<String> alias) {
+        if (spec == null || alias == null || alias.isEmpty()) {
+            return null;
+        }
+
+        return alias.stream().map(s -> createMappingAliasSpecification(spec, s)).toList();
     }
 }

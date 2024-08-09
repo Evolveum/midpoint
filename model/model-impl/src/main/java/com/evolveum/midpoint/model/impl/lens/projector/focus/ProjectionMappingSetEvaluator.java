@@ -140,7 +140,7 @@ public class ProjectionMappingSetEvaluator {
             }
         }
 
-        boolean hasFullTargetObject = params.hasFullTargetObject();
+        boolean targetValueAvailable = params.isTargetValueAvailable();
         PrismObject<T> aPrioriTargetObject = params.getAPrioriTargetObject();
 
         LOGGER.trace("Going to process {} mappings for {}", mappings.size(), mappingDesc);
@@ -183,14 +183,14 @@ public class ProjectionMappingSetEvaluator {
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     mappingOutputStruct.setStrongMappingWasUsed(true);
 
-                    if (!hasFullTargetObject
+                    if (!targetValueAvailable
                             && params.getTargetLoader() != null
                             && aPrioriTargetObject != null
                             && aPrioriTargetObject.getOid() != null
                             && !params.getTargetLoader().isLoaded()) {
                         aPrioriTargetObject = params.getTargetLoader().load("strong mapping", task, result);
                         LOGGER.trace("Loaded object because of strong mapping: {}", aPrioriTargetObject);
-                        hasFullTargetObject = true;
+                        targetValueAvailable = true;
                     }
                 }
 
@@ -200,14 +200,14 @@ public class ProjectionMappingSetEvaluator {
 
                     // TODO should we really load the resource object also if we are pushing the changes?
                     //  (but it looks like we have to!)
-                    if (!hasFullTargetObject
+                    if (!targetValueAvailable
                             && params.getTargetLoader() != null
                             && aPrioriTargetObject != null
                             && aPrioriTargetObject.getOid() != null
                             && !params.getTargetLoader().isLoaded()) {
                         aPrioriTargetObject = params.getTargetLoader().load("pushing changes", task, result);
                         LOGGER.trace("Loaded object because of pushing changes: {}", aPrioriTargetObject);
-                        hasFullTargetObject = true;
+                        targetValueAvailable = true;
                     }
                 }
 
@@ -274,14 +274,14 @@ public class ProjectionMappingSetEvaluator {
                         // But the mapping may not be activated (e.g. condition is false). And in that
                         // case we really do not want to trigger object loading.
                         // This is all not right. See MID-3847
-                        if (!hasFullTargetObject
+                        if (!targetValueAvailable
                                 && params.getTargetLoader() != null
                                 && aPrioriTargetObject != null
                                 && aPrioriTargetObject.getOid() != null
                                 && !params.getTargetLoader().isLoaded()) {
                             aPrioriTargetObject = params.getTargetLoader().load("weak mapping", task, result);
                             LOGGER.trace("Loaded object because of weak mapping: {}", aPrioriTargetObject);
-                            hasFullTargetObject = true;
+                            targetValueAvailable = true;
                         }
                         if (aPrioriTargetObject != null && mappingOutputPath != null) {
                             aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
@@ -373,7 +373,7 @@ public class ProjectionMappingSetEvaluator {
 
                     Collection<V> valuesToReplace;
 
-                    if (hasFullTargetObject && (mappingOutputStruct.isStrongMappingWasUsed() || mappingOutputStruct.isPushChanges())) {
+                    if (targetValueAvailable && (mappingOutputStruct.isStrongMappingWasUsed() || mappingOutputStruct.isPushChanges())) {
                         valuesToReplace = outputTriple.getNonNegativeValues();
                     } else {
                         valuesToReplace = outputTriple.getPlusSet();
@@ -381,7 +381,7 @@ public class ProjectionMappingSetEvaluator {
 
                     LOGGER.trace(
                             "Computed new values when hasFullTargetObject={}, isStrongMappingWasUsed={}, pushingChange={}: {}",
-                            hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(),
+                            targetValueAvailable, mappingOutputStruct.isStrongMappingWasUsed(),
                             mappingOutputStruct.isPushChanges(), valuesToReplace);
 
                     if (!valuesToReplace.isEmpty()) {
@@ -389,7 +389,7 @@ public class ProjectionMappingSetEvaluator {
                         // if what we want to set is the same as is already in the shadow, we skip that
                         // (we insist on having full shadow, to be sure we work with current data)
 
-                        if (hasFullTargetObject && targetContext.isFresh() && aPrioriTargetItem != null) {
+                        if (targetValueAvailable && targetContext.isFresh() && aPrioriTargetItem != null) {
                             Collection<V> valuesPresent = aPrioriTargetItem.getValues();
                             if (PrismValueCollectionsUtil.equalsRealValues(valuesPresent, valuesToReplace)) {
                                 LOGGER.trace("Computed values are equivalent to existing ones, skipping creation of a delta");
@@ -511,8 +511,8 @@ public class ProjectionMappingSetEvaluator {
         }
         for (V pval : set) {
             Object val = pval.getRealValue();
-            if (val instanceof ProtectedStringType) {
-                if (!((ProtectedStringType) val).isHashed()) {
+            if (val instanceof ProtectedStringType protectedString) {
+                if (!protectedString.isHashed()) {
                     return false;
                 }
             } else {

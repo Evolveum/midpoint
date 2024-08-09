@@ -92,7 +92,7 @@ public class TieredSelectorWithItems {
                 continue;
             }
             SelectorWithItems base =
-                    SelectorWithItems.of(objectSelector, autz.getItems(), autz.getExceptItems(), evaluation.getDesc());
+                    SelectorWithItems.of(objectSelector, autz.getItems(), autz.getExceptItems(), evaluation.getDesc(), autz.isExceptMetadata());
             TieredSelectorWithItems tiered = base.asTieredSelectors(value.asObjectable().getClass());
             if (tiered != null) {
                 selectorsWithItems.add(tiered);
@@ -115,6 +115,11 @@ public class TieredSelectorWithItems {
 
     public @NotNull PathSet getNegatives() {
         return selectorWithItems.getNegatives();
+    }
+
+
+    public boolean isExceptMetadata() {
+        return selectorWithItems.isExceptMetadata();
     }
 
     @Override

@@ -406,7 +406,6 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
                 return secondaryDelta;
             } else {
                 try {
-                    //noinspection unchecked
                     return ObjectDeltaCollectionsUtil.union(primaryDelta, secondaryDelta);
                 } catch (SchemaException e) {
                     throw new SystemException("Unexpected schema exception while merging deltas: " + e.getMessage(), e);
@@ -616,6 +615,14 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
         }
 
         invalidatePrimaryDeltaDependencies();
+    }
+
+    void modifySecondaryDelta(LensElementContext.DeltaModifier<O> modifier) throws SchemaException {
+        if (secondaryDelta == null) {
+            secondaryDelta = createEmptyDelta();
+        }
+        modifier.modify(secondaryDelta);
+        invalidateSecondaryDeltaDependencies();
     }
 
     void deleteEmptyPrimaryDelta() {

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryState;
 
+import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.querydsl.core.Tuple;
@@ -635,6 +636,13 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     protected SchemaRegistryState.DerivationKey<ItemDefinition<?>> definitionDerivationKey() {
+        return null;
+    }
+
+    /**
+     * @return Partition manager if table support partitioning
+     */
+    public @Nullable  PartitionManager<R> getPartitionManager() {
         return null;
     }
 }

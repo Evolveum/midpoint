@@ -74,7 +74,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel wizard = createObjectTypeWizard(valueModel);
-                wizard.setShowTypePreview(true);
+                wizard.setShowChoicePanel(true);
                 showChoiceFragment(target, wizard);
             }
 
@@ -109,9 +109,9 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
     }
 
     private void exitToPreview(AjaxRequestTarget target) {
-        ResourceWizardPreviewPanel preview = new ResourceWizardPreviewPanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
+        SchemaHandlingWizardChoicePanel preview = new SchemaHandlingWizardChoicePanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override
-            protected void onTileClickPerformed(ResourceWizardPreviewPanel.PreviewTileType value, AjaxRequestTarget target) {
+            protected void onTileClickPerformed(SchemaHandlingWizardChoicePanel.PreviewTileType value, AjaxRequestTarget target) {
                 switch (value) {
                     case PREVIEW_DATA:
                         showChoiceFragment(target, createPreviewResourceDataWizardPanel());

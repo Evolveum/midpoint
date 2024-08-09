@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.action;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -20,7 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<AccessCertificationWorkItemType> {
 
@@ -37,16 +37,16 @@ public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<A
 
     @Override
     protected void executeAction(List<AccessCertificationWorkItemType> workItems, PageBase pageBase, AjaxRequestTarget target) {
-        AccessCertificationResponseType response = getResponse();
-        OperationResult result = new OperationResult(OPERATION_RECORD_ACTION + "." + response.value());
-        Task task = pageBase.createSimpleTask(OPERATION_RECORD_ACTION + "." + response.value());
+        OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
+        Task task = pageBase.createSimpleTask(OPERATION_RECORD_ACTION);
 
         //TODO comment
         workItems.forEach(workItem -> {
+            AccessCertificationResponseType response = getResponse(workItem);
             OperationResult oneActionResult = result
                     .subresult(result.getOperation() + ".workItemId:" + workItem.getId())
                             .build();
-            CertMiscUtil.recordCertItemResponse(workItem, getResponse(), getComment(workItem), oneActionResult, task, pageBase);
+            CertMiscUtil.recordCertItemResponse(workItem, response, getComment(workItem), oneActionResult, task, pageBase);
         });
         result.computeStatus();
         target.add(pageBase);
@@ -62,5 +62,21 @@ public abstract class AbstractCertItemDecisionAction extends AbstractGuiAction<A
         return output.getComment();
     }
 
-    protected abstract AccessCertificationResponseType getResponse();
+    protected abstract AccessCertificationResponseType getResponse(AccessCertificationWorkItemType certItem);
+
+    @Override
+    protected boolean isVisibleForRow(AccessCertificationWorkItemType certItem) {
+        if (certItem == null) {
+            return true;
+        }
+        AccessCertificationResponseType response = getResponse(certItem);
+        AccessCertificationResponseType certItemResponse = getCertItemResponse(certItem);
+
+        return certItemResponse == null || certItemResponse != response;
+    }
+
+    protected AccessCertificationResponseType getCertItemResponse(AccessCertificationWorkItemType certItem) {
+        return certItem != null && certItem.getOutput() != null ?
+                OutcomeUtils.fromUri(certItem.getOutput().getOutcome()) : null;
+    }
 }

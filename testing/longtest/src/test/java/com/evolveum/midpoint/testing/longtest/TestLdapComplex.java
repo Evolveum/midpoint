@@ -13,6 +13,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
+
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -95,6 +97,7 @@ public class TestLdapComplex extends AbstractLongTest {
 
         // templates
         repoAddObjectFromFile(USER_TEMPLATE_FILE, initResult);
+        repoAdd(CommonInitialObjects.SERVICE_ORIGIN_INTERNAL, initResult);
 
         // Resources
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);

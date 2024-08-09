@@ -481,8 +481,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
      * TODO check if the clients assume that the returned capability is enabled
      */
     public <T extends CapabilityType> T getCapability(@NotNull Class<T> capabilityClass) {
-        return getResourceManager().getCapability(
-                resource, getObjectDefinition(), capabilityClass);
+        return CapabilityUtil.getCapability(resource, getObjectDefinition(), capabilityClass);
     }
 
     public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass) {
@@ -510,12 +509,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     }
 
     public boolean isReadingCachingOnly() {
-        ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
-        if (readCapability == null) {
-            return false; // TODO reconsider this
-        } else {
-            return Boolean.TRUE.equals(readCapability.isCachingOnly());
-        }
+        return CapabilityUtil.isReadingCachingOnly(resource, getObjectDefinition());
     }
 
     @Override
@@ -525,47 +519,6 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     public ItemPath path(Object... components) {
         return ItemPath.create(components);
-    }
-
-    public Boolean getExplicitCachingStatus() {
-        if (resourceObjectDefinition != null) {
-            var objectLevel = resourceObjectDefinition.getEffectiveShadowCachingPolicy().getCachingStrategy();
-            if (objectLevel == CachingStrategyType.NONE) {
-                return false;
-            } else if (objectLevel == CachingStrategyType.PASSIVE) {
-                return true;
-            } else if (objectLevel != null) {
-                throw new AssertionError(objectLevel);
-            }
-        } else {
-            // No object definition, we must go to the resource level
-            ShadowCachingPolicyType resourceCaching = resource.getCaching();
-            var resourceLevel = resourceCaching != null ? resourceCaching.getCachingStrategy() : null;
-            if (resourceLevel == CachingStrategyType.NONE) {
-                return false;
-            } else if (resourceLevel == CachingStrategyType.PASSIVE) {
-                return true;
-            } else if (resourceLevel != null) {
-                throw new AssertionError(resourceLevel);
-            }
-        }
-
-        return null;
-    }
-
-    public boolean isReadCachingOnlyCapabilityPresent() {
-        ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
-        return readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly());
-    }
-
-    public boolean isCachingEnabled() {
-        return Objects.requireNonNullElseGet(
-                getExplicitCachingStatus(),
-                this::isReadCachingOnlyCapabilityPresent);
-    }
-
-    public boolean isReadCachingOnlyCapabilityDisabled() {
-        return isReadCachingOnlyCapabilityPresent() && !Boolean.FALSE.equals(getExplicitCachingStatus());
     }
 
     public String toHumanReadableDescription() {
@@ -625,11 +578,6 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     public @NotNull String getResourceOid() {
         return Objects.requireNonNull(
                 resource.getOid());
-    }
-
-    public @Nullable CachingStrategyType getPasswordCachingStrategy() {
-        return ProvisioningUtil.getPasswordCachingStrategy(
-                getObjectDefinitionRequired());
     }
 
     public void validateSchemaIfConfigured(ShadowType shadow) throws SchemaException {

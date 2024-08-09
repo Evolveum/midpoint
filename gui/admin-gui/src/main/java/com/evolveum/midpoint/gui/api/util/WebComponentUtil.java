@@ -717,6 +717,17 @@ public final class WebComponentUtil {
         return isAuthorized(actionUris);
     }
 
+    public static boolean isCertItemsViewEnabled(ModelServiceLocator serviceLocator) {
+        try {
+            OperationResult result = new OperationResult("loadingCertificationConfiguration");
+            AccessCertificationConfigurationType config =
+                    serviceLocator.getModelInteractionService().getCertificationConfiguration(result);
+            return config != null && Boolean.TRUE.equals(config.getEnableCertItemsCollectionView());
+        } catch (SchemaException | ObjectNotFoundException e) {
+            return false;
+        }
+    }
+
     // TODO: move to util component
     public static Integer safeLongToInteger(Long l) {
         if (l == null) {
@@ -3963,6 +3974,15 @@ public final class WebComponentUtil {
                 return new CompiledGuiProfile();
             }
         }
+    }
+
+    public static <T extends FocusType> IResource createJpegPhotoResource(ObjectReferenceType ref, PageBase pageBase) {
+        PrismObject<T> object = WebModelServiceUtils.loadObject(ref, pageBase);
+        if (object == null) {
+            return null;
+        }
+
+        return createJpegPhotoResource(object.asObjectable());
     }
 
     public static <T extends FocusType> IResource createJpegPhotoResource(PrismObject<T> object) {

@@ -120,7 +120,7 @@
             </synchronization>
         </objectType>
         <objectType>
-            <kind>associated</kind>
+            <kind>association</kind>
             <intent>contract</intent>
             <delineation>
                 <objectClass>ri:contract</objectClass>

@@ -61,18 +61,4 @@
             </mapping>
         </focusMappings>
     </inducement>
-    <inducement id="7">
-        <identifier>handlerMapping</identifier>
-        <focusMappings>
-            <mapping id="8">
-                <strength>weak</strength>
-                <expression>
-                    <value>http://midpoint.evolveum.com/xml/ns/public/certification/task/campaign-creation/handler-3</value>
-                </expression>
-                <target>
-                    <c:path>handlerUri</c:path>
-                </target>
-            </mapping>
-        </focusMappings>
-    </inducement>
 </archetype>

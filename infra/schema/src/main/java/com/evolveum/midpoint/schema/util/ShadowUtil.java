@@ -996,7 +996,7 @@ public class ShadowUtil {
      */
     public static boolean isGone(@NotNull ShadowType shadow) {
         ShadowLifecycleStateType state = shadow.getShadowLifecycleState();
-        stateCheck(state != null, "Unknown lifecycle state of %s", shadow);
+        stateCheck(state != null, "Missing lifecycle state of %s", shadow);
         return state == ShadowLifecycleStateType.CORPSE || state == ShadowLifecycleStateType.TOMBSTONE;
     }
 
@@ -1284,5 +1284,116 @@ public class ShadowUtil {
             }
         }
         return -1;
+    }
+
+    public static boolean isActivationCached(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(shadow, definition, now)
+                && definition.isActivationCached();
+    }
+
+    public static boolean isPasswordValueLoaded(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(shadow, definition, now)
+                && definition.areCredentialsCached();
+    }
+
+    public static boolean isAuxiliaryObjectClassPropertyLoaded(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(shadow, definition, now)
+                && definition.isAuxiliaryObjectClassPropertyCached();
+    }
+
+    public static boolean isAttributeLoaded(
+            @NotNull ItemName attrName,
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) throws SchemaException {
+        if (shadow != null && definition.isIdentifier(attrName)) {
+            return true; // TODO revisit this: identifiers are supposed to be always up-to-date (is this correct?)
+        }
+        if (!isShadowFresh(shadow, definition, now)) {
+            return false;
+        }
+        return definition
+                .findAttributeDefinitionRequired(attrName)
+                .isEffectivelyCached(definition);
+    }
+
+    public static boolean isAssociationLoaded(
+            @NotNull ItemName assocName,
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) throws SchemaException {
+        if (!isShadowFresh(shadow, definition, now)) {
+            return false;
+        }
+        return definition
+                .findAssociationDefinitionRequired(assocName)
+                .getReferenceAttributeDefinition()
+                .isEffectivelyCached(definition);
+    }
+
+    public static Collection<QName> getCachedAttributesNames(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull CompositeObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        if (!isShadowFresh(shadow, definition, now)) {
+            return Set.of(); // TODO or should we provide at least the identifiers?
+        }
+        return definition.getAttributeDefinitions().stream()
+                .filter(def -> def.isEffectivelyCached(definition))
+                .map(def -> def.getItemName())
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Assuming that the shadow was obtained from the repository (cache), and has the correct definition,
+     * this method tells the client if the cached data can be considered fresh enough regarding the caching TTL.
+     */
+    public static boolean isShadowFresh(
+            @NotNull PrismObject<ShadowType> shadow, @NotNull XMLGregorianCalendar now) {
+        return isShadowFresh(
+                shadow,
+                getResourceObjectDefinition(shadow),
+                now);
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean isShadowFresh(
+            @Nullable PrismObject<ShadowType> shadow,
+            @NotNull ResourceObjectDefinition definition,
+            @NotNull XMLGregorianCalendar now) {
+        if (shadow == null) {
+            return false;
+        }
+        var policy = definition.getEffectiveShadowCachingPolicy();
+        if (policy.getCachingStrategy() != CachingStrategyType.PASSIVE) {
+            // Caching is disabled. Individual overriding of caching status is not relevant.
+            return false;
+        }
+        var timeToLive = policy.getTimeToLive();
+        if (timeToLive == null) {
+            return false;
+        }
+        var cachingMetadata = shadow.asObjectable().getCachingMetadata();
+        if (cachingMetadata == null) {
+            return false;
+        }
+        var retrievalTimestamp = cachingMetadata.getRetrievalTimestamp();
+        if (retrievalTimestamp == null) {
+            return false;
+        }
+        var invalidationTimestamp = definition.getBasicResourceInformation().cacheInvalidationTimestamp();
+        if (invalidationTimestamp != null && retrievalTimestamp.compare(invalidationTimestamp) != DatatypeConstants.GREATER) {
+            return false;
+        }
+        return !XmlTypeConverter.isAfterInterval(retrievalTimestamp, timeToLive, now);
     }
 }

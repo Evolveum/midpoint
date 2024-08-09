@@ -725,7 +725,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     private void addingCheckAndIconColumnIfExists(List<IColumn<PO, String>> columns) {
         if (!isPreview()) {
             IColumn<PO, String> checkboxColumn = createCheckboxColumn();
-            checkboxColumn = applyMultiselectOptionConfiguration(checkboxColumn);
             if (checkboxColumn != null) {
                 columns.add(checkboxColumn);
             }
@@ -1427,31 +1426,8 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return null;
     }
 
-    private IColumn<PO, String> applyMultiselectOptionConfiguration(IColumn<PO, String> column) {
-        if (column == null) {
-            return null;
-        }
-        CompiledObjectCollectionView view = getObjectCollectionView();
-        if (view == null) {
-            return column;
-        }
-        MultiselectOptionType multiselect = view.getMultiselect();
-        if (multiselect == null) {
-            return column; //when no multiselect is defined, we take checkbox column as it is
-        }
-        return switch (multiselect) {
-            case NO_SELECT -> null;
-            case SELECT_ALL -> column;
-            case SELECT_INDIVIDUALS -> {
-                if (column instanceof CheckBoxHeaderColumn) {
-                    ((CheckBoxHeaderColumn) column).setCheckboxVisible(false);
-                }
-                yield column;
-            }
-        };
-    }
-
     protected String getInlineMenuItemCssClass() {
         return "btn btn-default btn-xs";
     }
+
 }

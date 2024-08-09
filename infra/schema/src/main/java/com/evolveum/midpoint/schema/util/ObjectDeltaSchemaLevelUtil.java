@@ -62,7 +62,9 @@ public class ObjectDeltaSchemaLevelUtil {
                         objectClass = objectDefinition.getCompileTimeClass();
                     }
                     if (objectClass == null) {
+
                         objectClass = ObjectType.class; // the default (shouldn't be needed)
+                        // FIXME: We should avoid getting name using ObjectType type
                     }
                     try {
                         PolyString name = nameResolver.getName(objectClass, oid);

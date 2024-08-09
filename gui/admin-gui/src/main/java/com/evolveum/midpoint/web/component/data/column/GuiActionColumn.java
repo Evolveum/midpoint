@@ -41,13 +41,13 @@ public abstract class GuiActionColumn<T extends Serializable, C extends Containe
     }
 
     private Component getPanel(String componentId, IModel<T> rowModel) {
-        return new ActionsPanel<>(componentId, Model.ofList(actionList)) {
+        C obj = unwrapRowModelObject(rowModel.getObject());
+        return new ActionsPanel<>(componentId, Model.ofList(actionList), obj) {
             @Serial
             private static final long serialVersionUID = 1L;
 
             @Override
             protected List<C> getObjectsToProcess() {
-                C obj = unwrapRowModelObject(rowModel.getObject());
                 return Collections.singletonList(obj);
             }
         };

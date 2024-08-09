@@ -11,12 +11,9 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 

@@ -25,7 +25,7 @@ import jakarta.annotation.PostConstruct;
  * Created by honchar
  */
 @Component
-public class ExpressionWrapperFactory  extends PrismPropertyWrapperFactoryImpl<ExpressionType> {
+public class ExpressionWrapperFactory extends PrismPropertyWrapperFactoryImpl<ExpressionType> {
 
     @Override
     public boolean match(ItemDefinition<?> def) {

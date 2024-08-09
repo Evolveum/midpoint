@@ -853,7 +853,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             initMainPanel(config, form);
             target.add(getFeedbackPanel());
 
-            overwritePageParameters(config);
+            if (config != null && config.getPanelType() != null) {
+                overwritePageParameters(config);
+            }
             target.add(AbstractPageObjectDetails.this);
             target.add(getMainForm());
         } catch (Throwable e) {

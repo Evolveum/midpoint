@@ -126,6 +126,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
         }
     }
 
+
+
     private void notifyListeners(SystemConfigurationType configuration) {
         for (SystemConfigurationChangeListener listener : listeners) {
             try {
@@ -241,11 +243,10 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
     private void applyRepositoryConfiguration(SystemConfigurationType configuration) {
         try {
-            InternalsConfigurationType internalsConfig = configuration.getInternals();
-            RepositoryStatisticsReportingConfigurationType statistics =
-                    internalsConfig != null && internalsConfig.getRepository() != null
-                            ? internalsConfig.getRepository().getStatistics()
-                            : null;
+            var internalsConfig = configuration.getInternals();
+            var repositoryConfig = internalsConfig != null ? internalsConfig.getRepository() : null;
+            var statistics = repositoryConfig != null ? repositoryConfig.getStatistics() : null;
+            repositoryService.applyRepositoryConfiguration(repositoryConfig);
             repositoryService.getPerformanceMonitor().setConfiguration(statistics);
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply repository configuration", t);

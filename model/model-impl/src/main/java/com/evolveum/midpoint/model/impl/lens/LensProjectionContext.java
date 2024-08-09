@@ -10,9 +10,12 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
 import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
@@ -25,6 +28,7 @@ import com.evolveum.midpoint.model.impl.sync.action.DeleteResourceObjectAction;
 import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -827,6 +831,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         state.invalidate(); // policy decision is a parameter for current object adjuster
     }
 
+    public boolean isSynchronizationDecisionAdd() {
+        return synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD;
+    }
+
     public void setBroken() {
         setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
     }
@@ -855,16 +863,108 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     /**
      * Returns true if full shadow is available, either loaded or in a create delta.
+     *
+     * NOTE: The distinction between {@link #isFullShadow()} and this method is subtle but sometimes important.
+     * The {@link #isFullShadow()} method is used to determine whether the shadow is fully loaded from the resource.
+     * This method can return {@code true} also if we know how the shadow would need to be created. But resource-provided
+     * attributes may be missing in such cases! Like {@code uid} in case of LDAP. Inbound mappings could fail in such cases.
      */
     public boolean hasFullShadow() {
-        if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
-            return true;
-        }
-        return isFullShadow();
+        return isSynchronizationDecisionAdd() || isFullShadow();
     }
 
     public void setFullShadow(boolean fullShadow) {
         this.fullShadow = fullShadow;
+    }
+
+    private Boolean getGenericItemLoadedAnswer() throws SchemaException, ConfigurationException {
+        if (isFullShadow()) {
+            return true;
+        } else if (!isCachedShadowsUseAllowed()) {
+            return false; // The attribute may or may not be cached; but we want to use fresh version anyway
+        } else {
+            return null; // Let's look at the status of the specific item
+        }
+    }
+
+    /** @see #isAttributeLoaded(QName) */
+    public boolean isActivationLoaded() throws SchemaException, ConfigurationException {
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isActivationCached(
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
+    }
+
+    /** @see #isAttributeLoaded(QName) */
+    public boolean isPasswordValueLoaded() throws SchemaException, ConfigurationException {
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isPasswordValueLoaded(
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
+    }
+
+    /** @see #isAttributeLoaded(QName) */
+    public boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException {
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isAuxiliaryObjectClassPropertyLoaded(
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
+    }
+
+    private static XMLGregorianCalendar getCurrentTime() {
+        return ModelBeans.get().clock.currentTimeXMLGregorianCalendar();
+    }
+
+    /**
+     * Returns {@code true} if the attribute is available for processing. It must either be freshly loaded
+     * (in the {@link #isFullShadow()} sense) or it must be cached *and* the use of cache for computations
+     * must be allowed.
+     */
+    public boolean isAttributeLoaded(QName attrName) throws SchemaException, ConfigurationException {
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isAttributeLoaded(
+                    ItemName.fromQName(attrName),
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
+    }
+
+    /** @see #isAttributeLoaded(QName) */
+    public boolean isAssociationLoaded(QName assocName) throws SchemaException, ConfigurationException {
+        var generic = getGenericItemLoadedAnswer();
+        if (generic != null) {
+            return generic;
+        } else {
+            return ShadowUtil.isAssociationLoaded(
+                    ItemName.fromQName(assocName),
+                    getObjectCurrent(),
+                    getCompositeObjectDefinitionRequired(),
+                    getCurrentTime());
+        }
+    }
+
+    public Collection<QName> getCachedAttributesNames() throws SchemaException, ConfigurationException {
+        return ShadowUtil.getCachedAttributesNames(
+                getObjectCurrent(), getCompositeObjectDefinitionRequired(), getCurrentTime());
     }
 
     public ShadowKindType getKind() {
@@ -2106,5 +2206,31 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             }
         }
         return false;
+    }
+
+    public boolean isCachedShadowsUseAllowed() throws SchemaException, ConfigurationException {
+        return getCachedShadowsUse() != CachedShadowsUseType.USE_FRESH;
+    }
+
+    public @NotNull CachedShadowsUseType getCachedShadowsUse() throws SchemaException, ConfigurationException {
+        // From model execution options
+        var fromOptions = ModelExecuteOptions.getCachedShadowsUse(lensContext.getOptions());
+        if (fromOptions != null) {
+            return fromOptions;
+        }
+        // From the resource (if accessible)
+        var objectDefinition = getStructuralObjectDefinition();
+        if (objectDefinition != null) {
+            var fromResource = objectDefinition.getEffectiveShadowCachingPolicy().getDefaultCacheUse();
+            if (fromResource != null) {
+                return fromResource;
+            }
+        }
+        // The default
+        return CachedShadowsUseType.USE_FRESH;
+    }
+
+    public boolean hasLowerOrderContext() {
+        return lensContext.hasLowerOrderContextThan(this);
     }
 }

@@ -181,6 +181,9 @@ public class DummyResource implements DebugDumpable {
         resetObjectStores();
         linkStoreMap.clear();
 
+        auxiliaryObjectClassMap.clear();
+        linkClassDefinitionMap.clear();
+
         syncStyle = DummySyncStyle.NONE;
         operationDelayOffset = 0;
         operationDelayRange = 0;

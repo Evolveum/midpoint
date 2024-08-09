@@ -8,6 +8,10 @@ package com.evolveum.midpoint.provisioning.impl.dummy;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_REPOSITORY;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE;
+
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -1699,6 +1703,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     void checkAccountShadow(
             AbstractShadow shadow, OperationResult result, boolean fullShadow)
             throws SchemaException, ConfigurationException {
+        assertThat(shadow.getContentDescription())
+                .as("content description")
+                .isEqualTo(fullShadow ? FROM_RESOURCE_COMPLETE : FROM_REPOSITORY);
         ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
         shadow.checkConsistenceComplex(result.getOperation());
         IntegrationTestTools.checkAccountShadow(

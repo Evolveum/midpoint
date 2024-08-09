@@ -82,7 +82,7 @@ public class ContextLoader implements ProjectorProcessor {
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
         for (int loadAttempt = 1; ; loadAttempt++) {
             Set<String> modifiedFocusOids = new HashSet<>();
@@ -357,7 +357,7 @@ public class ContextLoader implements ProjectorProcessor {
             @NotNull LensProjectionContext projCtx, String reason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        new ProjectionFullLoadOperation<>(projCtx.getLensContext(), projCtx, reason, false, task)
+        new ProjectionFullLoadOperation(projCtx, reason, false, task)
                 .loadFullShadow(result);
     }
 
@@ -366,7 +366,7 @@ public class ContextLoader implements ProjectorProcessor {
             @NotNull LensProjectionContext projCtx, String reason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        new ProjectionFullLoadOperation<>(projCtx.getLensContext(), projCtx, reason, true, task)
+        new ProjectionFullLoadOperation(projCtx, reason, true, task)
                 .loadFullShadow(result);
     }
 

@@ -13,15 +13,19 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,34 +45,11 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class InboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P>{
+public abstract class InboundAttributeMappingsTable<P extends Containerable> extends AttributeMappingsTable<P, ResourceAttributeDefinitionType>{
     public InboundAttributeMappingsTable(
             String id, IModel<PrismContainerValueWrapper<P>> valueModel,
             ContainerPanelConfigurationType config) {
         super(id, valueModel, config);
-    }
-
-    enum UsedFor {
-        CORRELATION(InboundMappingUseType.CORRELATION,
-                "text-warning fa fa-code-branch",
-                "UsedFor.CORRELATION"),
-        SYNCHRONIZATION(InboundMappingUseType.SYNCHRONIZATION,
-                "text-warning fa fa-rotate",
-                "UsedFor.SYNCHRONIZATION"),
-        ALL(InboundMappingUseType.ALL,
-                "text-info fa fa-retweet",
-                "UsedFor.ALL");
-
-        private final InboundMappingUseType type;
-        private final String icon;
-
-        private final String tooltip;
-
-        UsedFor(InboundMappingUseType type, String icon, String tooltip) {
-            this.type = type;
-            this.icon = icon;
-            this.tooltip = tooltip;
-        }
     }
 
     @Override
@@ -105,12 +86,12 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                 if (mappingUsed == null) {
                     mappingUsed = InboundMappingUseType.ALL;
                 }
-                for (UsedFor usedFor : Arrays.stream(UsedFor.values()).toList()) {
-                    if (usedFor.type.equals(mappingUsed)) {
+                for (MappingUsedFor usedFor : Arrays.stream(MappingUsedFor.values()).toList()) {
+                    if (usedFor.getType().equals(mappingUsed)) {
                         return new DisplayType()
-                                .tooltip(usedFor.tooltip)
+                                .tooltip(usedFor.getTooltip())
                                 .beginIcon()
-                                .cssClass(usedFor.icon)
+                                .cssClass(usedFor.getIcon())
                                 .end();
                     }
                 }
@@ -184,9 +165,9 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
 
     @Override
     protected Component createHeader(String headerId) {
-        DropDownChoicePanel<UsedFor> dropdown = WebComponentUtil.createEnumPanel(
+        DropDownChoicePanel<MappingUsedFor> dropdown = WebComponentUtil.createEnumPanel(
                 headerId,
-                WebComponentUtil.createReadonlyModelFromEnum(UsedFor.class),
+                WebComponentUtil.createReadonlyModelFromEnum(MappingUsedFor.class),
                 Model.of(),
                 InboundAttributeMappingsTable.this,
                 true,
@@ -221,7 +202,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                     return null;
                 }
 
-                UsedFor usedFor = getSelectedTypeOfMappings();
+                MappingUsedFor usedFor = getSelectedTypeOfMappings();
                 if (usedFor == null) {
                     return list;
                 }
@@ -232,7 +213,7 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                     if (valueUse == null) {
                         valueUse = InboundMappingUseType.ALL;
                     }
-                    UsedFor valueUsedFor = UsedFor.valueOf(valueUse.name());
+                    MappingUsedFor valueUsedFor = MappingUsedFor.valueOf(valueUse.name());
 
                     return !usedFor.equals(valueUsedFor);
                 });
@@ -241,8 +222,18 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
         };
     }
 
-    private UsedFor getSelectedTypeOfMappings() {
-        DropDownChoicePanel<UsedFor> header = (DropDownChoicePanel<UsedFor>) getTable().getHeader();
+    private MappingUsedFor getSelectedTypeOfMappings() {
+        DropDownChoicePanel<MappingUsedFor> header = (DropDownChoicePanel<MappingUsedFor>) getTable().getHeader();
         return header.getModel().getObject();
+    }
+
+    @Override
+    protected ItemName getItemNameOfRefAttribute() {
+        return ResourceAttributeDefinitionType.F_REF;
+    }
+
+    @Override
+    protected ItemPathType getAttributeRefAttributeValue(PrismContainerValueWrapper<ResourceAttributeDefinitionType> value) {
+        return value.getRealValue().getRef();
     }
 }

@@ -86,6 +86,13 @@ Tree node search is now same for all nodes.
 ** Support for `requirement` policy constraint in xref:/midpoint/reference/roles-policies/policy-rules/[policy rules].
 ** Built-in classifications for _privileged access_ and _information security responsibility_.
 
+* Spring Boot/hibernate upgrade
+** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
+** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
+
+* Shadow table Partitioning in Native PostgreSQL Repository
+** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
+
 === Other Improvements
 
 TODO
@@ -570,6 +577,12 @@ Only things that cannot be described as simple "fixing" something are described 
 The changes since 4.8 are of interest probably for "advanced" midPoint deployments only.
 You should at least scan through them, though.
 ====
+
+* Checking for conflicts for single-valued items was fixed (strengthened).
+In 4.8.3 and before, there were situations that two strong mappings produced different values for a given single-valued item, yet no error was produced.
+(If the item contained the same value that was produced by one of these mappings.)
+Such configurations are in principle unstable, so this kind of errors should be identified and fixed.
+Please see bug:MID-9621[] and https://github.com/Evolveum/midpoint/commit/22e2d8429e269e4c54b19c3e2df153b9fbfd1437[this commit].
 
 * The default configuration for caching was changed.
 Currently, only mapped attributes are cached by default.

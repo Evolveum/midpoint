@@ -7,10 +7,13 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -49,5 +52,10 @@ class AttributeMapper<
     @Override
     ShadowAssociationDefinition getAssociationDefinition() {
         return null;
+    }
+
+    @Override
+    boolean isItemLoaded(LensProjectionContext projectionContext) throws SchemaException, ConfigurationException {
+        return projectionContext.isAttributeLoaded(getItemName());
     }
 }

@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="lifecycleState" class="ml-auto p-0"/>
+    <wicket:enclosure child="icon">
+        <div class="logo d-flex justify-content-center mt-3">
+            <i class="text-lightblue align-self-center fa-2x" wicket:id="icon"/>
+        </div>
+    </wicket:enclosure>
+    <div class="d-flex justify-content-center">
+        <span class="mt-3 text-gray font-weight-bold text-center text-break" wicket:id="title"/>
+        <i wicket:id="help" class="pl-1 pt-3"/>
+    </div>
+    <span class="mb-2 text-secondary text-center tile-description" wicket:id="description"/>
+    <span class="invisible" wicket:id="tag"/>
+    <div class="mt-auto d-flex flex-column w-100">
+        <button class="btn btn-default mb-3" wicket:id="configureButton"/>
+        <button class="btn btn-block btn-outline-secondary" style="border:none;" wicket:id="removeButton"/>
+    </div>
+</wicket:panel>
+</html>

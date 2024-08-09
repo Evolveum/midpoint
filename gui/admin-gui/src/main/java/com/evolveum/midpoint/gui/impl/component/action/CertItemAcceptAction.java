@@ -29,7 +29,7 @@ public class CertItemAcceptAction extends AbstractCertItemDecisionAction {
     }
 
     @Override
-    protected AccessCertificationResponseType getResponse() {
+    protected AccessCertificationResponseType getResponse(AccessCertificationWorkItemType certItem) {
         return AccessCertificationResponseType.ACCEPT;
     }
 

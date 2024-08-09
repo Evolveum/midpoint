@@ -47,7 +47,7 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPreviewPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardChoicePanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledShadowCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -249,35 +249,35 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
         List<InlineMenuItem> items = new ArrayList<>();
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.BASIC,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.BASIC,
                 "showResourceObjectTypeBasicWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.SYNCHRONIZATION,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.SYNCHRONIZATION,
                 "showSynchronizationWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.ATTRIBUTE_MAPPING,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.ATTRIBUTE_MAPPING,
                 "showAttributeMappingWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.CORRELATION,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.CORRELATION,
                 "showCorrelationWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.CAPABILITIES,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.CAPABILITIES,
                 "showCapabilitiesWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.CREDENTIALS,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.CREDENTIALS,
                 "showCredentialsWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.ACTIVATION,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.ACTIVATION,
                 "showActivationsWizard"));
 
         items.add(createWizardItemPanel(
-                ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType.ASSOCIATIONS,
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.ASSOCIATIONS,
                 "showAssociationsWizard"));
 
         DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", getString("ResourceObjectsPanel.button.configure"), items);
@@ -302,7 +302,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private ButtonInlineMenuItem createWizardItemPanel(
-            @NotNull ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType wizardType,
+            @NotNull ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType wizardType,
             @NotNull String methodName
     ) {
         return new ButtonInlineMenuItem(

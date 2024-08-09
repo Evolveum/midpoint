@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -60,7 +59,9 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
 
     private static final String DOT_CLASS = CertificationWorkItemTable.class.getName() + ".";
     private static final String OPERATION_LOAD_ACCESS_CERT_DEFINITION = DOT_CLASS + "loadAccessCertificationDefinition";
+    private static final String OPERATION_LOAD_CERTIFICATION_CONFIG = DOT_CLASS + "loadCertificationConfiguration";
     private static final String OPERATION_RECORD_COMMENT = DOT_CLASS + "recordComment";
+    private static final String OPERATION_LOAD_MULTISELECT_CONFIG = DOT_CLASS + "loadMultiselectConfig";
 
     public CertificationWorkItemTable(String id) {
         super(id, AccessCertificationWorkItemType.class);
@@ -95,7 +96,25 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
     @Override
     protected IColumn<PrismContainerValueWrapper<AccessCertificationWorkItemType>, String> createCheckboxColumn() {
         if (!isPreview()) {
-            return new CheckBoxHeaderColumn<>();
+            try {
+                OperationResult result = new OperationResult(OPERATION_LOAD_MULTISELECT_CONFIG);
+                var accessCertConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(result);
+                if (accessCertConfig == null) {
+                    return new CheckBoxColumn<>(null);
+                }
+                MultiselectOptionType multiselect = accessCertConfig.getMultiselect();
+                if (multiselect == null) {
+                    return new CheckBoxColumn<>(null);
+                }
+                return switch (multiselect) {
+                    case NO_SELECT -> null;
+                    case SELECT_ALL -> new CheckBoxHeaderColumn<>();
+                    case SELECT_INDIVIDUAL_ITEMS -> new CheckBoxColumn<>(null);
+                };
+            } catch (Exception e) {
+                LOGGER.error("Couldn't load multiselect configuration for certification items", e);
+                return new CheckBoxHeaderColumn<>();
+            }
         }
         return null;
     }
@@ -125,7 +144,12 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
             availableResponses = Arrays.stream(values()).filter(r -> r != DELEGATE).collect(Collectors.toList());
         }
         List<GuiActionType> actions = getCertItemsViewActions();
-        return CertMiscUtil.mergeCertItemsResponses(availableResponses, actions, getPageBase());
+        List<AbstractGuiAction<AccessCertificationWorkItemType>> actionsList =
+                CertMiscUtil.mergeCertItemsResponses(availableResponses, actions, getPageBase());
+        return actionsList
+                .stream()
+                .sorted(Comparator.comparingInt(AbstractGuiAction::getOrder))
+                .toList();
     }
 
     private List<GuiActionType> getCertItemsViewActions() {
@@ -255,18 +279,15 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         return QueryUtils.createQueryForOpenWorkItems(query, principal, false);
     }
 
-    //TODO
     protected boolean isMyCertItems() {
         return true;
     }
 
-    //TODO
     protected boolean showOnlyNotDecidedItems() {
         return false;
     }
 
-    //TODO
-    private String getCampaignOid() {
+    protected String getCampaignOid() {
         return OnePageParameterEncoder.getParameter(getPageBase());
     }
 
@@ -281,16 +302,21 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
             collectionIdentifier = view.getIdentifier();
         }
 
+        if (collectionIdentifier == null) {
+            try {
+                OperationResult subResult = result.createSubresult(OPERATION_LOAD_CERTIFICATION_CONFIG);
+                var certificationConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(subResult);
+                if (certificationConfig != null) {
+                    collectionIdentifier = certificationConfig.getDefaultView();
+                }
+            } catch (Exception e) {
+                LOGGER.error("Couldn't load certification configuration from system configuration, ", e);
+            }
+        }
+
         CompiledObjectCollectionView existingGlobalView = null;
         if (collectionIdentifier != null) {
             existingGlobalView = WebComponentUtil.getCompiledGuiProfile().findObjectCollectionView(AccessCertificationWorkItemType.COMPLEX_TYPE, collectionIdentifier);
-        } else {
-            List<CompiledObjectCollectionView> compiledObjectCollectionViews = WebComponentUtil.getCompiledGuiProfile().findAllApplicableObjectCollectionViews(AccessCertificationWorkItemType.COMPLEX_TYPE);
-            if (compiledObjectCollectionViews.size() > 1) {
-                //TODO warning and skip, we can't decide which one to use
-            } else if (compiledObjectCollectionViews.size() == 1) {
-                existingGlobalView = compiledObjectCollectionViews.get(0);
-            }
         }
 
         try {
@@ -307,10 +333,9 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
             getPageBase().getModelInteractionService().compileView(mergedView, view, task, result);
             return mergedView;
         } catch (Exception e) {
-            //TODO handle properly
-            throw new RuntimeException(e);
+            LOGGER.error("Couldn't load certification work items view, ", e);
         }
-
+        return null;
     }
 
     private GuiObjectListViewType getCollectionViewConfigurationFromCampaignDefinition(Task task, OperationResult result) {

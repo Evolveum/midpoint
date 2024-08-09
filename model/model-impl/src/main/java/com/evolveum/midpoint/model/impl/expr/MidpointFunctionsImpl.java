@@ -483,7 +483,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     private void ensureActivationInformationAvailable(LensProjectionContext projCtx)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        if (!projCtx.isFullShadow()) {
+        if (!projCtx.isActivationLoaded()) {
             LOGGER.trace("Will load full shadow in order to determine the activation status: {}", projCtx);
             contextLoader.loadFullShadowNoDiscovery(
                     projCtx, "projection activation determination", getCurrentTaskRequired(), getCurrentResult());
@@ -520,6 +520,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return isEffectivelyEnabled(
                 asObjectable(
                         getFocusContextRequired().getObjectNew()));
+    }
+
+    @Override
+    public boolean isFocusDeleted() {
+        var lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        var focusContext = lensContext != null ? lensContext.getFocusContext() : null;
+        return focusContext != null && focusContext.isDelete();
     }
 
     @NotNull
@@ -2300,7 +2307,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @NotNull
     @Override
     public OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin) {
-        return new OptimizingTriggerCreatorImpl(triggerCreatorGlobalState, this, fireAfter, safetyMargin);
+        return new OptimizingTriggerCreatorImpl(
+                triggerCreatorGlobalState,
+                this,
+                fireAfter,
+                safetyMargin);
     }
 
     @NotNull

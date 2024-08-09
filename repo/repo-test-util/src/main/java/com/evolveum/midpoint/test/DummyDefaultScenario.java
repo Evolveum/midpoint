@@ -11,12 +11,16 @@ import static com.evolveum.icf.dummy.resource.LinkClassDefinition.LinkClassDefin
 import static com.evolveum.icf.dummy.resource.LinkClassDefinition.Participant.ParticipantBuilder.aParticipant;
 import static com.evolveum.midpoint.test.ObjectClassName.*;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the default scenario residing on given dummy resource.
- * No need for initialization of classes and attributes; only the native associations should be initialized (for now).
+ *
+ * Assumes non-legacy schema when used by midPoint resource.
  */
+@SuppressWarnings("WeakerAccess")
 public class DummyDefaultScenario extends AbstractDummyScenario {
 
     private DummyDefaultScenario(@NotNull DummyResourceContoller controller) {
@@ -33,6 +37,8 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
     }
 
     public DummyDefaultScenario initialize() {
+        account.initialize();
+        // there is nothing to initialize for groups and privileges
         groupMembership.initialize();
         accountPrivilege.initialize();
         return this;
@@ -40,15 +46,31 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
 
     public class Account extends ScenarioObjectClass {
 
-        public static final ObjectClassName OBJECT_CLASS_NAME = legacyAccount("account");
+        public static final ObjectClassName OBJECT_CLASS_NAME = custom("account");
 
         public static class AttributeNames {
-            // TODO
+            public static final AttrName FULLNAME = AttrName.ri(DummyAccount.ATTR_FULLNAME_NAME);
+            public static final AttrName DESCRIPTION = AttrName.ri(DummyAccount.ATTR_DESCRIPTION_NAME);
+            public static final AttrName INTERESTS = AttrName.ri(DummyAccount.ATTR_INTERESTS_NAME);
+            public static final AttrName INTERNAL_ID = AttrName.ri(DummyAccount.ATTR_INTERNAL_ID);
+            // privileges are not present here, as they are represented by reference attributes
         }
 
         public static class LinkNames {
             public static final AssocName GROUP = AssocName.ri("group");
             public static final AssocName PRIV = AssocName.ri("priv");
+        }
+
+        void initialize() {
+            var oc = controller.getDummyResource().getAccountObjectClass();
+            if (oc.getAttributeDefinitions().isEmpty()) {
+                // It seems like this code is sometimes called with already-initialized resource. So this is a little hack,
+                // until things are sorted out.
+                controller.addAttrDef(oc, AttributeNames.FULLNAME.local(), String.class, false, false);
+                controller.addAttrDef(oc, AttributeNames.DESCRIPTION.local(), String.class, false, false);
+                controller.addAttrDef(oc, AttributeNames.INTERESTS.local(), String.class, false, true);
+                controller.addAttrDef(oc, AttributeNames.INTERNAL_ID.local(), String.class, false, false);
+            }
         }
 
         @Override
@@ -62,7 +84,7 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
         public static final ObjectClassName OBJECT_CLASS_NAME = legacyGroup("group");
 
         public static class AttributeNames {
-            // TODO
+            // nothing here, the only data are members now
         }
 
         public static class LinkNames {
@@ -108,7 +130,7 @@ public class DummyDefaultScenario extends AbstractDummyScenario {
                                     .withLinkAttributeName(Group.LinkNames.MEMBER_REF.local()) // visible because of tests
                                     .withReturnedByDefault(false)
                                     .withExpandedByDefault(false)
-                                    //.withProvidingUnclassifiedReferences(true) // We are not ready for this yet
+                                    .withProvidingUnclassifiedReferences(true)
                                     .withMaxOccurs(-1)
                                     .build())
                             .build());

@@ -14,7 +14,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
@@ -28,8 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.toPolyStringType;
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreReferenceAttributeInShadow;
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreSimpleAttributeInShadow;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.*;
 
 /**
  * Computes a shadow to be stored in the repository.
@@ -82,7 +80,7 @@ class ShadowObjectComputer {
         for (var attribute : resourceObjectOrOtherShadow.getAttributes()) {
             if (attribute instanceof ShadowSimpleAttribute<?> simpleAttribute) {
                 var attrDef = simpleAttribute.getDefinitionRequired();
-                if (shouldStoreSimpleAttributeInShadow(ctx, objectDef, attrDef)) {
+                if (shouldStoreSimpleAttributeInShadow(objectDef, attrDef)) {
                     var repoAttrDef = attrDef.toNormalizationAware();
                     var repoAttr = repoAttrDef.adoptRealValuesAndInstantiate(simpleAttribute.getRealValues());
                     repoShadowObject
@@ -91,7 +89,7 @@ class ShadowObjectComputer {
                 }
             } else if (attribute instanceof ShadowReferenceAttribute referenceAttribute) {
                 var attrDef = referenceAttribute.getDefinitionRequired();
-                if (shouldStoreReferenceAttributeInShadow(ctx, objectDef, attrDef)) {
+                if (shouldStoreReferenceAttributeInShadow(objectDef, attrDef)) {
                     var repoAttrDef = ShadowComputerUtil.createRepoRefAttrDef(attrDef);
                     var repoAttr = repoAttrDef.instantiate();
                     for (var refAttrValue : referenceAttribute.getReferenceValues()) {
@@ -108,23 +106,25 @@ class ShadowObjectComputer {
                 throw new AssertionError(attribute);
             }
         }
-        if (ctx.isCachingEnabled()) {
+        var objectDefinition = ctx.getObjectDefinitionRequired();
+
+        if (objectDefinition.isCachingEnabled()) {
             CachingMetadataType cachingMetadata = new CachingMetadataType();
             cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
             repoShadowBean.setCachingMetadata(cachingMetadata);
         } else {
             repoShadowBean.setCachingMetadata(null);
-            ProvisioningUtil.cleanupShadowActivation(repoShadowBean); // TODO deal with this more precisely
         }
+
+        ShadowComputerUtil.cleanupShadowActivation(ctx, repoShadowBean.getActivation());
 
         // Store only password meta-data in repo - unless there is explicit caching
         CredentialsType credentials = repoShadowBean.getCredentials();
         if (credentials != null) {
             PasswordType password = credentials.getPassword();
             if (password != null) {
-                preparePasswordForStorage(password, ctx);
-                ObjectReferenceType owner = ctx.getTask().getOwnerRef();
-                ProvisioningUtil.addPasswordMetadata(password, clock.currentTimeXMLGregorianCalendar(), owner);
+                preparePasswordForStorage(ctx, password);
+                addPasswordMetadata(password, clock.currentTimeXMLGregorianCalendar(), ctx.getTask().getOwnerRef());
             }
             // TODO: other credential types - later
         }
@@ -146,19 +146,18 @@ class ShadowObjectComputer {
         return RawRepoShadow.of(repoShadowBean);
     }
 
-    private void preparePasswordForStorage(PasswordType password, ProvisioningContext ctx)
+    private void preparePasswordForStorage(ProvisioningContext ctx, PasswordType password)
             throws SchemaException, EncryptionException {
         ProtectedStringType passwordValue = password.getValue();
         if (passwordValue == null) {
             return;
         }
-        CachingStrategyType cachingStrategy = ctx.getPasswordCachingStrategy();
-        if (cachingStrategy != null && cachingStrategy != CachingStrategyType.NONE) {
+        if (ctx.getObjectDefinitionRequired().areCredentialsCached()) {
             if (!passwordValue.isHashed()) {
                 protector.hash(passwordValue);
             }
         } else {
-            ProvisioningUtil.cleanupShadowPassword(password);
+            cleanupShadowPassword(password);
         }
     }
 }

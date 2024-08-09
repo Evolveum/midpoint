@@ -6,17 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.component.tile;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSearchDataProvider;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
 import com.evolveum.midpoint.web.component.util.SelectableRow;
@@ -33,7 +29,6 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.synchronization.ActionStepPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -43,13 +38,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T extends Tile> extends TileTablePanel<T, O> {
 
@@ -87,11 +79,17 @@ public abstract class SingleSelectTileTablePanel<O extends SelectableRow, T exte
             @Override
             protected Search load() {
                 return new SearchBuilder(getType())
+                        .collectionView(getCompiledCollectionViewFromPanelConfiguration())
                         .modelServiceLocator(getPageBase())
                         .additionalSearchContext(getAdditionalSearchContext())
+                        .setFullTextSearchEnabled(isFullTextSearchEnabled())
                         .build();
             }
         };
+    }
+
+    protected boolean isFullTextSearchEnabled() {
+        return true;
     }
 
     protected abstract Class<? extends Containerable> getType();

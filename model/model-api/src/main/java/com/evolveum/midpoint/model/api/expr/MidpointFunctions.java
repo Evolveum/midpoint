@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.api.expr;
 
 import java.util.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ActivityCustomization;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -1468,6 +1470,7 @@ public interface MidpointFunctions {
 
     RepositoryService getRepositoryService();
 
+    /** Creates an {@link OptimizingTriggerCreator} that is able to create triggers only if they are not already present. */
     @NotNull
     OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin);
 
@@ -1581,6 +1584,9 @@ public interface MidpointFunctions {
      */
     boolean isFocusDeactivated();
 
+    /** Does the current clockwork operation delete the focus? */
+    boolean isFocusDeleted();
+
     /**
      * Returns the object reference for a given association value.
      * Assumes that the association has no content and exactly one object.
@@ -1603,4 +1609,67 @@ public interface MidpointFunctions {
         var ref = getObjectRef(associationValueBean);
         return ref != null ? ref.getTargetName() : null;
     }
+
+    default @Nullable ValueMetadataType getMetadata(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getMetadata(object);
+    }
+
+    default @Nullable ValueMetadataType getMetadata(@NotNull AbstractCredentialType credential) {
+        return ValueMetadataTypeUtil.getMetadata(credential);
+    }
+
+    default @Nullable XMLGregorianCalendar getCreateTimestamp(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getCreateTimestamp(object);
+    }
+
+    default @Nullable XMLGregorianCalendar getCreateTimestamp(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getCreateTimestamp(assignment);
+    }
+
+    default @Nullable XMLGregorianCalendar getModifyTimestamp(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getModifyTimestamp(object);
+    }
+
+    default @Nullable XMLGregorianCalendar getLastChangeTimestamp(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getLastChangeTimestamp(object);
+    }
+
+    default @NotNull List<ObjectReferenceType> getCreateApproverRefs(@NotNull ObjectType object) {
+        return ValueMetadataTypeUtil.getCreateApproverRefs(object);
+    }
+
+    default @NotNull Collection<ObjectReferenceType> getCreateApproverRefs(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getCreateApproverRefs(assignment);
+    }
+
+    default Collection<ObjectReferenceType> getModifyApproverRefs(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getModifyApproverRefs(assignment);
+    }
+
+    default Collection<String> getModifyApprovalComments(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getModifyApprovalComments(assignment);
+    }
+
+    default @Nullable XMLGregorianCalendar getRequestTimestamp(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getRequestTimestamp(assignment);
+    }
+
+    default Collection<ObjectReferenceType> getRequestorRefs(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getRequestorRefs(assignment) ;
+    }
+
+    default Collection<String> getRequestorComments(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getRequestorComments(assignment);
+    }
+
+    default @NotNull Collection<ObjectReferenceType> getCertifierRefs(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getCertifierRefs(assignment);
+    }
+
+    default @NotNull Collection<String> getCertifierComments(@NotNull AssignmentType assignment) {
+        return ValueMetadataTypeUtil.getCertifierComments(assignment);
+    }
+
+
+
 }

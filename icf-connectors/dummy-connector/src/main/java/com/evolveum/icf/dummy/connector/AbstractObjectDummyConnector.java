@@ -171,18 +171,18 @@ public abstract class AbstractObjectDummyConnector
 
     private DummyObject convertToDummyObjectExceptLinks(ObjectClass objectClass, Set<Attribute> createAttributes)
             throws ConflictException, FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
-        var objectClassName = objectClass.getObjectClassValue();
-        if (ObjectClass.ACCOUNT.is(objectClassName)) {
+        var objectClassName = fromConnIdObjectClass(objectClass);
+        if (objectClassName.equalsIgnoreCase(DummyAccount.OBJECT_CLASS_NAME)) {
             return convertToAccount(createAttributes);
-        } else if (ObjectClass.GROUP.is(objectClassName)) {
+        } else if (objectClassName.equalsIgnoreCase(DummyGroup.OBJECT_CLASS_NAME)) {
             return convertToGroup(createAttributes);
-        } else if (objectClass.is(DummyPrivilege.OBJECT_CLASS_NAME)) {
+        } else if (objectClassName.equalsIgnoreCase(DummyPrivilege.OBJECT_CLASS_NAME)) {
             return convertToOther(
                     new DummyPrivilege(
                             getIcfName(createAttributes),
                             resource),
                     createAttributes);
-        } else if (objectClass.is(DummyOrg.OBJECT_CLASS_NAME)) {
+        } else if (objectClassName.equalsIgnoreCase(DummyOrg.OBJECT_CLASS_NAME)) {
             return convertToOther(
                     new DummyOrg(
                             getIcfName(createAttributes),
@@ -455,7 +455,10 @@ public abstract class AbstractObjectDummyConnector
                 continue;
             }
             var attrBuilder = new AttributeInfoBuilder(participant.getLinkNameRequired(), ConnectorObjectReference.class)
-                    .setSubtype(linkDefinition.getLinkClassDefinition().getName())
+                    // We provide null subtype for one-sided links to check that midPoint can cope with them.
+                    .setSubtype(
+                            linkDefinition.getOtherParticipant().isVisible() ?
+                                    linkDefinition.getLinkClassDefinition().getName() : null)
                     .setMultiValued(participant.getMaxOccurs() < 0 || participant.getMaxOccurs() > 1)
                     .setRequired(participant.getMinOccurs() > 0)
                     .setReturnedByDefault(participant.isReturnedByDefault())

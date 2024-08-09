@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.repo.sqale.SqaleRepositoryService.INITIAL_VE
 import java.util.Objects;
 import java.util.UUID;
 
+import com.evolveum.midpoint.repo.sqale.mapping.PartitionManager;
+
 import com.querydsl.core.QueryException;
 import org.jetbrains.annotations.NotNull;
 import org.postgresql.util.PSQLException;
@@ -106,7 +108,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
         R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
         row.containerIdSeq = lastCid + 1;
         rootMapping.setFullObject(row, schemaObject);
-
+        PartitionManager.ensurePartitionExistsBeforeAdd(rootMapping, row, jdbcSession);
         UUID oid = jdbcSession.newInsert(root)
                 // default populate mapper ignores null, that's good, especially for objectType
                 .populate(row)
@@ -122,7 +124,7 @@ public class AddObjectContext<S extends ObjectType, Q extends QObject<R>, R exte
     private String addObjectWithoutOid(JdbcSession jdbcSession) throws SchemaException {
         S schemaObject = object.asObjectable();
         R row = rootMapping.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
-
+        PartitionManager.ensurePartitionExistsBeforeAdd(rootMapping, row, jdbcSession);
         // first insert without full object, because we don't know the OID yet
         UUID oid = jdbcSession.newInsert(root)
                 // default populate mapper ignores null, that's good, especially for objectType

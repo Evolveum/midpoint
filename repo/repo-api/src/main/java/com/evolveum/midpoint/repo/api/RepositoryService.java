@@ -158,6 +158,8 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String OP_REPOSITORY_SELF_TEST = "repositorySelfTest";
     String OP_TEST_ORG_CLOSURE_CONSISTENCY = "testOrgClosureConsistency";
 
+    String OP_CREATE_PARTITIONS_FOR_EXISTING_DATA = "createPartitionsForExistingData";
+
     // Not used by new repo, instead class specific prefix + OP_* constants are used
     String GET_OBJECT = CLASS_NAME_WITH_DOT + OP_GET_OBJECT;
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + OP_ADD_OBJECT;
@@ -179,6 +181,7 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
     String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + OP_ADD_DIAGNOSTIC_INFORMATION;
     String HAS_CONFLICT = CLASS_NAME_WITH_DOT + OP_HAS_CONFLICT;
 
+    String CREATE_PARTITIONS_FOR_EXISTING_DATA = CLASS_NAME_WITH_DOT + OP_CREATE_PARTITIONS_FOR_EXISTING_DATA;
     String KEY_DIAG_DATA = "repositoryDiagData"; // see GetOperationOptions.attachDiagData
     String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";
 
@@ -337,6 +340,17 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         throw new UnsupportedOperationException();
+    }
+    default void createPartitionsForExistingData(OperationResult parentResult) throws SchemaException {
+        // NOOP
+    }
+
+    /**
+     * Applies systemConfiguration/internals/repository to repository
+     * @param repositoryConfig If null, defaults should be applied, otherwise applies specified configuration
+     */
+    default void applyRepositoryConfiguration(@Nullable  RepositoryConfigurationType repositoryConfig) {
+        // NOOP
     }
 
     @FunctionalInterface

@@ -31,7 +31,7 @@ public class AssociationReferenceMappingItemPathPanelFactory extends Association
 
     @Override
     protected ItemName getItemNameForContainerOfAttributes() {
-        return ShadowAssociationDefinitionType.F_OBJECT_REF;
+        return AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF;
     }
 
     @Override

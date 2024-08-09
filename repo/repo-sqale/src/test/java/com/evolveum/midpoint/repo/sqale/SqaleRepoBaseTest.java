@@ -106,6 +106,10 @@ public class SqaleRepoBaseTest extends AbstractSpringTest
         try (JdbcSession jdbcSession = startTransaction()) {
             // object delete cascades to sub-rows of the "object aggregate"
 
+            // Simulations results have dynamic partitions, we need to execute delete triggers to clean them.
+            jdbcSession.executeStatement("DELETE FROM m_simulation_result CASCADE;");
+            jdbcSession.executeStatement("DELETE FROM m_shadow_partition_def CASCADE;");
+
             jdbcSession.executeStatement("TRUNCATE m_object CASCADE;");
             // truncate does not run ON DELETE trigger, many refs/container tables are not cleaned
             jdbcSession.executeStatement("TRUNCATE m_object_oid CASCADE;");

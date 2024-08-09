@@ -142,7 +142,7 @@ public class ShadowsFacade {
     public SearchResultMetadata searchObjectsIterative(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            ResultHandler<ShadowType> handler,
+            @NotNull ResultHandler<ShadowType> handler,
             ProvisioningOperationContext context,
             Task task,
             OperationResult result)
@@ -170,7 +170,7 @@ public class ShadowsFacade {
             ProvisioningContext ctx,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            ResultHandler<ShadowType> handler,
+            @NotNull ResultHandler<ShadowType> handler,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

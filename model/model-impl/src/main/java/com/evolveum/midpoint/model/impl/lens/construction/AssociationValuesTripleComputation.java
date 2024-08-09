@@ -27,7 +27,10 @@ import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -222,25 +225,31 @@ public class AssociationValuesTripleComputation {
         private PrismValueDeltaSetTriple<ShadowAssociationValue> compute(@NotNull PlusMinusZero mode)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
+            var resultingTriple = PrismContext.get().deltaFactory().<ShadowAssociationValue>createPrismValueDeltaSetTriple();
+            for (var attrDefBean : outboundBean.getAttribute()) {
+                evaluateAttribute(attrDefBean, false);
+            }
+            for (var attrDefBean : outboundBean.getObjectRef()) {
+                evaluateAttribute(attrDefBean, true);
+            }
+            var associationObject = consolidate();
+            ShadowAssociationValue associationValue;
             if (hasAssociationObject) {
-                for (var attrDefBean : outboundBean.getAttribute()) {
-                    evaluateAttribute(attrDefBean, false);
-                }
-                for (var attrDefBean : outboundBean.getObjectRef()) {
-                    evaluateAttribute(attrDefBean, true);
-                }
-                var associationObject = consolidate();
-                var associationValue =
+                associationValue =
                         ShadowAssociationValue.fromAssociationObject(
                                 AbstractShadow.of(associationObject),
                                 associationDefinition);
-                var resultingTriple = PrismContext.get().deltaFactory().<ShadowAssociationValue>createPrismValueDeltaSetTriple();
-                resultingTriple.addAllToSet(mode, List.of(associationValue));
-                return resultingTriple;
             } else {
-                // FIXME implement this
-                return PrismContext.get().deltaFactory().createPrismValueDeltaSetTriple();
+                associationValue = ShadowAssociationValue.empty(associationDefinition);
+                var referenceAttributes = ShadowUtil.getAttributesContainer(associationObject).getReferenceAttributes();
+                if (referenceAttributes.isEmpty()) {
+                    return resultingTriple;
+                }
+                var referenceAttribute = MiscUtil.extractSingletonRequired(referenceAttributes);
+                associationValue.getOrCreateObjectsContainer().addAttribute(referenceAttribute.clone());
             }
+            resultingTriple.addAllToSet(mode, List.of(associationValue));
+            return resultingTriple;
         }
 
         private void evaluateAttribute(AttributeOutboundMappingsDefinitionType attrDefBean, boolean isObjectRef)
@@ -270,9 +279,14 @@ public class AssociationValuesTripleComputation {
 
                 var magicAssignmentIdi = assignmentPathVariables.getMagicAssignment();
 
-                var outputDefinition = associationDefinition
-                        .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
-                        .findAttributeDefinitionRequired(targetItemName);
+                var outputDefinition =
+                        associationDefinition.hasAssociationObject() ?
+                                associationDefinition
+                                        .getAssociationObjectDefinition()
+                                        .findAttributeDefinitionRequired(targetItemName) :
+                                projectionContext
+                                        .getCompositeObjectDefinition()
+                                        .findAttributeDefinitionRequired(targetItemName);
 
                 builder = builder
                         .targetItemName(targetItemName)
@@ -307,10 +321,10 @@ public class AssociationValuesTripleComputation {
         private @NotNull ShadowType consolidate()
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            var shadow = associationDefinition
-                    .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
-                    .createBlankShadow()
-                    .getBean();
+            var shadowDef = associationDefinition.hasAssociationObject() ?
+                    associationDefinition.getAssociationObjectDefinition() :
+                    projectionContext.getCompositeObjectDefinitionRequired();
+            var shadow = shadowDef.createBlankShadow().getBean();
             //noinspection unchecked
             var consolidation = new DeltaSetTripleMapConsolidation<>(
                     tripleMap,

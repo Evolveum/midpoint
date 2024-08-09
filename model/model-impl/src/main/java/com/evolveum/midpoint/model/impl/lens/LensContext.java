@@ -346,7 +346,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 .collect(Collectors.toList());
     }
 
-    public boolean hasLowerOrderContext(LensProjectionContext refProjCtx) {
+    boolean hasLowerOrderContextThan(LensProjectionContext refProjCtx) {
         ProjectionContextKey refKey = refProjCtx.getKey();
         for (LensProjectionContext aProjCtx : projectionContexts) {
             ProjectionContextKey aKey = aProjCtx.getKey();

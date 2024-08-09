@@ -154,6 +154,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_OUTLIER_PROPERTIES,
         TABLE_OUTLIERS,
         PANEL_OUTLIER_PARTITIONS,
+        PANEL_ASSOCIATION_INBOUND,
+        PANEL_ASSOCIATION_OUTBOUND,
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

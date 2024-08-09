@@ -232,7 +232,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
                 throw new NotApplicableException();
             }
             LOGGER.trace("-> current object was taken from the resource:\n{}", resourceObject.debugDumpLazily());
-        } else if (effectiveCtx.isCachingEnabled()) {
+        } else if (effectiveCtx.getObjectDefinitionRequired().isCachingEnabled()) {
             // This might not be correct, because of partial caching and/or index-only attributes!
             resourceObject = ExistingResourceObjectShadow.fromRepoShadow(
                     repoShadow.clone(),

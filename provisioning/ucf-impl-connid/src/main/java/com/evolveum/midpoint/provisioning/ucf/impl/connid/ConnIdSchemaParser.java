@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMappe
 import static com.evolveum.midpoint.schema.processor.ObjectFactory.createNativeAttributeDefinition;
 
 import java.util.*;
+import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.NativeResourceSchema.NativeResourceSchemaBuilder;
@@ -111,6 +112,8 @@ class ConnIdSchemaParser {
     /** Parses single ConnId object class - if applicable. */
     private class ObjectClassParser {
 
+        @NotNull private final String objectClassXsdNameLocal;
+
         /** ConnId style definition. */
         @NotNull private final ObjectClassInfo connIdClassInfo;
 
@@ -146,6 +149,7 @@ class ConnIdSchemaParser {
                 @NotNull String objectClassXsdNameLocal,
                 @NotNull ObjectClassInfo objectClassInfo,
                 @NotNull SpecialAttributes specialAttributes) {
+            this.objectClassXsdNameLocal = objectClassXsdNameLocal;
             this.connIdClassInfo = objectClassInfo;
             this.ocDefBuilder = schemaBuilder.newComplexTypeDefinitionLikeBuilder(objectClassXsdNameLocal);
             this.specialAttributes = specialAttributes;
@@ -220,10 +224,11 @@ class ConnIdSchemaParser {
         private void parseAttributeInfo(ItemName xsdItemName, AttributeInfo connIdAttrInfo) throws SchemaException {
             var connIdAttrName = connIdAttrInfo.getName();
 
-            // Here we require subtype (reference type name) be defined for reference attributes.
-            // One day, we will generate it if missing.
+            // This is the default type name for the reference attributes. Should be resource-wide unique.
+            Supplier<String> referenceTypeNameSupplier = () -> "_" + objectClassXsdNameLocal + "_" + connIdAttrName;
+
             var xsdTypeName = ConnIdTypeMapper.connIdTypeToXsdTypeName(
-                    connIdAttrName, connIdAttrInfo.getType(), connIdAttrInfo.getSubtype(), false);
+                    connIdAttrInfo.getType(), connIdAttrInfo.getSubtype(), false, referenceTypeNameSupplier);
 
             var mpItemDef = createNativeAttributeDefinition(xsdItemName, xsdTypeName);
 

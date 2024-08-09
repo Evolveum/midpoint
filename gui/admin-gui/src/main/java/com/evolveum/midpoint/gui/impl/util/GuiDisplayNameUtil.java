@@ -284,7 +284,21 @@ public class GuiDisplayNameUtil {
                         SchemaHandlingType.F_ASSOCIATION_TYPE,
                         ShadowAssociationTypeDefinitionType.F_SUBJECT,
                         ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                        ShadowAssociationDefinitionType.F_ACTIVATION))) {
+                        ShadowAssociationDefinitionType.F_ACTIVATION))
+                || mapping.asPrismContainerValue().getPath().namedSegmentsOnly().equivalent(
+                ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_ASSOCIATION_TYPE,
+                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                        ShadowAssociationDefinitionType.F_INBOUND))
+                || mapping.asPrismContainerValue().getPath().namedSegmentsOnly().equivalent(
+                ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_ASSOCIATION_TYPE,
+                        ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                        ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                        ShadowAssociationDefinitionType.F_OUTBOUND))) {
             if (StringUtils.isNotEmpty(mapping.getName())) {
                 return mapping.getName();
             }

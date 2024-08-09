@@ -101,6 +101,12 @@
                         <synchronize/>
                     </actions>
                 </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <deleteFocus/>
+                    </actions>
+                </reaction>
             </synchronization>
         </objectType>
         <objectType>
@@ -117,7 +123,7 @@
             </caching>
         </objectType>
         <objectType>
-            <kind>associated</kind>
+            <kind>association</kind>
             <intent>contract</intent>
             <delineation>
                 <objectClass>ri:contract</objectClass>
@@ -219,6 +225,7 @@
     </schemaHandling>
     <caching>
         <cachingStrategy>passive</cachingStrategy>
-        <!-- default scope -->
+        <timeToLive>PT10M</timeToLive>
+        <defaultCacheUse>useCachedOrIgnore</defaultCacheUse>
     </caching>
 </resource>

@@ -461,23 +461,39 @@ public class CapabilityUtil {
         return capabilities != null ? capabilities.asPrismContainerValue().size() : 0;
     }
 
+    public static <T extends CapabilityType> T getCapability(
+            @NotNull ResourceType resource, @NotNull Class<T> capabilityClass) {
+        return getCapability(resource, (CapabilityCollectionType) null, capabilityClass);
+    }
+
     /**
      * Gets a specific capability from resource/connectors/object-class.
      *
      * Notes:
      *
      * - Resource vs connector: The capability from specific connector is used only if it's enabled.
+     *
+     * TODO allow configured capabilities also for refined object classes
      */
     public static <T extends CapabilityType> T getCapability(
             @NotNull ResourceType resource,
             @Nullable ResourceObjectDefinition objectDefinition,
             @NotNull Class<T> capabilityClass) {
 
-        if (objectDefinition instanceof ResourceObjectTypeDefinition) {
-            // TODO allow configured capabilities also for refined object classes
-            T inType = ((ResourceObjectTypeDefinition) objectDefinition).getConfiguredCapability(capabilityClass);
-            if (inType != null) {
-                return inType;
+        var typeDefinition = objectDefinition != null ? objectDefinition.getTypeDefinition() : null;
+        var specificCapabilities = typeDefinition != null ? typeDefinition.getSpecificCapabilities() : null;
+        return getCapability(resource, specificCapabilities, capabilityClass);
+    }
+
+    public static <T extends CapabilityType> T getCapability(
+            @NotNull ResourceType resource,
+            @Nullable CapabilityCollectionType specificObjectTypeOrClassCapabilities,
+            @NotNull Class<T> capabilityClass) {
+
+        if (specificObjectTypeOrClassCapabilities != null) {
+            T inSpecific = CapabilityUtil.getCapability(specificObjectTypeOrClassCapabilities, capabilityClass);
+            if (inSpecific != null) {
+                return inSpecific;
             }
         }
 
@@ -491,6 +507,18 @@ public class CapabilityUtil {
         return getCapability(resource.getCapabilities(), capabilityClass);
     }
 
+    public static boolean isReadingCachingOnly(@NotNull ResourceType resource, @Nullable ResourceObjectDefinition objectDefinition) {
+        var readCapability = getEnabledCapability(resource, objectDefinition, ReadCapabilityType.class);
+        return readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly());
+    }
+
+    public static <T extends CapabilityType> T getEnabledCapability(
+            @NotNull ResourceType resource,
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @NotNull Class<T> capabilityClass) {
+        T capability = getCapability(resource, objectDefinition, capabilityClass);
+        return isCapabilityEnabled(capability) ? capability : null;
+    }
     /**
      * Returns the additional connector capability - but only if it's enabled.
      */

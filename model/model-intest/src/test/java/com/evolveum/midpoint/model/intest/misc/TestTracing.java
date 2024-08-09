@@ -131,6 +131,7 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
      */
     @Test
     public void test200ClassLessValues() throws Exception {
+        skipIfNotNativeRepository();
         given();
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();

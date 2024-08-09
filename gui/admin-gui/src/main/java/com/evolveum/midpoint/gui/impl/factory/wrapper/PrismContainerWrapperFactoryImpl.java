@@ -213,7 +213,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         return new PrismContainerWrapperImpl<>(parent, childContainer, status);
     }
 
-    ItemStatus recomputeStatus(PrismContainer<C> containerWrapper, ItemStatus defaultStatus, WrapperContext ctx) {
+    protected ItemStatus recomputeStatus(PrismContainer<C> containerWrapper, ItemStatus defaultStatus, WrapperContext ctx) {
         if (isShadowCredentialsOrPassword(containerWrapper.getDefinition(), ctx)) {
             return ItemStatus.NOT_CHANGED;
         }

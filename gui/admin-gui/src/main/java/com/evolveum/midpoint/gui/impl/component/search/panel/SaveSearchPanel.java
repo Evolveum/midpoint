@@ -11,6 +11,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -336,7 +340,8 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
             searchConfig.beginAvailableFilter();
         }
 
-        OperationResult result = new OperationResult(OPERATION_SAVE_FILTER);
+        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_FILTER);
+        OperationResult result = task.getResult();
         try {
             ObjectDelta<UserType> userDelta;
             if (!viewExists) {
@@ -352,7 +357,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
                         .item(viewPath)
                         .add(availableFilter).asObjectDelta(principalFocus.getOid());
             }
-            WebModelServiceUtils.save(userDelta, result, getPageBase().createSimpleTask("task"), getPageBase());
+            WebModelServiceUtils.save(userDelta, ModelExecuteOptions.create().raw(), result, task, getPageBase());
         } catch (Exception e) {
             LOGGER.error("Unable to save a filter to user, {}", e.getLocalizedMessage());
             error("Unable to save a filter to user, " + e.getLocalizedMessage());

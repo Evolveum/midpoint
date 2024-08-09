@@ -201,7 +201,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         shadow1Oid = repositoryService.addObject(shadow1.asPrismObject(), null, result);
         // another shadow just to check we don't select shadow1 accidentally/randomly
         repositoryService.addObject(
-                new ShadowType().name("shadow-2").asPrismObject(), null, result);
+                new ShadowType().name("shadow-2")
+                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE) // what relation is used for shadow->resource?
+                        .objectClass(RI_GROUP_OBJECT_CLASS)
+                        .asPrismObject(), null, result);
 
         // tasks
         task1Oid = repositoryService.addObject(
@@ -3100,7 +3103,10 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
         assertThat(result).hasSize((int) count(QObject.CLASS));
     }
 
-    @Test
+    /**
+     * Disabled. Shadows are not part of m_object hierarchy anymore.
+     */
+    @Test(enabled = false)
     public void test921SearchAssignmentHolderTypeFindsAllObjectsExceptShadows()
             throws SchemaException {
         OperationResult operationResult = createOperationResult();

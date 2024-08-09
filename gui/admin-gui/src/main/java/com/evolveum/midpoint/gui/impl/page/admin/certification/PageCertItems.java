@@ -73,7 +73,12 @@ public class PageCertItems extends PageAdminCertification {
 
             @Override
             protected boolean isMyCertItems() {
-                return false;
+                return PageCertItems.this.isMyCertItems();
+            }
+
+            @Override
+            protected boolean showOnlyNotDecidedItems() {
+                return PageCertItems.this.showOnlyNotDecidedItems();
             }
 
             @Override
@@ -103,9 +108,11 @@ public class PageCertItems extends PageAdminCertification {
     }
 
 
-    //TODO
-    boolean isDisplayingAllItems() {
-        return true;
+    boolean showOnlyNotDecidedItems() {
+        return false;
     }
 
+    protected boolean isMyCertItems() {
+        return false;
+    }
 }
