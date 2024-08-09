@@ -95,7 +95,7 @@ public class ShadowMarkingRules implements Serializable {
     }
 
     /** Rule for a single shadow mark. */
-    public static class MarkingRule {
+    public static class MarkingRule implements Serializable {
 
         /** When is this rule applied? */
         @NotNull private final ShadowMarkApplicationTimeType applicationTime;
