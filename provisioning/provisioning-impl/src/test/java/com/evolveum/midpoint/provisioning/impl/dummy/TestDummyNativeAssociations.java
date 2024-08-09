@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * The same as {@link TestDummy} but with the dummy resource providing the associations natively.
  *
- * @see TestDummyRichAssociations
+ * @see TestDummyComplexAssociations
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext

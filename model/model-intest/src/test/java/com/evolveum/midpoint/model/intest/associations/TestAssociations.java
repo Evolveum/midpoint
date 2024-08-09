@@ -16,6 +16,7 @@ import com.evolveum.midpoint.model.intest.TestEntitlements;
 import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.CostCenter;
 import com.evolveum.midpoint.model.intest.associations.DummyHrScenarioExtended.OrgUnit;
 import com.evolveum.midpoint.model.intest.gensync.TestAssociationInbound;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -30,6 +31,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
@@ -97,6 +99,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
     private static final String SERVICE_GUIDE_NAME = "guide";
 
+    private static final String ROLE_ADMINISTRATORS_NAME = "administrators";
+    private static final String ROLE_GUESTS_NAME = "guests";
+    private static final String ROLE_TESTERS_NAME = "testers";
+    private static final String ROLE_OPERATORS_NAME = "operators";
+
     private static DummyHrScenarioExtended hrScenario;
     private static DummyDmsScenario dmsScenario;
     private static DummyDmsScenario dmsScenarioNonTolerant;
@@ -127,6 +134,14 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
             TEST_DIR, "archetype-document.xml", "ce92f877-9f22-44cf-9ef1-f55675760eb0");
     private static final TestObject<ArchetypeType> ARCHETYPE_DOCUMENT_NON_TOLERANT = TestObject.file(
             TEST_DIR, "archetype-document-non-tolerant.xml", "737dc161-2df6-45b3-8201-036745f9e51a");
+    private static final TestObject<ArchetypeType> ARCHETYPE_AD_ROLE = TestObject.file(
+            TEST_DIR, "archetype-ad-role.xml", "5200a309-554d-46c7-a551-b8a4fdc26a18");
+
+    // Temporary, move to initial objects later
+    private static final TestObject<MarkType> MARK_IGNORED = TestObject.file(
+            TEST_DIR, "mark-ignored.xml", SystemObjectsType.MARK_IGNORED.value());
+    private static final TestObject<MarkType> MARK_TOLERATED = TestObject.file(
+            TEST_DIR, "mark-tolerated.xml", SystemObjectsType.MARK_TOLERATED.value());
 
     private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
 
@@ -141,21 +156,47 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private DummyObject dummyAdministrators;
     private DummyObject dummyGuests;
     private DummyObject dummyTesters;
+    private DummyObject dummyOperators;
+
+    /** Managed by midPoint. */
     private RoleType roleAdministrators;
+    private String shadowAdministratorsOid;
+
+    /** Managed by midPoint. */
     private RoleType roleGuests;
+    private String shadowGuestsOid;
+
+    /** Managed externally (i.e., tolerant), see {@link #importGroups(OperationResult)} */
     private RoleType roleTesters;
+    private String shadowTestersOid;
+
+    /** Managed by midPoint */
+    private RoleType roleOperators;
+    private String shadowOperatorsOid;
 
     @Override
     protected File getSystemConfigurationFile() {
         return SYSTEM_CONFIGURATION_FILE;
     }
 
+    @BeforeMethod
+    public void onNativeOnly() {
+        skipClassIfNotNativeRepository(); // because it uses marks
+    }
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        CommonInitialObjects.addMarks(this, initTask, initResult);
+
         initTestObjects(initTask, initResult,
-                ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT, ARCHETYPE_DOCUMENT_NON_TOLERANT);
+                ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT, ARCHETYPE_DOCUMENT_NON_TOLERANT,
+                ARCHETYPE_AD_ROLE);
+
+        // TODO move to CommonInitialObjects later
+        initTestObjects(initTask, initResult,
+                MARK_TOLERATED, MARK_IGNORED);
 
         // The subresult is created to avoid failing on benign warnings from the above objects' initialization
         var subResult = initResult.createSubresult("initializeResources");
@@ -260,9 +301,10 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     private void createCommonAdObjects() {
-        dummyAdministrators = adScenario.group.add("administrators");
-        dummyGuests = adScenario.group.add("guests");
-        dummyTesters = adScenario.group.add("testers");
+        dummyAdministrators = adScenario.group.add(ROLE_ADMINISTRATORS_NAME);
+        dummyGuests = adScenario.group.add(ROLE_GUESTS_NAME);
+        dummyTesters = adScenario.group.add(ROLE_TESTERS_NAME);
+        dummyOperators = adScenario.group.add(ROLE_OPERATORS_NAME);
 
         DummyObject jim = adScenario.account.add("jim");
         adScenario.accountGroup.add(jim, dummyAdministrators);
@@ -275,9 +317,22 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withProcessingAllAccounts()
                 .executeOnForeground(result);
 
-        roleAdministrators = assertRoleByName("administrators", "after").display().getObjectable();
-        roleGuests = assertRoleByName("guests", "after").display().getObjectable();
-        roleTesters = assertRoleByName("testers", "after").display().getObjectable();
+        var administratorsAsserter = assertRoleByName(ROLE_ADMINISTRATORS_NAME, "after").display();
+        roleAdministrators = administratorsAsserter.getObjectable();
+        shadowAdministratorsOid = administratorsAsserter.singleLink().getOid();
+
+        var guestsAsserter = assertRoleByName(ROLE_GUESTS_NAME, "after").display();
+        roleGuests = guestsAsserter.getObjectable();
+        shadowGuestsOid = guestsAsserter.singleLink().getOid();
+
+        var testersAsserter = assertRoleByName(ROLE_TESTERS_NAME, "after").display();
+        roleTesters = testersAsserter.getObjectable();
+        shadowTestersOid = testersAsserter.singleLink().getOid();
+        markShadow(shadowTestersOid, MARK_TOLERATED.oid, getTestTask(), getTestOperationResult());
+
+        var operatorsAsserter = assertRoleByName(ROLE_OPERATORS_NAME, "after").display();
+        roleOperators = operatorsAsserter.getObjectable();
+        shadowOperatorsOid = operatorsAsserter.singleLink().getOid();
     }
 
     /** Checks that simply getting the account gets the correct results. A prerequisite for the following test. */
@@ -330,6 +385,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
                 .withNameValue(PERSON_JOHN_NAME)
+                .withTracing()
                 .executeOnForeground(result);
 
         then("orgs are there (they were created on demand)");
@@ -488,9 +544,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     /**
      * Creates a DMS account, gradually provisioning it with associations. Uses tolerant association definition.
      *
-     * . Read access to `security-policy` is provisioned via midPoint.
-     * . Admin access to `security-policy` is added manually.
-     * . Write access to `security-policy` is provisioned via midPoint. Admin access should remain.
+     * . First, read access to `security-policy` is provisioned via midPoint.
+     * . Then, admin access to `security-policy` is added manually on the resource.
+     * . Afterwards, write access to `security-policy` is provisioned via midPoint. Admin access should _remain_.
      */
     @Test
     public void test220ProvisionDmsAccountTolerant() throws Exception {
@@ -501,9 +557,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     /**
      * Creates a DMS account, gradually provisioning it with associations. Uses non-tolerant association definition.
      *
-     * . Read access to `security-policy` is provisioned via midPoint.
-     * . Admin access to `security-policy` is added manually.
-     * . Write access to `security-policy` is provisioned via midPoint. Admin access should be deleted.
+     * . First, read access to `security-policy` is provisioned via midPoint.
+     * . Then, admin access to `security-policy` is added manually on the resource.
+     * . Afterwards, write access to `security-policy` is provisioned via midPoint. Admin access should be _deleted_.
      */
     @Test
     public void test230ProvisionDmsAccountNonTolerant() throws Exception {
@@ -694,23 +750,22 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     /** Imports AD account throughout its lifecycle: from creation, through modifications, to deletion. */
-    @Test(enabled = false) // doesn't work yet
+    @Test
     public void test320ImportChangingAdAccount() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
+        var userName = getTestNameShort();
 
-        String name = "test320";
-
-        given("AD account (guests)");
-        DummyObject account = adScenario.account.add(name);
+        given("AD account (in guests group)");
+        DummyObject account = adScenario.account.add(userName);
         adScenario.accountGroup.add(account, dummyGuests);
 
         when("account is imported");
-        importAdAccount(name, result);
+        importAdAccount(userName, result);
 
         then("user is found");
         // @formatter:off
-        assertUserAfterByUsername(name)
+        assertUserAfterByUsername(userName)
                 .assignments()
                 .assertAssignments(1)
                 .by().targetOid(roleGuests.getOid()).find()
@@ -720,11 +775,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
 
         when("a membership of testers is added and the account is re-imported");
         adScenario.accountGroup.add(account, dummyTesters);
-        importAdAccount(name, result);
+        importAdAccount(userName, result);
 
         then("user has 2 assignments");
         // @formatter:off
-        assertUserAfterByUsername(name)
+        assertUserAfterByUsername(userName)
                 .assignments()
                 .assertAssignments(2)
                 .by().targetOid(roleGuests.getOid()).find()
@@ -732,6 +787,95 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .end()
                 .by().targetOid(roleTesters.getOid()).find()
                     .assertTargetRef(roleTesters.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                .end();
+        // @formatter:on
+    }
+
+    /**
+     * Creates a AD account, gradually provisioning it with associations.
+     * Uses both static and dynamic (mark-based) tolerance.
+     *
+     * . The user has `guests` membership initially.
+     * . Then, the `administrators` and `testers` is added manually on the resource.
+     * . After that, `operators` membership is added via midPoint, leading to the following:
+     * .. `administrators` should be gone because of non-tolerant setting,
+     * .. `testers` should remain because of the mark.
+     */
+    @Test
+    public void test330ProvisionAdAccount() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+
+        given("'testers' are marked as TOLERATED (just checking)");
+        var testersShadow = provisioningService.getShadow(shadowTestersOid, null, task, result);
+        displayDumpable("testers before", testersShadow);
+        assertThat(testersShadow.getEffectiveOperationPolicyRequired().getSynchronize().getToleranceOverride())
+                .as("testers tolerance override")
+                .isEqualTo(true);
+
+        when("user with 'guests' membership is created");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .targetRef(roleGuests.getOid(), RoleType.COMPLEX_TYPE));
+        var userOid = addObject(user, task, result);
+
+        then("the account in 'guests' exists");
+        // @formatter:off
+        assertUserAfter(userOid)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assertAssignments(1)
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .singleValue()
+                .assertSingleObjectRef(shadowGuestsOid);
+        // @formatter:on
+
+        when("manually adding 'administrators' and 'testers' membership");
+        adScenario.accountGroup.add(
+                adScenario.account.getByNameRequired(userName),
+                adScenario.group.getByNameRequired(ROLE_ADMINISTRATORS_NAME));
+        adScenario.accountGroup.add(
+                adScenario.account.getByNameRequired(userName),
+                adScenario.group.getByNameRequired(ROLE_TESTERS_NAME));
+
+        and("provisioning the user with 'operators' membership");
+        traced(() -> executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(new AssignmentType()
+                                .targetRef(roleOperators.getOid(), RoleType.COMPLEX_TYPE))
+                        .asObjectDelta(userOid),
+                null, task, result));
+
+        assertSuccess(result);
+
+        then("the account has membership of: guests, testers, operators");
+        // @formatter:off
+        assertUserAfter(userOid)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assignments()
+                    .assertRole(roleGuests.getOid())
+                    .assertRole(roleTesters.getOid())
+                    .assertRole(roleOperators.getOid())
+                    .assertAssignments(3)
+                .end()
+                .singleLink()
+                    .resolveTarget()
+                        .display()
+                        .associations()
+                            .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                                .forShadowOid(shadowGuestsOid).end()
+                                .forShadowOid(shadowTestersOid).end()
+                                .forShadowOid(shadowOperatorsOid).end()
+                                .assertSize(3)
+                            .end()
+                        .end()
+                    .end()
                 .end();
         // @formatter:on
     }

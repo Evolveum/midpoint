@@ -88,6 +88,7 @@
             </delineation>
             <focus>
                 <type>RoleType</type>
+                <archetypeRef oid="5200a309-554d-46c7-a551-b8a4fdc26a18"/>
             </focus>
             <attribute>
                 <ref>icfs:name</ref>
@@ -170,6 +171,7 @@
                             </associationSynchronization>
                         </expression>
                     </inbound>
+                    <tolerant>false</tolerant> <!-- overridden by marks -->
                 </association>
             </subject>
         </associationType>

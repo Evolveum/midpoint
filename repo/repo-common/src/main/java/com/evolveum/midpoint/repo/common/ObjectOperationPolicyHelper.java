@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.repo.common;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -10,6 +11,10 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStateme
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
@@ -45,6 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @Component
 public class ObjectOperationPolicyHelper {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectOperationPolicyHelper.class);
 
     private static final String OP_COMPUTE_EFFECTIVE_POLICY =
             ObjectOperationPolicyHelper.class.getName() + ".computeEffectivePolicy";
@@ -87,7 +94,7 @@ public class ObjectOperationPolicyHelper {
         var result = parentResult.createMinorSubresult(OP_COMPUTE_EFFECTIVE_POLICY);
         try {
             var effectiveMarkRefs = behaviour.getEffectiveMarkRefsWithStatements(object);
-            return behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, result);
+            return behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, object, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -115,7 +122,7 @@ public class ObjectOperationPolicyHelper {
             @NotNull OperationResult result) throws SchemaException {
 
         var effectiveMarkRefs = behaviour.computeEffectiveMarks(object, objectMarksComputer, result);
-        var effectiveOperationPolicy = behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, result);
+        var effectiveOperationPolicy = behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, object, result);
 
         return new EffectiveMarksAndPolicies(
                 behaviour.supportsMarks() ? List.copyOf(effectiveMarkRefs) : List.of(),
@@ -187,7 +194,7 @@ public class ObjectOperationPolicyHelper {
          * to deal with "protected" mark in a legacy way (everything is forbidden).
          */
         abstract @NotNull ObjectOperationPolicyType computeEffectiveOperationPolicy(
-                Collection<ObjectReferenceType> effectiveMarkRefs, OperationResult result);
+                Collection<ObjectReferenceType> effectiveMarkRefs, Object context, OperationResult result);
 
         /** Sets the effective marks references into the object bean. */
         void setEffectiveMarks(ObjectType object, Collection<ObjectReferenceType> effectiveMarkRefs) {
@@ -341,6 +348,7 @@ public class ObjectOperationPolicyHelper {
         @Override
         @NotNull ObjectOperationPolicyType computeEffectiveOperationPolicy(
                 Collection<ObjectReferenceType> effectiveMarkRefs,
+                Object context,
                 OperationResult result) {
             var ret = new ObjectOperationPolicyType();
             Collection<MarkType> marks = getShadowMarks(effectiveMarkRefs, result);
@@ -353,12 +361,51 @@ public class ObjectOperationPolicyHelper {
                             .outbound(firstNonDefaultValue(marks,
                                     m -> m.getSynchronize() != null ? m.getSynchronize().getOutbound(): null,
                                     true))
+                            .toleranceOverride(computeToleranceOverride(marks, context))
             );
 
             ret.setAdd(firstNonDefaultValue(marks, ObjectOperationPolicyType::getAdd, true));
             ret.setModify(firstNonDefaultValue(marks, ObjectOperationPolicyType::getModify, true));
             ret.setDelete(firstNonDefaultValue(marks, ObjectOperationPolicyType::getDelete, true));
             return ret;
+        }
+
+        private Boolean computeToleranceOverride(Collection<MarkType> marks, Object context) {
+            var givingTrue = new ArrayList<>();
+            var givingFalse = new ArrayList<>();
+            marks.forEach(
+                    m -> {
+                        var policy = m.getObjectOperationPolicy();
+                        if (policy != null) {
+                            var synchronize = policy.getSynchronize();
+                            if (synchronize != null) {
+                                var override = synchronize.getToleranceOverride();
+                                if (Boolean.TRUE.equals(override)) {
+                                    givingTrue.add(m);
+                                } else if (Boolean.FALSE.equals(override)) {
+                                    givingFalse.add(m);
+                                }
+                            }
+                        }
+                    }
+            );
+            boolean shouldBeTrue = !givingTrue.isEmpty();
+            boolean shouldBeFalse = !givingFalse.isEmpty();
+            if (shouldBeTrue && shouldBeFalse) {
+                // TODO what should we do here? What is the default? Or should we throw an exception?
+                LOGGER.warn("Conflicting tolerance override setting in {}: marks giving TRUE: {}, FALSE: {} - "
+                                + "continuing as non-tolerant",
+                        context, givingTrue, givingFalse);
+                return false;
+            } else if (shouldBeTrue) {
+                LOGGER.trace("Tolerance override = true because of {} (for {})", givingTrue, context);
+                return true;
+            } else if (shouldBeFalse) {
+                LOGGER.trace("Tolerance override = false because of {} (for {})", givingFalse, context);
+                return false;
+            } else {
+                return null;
+            }
         }
 
         private Collection<MarkType> getShadowMarks(Collection<ObjectReferenceType> tagRefs, @NotNull OperationResult result) {
@@ -495,7 +542,7 @@ public class ObjectOperationPolicyHelper {
         /** We are limited to simple "protected or not" decision. */
         @Override
         @NotNull ObjectOperationPolicyType computeEffectiveOperationPolicy(
-                Collection<ObjectReferenceType> effectiveMarkRefs, OperationResult result) {
+                Collection<ObjectReferenceType> effectiveMarkRefs, Object context, OperationResult result) {
             if (containsOid(effectiveMarkRefs, MARK_PROTECTED_SHADOW_OID)) {
                 return new ObjectOperationPolicyType()
                         .synchronize(new SynchronizeOperationPolicyConfigurationType()

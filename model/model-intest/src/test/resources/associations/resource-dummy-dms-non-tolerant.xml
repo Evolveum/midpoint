@@ -62,10 +62,6 @@
                     </source>
                 </outbound>
             </attribute>
-            <attribute> <!-- probably temporary -->
-                <ref>ri:access</ref>
-                <tolerant>false</tolerant>
-            </attribute>
             <synchronization>
                 <reaction>
                     <situation>unmatched</situation>
@@ -240,6 +236,7 @@
                             </associationSynchronization>
                         </expression>
                     </inbound>
+                    <tolerant>false</tolerant>
                 </association>
             </subject>
         </associationType>

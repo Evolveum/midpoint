@@ -63,7 +63,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
 
     @BeforeMethod
     public void onNativeOnly() {
-        skipIfNotNativeRepository();
+        skipClassIfNotNativeRepository();
     }
 
     @Override

@@ -396,7 +396,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
         return getBean().getContentDescription();
     }
 
-    default @NotNull ObjectOperationPolicyType getEffectiveProvisioningPolicyRequired() {
+    default @NotNull ObjectOperationPolicyType getEffectiveOperationPolicyRequired() {
         return stateNonNull(
                 getBean().getEffectiveOperationPolicy(),
                 "No effective provisioning policy in %s", this);

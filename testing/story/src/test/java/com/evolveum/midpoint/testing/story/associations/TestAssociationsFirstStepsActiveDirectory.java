@@ -101,7 +101,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
 
     @BeforeMethod
     public void onNativeOnly() {
-        skipIfNotNativeRepository();
+        skipClassIfNotNativeRepository();
     }
 
     private static DummyTestResource createAdResource(String fileName) {

@@ -83,7 +83,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
 
     @BeforeMethod
     public void onNativeOnly() {
-        skipIfNotNativeRepository();
+        skipClassIfNotNativeRepository();
     }
 
     @Override

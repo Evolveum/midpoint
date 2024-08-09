@@ -144,7 +144,7 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
     @BeforeMethod
     public void onNativeOnly() {
-        skipIfNotNativeRepository();
+        skipClassIfNotNativeRepository();
     }
 
     @Override

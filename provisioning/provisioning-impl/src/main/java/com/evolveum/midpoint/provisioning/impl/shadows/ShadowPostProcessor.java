@@ -193,7 +193,12 @@ class ShadowPostProcessor {
         // for simulated references, here should be exactly one attribute; for native ones, it can vary
         var existingLiveRepoShadow = b.shadowFinder.lookupLiveShadowByAllAttributes(shadowCtx, identifiers, result);
         if (existingLiveRepoShadow != null) {
-            return existingLiveRepoShadow; // no post-processing (updating shadow, combining with the resource object)
+            // no post-processing (updating shadow, combining with the resource object) is needed
+            // except for object marks!
+            var effectiveShadowCtx = shadowCtx.spawnForShadow(existingLiveRepoShadow.getBean());
+            effectiveShadowCtx.computeAndUpdateEffectiveMarksAndPolicies(
+                    existingLiveRepoShadow, RepoShadowWithState.ShadowState.EXISTING, result);
+            return existingLiveRepoShadow;
         }
 
         // Nothing found in repo, let's do the search on the resource.

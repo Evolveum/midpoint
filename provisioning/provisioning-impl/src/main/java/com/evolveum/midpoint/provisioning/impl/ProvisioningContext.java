@@ -860,7 +860,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     public void checkProtectedObjectAddition(ResourceObjectShadow object)
             throws SecurityViolationException {
-        if (!object.getEffectiveProvisioningPolicyRequired().getAdd().isEnabled()) {
+        if (!object.getEffectiveOperationPolicyRequired().getAdd().isEnabled()) {
             throw new SecurityViolationException(
                     String.format("Cannot add protected resource object (%s): %s", object, getExceptionDescription()));
         }
@@ -868,14 +868,14 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     public void checkProtectedObjectModification(RepoShadow repoShadow)
             throws SecurityViolationException {
-        if (!repoShadow.getEffectiveProvisioningPolicyRequired().getModify().isEnabled()) {
+        if (!repoShadow.getEffectiveOperationPolicyRequired().getModify().isEnabled()) {
             throw new SecurityViolationException(
                     String.format("Cannot modify protected resource object (%s): %s", repoShadow, getExceptionDescription()));
         }
     }
 
     public void checkProtectedObjectDeletion(RepoShadow repoShadow) throws SecurityViolationException {
-        if (!repoShadow.getEffectiveProvisioningPolicyRequired().getDelete().isEnabled()) {
+        if (!repoShadow.getEffectiveOperationPolicyRequired().getDelete().isEnabled()) {
             throw new SecurityViolationException(
                     String.format("Cannot delete protected resource object (%s): %s", repoShadow, getExceptionDescription()));
         }

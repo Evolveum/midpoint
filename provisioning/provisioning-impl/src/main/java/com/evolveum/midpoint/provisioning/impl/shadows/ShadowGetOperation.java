@@ -195,7 +195,7 @@ class ShadowGetOperation {
         var combinedObject = shadowPostProcessor.execute(parentResult);
         ctx = shadowPostProcessor.getCurrentProvisioningContext();
 
-        return returnRetrieved(combinedObject, result.isError());
+        return returnRetrieved(combinedObject, result.isError(), result);
     }
 
     private static @NotNull RawRepoShadow obtainRepositoryShadow(
@@ -436,7 +436,9 @@ class ShadowGetOperation {
      *
      * TODO shouldn't we try to set the "protected" flag here (like we do in the search-like operation)?
      */
-    private @NotNull Shadow returnCached(String reason, OperationResult result) throws SchemaException, ConfigurationException {
+    private @NotNull Shadow returnCached(String reason, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
         LOGGER.trace("Returning cached (repository) version of shadow {} because of: {}", repoShadow, reason);
         ctx.applyCurrentDefinition(repoShadow.getBean());
         b.associationsHelper.convertReferenceAttributesToAssociations(
@@ -446,25 +448,36 @@ class ShadowGetOperation {
                         futurizeRepoShadow(ctx, repoShadow, now) :
                         repoShadow.asResourceObject();
         LOGGER.trace("Futurized shadow:\n{}", DebugUtil.debugDumpLazily(futurized));
-        return createShadow(ctx, futurized, FROM_REPOSITORY);
+        return createShadow(ctx, futurized, FROM_REPOSITORY, result);
     }
 
-    private @NotNull Shadow returnRetrieved(@NotNull ExistingResourceObjectShadow shadowedObject, boolean error)
-            throws SchemaException, ConfigurationException {
+    private @NotNull Shadow returnRetrieved(
+            @NotNull ExistingResourceObjectShadow shadowedObject, boolean error, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
         assert repoShadow != null;
         ResourceObjectShadow futurized =
                 ProvisioningUtil.isFuturePointInTime(options) ?
                         futurizeResourceObject(ctx, repoShadow, shadowedObject, false, now) :
                         shadowedObject;
         LOGGER.trace("Futurized shadowed resource object:\n{}", futurized.debugDumpLazily(1));
-        return createShadow(ctx, futurized, determineContentDescription(options, error));
+        return createShadow(ctx, futurized, determineContentDescription(options, error), result);
     }
 
     private Shadow createShadow(
-            ProvisioningContext ctx, ResourceObjectShadow resourceObject, ShadowContentDescriptionType contentDescription) {
+            ProvisioningContext ctx,
+            ResourceObjectShadow resourceObject,
+            ShadowContentDescriptionType contentDescription,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
         var bean = resourceObject.getBean();
         bean.setContentDescription(contentDescription);
         validateShadow(bean, true);
+        if (bean.getEffectiveOperationPolicy() == null) {
+            // TODO quick hack here - should be done earlier
+            ctx.computeAndUpdateEffectiveMarksAndPolicies(resourceObject, RepoShadowWithState.ShadowState.EXISTING, result);
+        }
         return resourceObject.asShadow(ctx.getResource());
     }
 

@@ -44,14 +44,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 /**
- * Testing the "rich" native associations.
+ * Testing the complex native associations.
  *
  * The trivial (no-object) associations are tested in the standard {@link TestDummy} suite (for simulated ones)
  * and {@link TestDummyNativeAssociations} (for native ones).
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestDummyRichAssociations extends AbstractDummyTest {
+public class TestDummyComplexAssociations extends AbstractDummyTest {
 
     private static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
 
@@ -196,6 +196,7 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
     private void assertJohn(PrismObject<ShadowType> shadow) {
         assertShadow(shadow, "john")
                 .display()
+                .assertEffectiveOperationsDeeply()
                 .associations()
                 .assertValuesCount(2)
                 .end()
@@ -245,6 +246,7 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
 
         assertShadow(annShadowAfter, "ann")
                 .display()
+                .assertEffectiveOperationsDeeply()
                 .attributes()
                 .assertValue(ICFS_UID, "ann")
                 .assertValue(Person.AttributeNames.NAME.q(), "ann")
@@ -261,6 +263,7 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
         var annContractAfter = annContractsValuesAfter.iterator().next().getAssociationObject();
         assertShadow(annContractAfter.getBean(), "ann's contract")
                 .display()
+                .assertEffectiveOperationsDeeply()
                 .attributes()
                 .assertValue(ICFS_UID, "ann-sciences")
                 .assertValue(Contract.AttributeNames.NAME.q(), "ann-sciences");
@@ -278,6 +281,7 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
         var contractOrgAfter = contractOrgsAfter.get(0);
         assertShadow(contractOrgAfter.getBean(), "ann's contract's org")
                 .display()
+                .assertEffectiveOperationsDeeply()
                 .attributes()
                 .assertValue(ICFS_UID, "sciences")
                 .assertValue(OrgUnit.AttributeNames.NAME.q(), "sciences");
@@ -336,6 +340,7 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
 
         assertShadow(bobShadowAfterAdding, "after adding")
                 .display()
+                .assertEffectiveOperationsDeeply()
                 .attributes()
                 .assertValue(ICFS_UID, "bob")
                 .assertValue(Person.AttributeNames.NAME.q(), "bob")
@@ -352,6 +357,7 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
         var contractAfterAdding = contractsAfterAdding.iterator().next().getAssociationObject();
         assertShadow(contractAfterAdding.getBean(), "contract after adding")
                 .display()
+                .assertEffectiveOperationsDeeply()
                 .attributes()
                 .assertValue(ICFS_UID, "bob-sciences")
                 .assertValue(Contract.AttributeNames.NAME.q(), "bob-sciences");
@@ -369,6 +375,7 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
         var contractOrgAfter = contractOrgsAfter.get(0);
         assertShadow(contractOrgAfter.getBean(), "contract's org")
                 .display()
+                .assertEffectiveOperationsDeeply()
                 .attributes()
                 .assertValue(ICFS_UID, "sciences")
                 .assertValue(OrgUnit.AttributeNames.NAME.q(), "sciences");
@@ -390,6 +397,7 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
 
         assertShadow(bobShadowAfterDeleting, "after deleting")
                 .display()
+                .assertEffectiveOperationsDeeply()
                 .attributes()
                 .assertValue(ICFS_UID, "bob")
                 .assertValue(Person.AttributeNames.NAME.q(), "bob")
@@ -404,6 +412,7 @@ public class TestDummyRichAssociations extends AbstractDummyTest {
                 .isEmpty();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private @NotNull PrismObject<ShadowType> getOrgUnitByName(String name, Task task, OperationResult result) throws Exception {
         return MiscUtil.extractSingletonRequired(
                 provisioningService.searchObjects(
