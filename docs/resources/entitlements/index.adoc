@@ -2,7 +2,7 @@
 midpoint-feature: [ 'entitlement', 'entitlement-association' ]
 doc-type: intro
 ---
-= Entitlements
+= Entitlements and Associations
 :page-wiki-name: Entitlements
 :page-wiki-id: 13598822
 :page-wiki-metadata-create-user: semancik
@@ -42,10 +42,6 @@ MidPoint can manage all groups in a uniform way regardless of the grouping mecha
 All that is needed is a handful of configuration lines.
 And the nightmare is over.
 Especially when entitlements are combined with the power of xref:/midpoint/reference/roles-policies/assignment/[assignments] and xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
-
-To be completely honest, even though midPoint support for entitlements is quite powerful it is still at its beginning.
-The entitlements are supported in midPoint core engine but the GUI support is currently very limited.
-However even this basic support is enough to avoid deployment nightmares.
 ====
 
 
@@ -77,24 +73,185 @@ And that's exactly what midPoint does when an account xref:/midpoint/reference/r
 
 image::schemas-entitlement-3.png[]
 
-
-
 MidPoint fetches the shadow from its repository and it uses the identifiers stored in the shadow to locate account object on the resource.
 MidPoint retrieves the account object.
 Then midPoint looks for entitlement information in the account and processes any associations.
 MidPoint may need to retrieve or search additional objects to fully process the associations.
-E.g. standard LDAP groups store the list of members in the group object therefore midPoint needs to search the group objects to fully process the association information.
+E.g. standard LDAP groups store the list of members in the group object therefore midPoint (or the LDAP connector) needs to search the group objects to fully process the association information.
 MidPoint does all that transparently.
 Regardless what kind of grouping and association mechanism is used midPoint presents the data in a unified form.
 
+NOTE: Recently-introduced shadow caching feature allows to store parts of these information right in the repository.
+This includes relations between shadows, like the group membership.
+However, the general principle described above still applies if the requested data are not in the cache.
 
-== Association Definition
+== Associations
 
-Association of account and entitlement is defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]. Both object-to-subject and subject-to-object association directions are supported
+Relations between accounts and entitlements are implemented using _associations_.
+(However, associations have much more applications, as described below.)
 
-Association is a relation between two parties: subject and object.
-Subject is the party that receives the entitlement (usually an account).
-The object is the entitlement (usually a group).
+An association is a relation between a *subject* and one or more *objects*.
+
+When using associations to implement entitlements, subject is the party that receives the entitlement (usually an account), while the object is the entitlement (usually a group).
+
+An association can be either *simple* or *complex*:
+
+* A simple association is just a relation between one subject and one object.
+This is the typical way how entitlements are represented.
+
+* A complex association has either multiple objects present, or it can contain additional data (currently attributes and activation data) on its own.
+Typical examples:
+
+** *User access rights*: a user has a set of rights to read, write, and/or administer given directories.
+Each access right is a value of this association, and has the user (as its subject), the directory (as its object), and the access level (as its attribute).
+
+** *HR contracts*: a person has a set of contracts, where each contract has an organizational unit, a cost center, a job position, validity, and other data.
+Each contract is a value of this association, with the person being the subject, organization unit, cost center, and job positions (assuming they are represented by shadows) are the objects, and everything else is stored in attributes and activation data.
+
+[NOTE]
+====
+Simple associations are supported by midPoint in full.
+
+Complex associations are xref:/midpoint/versioning/experimental/[an experimental feature].
+====
+
+=== Association Definition
+
+Associations are defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration].
+
+Technically, associations are based on so-called *reference attributes*.
+These are special attributes describing relations (links) between resource objects.
+
+[NOTE]
+====
+A simple association is equivalent to a reference attribute.
+
+A complex association is implemented using a separate object (holding the association data), and its references to the object and the subjects of the association.
+====
+
+Some connectors, LDAP/AD in particular, support reference attributes out of the box.
+Others will provide this support later.
+Until that, it is possible to define *simulated references* in the xref:/midpoint/reference/resources/resource-configuration/capabilities/[Capabilities] section, so that you can utilize the full power of associations in your deployments.
+
+Let's cover defining simulated references first.
+If you use connector having this capability, feel free to skip to #TODO# section.
+
+==== Simulated References
+
+Each simulated reference has two sides: *object* and *subject*.
+
+===== Participating Resource Objects
+
+First, we have to define what resource objects can participate in the reference on each of these sides.
+We call this the *delineation* and we use the following properties to do it:
+
+.Defining participating resource objects
+[autowidth]
+|===
+| Configuration item | Meaning | Example
+
+| `objectClass`
+| Name of the object class for the participant.
+| `ri:inetOrgPerson`
+
+| `baseContext`
+| The definition of base context (resource object container).
+This object will be used as a base for searches for the participants.
+Usually only the objects that are hierarchically below the `baseContext` are returned by such a search.
+
+Experimental.
+a|
+[source,xml]
+----
+<baseContext>
+    <objectClass>ri:organizationalUnit</objectClass>
+    <filter>
+        <q:text>attributes/dn = "ou=groups,dc=evolveum,dc=net"</q:text>
+    </filter>
+</baseContext>
+----
+
+| `searchHierarchyScope`
+| Definition of search hierarchy scope.
+It specifies how "deep" the search should go into the object hierarchy.
+It is only applicable to resources that support hierarchical organization of objects (e.g. LDAP resources).
+
+The value of `sub` means subtree search: it goes deep down the hierarchy, as deep as possible.
+
+The value of `one` means one-level search. The search is reaching just one level below the base context object.
+
+Experimental.
+|
+
+| `auxiliaryObjectClass`
+| Restriction of the participant to the specified auxiliary object class, if present.
+Typically used if the binding attribute is defined in this class, like `ri:uid` for a `posixAccount`, which is a member of a `posixGroup`.
+
+Currently supported only for the subjects.
+
+Experimental.
+
+| `ri:posixAccount`
+|===
+
+There can be zero, one, or more delineations.
+
+#TODO define what is experimental and what is supported here#
+
+=== An Example
+
+#TODO purge/explain#
+
+[source,xml]
+----
+    <capabilities>
+        <c:configured xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <references>
+                <type>
+                    <name>ri:groupMembership</name>
+                    <subject>
+                        <delineation>
+                            <objectClass>ri:AccountObjectClass</objectClass>
+                        </delineation>
+                        <delineation>
+                            <objectClass>ri:GroupObjectClass</objectClass>
+                        </delineation>
+                        <primaryBindingAttributeRef>icfs:name</primaryBindingAttributeRef>
+                        <localItemName>ri:group</localItemName>
+                    </subject>
+                    <object>
+                        <delineation>
+                            <objectClass>ri:GroupObjectClass</objectClass>
+                        </delineation>
+                        <primaryBindingAttributeRef>ri:members</primaryBindingAttributeRef>
+                    </object>
+                    <direction>objectToSubject</direction>
+                </type>
+                <type>
+                    <name>ri:accountPrivilege</name>
+                    <subject>
+                        <delineation>
+                            <objectClass>ri:AccountObjectClass</objectClass>
+                        </delineation>
+                        <primaryBindingAttributeRef>ri:privileges</primaryBindingAttributeRef>
+                        <localItemName>ri:priv</localItemName>
+                    </subject>
+                    <object>
+                        <delineation>
+                            <objectClass>ri:CustomprivilegeObjectClass</objectClass>
+                        </delineation>
+                        <primaryBindingAttributeRef>icfs:name</primaryBindingAttributeRef>
+                    </object>
+                    <direction>subjectToObject</direction>
+                </type>
+            </references>
+        </c:configured>
+    </capabilities>
+----
+
+
+#TODO rework the following#
+
 There are three important things that define the association:
 
 * *direction*: Specifies the direction of association, i.e. if the association point from object to subject or the other way around:
