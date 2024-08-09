@@ -194,14 +194,14 @@ public class RoleAnalysisObjectDto implements Serializable {
         return isOutlierDetection;
     }
 
-    public void recomputeChunks(PageBase pageBase) {
+    public void recomputeChunks(List<DetectedPattern> selectedPatterns, PageBase pageBase) {
         Task task = pageBase.createSimpleTask("recompute chunks");
         OperationResult result = task.getResult();
         this.miningOperationChunk = pageBase.getRoleAnalysisService().prepareMiningStructure(
                 cluster,
                 displayValueOption,
                 isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER,
-                new ArrayList<>(),
+                selectedPatterns,
                 result,
                 task);
     }
@@ -211,8 +211,6 @@ public class RoleAnalysisObjectDto implements Serializable {
         List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks();
 
         refreshCells(miningOperationChunk.getProcessMode(), users, roles, miningOperationChunk.getMinFrequency(), miningOperationChunk.getMaxFrequency());
-
-
 
         if (CollectionUtils.isNotEmpty(selectedPatterns)) {
             Task task = pageBase.createSimpleTask("InitPattern"); //TODO task name
