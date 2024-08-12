@@ -559,9 +559,12 @@ public class ShadowMarkPanel<O extends ObjectType> extends AbstractObjectMainPan
 
         if (rowModel != null || getSelectedObjectsCount() > 0) {
 
+            String deleteActionTranslated =
+                    createStringResource("abstractRoleMemberPanel.message.confirmationMessageForSingleObject.delete")
+                            .getString();
             confirmModel = rowModel != null
                     ? createStringResource("abstractRoleMemberPanel.message.confirmationMessageForSingleObject",
-                    "delete", ((ObjectType) ((SelectableBean<?>) rowModel.getObject()).getValue()).getName())
+                    deleteActionTranslated, ((ObjectType) ((SelectableBean<?>) rowModel.getObject()).getValue()).getName())
                     : createStringResource("abstractRoleMemberPanel.deleteSelectedMembersConfirmationLabel",
                     getSelectedObjectsCount());
 
