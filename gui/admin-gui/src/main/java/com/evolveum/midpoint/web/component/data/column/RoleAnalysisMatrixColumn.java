@@ -11,29 +11,22 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
-
 import com.evolveum.midpoint.common.mining.utils.values.*;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> extends AbstractColumn<A, String> {
@@ -43,9 +36,7 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
 
     private final PageBase pageBase;
 
-
     private final IModel<RoleAnalysisObjectDto> model;
-
 
     public RoleAnalysisMatrixColumn(
             IModel<RoleAnalysisObjectDto> model,
@@ -54,7 +45,6 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
         this.model = model;
         this.pageBase = pageBase;
     }
-
 
     protected List<String> getPatternIdentifiers() {
         List<String> patternIds = new ArrayList<>();
@@ -91,20 +81,8 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
     protected final <T extends MiningBaseTypeChunk> AjaxLinkTruncatePanelAction createColumnDisplayPanel(
             String componentId,
             IModel<AjaxLinkTruncateDto> model,
-            IModel<T> miningChunkModel,
-            String flexDirection,
-            String truncateClass) {
+            IModel<T> miningChunkModel) {
         return new AjaxLinkTruncatePanelAction(componentId, model) {
-
-            @Override
-            public String getFlexDirection() {
-                return flexDirection;
-            }
-
-            @Override
-            public String getTruncateClass() {
-                return truncateClass;
-            }
 
             @Override
             protected RoleAnalysisOperationMode onStatusClick(AjaxRequestTarget target,
@@ -185,5 +163,13 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
     protected abstract void setRelationSelected(boolean isRelationSelected);
 
     protected abstract List<DetectedPattern> getSelectedPatterns();
+
+    //TODO check it
+    protected void updateWithPatterns(List<DetectedPattern> selectedPatterns, PageBase pageBase) {
+        for (DetectedPattern selectedPattern : getSelectedPatterns()) {
+            selectedPattern.setPatternSelected(false);
+        }
+        model.getObject().updateWithPatterns(selectedPatterns, pageBase);
+    }
 
 }

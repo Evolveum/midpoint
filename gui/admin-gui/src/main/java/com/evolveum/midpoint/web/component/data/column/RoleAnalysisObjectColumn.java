@@ -13,9 +13,6 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import java.io.Serial;
 import java.util.List;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 
 import com.google.common.collect.ListMultimap;
@@ -25,7 +22,6 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
@@ -40,15 +36,11 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.OutlierPatternResolver;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.SimpleHeatPattern;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.StringResourceModel;
 
 public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
 
@@ -60,8 +52,11 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
 
     @Override
     public void populateItem(Item<ICellPopulator<A>> cellItem, String componentId, IModel<A> rowModel) {
-
-        AjaxLinkTruncatePanelAction panel = createColumnDisplayPanel(componentId, Model.of(loadColumnHeaderModelObject(rowModel)), rowModel, " flex-row-reverse justify-content-between", null);
+        AjaxLinkTruncatePanelAction panel = createColumnDisplayPanel(
+                componentId,
+                Model.of(loadColumnHeaderModelObject(rowModel)),
+                rowModel
+        );
         cellItem.add(panel);
 
     }
@@ -73,7 +68,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
                 LayeredIconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton compressButton = new AjaxCompositedIconSubmitButton(componentId,
                 iconBuilder.build(),
-                getPageBase().createStringResource("RoleMining.operation.panel.${chunkModeValue}.button.title", getModel())){
+                getPageBase().createStringResource("RoleMining.operation.panel.${chunkModeValue}.button.title", getModel())) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -86,7 +81,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
                     icon = "fa fa-compress";
                 }
                 return new CompositedIconBuilder().setBasicIcon(icon,
-                            LayeredIconCssStyle.IN_ROW_STYLE).build();
+                        LayeredIconCssStyle.IN_ROW_STYLE).build();
             }
 
             @Override
@@ -123,10 +118,15 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
         return compressButton;
     }
 
-
     private AjaxLinkTruncateDto loadColumnHeaderModelObject(IModel<A> rowModel) {
-
-        return new AjaxLinkTruncateDto(computeTitle(rowModel), createCompositedIcon(rowModel), getOperationMode(rowModel));
+        return new AjaxLinkTruncateDto(loadColumnHeaderModelObjectTitle(rowModel), createCompositedIcon(rowModel),
+                getOperationMode(rowModel), computeToolTip(rowModel)){
+            @Override
+            public boolean isActionEnabled() {
+                RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
+                return !roleAnalysis.isOutlierDetection();
+            }
+        };
     }
 
     private RoleAnalysisOperationMode getOperationMode(IModel<A> rowModel) {
@@ -137,9 +137,13 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
         return rowModel.getObject().getStatus();
     }
 
-    private String computeTitle(IModel<A> rowModel) {
+    private String loadColumnHeaderModelObjectTitle(IModel<A> rowModel) {
         updateFrequencyBased(rowModel, getMinFrequency(), getMaxFrequency(), isOutlierDetection());
-        String title = rowModel.getObject().getChunkName();
+        return rowModel.getObject().getChunkName();
+    }
+
+    private String computeToolTip(IModel<A> rowModel) {
+        String title = loadColumnHeaderModelObjectTitle(rowModel);
         if (isOutlierDetection()) {
             double confidence = rowModel.getObject().getFrequencyItem().getzScore();
             title = title + " (" + confidence + "confidence) ";
@@ -149,7 +153,6 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
                     10, 100, 2, 2);
             ListMultimap<String, SimpleHeatPattern> totalRelationOfPatternsForChunk = new OutlierPatternResolver()
                     .performDetection(RoleAnalysisProcessModeType.USER, getAdditionalMiningChunk(), detectionOption);
-
 
             List<SimpleHeatPattern> simpleHeatPatterns = totalRelationOfPatternsForChunk.get(rowModel.getObject().getMembers().get(0));
             if (!simpleHeatPatterns.isEmpty()) {
@@ -161,9 +164,9 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
                 title = title + " (" + totalRelations + "relations) " + " (" + simpleHeatPatterns.size() + " patterns)";
             }
 
+            return title;
         }
-        return title;
-
+        return null;
     }
 
     private CompositedIcon createCompositedIcon(IModel<A> rowModel) {
@@ -203,6 +206,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
     private boolean isOutlierDetection() {
         return getModel().getObject().isOutlierDetection();
     }
+
     protected abstract void resetTable(AjaxRequestTarget target);
 
     @Override

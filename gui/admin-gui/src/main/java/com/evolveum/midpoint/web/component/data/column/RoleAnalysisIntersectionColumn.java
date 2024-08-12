@@ -10,17 +10,13 @@ package com.evolveum.midpoint.web.component.data.column;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applySquareTableCell;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.*;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -29,9 +25,7 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
@@ -41,21 +35,17 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.DebugLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.PatternStatistics;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
 
     private final B baseMiningChunk;
     private final RoleAnalysisTableTools.StyleResolution styleWidth;
-
 
     public RoleAnalysisIntersectionColumn(
             B baseMiningChunk,
@@ -67,69 +57,79 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     }
 
     @Override
-        public void populateItem(Item<ICellPopulator<A>> cellItem,
-                String componentId, IModel<A> model) {
-            A rowChunk = model.getObject();
-            List<String> cellRoles = rowChunk.getRoles();
-            int propertiesCount = cellRoles.size();
-            RoleAnalysisTableTools.StyleResolution styleHeight = RoleAnalysisTableTools
-                    .StyleResolution
-                    .resolveSize(propertiesCount);
+    public void populateItem(Item<ICellPopulator<A>> cellItem,
+            String componentId, IModel<A> model) {
+        A rowChunk = model.getObject();
+        List<String> cellRoles = rowChunk.getRoles();
+        int propertiesCount = cellRoles.size();
+        RoleAnalysisTableTools.StyleResolution styleHeight = RoleAnalysisTableTools
+                .StyleResolution
+                .resolveSize(propertiesCount);
 
-            RoleAnalysisTableTools.StyleResolution styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(baseMiningChunk.getUsers().size());
+        RoleAnalysisTableTools.StyleResolution styleWidth = RoleAnalysisTableTools.StyleResolution.resolveSize(baseMiningChunk.getUsers().size());
 
-            applySquareTableCell(cellItem, styleWidth, styleHeight);
+        applySquareTableCell(cellItem, styleWidth, styleHeight);
 
-            RoleAnalysisTableCellFillResolver.Status isInclude = resolveCellTypeUserTable(componentId, cellItem, rowChunk, baseMiningChunk,
-                   getColorPaletteModel());
+        RoleAnalysisTableCellFillResolver.Status isInclude = resolveCellTypeUserTable(componentId, cellItem, rowChunk, baseMiningChunk,
+                getColorPaletteModel());
 
-            if (isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_INCLUDE)) {
-                setRelationSelected(true);
-            }
+        if (isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_INCLUDE)) {
+            setRelationSelected(true);
+        }
 
-            RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
-            if (roleAnalysis.isOutlierDetection()) {
-                if (RoleAnalysisOperationMode.INCLUDE == baseMiningChunk.getObjectStatus().getRoleAnalysisOperationMode()
-                        && RoleAnalysisOperationMode.NEGATIVE_EXCLUDE == rowChunk.getObjectStatus().getRoleAnalysisOperationMode()) {
-                    cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
-                }
-
-            }
-
-            RoleAnalysisChunkAction chunkAction = getChunkAction();
-            if (!chunkAction.equals(RoleAnalysisChunkAction.SELECTION)) {
-                patternCellResolver(cellItem, rowChunk, baseMiningChunk);
-            } else {
-                chunkActionSelectorBehavior(cellItem, rowChunk, baseMiningChunk);
+        RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
+        if (roleAnalysis.isOutlierDetection()) {
+            if (RoleAnalysisOperationMode.INCLUDE == baseMiningChunk.getObjectStatus().getRoleAnalysisOperationMode()
+                    && RoleAnalysisOperationMode.NEGATIVE_EXCLUDE == rowChunk.getObjectStatus().getRoleAnalysisOperationMode()) {
+                cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
             }
 
         }
 
-        @Override
-        public String getCssClass() {
-            String cssLevel = RoleAnalysisTableTools.StyleResolution.resolveSizeLevel(styleWidth);
-            return cssLevel + " p-2";
+        RoleAnalysisChunkAction chunkAction = getChunkAction();
+        if (!chunkAction.equals(RoleAnalysisChunkAction.SELECTION)) {
+            patternCellResolver(cellItem, rowChunk, baseMiningChunk);
+        } else {
+            chunkActionSelectorBehavior(cellItem, rowChunk, baseMiningChunk);
         }
 
-        private AjaxLinkTruncateDto loadColumnHeaderModelObject() {
-            String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE);
-            CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
-                    LayeredIconCssStyle.IN_ROW_STYLE);
+    }
 
-            String iconColor = baseMiningChunk.getIconColor();
-            if (iconColor != null) {
-                compositedIconBuilder.appendColorHtmlValue(iconColor);
+    @Override
+    public String getCssClass() {
+        String cssLevel = RoleAnalysisTableTools.StyleResolution.resolveSizeLevel(styleWidth);
+        return cssLevel + " p-0";
+    }
+
+    private AjaxLinkTruncateDto loadColumnHeaderModelObject() {
+        String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE);
+        CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
+                LayeredIconCssStyle.IN_ROW_STYLE);
+
+        String iconColor = baseMiningChunk.getIconColor();
+        if (iconColor != null) {
+            compositedIconBuilder.appendColorHtmlValue(iconColor);
+        }
+
+        CompositedIcon compositedIcon = compositedIconBuilder.build();
+
+        return new AjaxLinkTruncateDto(baseMiningChunk.getChunkName(), compositedIcon, baseMiningChunk.getStatus(),
+                AjaxLinkTruncatePanelAction.PanelMode.ROTATED){
+            @Override
+            public boolean isActionEnabled() {
+                RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
+                return !roleAnalysis.isOutlierDetection();
             }
+        };
+    }
 
-            CompositedIcon compositedIcon = compositedIconBuilder.build();
-
-            return new AjaxLinkTruncateDto(baseMiningChunk.getChunkName(), compositedIcon, baseMiningChunk.getStatus());
-        }
-
-        @Override
-        public Component getHeader(String componentId) {
-            return createColumnDisplayPanel(componentId, Model.of(loadColumnHeaderModelObject()), Model.of(baseMiningChunk), " flex-row", " text-truncate");
-        }
+    @Override
+    public Component getHeader(String componentId) {
+        return createColumnDisplayPanel(
+                componentId,
+                Model.of(loadColumnHeaderModelObject()),
+                Model.of(baseMiningChunk));
+    }
 
     private void patternCellResolver(@NotNull Item<ICellPopulator<A>> cellItem,
             A roleChunk,
@@ -139,7 +139,6 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
                 if (userChunk.getStatus() == RoleAnalysisOperationMode.INCLUDE
                         && roleChunk.getStatus() == RoleAnalysisOperationMode.INCLUDE) {
-                    getSelectedPatterns().clear();
                     setRelationSelected(false);
                     refreshTableCells(ajaxRequestTarget);
                     return;
@@ -148,17 +147,17 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                 RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
                 RoleAnalysisChunkAction chunkAction = roleAnalysis.getChunkAction();
                 if (chunkAction.equals(RoleAnalysisChunkAction.DETAILS_DETECTION)) {
-                    DebugLabel debugLabel = createDebugLabelPanel(userChunk.getMembers(), roleChunk.getProperties(), roleAnalysis);
+                    DebugLabel debugLabel = createDebugLabelPanel(
+                            userChunk.getMembers(), roleChunk.getProperties(), roleAnalysis);
                     getPageBase().showMainPopup(debugLabel, ajaxRequestTarget);
                 } else {
-                    getSelectedPatterns().clear();
-
-                    PatternStatistics<A> statistics = new PatternStatistics<>(roleAnalysis, userChunk.getMembers(), roleChunk.getProperties(), getPageBase());
+                    //todo this is wrong, tbd whats with temporary detected patterns?
+                    PatternStatistics<A> statistics = new PatternStatistics<>(roleAnalysis,
+                            userChunk.getMembers(), roleChunk.getProperties(), getPageBase());
                     DetectedPattern detectedPattern = statistics.getDetectedPattern();
                     if (detectedPattern.getRoles() != null && !detectedPattern.getRoles().isEmpty()
                             && detectedPattern.getUsers() != null && !detectedPattern.getUsers().isEmpty()) {
-                        getSelectedPatterns().add(detectedPattern);
-                        loadDetectedPattern(ajaxRequestTarget);
+                        loadTemporaryPattern(detectedPattern, getPageBase(), ajaxRequestTarget);
                     } else {
                         refreshTableCells(ajaxRequestTarget);
                     }
@@ -171,15 +170,16 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
     @NotNull
     private DebugLabel createDebugLabelPanel(List<String> members, List<String> mustMeet, RoleAnalysisObjectDto roleAnalysisObjectDto) {
-        DebugLabel debugLabel = new DebugLabel(getPageBase().getMainPopupBodyId(), () -> new PatternStatistics<>(roleAnalysisObjectDto, members, mustMeet, getPageBase())) {
+        DebugLabel debugLabel = new DebugLabel(getPageBase().getMainPopupBodyId(), () -> new PatternStatistics<>(
+                roleAnalysisObjectDto, members, mustMeet, getPageBase())) {
 
             @Override
             protected void explorePatternPerform(@NotNull DetectedPattern pattern, AjaxRequestTarget target) {
-                getSelectedPatterns().clear();
+                //TODO this is wrong, tbd whats with temporary detected patterns?
                 if (pattern.getRoles() != null && !pattern.getRoles().isEmpty()
                         && pattern.getUsers() != null && !pattern.getUsers().isEmpty()) {
-                    getSelectedPatterns().add(pattern);
-                    loadDetectedPattern(target);
+                    pattern.setPatternSelected(true);
+                    loadTemporaryPattern(pattern, getPageBase(), target);
                 } else {
                     refreshTableCells(target);
                 }
@@ -232,7 +232,6 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
     protected abstract void loadDetectedPattern(AjaxRequestTarget target);
 
-
     protected void refreshTableCells(AjaxRequestTarget target) {
         setRelationSelected(false);
         MiningOperationChunk chunk = getMiningChunk();
@@ -254,5 +253,14 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     }
 
     protected abstract IModel<Map<String, String>> getColorPaletteModel(); //new PropertyModel<>(getOpPanelModel(), OperationPanelModel.F_PALLET_COLORS)
+
+    private void loadTemporaryPattern(DetectedPattern detectedPattern, PageBase PageBase, AjaxRequestTarget ajaxRequestTarget) {
+        updateWithPatterns(Collections.singletonList(detectedPattern), PageBase);
+        onUniquePatternDetectionPerform(ajaxRequestTarget);
+        refreshTable(ajaxRequestTarget);
+    }
+
+    protected void onUniquePatternDetectionPerform(AjaxRequestTarget target) {
+    }
 
 }

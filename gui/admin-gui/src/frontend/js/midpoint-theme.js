@@ -637,7 +637,7 @@ breakLongerTextInTableCell(cellId) {
         }
 
         if (containerId === '#tableScaleContainer') {
-            component = div.querySelector('div');
+            component = div.querySelector('table');
         } else if (containerId === '#chartScaleContainer') {
             component = div.querySelector('canvas');
         }

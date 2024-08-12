@@ -61,6 +61,7 @@ import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.object.RoleAnalysisObjectUtils.executeChangesOnCandidateRole;
 
 public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> extends BasePanel<RoleAnalysisObjectDto> implements Table {
@@ -150,7 +151,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
     private List<IColumn<A, String>> initColumns() {
         List<B> mainChunk = getModelObject().getMainMiningChunk();
-         return initColumns(1, mainChunk.size());
+        return initColumns(1, mainChunk.size());
     }
 
     public List<IColumn<A, String>> initColumns(int fromCol, long toCol) {
@@ -167,7 +168,6 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
                 return RoleAnalysisTable.this.getSelectedPatterns();
             }
 
-
             @Override
             protected void resetTable(AjaxRequestTarget target) {
                 getModelObject().recomputeChunks(RoleAnalysisTable.this.getSelectedPatterns(), getPageBase());
@@ -179,7 +179,6 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
                 RoleAnalysisTable.this.refreshTable(target);
             }
         });
-
 
         IColumn<A, String> column;
         List<B> mainChunk = getModelObject().getMainMiningChunk();
@@ -194,6 +193,10 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 //                    return RoleAnalysisTable.this.getMarkPropertyObjects();
 //                }
 
+                @Override
+                protected void onUniquePatternDetectionPerform(AjaxRequestTarget target) {
+                    RoleAnalysisTable.this.onUniquePatternDetectionPerform(target);
+                }
 
                 @Override
                 protected void refreshTable(AjaxRequestTarget target) {
@@ -228,16 +231,16 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     }
 
     private void addHeaderToolbar(DataTable<A, String> table, ISortableDataProvider<A, ?> provider) {
-            RoleAnalysisTableHeadersToolbar<?> headersTop = new RoleAnalysisTableHeadersToolbar<>(table, provider) {
+        RoleAnalysisTableHeadersToolbar<?> headersTop = new RoleAnalysisTableHeadersToolbar<>(table, provider) {
 
-                @Override
-                protected void refreshTable(AjaxRequestTarget target) {
-                    refreshTableRows(target);
-                }
-            };
+            @Override
+            protected void refreshTable(AjaxRequestTarget target) {
+                refreshTableRows(target);
+            }
+        };
 
-            headersTop.setOutputMarkupId(true);
-            table.addTopToolbar(headersTop);
+        headersTop.setOutputMarkupId(true);
+        table.addTopToolbar(headersTop);
 
 //        }
     }
@@ -321,7 +324,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     }
 
     protected WebMarkupContainer createRowsNavigation() {
-        return new RoleAnalysisPaginRows(RoleAnalysisTable.ID_FOOTER, ID_PAGING_FOOTER,this, new PropertyModel<>(getModel(), RoleAnalysisObjectDto.F_DISPLAY_VALUE_OPTION), getDataTable()) {
+        return new RoleAnalysisPaginRows(RoleAnalysisTable.ID_FOOTER, ID_PAGING_FOOTER, this, new PropertyModel<>(getModel(), RoleAnalysisObjectDto.F_DISPLAY_VALUE_OPTION), getDataTable()) {
 
             @Override
             protected boolean isPagingVisible() {
@@ -447,21 +450,21 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     }
 
     private @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleToPerform(RoleAnalysisClusterType cluster) {
-            if (getSelectedPatterns().size() > 1) {
-                return null;
-            } else if (getSelectedPatterns().size() == 1) {
-                DetectedPattern detectedPattern = getSelectedPatterns().get(0);
-                Long id = detectedPattern.getId();
-                List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
-                for (RoleAnalysisCandidateRoleType candidateRole : candidateRoles) {
-                    if (candidateRole.getId().equals(id)) {
-                        return Collections.singleton(candidateRole);
-                    }
+        if (getSelectedPatterns().size() > 1) {
+            return null;
+        } else if (getSelectedPatterns().size() == 1) {
+            DetectedPattern detectedPattern = getSelectedPatterns().get(0);
+            Long id = detectedPattern.getId();
+            List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
+            for (RoleAnalysisCandidateRoleType candidateRole : candidateRoles) {
+                if (candidateRole.getId().equals(id)) {
+                    return Collections.singleton(candidateRole);
                 }
             }
-
-            return getCandidateRole();
         }
+
+        return getCandidateRole();
+    }
 
     private <F extends FocusType, CH extends MiningBaseTypeChunk> void fillCandidateList(Class<F> type,
             Set<PrismObject<F>> candidateList,
@@ -509,7 +512,6 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
         getDataTable().setCurrentPage(page);
     }
 
-
     protected void resetTable(AjaxRequestTarget target) {
         //getModel().reset(); //TODO
         getModelObject().recomputeChunks(getSelectedPatterns(), getPageBase());
@@ -535,7 +537,6 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
         getDataTable().getColumns().addAll((List) columns);
         target.add(RoleAnalysisTable.this);
     }
-
 
     protected boolean getMigrationButtonVisibility() {
         Set<RoleAnalysisCandidateRoleType> candidateRole = getCandidateRole();
@@ -582,13 +583,18 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
         return null;
     }
 
-    protected
-     List<DetectedPattern> getSelectedPatterns() {
+    protected List<DetectedPattern> getSelectedPatterns() {
         return new ArrayList<>();
     }
 
     protected IModel<Map<String, String>> getColorPaletteModel() {
-        return null;
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected Map<String, String> load() {
+                return new HashMap<>();
+            }
+        };
     }
 
 //    protected Set<String> getMarkPropertyObjects(){
@@ -598,5 +604,10 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
     protected void loadDetectedPattern(AjaxRequestTarget target) {
     }
 
+    //TODO check. When pattern is detected during user-permission table manipulation,
+    // it is necessary to refresh operation panel, because new discovered
+    // pattern is not part of the current operation panel model (TBD include or not).
+    protected void onUniquePatternDetectionPerform(AjaxRequestTarget target) {
+    }
 
 }

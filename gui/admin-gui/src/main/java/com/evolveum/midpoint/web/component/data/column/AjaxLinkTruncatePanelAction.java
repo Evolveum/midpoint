@@ -9,27 +9,27 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import java.io.Serial;
 
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
-
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AjaxLinkTruncatePanelAction extends BasePanel<AjaxLinkTruncateDto> {
     @Serial private static final long serialVersionUID = 1L;
@@ -41,54 +41,11 @@ public class AjaxLinkTruncatePanelAction extends BasePanel<AjaxLinkTruncateDto> 
     private static final String ID_IMAGE = "image";
     private static final String ID_CONTAINER = "container";
 
-
-    public AjaxLinkTruncatePanelAction(String id, IModel<AjaxLinkTruncateDto> model) {
+    public AjaxLinkTruncatePanelAction(
+            @NotNull String id,
+            @NotNull IModel<AjaxLinkTruncateDto> model) {
         super(id, model);
     }
-
-
-//    public AjaxLinkTruncatePanelAction(String id, CompositedIcon compositedIcon, String name,
-//            LoadableDetachableModel<RoleAnalysisOperationMode> status) {
-//        super(id);
-//        initLayout(status, createStringResource(title), createStringResource(title), compositedIcon, null);
-//    }
-//
-//
-//    public AjaxLinkTruncatePanelAction(String id, String title,
-//            CompositedIcon compositedIcon, LoadableDetachableModel<RoleAnalysisOperationMode> status) {
-//        super(id);
-//        initLayout(status, createStringResource(title), createStringResource(title), compositedIcon, null);
-//    }
-
-
-//    public AjaxLinkTruncatePanelAction(String id, IModel<?> labelModel, StringResourceModel popupText,
-//            CompositedIcon compositedIcon, LoadableDetachableModel<RoleAnalysisOperationMode> status) {
-//        super(id);
-//        initLayout(status, labelModel, popupText, compositedIcon, null);
-//    }
-
-//    protected String getColor() {
-//        return null;
-//    }
-//
-//    public boolean isEnabled() {
-//        return true;
-//    }
-//
-    public void onDisplayNameClick(AjaxRequestTarget target) {
-    }
-
-    public String getLabelHeight() {
-        return "70px";
-    }
-//
-//    public String getCssContainer() {
-//        return " font-weight-normal";
-//    }
-
-//    public String getModel(LoadableDetachableModel<RoleAnalysisOperationMode> status) {
-//        return status.getObject().getDisplayString();
-//    }
 
     @Override
     protected void onInitialize() {
@@ -96,72 +53,76 @@ public class AjaxLinkTruncatePanelAction extends BasePanel<AjaxLinkTruncateDto> 
         initLayout();
     }
 
-    public String getFlexDirection() {
-        return null;
-    }
-
-    public String getTruncateClass() {
-        return null;
-    }
-
     private void initLayout() {
-        WebMarkupContainer webMarkupContainer = new WebMarkupContainer(ID_CONTAINER);
-//        if (getColor() != null) {
-//            webMarkupContainer.add(new AttributeAppender("class", getColor()));
-//        }
-        webMarkupContainer.setOutputMarkupId(true);
-        webMarkupContainer.setOutputMarkupPlaceholderTag(true);
-        if (getFlexDirection() != null) {
-            webMarkupContainer.add(new AttributeAppender("class", getFlexDirection()));
-        }
-        add(webMarkupContainer);
+        DetailsFragment detailsView = initFragment();
+        detailsView.setOutputMarkupId(true);
+        add(detailsView);
+    }
 
-        AjaxLink<String> link = new AjaxLink<>(ID_LINK) {
-            @Serial private static final long serialVersionUID = 1L;
+    protected DetailsFragment initFragment() {
+        AjaxLink<Void> actionLink = prepareActionLinkPanel();
+        actionLink.add(new VisibleBehaviour(this::isActionEnabled));
+
+        PanelMode panelMode = getPanelMode();
+        if (panelMode.equals(PanelMode.DEFAULT)) {
+            add(AttributeAppender.append("class", "col-12 p-0"));
+        } else if (panelMode.equals(PanelMode.ROTATED)) {
+            add(AttributeAppender.append("class", "role-mining-header-height"));
+        }
+
+        return new DetailsFragment(ID_CONTAINER, panelMode.getMode(), AjaxLinkTruncatePanelAction.this) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void initFragmentLayout() {
 
-                AjaxLinkTruncatePanelAction.this.onDisplayNameClick(target);
+                AjaxLink<String> link = new AjaxLink<>(ID_LINK) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        AjaxLinkTruncatePanelAction.this.onDisplayNameClick(target);
+                    }
+
+                };
+
+                Label label = new Label(ID_LINK_LABEL, new PropertyModel<>(getModel(), AjaxLinkTruncateDto.F_NAME));
+
+                if (getPopupText() != null) {
+                    label.add(AttributeModifier.replace("title", getPopupText()));
+                    label.add(new TooltipBehavior());
+                }
+
+                link.add(label);
+                link.add(new EnableBehaviour(AjaxLinkTruncatePanelAction.this::isEnabled));
+                add(link);
+
+                add(new CompositedIconPanel(ID_ICON, new PropertyModel<>(getModel(), AjaxLinkTruncateDto.F_ICON)));
+
+                add(actionLink);
+
             }
-
         };
+    }
 
-        Label label = new Label(ID_LINK_LABEL, new PropertyModel<>(getModel(), AjaxLinkTruncateDto.F_NAME));
-//        label.add(AttributeAppender.append("class", getTruncateClass()));
-//        label.add(new InfoTooltipBehavior() {
-//            @Override
-//            public String getCssClass() {
-//                return " text-truncate";
-//            }
-//        });
-//        label.add(AttributeModifier.replace("title", popupText));
-
-        link.add(label);
-//        link.add(new EnableBehaviour(AjaxLinkTruncatePanelAction.this::isEnabled));
-        link.add(new AttributeModifier("style", "height:" + getLabelHeight()));
-//        if (compositedIcon != null) {
-            webMarkupContainer.add(new CompositedIconPanel(ID_ICON, new PropertyModel<>(getModel(), AjaxLinkTruncateDto.F_ICON)));
-//        } else {
-//            webMarkupContainer.add(new ImagePanel(ID_ICON, Model.of(displayType)));
-//        }
-        webMarkupContainer.add(link);
-
-        setOutputMarkupId(true);
-
+    @NotNull
+    private AjaxLink<Void> prepareActionLinkPanel() {
         Label image = new Label(ID_IMAGE);
-        image.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), AjaxLinkTruncateDto.F_MODE + ".displayString")));
+        image.add(AttributeModifier.replace("class",
+                new PropertyModel<>(getModel(), AjaxLinkTruncateDto.F_MODE + ".displayString")));
         image.setOutputMarkupId(true);
         AjaxLink<Void> actionLink = new AjaxLink<>(ID_LINK_ICON) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                RoleAnalysisOperationMode roleAnalysisOperationMode = onStatusClick(target, AjaxLinkTruncatePanelAction.this.getModelObject().getMode());
+                RoleAnalysisOperationMode roleAnalysisOperationMode = onStatusClick(
+                        target, AjaxLinkTruncatePanelAction.this.getModelObject().getMode());
 
                 if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.EXCLUDE)) {
-                    getImageComponent().add(AttributeModifier.replace("class", RoleAnalysisOperationMode.INCLUDE.getDisplayString()));
+                    getImageComponent().add(
+                            AttributeModifier.replace("class", RoleAnalysisOperationMode.INCLUDE.getDisplayString()));
                 } else if (roleAnalysisOperationMode.equals(RoleAnalysisOperationMode.INCLUDE)) {
-                    getImageComponent().add(AttributeModifier.replace("class", RoleAnalysisOperationMode.EXCLUDE.getDisplayString()));
+                    getImageComponent().add(
+                            AttributeModifier.replace("class", RoleAnalysisOperationMode.EXCLUDE.getDisplayString()));
                 }
 
                 target.add(getImageComponent());
@@ -169,16 +130,47 @@ public class AjaxLinkTruncatePanelAction extends BasePanel<AjaxLinkTruncateDto> 
         };
         actionLink.add(image);
         actionLink.setOutputMarkupId(true);
-
-        webMarkupContainer.add(actionLink);
-
+        return actionLink;
     }
 
     private Component getImageComponent() {
         return get(((PageBase) getPage()).createComponentPath(ID_CONTAINER, ID_LINK_ICON, ID_IMAGE));
     }
 
-    protected RoleAnalysisOperationMode onStatusClick(AjaxRequestTarget target, RoleAnalysisOperationMode roleAnalysisOperationMode) {
+    protected RoleAnalysisOperationMode onStatusClick(
+            AjaxRequestTarget target,
+            RoleAnalysisOperationMode roleAnalysisOperationMode) {
         return roleAnalysisOperationMode;
     }
+
+    public void onDisplayNameClick(AjaxRequestTarget target) {
+    }
+
+    private @Nullable String getPopupText() {
+        return AjaxLinkTruncatePanelAction.this.getModelObject().getToolTip();
+    }
+
+    private @NotNull PanelMode getPanelMode() {
+        return AjaxLinkTruncatePanelAction.this.getModelObject().getPanelMode();
+    }
+
+    public enum PanelMode {
+        DEFAULT("mode-first"),
+        ROTATED("mode-second");
+
+        private final String mode;
+
+        PanelMode(String mode) {
+            this.mode = mode;
+        }
+
+        public String getMode() {
+            return mode;
+        }
+    }
+
+    public boolean isActionEnabled() {
+        return AjaxLinkTruncatePanelAction.this.getModelObject().isActionEnabled();
+    }
+
 }

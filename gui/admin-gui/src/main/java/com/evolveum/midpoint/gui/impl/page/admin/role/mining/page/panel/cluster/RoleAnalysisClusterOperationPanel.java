@@ -269,6 +269,11 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 miningOperationChunk) {
 
             @Override
+            protected void onUniquePatternDetectionPerform(AjaxRequestTarget target) {
+                RoleAnalysisClusterOperationPanel.this.resetOperationPanel(target);
+            }
+
+            @Override
             protected List<DetectedPattern> getSelectedPatterns() {
                 return RoleAnalysisClusterOperationPanel.this.getSelectedPatterns();
             }
@@ -364,6 +369,11 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     private List<DetectedPattern> getSelectedPatterns() {
         return operationPanelModel.getObject().getSelectedPatterns();
+    }
+
+    private void resetOperationPanel(@NotNull AjaxRequestTarget target) {
+         operationPanelModel.getObject().clearSelectedPatterns();
+         target.add(get(ID_OPERATION_PANEL));
     }
 
 }
