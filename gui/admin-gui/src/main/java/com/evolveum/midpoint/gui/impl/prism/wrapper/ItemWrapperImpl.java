@@ -99,7 +99,13 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         if (isOperational()) {
             return null;
         }
+        return computeDeltaInternal();
+    }
 
+    //TODO this is not good. if getDetla is overriden, this is never called.
+    // however, this is needed for special cases, such as authentication behavior
+    // think about better solution
+    protected  <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> computeDeltaInternal() throws SchemaException {
         D delta;
         if (parent != null && ValueStatus.ADDED == parent.getStatus()) {
             delta = (D) createEmptyDelta(getItemName());
