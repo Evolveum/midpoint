@@ -366,6 +366,11 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
                 RoleAnalysisTable.this.processCandidateRole(target);
             }
 
+            @Override
+            protected @Nullable List<DetectedPattern> getSelectedPatterns() {
+                return RoleAnalysisTable.this.getSelectedPatterns();
+            }
+
             protected int getColumnCount() {
                 return getModelObject().getMainMiningChunk().size();
             }

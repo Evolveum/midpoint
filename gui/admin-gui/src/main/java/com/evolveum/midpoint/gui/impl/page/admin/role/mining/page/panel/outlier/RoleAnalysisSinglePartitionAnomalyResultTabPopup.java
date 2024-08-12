@@ -490,8 +490,9 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
         List<ObjectReferenceType> duplicatedRoleAssignment = outlierModelObject.getDuplicatedRoleAssignment();
         String oid = anomalyModelObject.getTargetObjectRef().getOid();
         boolean isDuplicate = false;
+        //TODO think about it. The problem may be caused by missing synchronization (out of date)
         for (ObjectReferenceType objectReferenceType : duplicatedRoleAssignment) {
-            if (objectReferenceType.getOid().equals(oid)) {
+            if (objectReferenceType.getOid() != null && objectReferenceType.getOid().equals(oid)) {
                 isDuplicate = true;
                 break;
             }

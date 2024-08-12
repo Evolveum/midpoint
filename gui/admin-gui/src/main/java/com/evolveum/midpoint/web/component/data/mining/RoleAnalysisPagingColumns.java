@@ -7,19 +7,9 @@
 
 package com.evolveum.midpoint.web.component.data.mining;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -32,15 +22,24 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 public class RoleAnalysisPagingColumns extends Fragment {
 
@@ -182,7 +181,7 @@ public class RoleAnalysisPagingColumns extends Fragment {
 
     }
 
-    protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {
+    protected @Nullable List<DetectedPattern> getSelectedPatterns(){
         return null;
     }
 
@@ -206,13 +205,13 @@ public class RoleAnalysisPagingColumns extends Fragment {
         return new LoadableModel<>() {
             @Override
             protected String load() {
-                @Nullable Set<RoleAnalysisCandidateRoleType> candidateRoleContainers = getCandidateRoleContainer();
-                if (candidateRoleContainers != null) {
-                    List<RoleAnalysisCandidateRoleType> candidateRoleTypes = new ArrayList<>(candidateRoleContainers);
-                    if (candidateRoleTypes.size() == 1) {
-                        PolyStringType targetName = candidateRoleTypes.get(0).getCandidateRoleRef().getTargetName();
-                        WebComponentUtil.getPageBase(RoleAnalysisPagingColumns.this).createStringResource("RoleMining.button.title.edit.candidate",
-                                targetName).getString();
+                List<DetectedPattern> selectedCandidateRoles = getSelectedCandidateRoles();
+                if (!selectedCandidateRoles.isEmpty()) {
+                    if (selectedCandidateRoles.size() == 1) {
+                        String targetName = selectedCandidateRoles.get(0).getIdentifier();
+                        WebComponentUtil.getPageBase(RoleAnalysisPagingColumns.this)
+                                .createStringResource("RoleMining.button.title.edit.candidate", targetName)
+                                .getString();
                         return createStringResource("RoleMining.button.title.edit.candidate", targetName).getString();
                     } else {
                         return createStringResource("RoleMining.button.title.edit.candidate").getString();
@@ -222,6 +221,20 @@ public class RoleAnalysisPagingColumns extends Fragment {
                 }
             }
         };
+    }
+
+    @NotNull
+    private List<DetectedPattern> getSelectedCandidateRoles() {
+        List<DetectedPattern> selectedPatterns = getSelectedPatterns();
+        List<DetectedPattern> selectedCandidateRoles = new ArrayList<>();
+        if(selectedPatterns != null) {
+            for (DetectedPattern selectedPattern : selectedPatterns) {
+                if(selectedPattern.getPatternType() == BasePattern.PatternType.CANDIDATE) {
+                    selectedCandidateRoles.add(selectedPattern);
+                }
+            }
+        }
+        return selectedCandidateRoles;
     }
 
 }
