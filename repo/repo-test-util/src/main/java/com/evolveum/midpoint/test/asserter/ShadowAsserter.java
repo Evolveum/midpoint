@@ -772,4 +772,18 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
             }
         }
     }
+
+    public ShadowAsserter<RA> assertProtected() {
+        assertThat(getObjectable().isProtectedObject())
+                .as("protected flag")
+                .isTrue();
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertNotProtected() {
+        assertThat(getObjectable().isProtectedObject())
+                .as("protected flag")
+                .isNotEqualTo(Boolean.TRUE);
+        return this;
+    }
 }

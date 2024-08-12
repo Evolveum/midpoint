@@ -19,6 +19,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
+import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -737,10 +739,9 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 shadowToGetToleranceFrom = isCValue.getSingleObjectShadowRequired();
             }
             var associationTolerance = assocDef.isTolerant();
-            var toleranceOverride = shadowToGetToleranceFrom
-                    .getEffectiveOperationPolicyRequired()
-                    .getSynchronize()
-                    .getToleranceOverride();
+            var toleranceOverride =
+                    ObjectOperationPolicyTypeUtil.getToleranceOverride(
+                            shadowToGetToleranceFrom.getEffectiveOperationPolicyRequired());
             var effectivelyTolerant = Objects.requireNonNullElse(toleranceOverride, associationTolerance);
 
             if (!effectivelyTolerant) {

@@ -24,7 +24,9 @@
                 <enabled>false</enabled>
                 <severity>error</severity>
             </outbound>
-            <toleranceOverride>true</toleranceOverride>
+            <membership>
+                <tolerant>true</tolerant>
+            </membership>
         </synchronize>
         <!--  Provisioning level -->
         <add>

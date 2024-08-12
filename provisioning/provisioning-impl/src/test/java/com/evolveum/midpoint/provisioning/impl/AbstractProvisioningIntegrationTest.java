@@ -399,4 +399,33 @@ public abstract class AbstractProvisioningIntegrationTest
                 .asObjectable();
         return assertShadowNew(shadow);
     }
+
+    protected void markShadow(String shadowOid, String markOid, Task task, OperationResult result) throws CommonException {
+        provisioningService.modifyObject(
+                ShadowType.class,
+                shadowOid,
+                deltaFor(ShadowType.class)
+                        .item(ShadowType.F_POLICY_STATEMENT)
+                        .add(markFor(markOid))
+                        .asItemDeltas(),
+                null, null, task, result);
+    }
+
+    /** Requires the mark to be set by {@link #markShadow(String, String, Task, OperationResult)} method. */
+    protected void unmarkShadow(String shadowOid, String markOid, Task task, OperationResult result) throws CommonException {
+        provisioningService.modifyObject(
+                ShadowType.class,
+                shadowOid,
+                deltaFor(ShadowType.class)
+                        .item(ShadowType.F_POLICY_STATEMENT)
+                        .delete(markFor(markOid))
+                        .asItemDeltas(),
+                null, null, task, result);
+    }
+
+    private static PolicyStatementType markFor(String markOid) {
+        return new PolicyStatementType()
+                .markRef(markOid, MarkType.COMPLEX_TYPE)
+                .type(PolicyStatementTypeType.APPLY);
+    }
 }

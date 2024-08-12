@@ -85,7 +85,7 @@ public class ShadowMarksComputerConfiguration {
             private boolean isApplicableInState(@NotNull MarkingRule rule, @Nullable ShadowState shadowState) {
                 return switch (rule.getApplicationTime()) {
                     case ALWAYS -> true;
-                    case CLASSIFICATION -> shadowState == ShadowState.CLASSIFIED;
+                    case CLASSIFICATION -> shadowState.isClassified();
                 };
             }
         };

@@ -75,12 +75,17 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     private static final String JACK = "jack";
     private static final String JIM = "jim";
     private static final String ALICE = "alice";
+
     private static final String ADMINISTRATORS = "administrators";
     private static final String TESTERS = "testers";
+    private static final String OPERATORS = "operators";
 
     private static final ItemName RI_GROUP = ItemName.from(NS_RI, "group");
 
-    /** Initialized for each test anew (when the specific resource is initialized). */
+    /**
+     * This object is initialized each time the dummy resource is initialized.
+     * As the resource definition evolves, this happens in multiple test methods.
+     */
     private static DummyAdScenario adScenario;
 
     private static final TestObject<ArchetypeType> ARCHETYPE_GROUP = TestObject.file(
@@ -89,6 +94,10 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER = TestObject.file(
             TEST_DIR, "object-template-user.xml", "d6f7dabf-60d6-4707-87ed-5d48483dd18c");
 
+    // Temporary, move to initial objects later
+    private static final TestObject<MarkType> MARK_TOLERATED = TestObject.file(
+            TEST_DIR, "mark-tolerated.xml", SystemObjectsType.MARK_TOLERATED.value());
+
     private static final DummyTestResource RESOURCE_AD_100 = createAdResource("resource-ad-100.xml");
     private static final DummyTestResource RESOURCE_AD_120 = createAdResource("resource-ad-120.xml");
     private static final DummyTestResource RESOURCE_AD_130 = createAdResource("resource-ad-130.xml");
@@ -96,8 +105,13 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     private static final DummyTestResource RESOURCE_AD_150 = createAdResource("resource-ad-150.xml");
     private static final DummyTestResource RESOURCE_AD_300 = createAdResource("resource-ad-300.xml");
 
-    private String administratorsOid;
-    private String testersOid;
+    private String administratorsRoleOid;
+    private String testersRoleOid;
+    private String operatorsRoleOid;
+
+    private String administratorsShadowOid;
+    private String testersShadowOid;
+    private String operatorsShadowOid;
 
     @BeforeMethod
     public void onNativeOnly() {
@@ -126,7 +140,8 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         initTestObjects(initTask, initResult,
-                ARCHETYPE_GROUP, OBJECT_TEMPLATE_USER);
+                ARCHETYPE_GROUP, OBJECT_TEMPLATE_USER,
+                MARK_TOLERATED);
     }
 
     @Override
@@ -135,9 +150,9 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     }
 
     /**
-     * Resource definition: only accounts and groups, no association types.
+     * The resource definition contains only accounts and groups, no association types.
      *
-     * Checks that accounts can be retrieved.
+     * Here we check that accounts can be retrieved.
      */
     @Test
     public void test100ListingAccounts() throws Exception {
@@ -164,9 +179,9 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     }
 
     /**
-     * Resource definition: same as above.
+     * Here we check that accounts and groups can be imported.
      *
-     * Checks that accounts and groups can be imported.
+     * Resource definition is unchanged (still no associations).
      */
     @Test
     public void test110ImportingObjects() throws Exception {
@@ -186,11 +201,11 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
         assertUsers(INITIAL_AD_ACCOUNTS + 1);
         assertUserAfterByUsername(JACK); // TODO some assertions
 
-        importGroups(result);
+        importGroups(0, result);
     }
 
-    /** Extra method to be ad-hoc callable from the outside. */
-    private void importGroups(OperationResult result) throws CommonException, IOException {
+    /** This is a separate method to be ad-hoc callable from other tests (if needed). */
+    private void importGroups(int expectedNew, OperationResult result) throws CommonException, IOException {
         when("groups are imported");
         importAccountsRequest()
                 .withResourceOid(RESOURCE_AD_OID)
@@ -199,20 +214,27 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                 .execute(result);
 
         then("the groups are there");
-        assertRoles(INITIAL_AD_GROUPS + EXTRA_ROLES);
-        administratorsOid = assertRoleAfterByName(ADMINISTRATORS)
-                .assertHasArchetype(ARCHETYPE_GROUP.oid)
-                .getOid();
-        testersOid = assertRoleAfterByName(TESTERS)
-                .assertHasArchetype(ARCHETYPE_GROUP.oid)
-                .getOid();
+        assertRoles(INITIAL_AD_GROUPS + EXTRA_ROLES + expectedNew);
+
+        var administratorsAsserter = assertRoleAfterByName(ADMINISTRATORS);
+        administratorsAsserter
+                .assertHasArchetype(ARCHETYPE_GROUP.oid);
+        administratorsRoleOid = administratorsAsserter.getOid();
+        administratorsShadowOid = administratorsAsserter.links().singleLive().getOid();
+
+        var testersAsserter = assertRoleAfterByName(TESTERS);
+        testersAsserter
+                .assertHasArchetype(ARCHETYPE_GROUP.oid);
+        testersRoleOid = testersAsserter.getOid();
+        testersShadowOid = testersAsserter.links().singleLive().getOid();
+
         // TODO more assertions
     }
 
     /**
-     * Resource definition: simple inbound mapping for the association (group -> targetRef); no synchronization.
+     * We define the association, with a simple inbound mapping (`group` -> `targetRef`); but no synchronization yet.
      *
-     * Importing an account in simulation mode.
+     * Then we import an account in simulation mode. There should be no processing.
      */
     @Test
     public void test120SimpleInboundPreview() throws Exception {
@@ -220,7 +242,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
         OperationResult result = task.getResult();
 
         given("resource is reimported");
-        reimportDmsResource(RESOURCE_AD_120, task, result);
+        reimportAdResource(RESOURCE_AD_120, task, result);
 
         when("account is reimported (simulation)");
         var simResult = importJackSimulated(task, result);
@@ -232,9 +254,9 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     }
 
     /**
-     * Resource definition: added synchronization reaction for unmatched value.
+     * We add a synchronization reaction for `unmatched` value.
      *
-     * Importing an account in simulation mode.
+     * Then we import an account in simulation mode. An assignment addition should be seen in the simulation result.
      */
     @Test
     public void test130SimpleInboundPreviewWithSyncReaction() throws Exception {
@@ -242,7 +264,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
         OperationResult result = task.getResult();
 
         given("resource is reimported");
-        reimportDmsResource(RESOURCE_AD_130, task, result);
+        reimportAdResource(RESOURCE_AD_130, task, result);
 
         when("account is reimported (simulation)");
         var simResult = importJackSimulated(task, result);
@@ -261,7 +283,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                             .valuesToAdd()
                                 .single()
                                     .assertItemValueSatisfies(
-                                            AssignmentType.F_TARGET_REF, references(administratorsOid, RoleType.COMPLEX_TYPE))
+                                            AssignmentType.F_TARGET_REF, references(administratorsRoleOid, RoleType.COMPLEX_TYPE))
                                 .end()
                             .end()
                         .end()
@@ -274,7 +296,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     }
 
     /**
-     * Resource definition: same as above, with lifecycle state set to default.
+     * The association type definition is switched from `proposed` to `active` state.
      *
      * Importing an account in real mode.
      */
@@ -284,7 +306,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
         OperationResult result = task.getResult();
 
         given("resource is reimported");
-        reimportDmsResource(RESOURCE_AD_140, task, result);
+        reimportAdResource(RESOURCE_AD_140, task, result);
 
         when("account is reimported (real)");
         importJackReal(result);
@@ -293,13 +315,13 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
         assertUserAfterByUsername(JACK)
                 .assignments()
                 .single()
-                .assertTargetOid(administratorsOid)
+                .assertTargetOid(administratorsRoleOid)
                 .assertTargetType(RoleType.COMPLEX_TYPE)
                 .assertTargetRelationMatches(ORG_DEFAULT);
     }
 
     /**
-     * Resource definition: Added correlation on `targetRef` and `matched` synchronization reaction.
+     * Correlation on `targetRef` is added. The `matched` synchronization reaction is added as well.
      *
      * Importing an account in real mode.
      */
@@ -309,7 +331,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
         OperationResult result = task.getResult();
 
         given("resource is reimported");
-        reimportDmsResource(RESOURCE_AD_150, task, result);
+        reimportAdResource(RESOURCE_AD_150, task, result);
 
         when("account is reimported (real)");
         importJackReal(result);
@@ -318,18 +340,18 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
         assertUserAfterByUsername(JACK)
                 .assignments()
                 .single()
-                .assertTargetOid(administratorsOid)
+                .assertTargetOid(administratorsRoleOid)
                 .assertTargetType(RoleType.COMPLEX_TYPE)
                 .assertTargetRelationMatches(ORG_DEFAULT);
     }
 
     /**
-     * Resource definition: same as above.
+     * Adding membership of `testers` and re-importing the account.
      *
-     * Adding membership of testers and re-importing the account.
+     * (The resource definition is unchanged.)
      */
     @Test
-    public void test160AddingAccessRightAndReimporting() throws Exception {
+    public void test160AddingTestersMembershipAndReimporting() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -347,22 +369,102 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
         assertUserAfterByUsername(JACK)
                 .assignments()
                 .assertAssignments(2)
-                .by().targetOid(administratorsOid).targetType(RoleType.COMPLEX_TYPE).find().end()
-                .by().targetOid(testersOid).targetType(RoleType.COMPLEX_TYPE).find().end();
+                .by().targetOid(administratorsRoleOid).targetType(RoleType.COMPLEX_TYPE).find().end()
+                .by().targetOid(testersRoleOid).targetType(RoleType.COMPLEX_TYPE).find().end();
     }
 
     /**
-     * Resource definition: added outbounds.
+     * Now we start with outbound mappings.
      *
-     * Provisioning user `jim` with membership of `testers` (simulated).
+     * We assume that all existing memberships are imported into midPoint as roles.
+     * Currently, this includes `administrators` and `testers`.
+     * There are no other groups yet.
+     *
+     * We will start with outbounds.
+     * At the same time, we must be aware that the resource is still the authoritative source for the membership of most groups.
+     * In particular, for these we've not seen yet.
+     *
+     * Hence, we'll mark each new group as `tolerated`, which will mean that we won't remove its membership from accounts
+     * for which there is no assignment for that group yet.
+     *
+     * NOTE: We still create assignments by inbounds. So, for some operations (namely, the import/reconciliation) the assignments
+     * will be created before the outbounds are processed. But not for others.
+     *
+     * Changes in the resource definition:
+     *
+     * . added outbound mappings for the association
+     * . added marking of the new groups as `tolerated`, and switched default tolerance to `false`
+     *
+     * Actions in this test:
+     *
+     * . creating new group `operators` right on the resource, and importing the groups (it should get the `tolerated` mark)
+     * . adding `jack` to `operators` (on the resource)
+     * . remove `jack` from `testers`, to induce a change in the account
+     * . the membership of `operators` should be kept intact, and an assignment should be created in midPoint
      */
     @Test
-    public void test300ProvisionJimWithOutboundsSimulated() throws Exception {
+    public void test300ModifyJackWithToleratedEntitlement() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         given("resource is reimported");
-        reimportDmsResource(RESOURCE_AD_300, task, result);
+        reimportAdResource(RESOURCE_AD_300, task, result);
+
+        and("'operators' group is added to the resource, and groups are imported");
+        var operators = adScenario.group.add(OPERATORS);
+        importGroups(1, result);
+
+        var operatorsAsserter = assertRoleAfterByName(OPERATORS);
+        operatorsAsserter
+                .assertHasArchetype(ARCHETYPE_GROUP.oid);
+        operatorsRoleOid = operatorsAsserter.getOid();
+        operatorsShadowOid = operatorsAsserter
+                .links()
+                .singleLive()
+                .resolveTarget()
+                .display()
+                .assertEffectiveMark(MARK_TOLERATED.oid)
+                .getOid();
+
+        and("jack is added to 'operators' manually on the resource");
+        adScenario.accountGroup.add(
+                adScenario.account.getByNameRequired(JACK),
+                operators);
+
+        when("jack is removed from 'testers' by unassigning the role in midPoint");
+        var jackAsserter = assertUserBeforeByUsername(JACK);
+        var testersAssignment = jackAsserter
+                .assignments()
+                .forRole(testersRoleOid)
+                .getAssignment();
+        var jackOid = jackAsserter.getOid();
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .delete(testersAssignment.clone())
+                        .asObjectDelta(jackOid),
+                null, task, result);
+
+        then("jack is no longer in 'testers' but in 'operators'");
+        assertUserAfterByUsername(JACK)
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .associations()
+                .association(RI_GROUP)
+                .assertShadowOids(administratorsShadowOid, operatorsShadowOid);
+
+        and("all is OK");
+        assertSuccess(result);
+    }
+
+    /** Provisioning user `jim` with membership of `testers` (simulated). */
+    @Test
+    public void test310ProvisionJimWithOutboundsSimulated() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("reusing resource definition from previous test");
 
         and("user is created");
         var jim = new UserType()
@@ -376,7 +478,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
 
         when("assignment providing membership of testers (simulation)");
         var simResult = executeWithSimulationResult(
-                List.of(createAssignmentDelta(jim.getOid(), testersOid)),
+                List.of(createAssignmentDelta(jim.getOid(), testersRoleOid)),
                 task, result);
 
         then("all is OK");
@@ -389,20 +491,16 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
 
         when("assignment providing membership of testers (preview changes)");
         previewChanges(
-                createAssignmentDelta(jim.getOid(), testersOid),
+                createAssignmentDelta(jim.getOid(), testersRoleOid),
                 null, task, result);
 
         then("all is OK");
         assertSuccess(result);
     }
 
-    /**
-     * Resource definition: same as above.
-     *
-     * Provisioning user `jim` with membership of `testers` (real).
-     */
+    /** Provisioning user `jim` with membership of `testers` (real). */
     @Test
-    public void test310ProvisionJimWithOutboundsReal() throws Exception {
+    public void test320ProvisionJimWithOutboundsReal() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -419,7 +517,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
 
         when("assignment to testers is created (real)");
         executeChanges(
-                createAssignmentDelta(jimOid, testersOid),
+                createAssignmentDelta(jimOid, testersRoleOid),
                 null, task, result);
 
         then("all is OK");
@@ -437,7 +535,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
 
         when("assignment providing membership of administrators is created (real)");
         executeChanges(
-                createAssignmentDelta(jimOid, administratorsOid),
+                createAssignmentDelta(jimOid, administratorsRoleOid),
                 null, task, result);
 
         then("all is OK");
@@ -454,18 +552,18 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                 .end()
                 .assignments()
                 .assertAssignments(3)
-                .forRole(administratorsOid)
+                .forRole(administratorsRoleOid)
                 .getAssignment();
 
         displayDumpable("account after", adScenario.account.getByNameRequired(JIM));
 
         when("assignment providing membership of administrators is deleted (real)");
-        traced(() -> executeChanges(
+        executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                         .delete(newAssignment.clone())
                         .asObjectDelta(jimOid),
-                null, task, result));
+                null, task, result);
 
         then("all is OK");
         displayDumpable("account after", adScenario.account.getByNameRequired(JIM));
@@ -493,7 +591,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                 .assignment(new AssignmentType()
                         .construction(RESOURCE_AD_300.construction(ACCOUNT, INTENT_DEFAULT)))
                 .assignment(new AssignmentType()
-                        .targetRef(testersOid, RoleType.COMPLEX_TYPE));
+                        .targetRef(testersRoleOid, RoleType.COMPLEX_TYPE));
         addObject(alice, task, result);
 
         then("all is OK");
@@ -531,12 +629,12 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
         var user = new UserType()
                 .name(userName)
                 .assignment(new AssignmentType()
-                        .targetRef(testersOid, RoleType.COMPLEX_TYPE));
+                        .targetRef(testersRoleOid, RoleType.COMPLEX_TYPE));
         addObject(user, task, result);
 
         when("assignment providing membership of 'administrators' (simulation)");
         var simResult = executeWithSimulationResult(
-                List.of(createAssignmentDelta(user.getOid(), administratorsOid)),
+                List.of(createAssignmentDelta(user.getOid(), administratorsRoleOid)),
                 task, result);
 
         then("all is OK");
@@ -549,14 +647,14 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
 
         when("assignment providing membership of 'administrators' (preview changes)");
         previewChanges(
-                createAssignmentDelta(user.getOid(), administratorsOid),
+                createAssignmentDelta(user.getOid(), administratorsRoleOid),
                 null, task, result);
 
         then("all is OK");
         assertSuccess(result);
     }
 
-    private void reimportDmsResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
+    private void reimportAdResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
         deleteObject(ResourceType.class, RESOURCE_AD_OID, task, result);
         initTestObjects(task, result, resource);
     }

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isDiscoveryAllowed;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -860,7 +861,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     public void checkProtectedObjectAddition(ResourceObjectShadow object)
             throws SecurityViolationException {
-        if (!object.getEffectiveOperationPolicyRequired().getAdd().isEnabled()) {
+        if (isAddDisabled(object.getEffectiveOperationPolicyRequired())) { // TODO treat the severity as well
             throw new SecurityViolationException(
                     String.format("Cannot add protected resource object (%s): %s", object, getExceptionDescription()));
         }
@@ -868,14 +869,14 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     public void checkProtectedObjectModification(RepoShadow repoShadow)
             throws SecurityViolationException {
-        if (!repoShadow.getEffectiveOperationPolicyRequired().getModify().isEnabled()) {
+        if (isModifyDisabled(repoShadow.getEffectiveOperationPolicyRequired())) { // TODO treat the severity as well
             throw new SecurityViolationException(
                     String.format("Cannot modify protected resource object (%s): %s", repoShadow, getExceptionDescription()));
         }
     }
 
     public void checkProtectedObjectDeletion(RepoShadow repoShadow) throws SecurityViolationException {
-        if (!repoShadow.getEffectiveOperationPolicyRequired().getDelete().isEnabled()) {
+        if (isDeleteDisabled(repoShadow.getEffectiveOperationPolicyRequired())) { // TODO treat the severity as well
             throw new SecurityViolationException(
                     String.format("Cannot delete protected resource object (%s): %s", repoShadow, getExceptionDescription()));
         }
@@ -902,7 +903,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
             ExpressionEvaluationException, SecurityViolationException {
         return ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
                 repoShadowWithState.getBean(),
-                createShadowMarksComputer(resourceObject, ShadowState.EXISTING, result),
+                createShadowMarksComputer(resourceObject, repoShadowWithState.state(), result),
                 result);
     }
 

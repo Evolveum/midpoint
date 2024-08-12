@@ -21615,24 +21615,50 @@
         <xsd:sequence>
             <xsd:element name="inbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
             <xsd:element name="outbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
-            <xsd:element name="toleranceOverride" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="membership" type="tns:SynchronizeMembershipOperationPolicyConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        When this shadow is used as association object (for complex associations), or as the association
-                        object (for simple associations), this value - if present - overrides the default tolerance setting
-                        for that association.
-
-                        Hence, "false" means that the particular association value will removed by midPoint if it is not present
-                        in computed association values. On the other hand, "true" means that the particular association value
-                        will be kept even if not present in computed association values.
-
-                        Irrelevant for objects not used in the associations.
+                        Drives the synchronization of simple association values having this shadow as an object.
+                        (Applies only to such shadows.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SynchronizeMembershipOperationPolicyConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Drives the synchronization of simple association values having this shadow as an object.
+                (Applies only to such shadows.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When this shadow is used as the default object for simple associations, this value - if present -
+                        overrides the default tolerance setting for that association.
+
+                        Hence, "false" means that the particular association value will removed by midPoint if it is not present
+                        in computed association values. On the other hand, "true" means that the particular association value
+                        will be kept even if not present in computed association values.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO
+            <xsd:element name="inbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
+            <xsd:element name="outbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" /> -->
         </xsd:sequence>
     </xsd:complexType>
 

@@ -120,8 +120,14 @@ class ShadowPostProcessor {
                 ProvisioningUtil.removeExtraLegacyReferenceAttributes(repoShadow.shadow(), compositeDefinition);
                 repoShadow.shadow().applyDefinition(compositeDefinition);
 
-                if (!newClassification.equivalent(oldClassification)) {
-                    repoShadow = RepoShadowWithState.classified(repoShadow.shadow());
+                if (!newClassification.equivalent(oldClassification)
+                        || repoShadow.state() == RepoShadowWithState.ShadowState.DISCOVERED) {
+                    // It is possible that the shadow is newly discovered, and its classification is already determined, e.g.,
+                    // if the type is known because it's the default type for the object class.
+                    //
+                    // For such cases, we must treat the shadow as classified as well, even if the classification was technically
+                    // not changed.
+                    repoShadow = repoShadow.classified();
                 }
             }
         } else {

@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.getExecutedDelta;
 import static com.evolveum.midpoint.model.impl.lens.ElementState.in;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -2154,7 +2155,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (policy == null) {
             return false;
         }
-        return !policy.getAdd().isEnabled() && !policy.getModify().isEnabled() && !policy.getDelete().isEnabled();
+        return isAddDisabled(policy) && isModifyDisabled(policy) && isDeleteDisabled(policy);
     }
 
     public boolean isInboundSyncDisabled(OperationResult result) {
@@ -2162,7 +2163,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (policy == null) {
             return false;
         }
-        return !policy.getSynchronize().getInbound().isEnabled();
+        return isSyncInboundDisabled(policy); // TODO severity
     }
 
     public boolean isOutboundSyncDisabled(OperationResult result) {
@@ -2170,7 +2171,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (policy == null) {
             return false;
         }
-        return !policy.getSynchronize().getOutbound().isEnabled();
+        return isSyncOutboundDisabled(policy); // TODO severity
     }
 
     /**

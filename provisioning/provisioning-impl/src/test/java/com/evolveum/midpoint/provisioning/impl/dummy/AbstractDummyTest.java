@@ -149,6 +149,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
             "initial-objects/mark", "800-mark-protected.xml",
             SystemObjectsType.MARK_PROTECTED.value());
 
+    protected static final TestObject<MarkType> MARK_INVALID_DATA = TestObject.classPath(
+            "initial-objects/mark", "804-mark-invalid-data.xml",
+            SystemObjectsType.MARK_INVALID_DATA.value());
+
     @Autowired
     protected ProvisioningContextFactory provisioningContextFactory;
 
@@ -178,6 +182,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         if (areMarksSupported()) {
             repoAdd(ARCHETYPE_OBJECT_MARK, initResult);
             repoAdd(MARK_PROTECTED_SHADOW, initResult);
+            repoAdd(MARK_INVALID_DATA, initResult);
         }
     }
 

@@ -17,6 +17,8 @@ import java.util.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +38,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
  * 1. During parsing, filter beans are converted into filters; but expressions are not evaluated.
  * 2. Only after a provisioning operation starts, expressions (if any) are evaluated.
  */
-public class ShadowMarkingRules implements Serializable {
+public class ShadowMarkingRules implements Serializable, DebugDumpable {
 
     /** Were expressions in filters (if there are any) already evaluated? */
     private final boolean expressionsEvaluated;
@@ -94,8 +96,17 @@ public class ShadowMarkingRules implements Serializable {
         return new MarkingRule(sourceRule.getApplicationTime(), transformedPatterns);
     }
 
+    @Override
+    public String debugDump(int indent) {
+        var sb = DebugUtil.createTitleStringBuilder(
+                "Shadow marking rules (expressions evaluated: " + expressionsEvaluated + ")", indent);
+        sb.append('\n');
+        DebugUtil.debugDumpWithLabel(sb, "Rules map", markingRulesMap, indent + 1);
+        return sb.toString();
+    }
+
     /** Rule for a single shadow mark. */
-    public static class MarkingRule implements Serializable {
+    public static class MarkingRule implements Serializable, DebugDumpable {
 
         /** When is this rule applied? */
         @NotNull private final ShadowMarkApplicationTimeType applicationTime;
@@ -127,6 +138,14 @@ public class ShadowMarkingRules implements Serializable {
                 }
             }
             return false;
+        }
+
+        @Override
+        public String debugDump(int indent) {
+            var sb = DebugUtil.createTitleStringBuilderLn(MarkingRule.class, indent);
+            DebugUtil.debugDumpWithLabelLn(sb, "Application time", applicationTime, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "Patterns", patterns, indent + 1);
+            return sb.toString();
         }
     }
 

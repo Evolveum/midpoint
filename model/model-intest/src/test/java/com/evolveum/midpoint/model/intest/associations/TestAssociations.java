@@ -810,7 +810,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         given("'testers' are marked as TOLERATED (just checking)");
         var testersShadow = provisioningService.getShadow(shadowTestersOid, null, task, result);
         displayDumpable("testers before", testersShadow);
-        assertThat(testersShadow.getEffectiveOperationPolicyRequired().getSynchronize().getToleranceOverride())
+        assertThat(testersShadow.getEffectiveOperationPolicyRequired().getSynchronize().getMembership().getTolerant())
                 .as("testers tolerance override")
                 .isEqualTo(true);
 

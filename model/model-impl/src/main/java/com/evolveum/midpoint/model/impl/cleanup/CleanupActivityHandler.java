@@ -66,7 +66,7 @@ public class CleanupActivityHandler
 
     @PreDestroy
     public void unregister() {
-        handlerRegistry.unregister(ShadowRefreshWorkDefinitionType.COMPLEX_TYPE, CleanupWorkDefinition.class);
+        handlerRegistry.unregister(CleanupWorkDefinitionType.COMPLEX_TYPE, CleanupWorkDefinition.class);
     }
 
     @Override

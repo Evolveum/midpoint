@@ -1,7 +1,8 @@
 package com.evolveum.midpoint.repo.common;
 
 import static com.evolveum.midpoint.prism.Referencable.getOid;
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.MARK_PROTECTED_OID;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -9,14 +10,14 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStateme
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType.EXCLUDE;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -55,8 +56,6 @@ public class ObjectOperationPolicyHelper {
 
     private static final String OP_COMPUTE_EFFECTIVE_POLICY =
             ObjectOperationPolicyHelper.class.getName() + ".computeEffectivePolicy";
-
-    private static final String MARK_PROTECTED_SHADOW_OID = SystemObjectsType.MARK_PROTECTED.value();
 
     private static ObjectOperationPolicyHelper instance = null;
 
@@ -131,11 +130,11 @@ public class ObjectOperationPolicyHelper {
     }
 
     private boolean isProtected(ObjectOperationPolicyType effectiveOperationPolicy) {
-        return !effectiveOperationPolicy.getAdd().isEnabled()
-                && !effectiveOperationPolicy.getModify().isEnabled()
-                && !effectiveOperationPolicy.getDelete().isEnabled()
-                && !effectiveOperationPolicy.getSynchronize().getInbound().isEnabled()
-                && !effectiveOperationPolicy.getSynchronize().getOutbound().isEnabled();
+        return isAddDisabled(effectiveOperationPolicy)
+                && isModifyDisabled(effectiveOperationPolicy)
+                && isDeleteDisabled(effectiveOperationPolicy)
+                && isSyncInboundDisabled(effectiveOperationPolicy)
+                && isSyncOutboundDisabled(effectiveOperationPolicy);
     }
 
     /**
@@ -353,21 +352,74 @@ public class ObjectOperationPolicyHelper {
             var ret = new ObjectOperationPolicyType();
             Collection<MarkType> marks = getShadowMarks(effectiveMarkRefs, result);
 
-            ret.setSynchronize(
-                    new SynchronizeOperationPolicyConfigurationType()
-                            .inbound(firstNonDefaultValue(marks,
-                                    m -> m.getSynchronize() != null ? m.getSynchronize().getInbound(): null,
-                                    true))
-                            .outbound(firstNonDefaultValue(marks,
-                                    m -> m.getSynchronize() != null ? m.getSynchronize().getOutbound(): null,
-                                    true))
-                            .toleranceOverride(computeToleranceOverride(marks, context))
-            );
+            try {
+                disableOperationIfRequiredByMarks(ret, PATH_ADD, marks);
+                disableOperationIfRequiredByMarks(ret, PATH_MODIFY, marks);
+                disableOperationIfRequiredByMarks(ret, PATH_DELETE, marks);
+                disableOperationIfRequiredByMarks(ret, PATH_SYNC_INBOUND, marks);
+                disableOperationIfRequiredByMarks(ret, PATH_SYNC_OUTBOUND, marks);
 
-            ret.setAdd(firstNonDefaultValue(marks, ObjectOperationPolicyType::getAdd, true));
-            ret.setModify(firstNonDefaultValue(marks, ObjectOperationPolicyType::getModify, true));
-            ret.setDelete(firstNonDefaultValue(marks, ObjectOperationPolicyType::getDelete, true));
+                var toleranceOverride = computeToleranceOverride(marks, context);
+                if (toleranceOverride != null) {
+                    //noinspection unchecked
+                    ret.asPrismContainerValue()
+                            .findOrCreateProperty(PATH_MEMBERSHIP_TOLERANCE)
+                            .setRealValue(toleranceOverride);
+                }
+            } catch (SchemaException e) {
+                throw SystemException.unexpected(e); // schema should be OK here
+            }
             return ret;
+        }
+
+        /**
+         * Collects "disable" instructions for specific operation (represented by `path`) from a set of marks.
+         * Selects the one with the highest severity and applies it onto current policy.
+         */
+        private void disableOperationIfRequiredByMarks(
+                @NotNull ObjectOperationPolicyType resultingPolicy,
+                @NotNull ItemPath path,
+                @NotNull Collection<MarkType> marks) throws SchemaException {
+            OperationPolicyConfigurationType highestSeverityBlocker = null;
+            for (MarkType mark : marks) {
+                var markPolicy = mark.getObjectOperationPolicy();
+                if (markPolicy == null) {
+                    continue;
+                }
+                //noinspection unchecked
+                var markPolicyItem =
+                        (PrismContainer<OperationPolicyConfigurationType>)
+                                markPolicy.asPrismContainerValue().findItem(path);
+                if (markPolicyItem == null || markPolicyItem.hasNoValues()) {
+                    continue;
+                }
+                var markPolicyItemValue = markPolicyItem.getRealValue(OperationPolicyConfigurationType.class);
+                var severity = Objects.requireNonNullElse(markPolicyItemValue.getSeverity(), OperationPolicyViolationSeverityType.ERROR);
+                if (Boolean.FALSE.equals(markPolicyItemValue.getEnabled())) {
+                    if (highestSeverityBlocker == null || isHigher(severity, highestSeverityBlocker.getSeverity())) {
+                        highestSeverityBlocker = markPolicyItemValue.clone();
+                        highestSeverityBlocker.setSeverity(severity); // to treat null values
+                    }
+                }
+            }
+            if (highestSeverityBlocker != null) {
+                //noinspection unchecked
+                resultingPolicy.asPrismContainerValue().findOrCreateItem(path, PrismContainer.class, null)
+                        .add(highestSeverityBlocker.asPrismContainerValue());
+            }
+        }
+
+        /** Returns {code true} if {code s1} is higher than {code s2}. */
+        private boolean isHigher(
+                @NotNull OperationPolicyViolationSeverityType s1, @NotNull OperationPolicyViolationSeverityType s2) {
+            return getValue(s1) > getValue(s2);
+        }
+
+        private int getValue(@NotNull OperationPolicyViolationSeverityType s) {
+            return switch (s) {
+                case INFO -> 1;
+                case ERROR -> 2;
+            };
         }
 
         private Boolean computeToleranceOverride(Collection<MarkType> marks, Object context) {
@@ -376,16 +428,22 @@ public class ObjectOperationPolicyHelper {
             marks.forEach(
                     m -> {
                         var policy = m.getObjectOperationPolicy();
-                        if (policy != null) {
-                            var synchronize = policy.getSynchronize();
-                            if (synchronize != null) {
-                                var override = synchronize.getToleranceOverride();
-                                if (Boolean.TRUE.equals(override)) {
-                                    givingTrue.add(m);
-                                } else if (Boolean.FALSE.equals(override)) {
-                                    givingFalse.add(m);
-                                }
-                            }
+                        if (policy == null) {
+                            return;
+                        }
+                        var synchronize = policy.getSynchronize();
+                        if (synchronize == null) {
+                            return;
+                        }
+                        var membership = synchronize.getMembership();
+                        if (membership == null) {
+                            return;
+                        }
+                        var toleranceOverride = membership.getTolerant();
+                        if (Boolean.TRUE.equals(toleranceOverride)) {
+                            givingTrue.add(m);
+                        } else if (Boolean.FALSE.equals(toleranceOverride)) {
+                            givingFalse.add(m);
                         }
                     }
             );
@@ -531,9 +589,9 @@ public class ObjectOperationPolicyHelper {
         Collection<ObjectReferenceType> computeEffectiveMarks(
                 @NotNull ObjectType object, @NotNull ObjectMarksComputer objectMarksComputer,
                 @NotNull OperationResult result) throws SchemaException {
-            if (objectMarksComputer.getComputableMarksOids().contains(MARK_PROTECTED_SHADOW_OID)
-                    && objectMarksComputer.computeObjectMarkPresence(MARK_PROTECTED_SHADOW_OID, result)) {
-                return List.of(new ObjectReferenceType().oid(MARK_PROTECTED_SHADOW_OID).type(MarkType.COMPLEX_TYPE));
+            if (objectMarksComputer.getComputableMarksOids().contains(MARK_PROTECTED_OID)
+                    && objectMarksComputer.computeObjectMarkPresence(MARK_PROTECTED_OID, result)) {
+                return List.of(new ObjectReferenceType().oid(MARK_PROTECTED_OID).type(MarkType.COMPLEX_TYPE));
             } else {
                 return List.of();
             }
@@ -543,57 +601,24 @@ public class ObjectOperationPolicyHelper {
         @Override
         @NotNull ObjectOperationPolicyType computeEffectiveOperationPolicy(
                 Collection<ObjectReferenceType> effectiveMarkRefs, Object context, OperationResult result) {
-            if (containsOid(effectiveMarkRefs, MARK_PROTECTED_SHADOW_OID)) {
+            if (containsOid(effectiveMarkRefs, MARK_PROTECTED_OID)) {
                 return new ObjectOperationPolicyType()
                         .synchronize(new SynchronizeOperationPolicyConfigurationType()
-                                .inbound(op(false, OperationPolicyViolationSeverityType.INFO))
-                                .outbound(op(false, OperationPolicyViolationSeverityType.INFO))
-                        )
-                        .add(op(false, OperationPolicyViolationSeverityType.ERROR))
-                        .modify(op(false, OperationPolicyViolationSeverityType.ERROR))
-                        .delete(op(false, OperationPolicyViolationSeverityType.ERROR));
+                                .inbound(disabled(OperationPolicyViolationSeverityType.INFO))
+                                .outbound(disabled(OperationPolicyViolationSeverityType.INFO)))
+                        .add(disabled(OperationPolicyViolationSeverityType.ERROR))
+                        .modify(disabled(OperationPolicyViolationSeverityType.ERROR))
+                        .delete(disabled(OperationPolicyViolationSeverityType.ERROR));
             } else {
-                return new ObjectOperationPolicyType()
-                        .synchronize(new SynchronizeOperationPolicyConfigurationType()
-                                .inbound(op(true, null))
-                                .outbound(op(true, null))
-                        )
-                        .add(op(true, null))
-                        .modify(op(true, null))
-                        .delete(op(true, null));
+                return new ObjectOperationPolicyType();
             }
         }
 
-        private OperationPolicyConfigurationType op(boolean enabled, OperationPolicyViolationSeverityType severity) {
-            var ret = new OperationPolicyConfigurationType();
-            ret.setEnabled(enabled);
-            if (!enabled) {
-                ret.setSeverity(severity);
-            }
-            return ret;
+        private OperationPolicyConfigurationType disabled(OperationPolicyViolationSeverityType severity) {
+            return new OperationPolicyConfigurationType()
+                    .enabled(false)
+                    .severity(severity);
         }
-    }
-
-    // FIXME what about severity? We should perhaps select the highest one
-    @SuppressWarnings("SameParameterValue")
-    private static OperationPolicyConfigurationType firstNonDefaultValue(
-            Collection<MarkType> marks,
-            Function<ObjectOperationPolicyType, OperationPolicyConfigurationType> extractor,
-            boolean defaultValue) {
-        for (var mark : marks) {
-            if (mark.getObjectOperationPolicy() != null) {
-                var value = extractor.apply(mark.getObjectOperationPolicy());
-                if (value == null) {
-                    continue;
-                }
-                var enabled = value.isEnabled();
-                // If value is different from default, we return and use it
-                if (enabled != null && !Objects.equal(defaultValue, enabled)) {
-                    return value.clone();
-                }
-            }
-        }
-        return new OperationPolicyConfigurationType().enabled(defaultValue);
     }
 
     private static boolean containsOid(@NotNull Collection<ObjectReferenceType> refs, @NotNull String oid) {
@@ -608,23 +633,6 @@ public class ObjectOperationPolicyHelper {
         return statements.stream().anyMatch(
                 s -> s.getType() == policyType && markOid.equals(getOid(s.getMarkRef())));
     }
-
-    // TODO delete
-//    /** Get the decision (APPLY, EXCLUDE, or null = no statement) from the statements. */
-//    private @Nullable PolicyStatementTypeType getDecisionFromStatements(
-//            @NotNull List<PolicyStatementType> statements, @NotNull String markOid, Object context)
-//            throws SchemaException {
-//        var decisions = statements.stream()
-//                .filter(s -> markOid.equals(getOid(s.getMarkRef())))
-//                .map(s -> s.getType())
-//                .filter(java.util.Objects::nonNull) // maybe we should report this as an error, but let's just ignore it
-//                .collect(Collectors.toSet());
-//        return MiscUtil.extractSingleton(
-//                decisions,
-//                () -> new SchemaException(
-//                        "Conflicting statements for mark %s: %s in %s".formatted(
-//                                markOid, decisions, context)));
-//    }
 
     public interface ObjectMarksComputer {
 
