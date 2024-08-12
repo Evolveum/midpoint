@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -27,6 +28,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 
 import java.io.Serial;
+import java.util.List;
 
 public class LockoutStatusPanel extends BasePanel<PrismPropertyWrapper<LockoutStatusType>> {
 
@@ -101,27 +103,34 @@ public class LockoutStatusPanel extends BasePanel<PrismPropertyWrapper<LockoutSt
             try {
                 PrismContainerWrapper<AuthenticationBehavioralDataType> authWrapper =
                         behavior.findContainer(BehaviorType.F_AUTHENTICATION);
-                if (authWrapper != null) {
-                    authWrapper.getValues().forEach(bv -> {
-                        if (toInitialValue) {
-                            bv.setRealValue(bv.getOldValue().getRealValue());
-                        } else {
-                            PrismProperty<AuthenticationAttemptDataType> authAttempt =
-                                    bv.getNewValue().findProperty(AuthenticationBehavioralDataType.F_AUTHENTICATION_ATTEMPT);
-                            if (authAttempt != null) {
-                                authAttempt.getValues().forEach(authAttemptValue -> {
-                                    try {
-                                        if (authAttemptValue.getRealValue() != null) {
-                                            authAttemptValue.getRealValue().setFailedAttempts(0);
-                                        }
-                                    } catch (Exception e) {
-//                                    nothing to do
-                                    }
-                                });
-                            }
-                        }
-                    });
+                if (authWrapper == null) {
+                    return;
                 }
+                if (toInitialValue) {
+                    //TODO probably it will be needed to set also failed attempts as in old value
+                    authWrapper.getValues().forEach(bv -> bv.setRealValue(bv.getOldValue().getRealValue()));
+                    return;
+                } else {
+                    List<PrismContainerValueWrapper<AuthenticationBehavioralDataType>> values = authWrapper.getValues();
+                    for (PrismContainerValueWrapper<AuthenticationBehavioralDataType> value: values) {
+                        PrismPropertyWrapper<AuthenticationAttemptDataType> authAttempt = value.findProperty(AuthenticationBehavioralDataType.F_AUTHENTICATION_ATTEMPT);
+                        if (authAttempt == null) {
+                            continue;
+                        }
+                        authAttempt.getValues().forEach(authAttemptValue -> {
+                            try {
+                                if (authAttemptValue.getRealValue() != null) {
+                                    authAttemptValue.getRealValue().setFailedAttempts(0);
+                                }
+                            } catch (Exception e) {
+//                                    nothing to do TODO log at least exception
+                            }
+                        });
+
+                    }
+
+                }
+
             } catch (SchemaException e) {
                 //nothing to do
             }
