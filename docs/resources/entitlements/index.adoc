@@ -2,7 +2,7 @@
 midpoint-feature: [ 'entitlement', 'entitlement-association' ]
 doc-type: intro
 ---
-= Entitlements
+= Entitlements and Associations
 :page-wiki-name: Entitlements
 :page-wiki-id: 13598822
 :page-wiki-metadata-create-user: semancik
@@ -42,10 +42,6 @@ MidPoint can manage all groups in a uniform way regardless of the grouping mecha
 All that is needed is a handful of configuration lines.
 And the nightmare is over.
 Especially when entitlements are combined with the power of xref:/midpoint/reference/roles-policies/assignment/[assignments] and xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
-
-To be completely honest, even though midPoint support for entitlements is quite powerful it is still at its beginning.
-The entitlements are supported in midPoint core engine but the GUI support is currently very limited.
-However even this basic support is enough to avoid deployment nightmares.
 ====
 
 
@@ -77,58 +73,175 @@ And that's exactly what midPoint does when an account xref:/midpoint/reference/r
 
 image::schemas-entitlement-3.png[]
 
-
-
 MidPoint fetches the shadow from its repository and it uses the identifiers stored in the shadow to locate account object on the resource.
 MidPoint retrieves the account object.
 Then midPoint looks for entitlement information in the account and processes any associations.
 MidPoint may need to retrieve or search additional objects to fully process the associations.
-E.g. standard LDAP groups store the list of members in the group object therefore midPoint needs to search the group objects to fully process the association information.
+E.g. standard LDAP groups store the list of members in the group object therefore midPoint (or the LDAP connector) needs to search the group objects to fully process the association information.
 MidPoint does all that transparently.
 Regardless what kind of grouping and association mechanism is used midPoint presents the data in a unified form.
 
+NOTE: Recently-introduced shadow caching feature allows to store parts of these information right in the repository.
+This includes relations between shadows, like the group membership.
+However, the general principle described above still applies if the requested data are not in the cache.
 
-== Association Definition
+== Associations
 
-Association of account and entitlement is defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration]. Both object-to-subject and subject-to-object association directions are supported
+Relations between accounts and entitlements are implemented using _associations_.
+(However, associations have much more applications, as described below.)
 
-Association is a relation between two parties: subject and object.
-Subject is the party that receives the entitlement (usually an account).
-The object is the entitlement (usually a group).
-There are three important things that define the association:
+An association is a relation between a *subject* and one or more *objects*.
 
-* *direction*: Specifies the direction of association, i.e. if the association point from object to subject or the other way around:
+When using associations to implement entitlements, subject is the party that receives the entitlement (usually an account), while the object is the entitlement (usually a group).
 
-** *subjectToObject*: Subject has an attribute that contains object identifiers as its values.
-E.g. an account has a list of groups to which it belongs.
+An association can be either *simple* or *complex*:
 
-** *objectToSubject*: Object has an attribute that contains subject identifiers as its values.
-E.g. a group has a list of members.
+* A simple association is just a relation between one subject and one object.
+This is the typical way how entitlements are represented.
 
+* A complex association has either multiple objects present, or it can contain additional data (currently attributes and activation data) on its own.
+Typical examples:
 
+** *User access rights*: a user has a set of rights to read, write, and/or administer given directories.
+Each access right is a value of this association, and has the user (as its subject), the directory (as its object), and the access level (as its attribute).
 
-* *associationAttribute*: Name of the attribute which represents the association.
-This is the attribute that will be modified when the association changes.
-In object-to-subject associations this is the attribute of the object (e.g. group).
-In subject-to-object associations this is an attribute of the subject (e.g. account).
+** *HR contracts*: a person has a set of contracts, where each contract has an organizational unit, a cost center, a job position, validity, and other data.
+Each contract is a value of this association, with the person being the subject, organization unit, cost center, and job positions (assuming they are represented by shadows) are the objects, and everything else is stored in attributes and activation data.
 
-* *valueAttribute*: Name of the attribute from with a value for association attribute is taken.
-The value is taken from this attribute and it will be stored in the association attribute.
-This attribute will *not* be modified when the association changes, it is only for reading.
-In object-to-subject associations this is the attribute of the subject (e.g. account).
-In subject-to-object associations this is an attribute of the object (e.g. group).
-This attribute usually contain identifiers.
+[NOTE]
+====
+Simple associations are supported by midPoint in full.
 
+Complex associations are xref:/midpoint/versioning/experimental/[an experimental feature].
+====
 
-=== Association Direction
+=== Where Defined
 
-MidPoint supports associations that are represented by any of the two directions: subject-to-object and object-to-subject.
+Associations are defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration].
 
-The *subject-to-object* associations are quite simple.
+Technically, associations are based on so-called *reference attributes*.
+These are special attributes describing relations (links) between resource objects.
+
+[NOTE]
+====
+A simple association is equivalent to a reference attribute.
+
+A complex association is implemented using a separate object (holding the association data), and its references to the object and the subjects of the association.
+====
+
+Some connectors, LDAP/AD in particular, support reference attributes out of the box.
+Others will provide this support later.
+Until that, it is possible to define *simulated references* in the xref:/midpoint/reference/resources/resource-configuration/capabilities/[Capabilities] section, so that you can utilize the full power of associations in your deployments.
+
+Let's cover defining simulated references first.
+If you use connector having this capability, feel free to skip to #TODO# section.
+
+=== Simulated References Definition
+
+Each simulated reference has two sides: *object* and *subject*.
+
+==== Participating Resource Objects
+
+First, we have to define what resource objects can participate in the reference on each of these sides.
+We call this the *delineation* and we use the following properties to do it:
+
+.Defining participating resource objects
+[autowidth]
+|===
+| Configuration item | Meaning | Example
+
+| `objectClass`
+| Name of the object class for the participant.
+| `ri:inetOrgPerson`
+
+| `baseContext`
+| The definition of base context (resource object container).
+This object will be used as a base for searches for the participants.
+Usually only the objects that are hierarchically below the `baseContext` are returned by such a search.
+
+Experimental.
+a|
+[source,xml]
+----
+<baseContext>
+    <objectClass>ri:organizationalUnit</objectClass>
+    <filter>
+        <q:text>attributes/dn = "ou=groups,dc=evolveum,dc=net"</q:text>
+    </filter>
+</baseContext>
+----
+
+| `searchHierarchyScope`
+| Definition of search hierarchy scope.
+It specifies how "deep" the search should go into the object hierarchy.
+It is only applicable to resources that support hierarchical organization of objects (e.g. LDAP resources).
+
+The value of `sub` means subtree search: it goes deep down the hierarchy, as deep as possible.
+
+The value of `one` means one-level search. The search is reaching just one level below the base context object.
+
+Experimental.
+|
+
+| `auxiliaryObjectClass`
+| Restriction of the participant to the specified auxiliary object class, if present.
+Typically used if the binding attribute is defined in this class, like `ri:uid` for a `posixAccount`, which is a member of a `posixGroup`.
+
+Currently supported only for the subjects.
+
+Experimental.
+
+| `ri:posixAccount`
+|===
+
+There can be zero, one, or more delineations.
+
+#TODO define what is experimental and what is supported here#
+
+The following example shows how to define `groupMembership` reference type that binds together accounts and groups (as subjects) and groups (as objects).
+
+.An example of delineating reference type participants
+[source,xml]
+----
+<capabilities>
+    <c:configured xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <references>
+            <type>
+                <name>ri:groupMembership</name>
+                <subject>
+                    <delineation>
+                        <objectClass>ri:AccountObjectClass</objectClass>
+                    </delineation>
+                    <delineation>
+                        <objectClass>ri:GroupObjectClass</objectClass>
+                    </delineation>
+                    <!-- ... -->
+                </subject>
+                <object>
+                    <delineation>
+                        <objectClass>ri:GroupObjectClass</objectClass>
+                    </delineation>
+                    <!-- ... -->
+                </object>
+                <!-- ... -->
+            </type>
+            <!-- ... -->
+        </references>
+    </c:configured>
+</capabilities>
+----
+
+==== Bindings
+
+Next, we should define how subjects and objects are bound together.
+
+MidPoint supports bindings that either subject-to-object or object-to-subject.
+
+The *subject-to-object* direction is quite simple.
 In this case the subject (account) has a list of its entitlements (groups).
 It may look like this:
 
-.subject-to-object association
+.subject-to-object direction
 [source,ldif]
 ----
 objectclass: account
@@ -149,17 +262,19 @@ objectclass: group
 groupname: captains
 ----
 
-In this case the association attribute is `groups` and the value attribute is `groupname`.
+In this case the binding attribute on the subject side is `groups` and the binding attribute on the object side is `groupname`.
 
-Also the implementation of this type of association is very simple.
-MidPoint will just retrieve the subject (account) and all of the necessary data are there.
+The management of this binding is very easy.
 
-The *object-to-subject* associations are more complex.
-In this case the association is the other way around.
-The object (group) has the list of subjects (accounts) that are the memebers.
+* When reading, midPoint will just retrieve the subject (account) and all of the necessary data are there.
+* When updating (i.e., adding or deleting reference values), midPoint will simply add or delete the respective `groups` values on the subject (account).
+
+The *object-to-subject* direction is more complex.
+In this case the binding points the other way around.
+The object (group) has the list of subjects (accounts) that are the members.
 Like this:
 
-.object-to-subject association
+.object-to-subject direction
 [source,ldif]
 ----
 objectclass: account
@@ -180,13 +295,16 @@ groupname: captains
 members: jack
 ----
 
-In this case the association attribute is `members` and the value attribute is `username`.
+In this case the binding attribute on the subject side is `username` and the binding attribute on the object side is `members`.
 
-The implementation of this association is also complex.
-In this case we cannot simply retrieve the subject (account).
+The management of this binding is also complex.
+
+* When reading, we cannot simply retrieve the subject (account).
 The membership data are not there.
-What we need is to _search_ for all the entitlements.
-E.g. if we want to get a list of all groups that `jack` belongs to then we need to search for all groups that match the filter (members=jack).
+What we need is to _search_ for all the objects.
+E.g. if we want to get a list of all groups that `jack` belongs to then we need to search for all groups that match the filter `(members=jack)`.
+
+* When updating (i.e., adding or deleting reference values), midPoint will have to update `members` attribute of concrete groups: the `jack` value is either added to, or deleted from, that attribute on each group whose membership is being added or deleted from `jack`.
 
 The direction of the association has significant consequences in many areas.
 Firstly there is performance impact.
@@ -196,40 +314,104 @@ Secondly this has consequences for troubleshooting.
 Different types of associations produce different connector operations.
 Especially the searches for object-to-subject associations may be quite tricky to troubleshoot.
 
+==== Primary and Secondary Bindings
 
-=== Association Shortcut
+There are two kinds of bindings:
 
-There are two more properties that define a "shortcut" for membership.
-E.g. LDAP servers typically have objectToSubject association for groups (groups have a list of members).
-This is not very efficient approach because it requires at least two operations to retrieve an account and all its groups (first operation to read the account itself, second search for all the groups).
-Therefore advanced LDAP servers typically provide a _virtual_ account attribute that contains a list of groups.
-This attribute is computed and it is only for reading.
-If the group membership has to be changed then the group object needs to be modified.
-However this approach significantly improves read efficiency.
-MidPoint fully supports this approach.
-This "shortcut" can be configured in a way that is very similar to the association itself:
+* *Primary binding*: This is the one used to update the reference.
+It can be also used to retrieve the reference values, if no other binding is defined.
+It may be either object-to-subject or subject-to-object.
 
-* *shortcutAssociationAttribute*: Association attribute short-cut.
-There are cases when a object-to-subject association is the authoritative one, but reading object-to-subject is expensive.
-E.g. several searches must be done to fully resolve object-to-subject associations.
-This attribute provides a short-cut mechanism.
-It is used in cases when there is additional (virtual) attribute that goes in the opposite direction as the primary object-to-subject association attribute.
-The association short-cut is only usable for object-to-subject associations. +
-This property specifies name of the attribute which represents the association short-cut.
-This is the attribute of the subject (e.g. account).
-This attribute will only be read, it is never written.
-The primary association attribute is used for writing.
+* *Secondary binding*: There are situations where the resource provides additional data that allow more efficient retrieval of reference values.
+In such cases, you can define secondary binding that utilizes them.
+It is always subject-to-object, and is defined only if the primary binding is object-to-subject.
 
-* *shortcutValueAttribute*: Association attribute short-cut.
-There are cases when a object-to-subject association is the authoritative one, but reading object-to-subject is expensive.
-E.g. several searches must be done to fully resolve object-to-subject associations.
-This attribute provides a short-cut mechanism.
-It is used in cases when there is additional (virtual) attribute that goes in the opposite direction as the primary object-to-subject association attribute.
-The assocition short-cut is only usable for object-to-subject associations. +
-This property specifies name of the attribute from with a value for association attribute short-cut is taken.
-The values of this attribute are expected to appear in association short-cut attribute.
-This is an attribute of the object (e.g. group).
-This attribute usually contain identifiers.
+An real-life example for an LDAP resource:
+
+* The primary binding may be between account `ri:dn` attribute and group `ri:members` one.
+It is used for updating the user's group membership data.
+* The secondary binding may be between account `ri:memberOf` attribute and group `ri:dn` one.
+It is used for reading the user's group membership data.
+The `memberOf` (or similar) attribute is typically provided by advanced LDAP servers.
+It is a virtual read-only account attribute that contains a list of groups the account is a member of.
+
+==== Some Examples
+
+This is the `groupMembership` reference type typical for LDAP servers.
+(If, for some reason, you don't use the native capability of the LDAP connector for this.)
+
+* When querying, `ri:memberOf` attribute on the subject (account or group) is used.
+* When updating, `ri:members` attribute on the object (group) is used.
+* The reference is visible as (virtual) `group` reference attribute on the subject (account or group).
+#TODO explain this#
+
+.An example of LDAP group membership definition
+[source,xml]
+----
+<capabilities>
+    <c:configured xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <references>
+            <type>
+                <name>ri:groupMembership</name>
+                <subject>
+                    <delineation>
+                        <objectClass>ri:inetOrgPerson</objectClass>
+                    </delineation>
+                    <delineation>
+                        <objectClass>ri:groupOfNames</objectClass>
+                    </delineation>
+                    <primaryBindingAttributeRef>ri:dn</primaryBindingAttributeRef>
+                    <secondaryBindingAttributeRef>ri:memberOf</secondaryBindingAttributeRef>
+                    <localItemName>ri:group</localItemName>
+                </subject>
+                <object>
+                    <delineation>
+                        <objectClass>ri:groupOfNames</objectClass>
+                    </delineation>
+                    <primaryBindingAttributeRef>ri:members</primaryBindingAttributeRef>
+                    <secondaryBindingAttributeRef>ri:dn</secondaryBindingAttributeRef>
+                </object>
+                <direction>objectToSubject</direction>
+            </type>
+        </references>
+    </c:configured>
+</capabilities>
+----
+
+This is a typical example of subject-to-object reference.
+
+* When querying and updating, `ri:privileges` attribute on the subject (account) is used.
+* The reference is visible as (virtual) `ri:priv` reference attribute on the subject (account).
+
+.An example of a custom "privileges" definition
+[source,xml]
+----
+<capabilities>
+    <c:configured xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <references>
+            <type>
+                <name>ri:accountPrivilege</name>
+                <subject>
+                    <delineation>
+                        <objectClass>ri:account</objectClass>
+                    </delineation>
+                    <primaryBindingAttributeRef>ri:privileges</primaryBindingAttributeRef>
+                    <localItemName>ri:priv</localItemName>
+                </subject>
+                <object>
+                    <delineation>
+                        <objectClass>ri:privilege</objectClass>
+                    </delineation>
+                    <primaryBindingAttributeRef>icfs:name</primaryBindingAttributeRef>
+                </object>
+                <direction>subjectToObject</direction>
+            </type>
+        </references>
+    </c:configured>
+</capabilities>
+----
+
+#TODO rework the following#
 
 
 === Association Definition Examples
