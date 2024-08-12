@@ -147,8 +147,7 @@ public class AttributeAnalysisUtil {
 
         attributeResultMap.forEach((key, value) -> {
             AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
-                    value.getFrequencyMap().size(), usersCount, value.getTotalRelation(), key);
-            attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
+                    value.getFrequencyMap().size(), usersCount, value.getTotalRelation(), key, UserType.COMPLEX_TYPE);
 //            attributeAnalysisStructure.setDescription(
 //                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
             generateAttributeAnalysisStructure(roleAnalysisService, UserType.class, value, attributeAnalysisStructure, usersCount,
@@ -200,8 +199,7 @@ public class AttributeAnalysisUtil {
 
         attributeResultMap.forEach((key, value) -> {
             AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
-                    value.getFrequencyMap().size(), usersCount, value.getTotalRelation(), key);
-            attributeAnalysisStructure.setComplexType(UserType.COMPLEX_TYPE);
+                    value.getFrequencyMap().size(), usersCount, value.getTotalRelation(), key, UserType.COMPLEX_TYPE);
 //            attributeAnalysisStructure.setDescription(
 //                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
             generateAttributeAnalysisStructure(roleAnalysisService, UserType.class, value, attributeAnalysisStructure, usersCount,
@@ -250,8 +248,7 @@ public class AttributeAnalysisUtil {
 
         attributeResultMap.forEach((key, value) -> {
             AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
-                    value.getFrequencyMap().size(), rolesCount, value.getTotalRelation(), key);
-            attributeAnalysisStructure.setComplexType(RoleType.COMPLEX_TYPE);
+                    value.getFrequencyMap().size(), rolesCount, value.getTotalRelation(), key, RoleType.COMPLEX_TYPE);
 //            attributeAnalysisStructure.setDescription(
 //                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
             generateAttributeAnalysisStructure(roleAnalysisService, RoleType.class, value, attributeAnalysisStructure, rolesCount,

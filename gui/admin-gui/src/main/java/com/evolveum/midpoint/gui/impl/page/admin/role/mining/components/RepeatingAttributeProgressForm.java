@@ -48,9 +48,9 @@ public class RepeatingAttributeProgressForm extends BasePanel<String> {
 
         WebMarkupContainer containerFirstGroup = createContainer();
         if (isHide()) {
-            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body collapse"));
+            containerFirstGroup.add(AttributeModifier.replace("class", "row p-0 card-body collapse"));
         } else {
-            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body collapse show"));
+            containerFirstGroup.add(AttributeModifier.replace("class", "row p-0 card-body collapse show"));
         }
         add(containerFirstGroup);
 

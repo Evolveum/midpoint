@@ -305,7 +305,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
         };
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", getButtonCssClass()));
+        button.add(AttributeAppender.replace("class", getButtonCssClass()));
         repeatingView.add(button);
     }
 
@@ -369,7 +369,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
         };
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", getButtonCssClass()));
+        button.add(AttributeAppender.replace("class", getButtonCssClass()));
         repeatingView.add(button);
     }
 

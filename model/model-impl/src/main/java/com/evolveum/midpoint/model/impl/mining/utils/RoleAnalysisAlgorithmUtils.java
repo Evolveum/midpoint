@@ -446,6 +446,8 @@ public class RoleAnalysisAlgorithmUtils {
                 roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
                 roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue());
                 roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
+                roleAnalysisAttributeAnalysis.setParentType(roleAttributeAnalysisStructure.getComplexType());
+
                 List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAttributeAnalysisStructure.getAttributeStatistics();
                 for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
                     roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
@@ -466,6 +468,7 @@ public class RoleAnalysisAlgorithmUtils {
                 userAnalysisAttributeAnalysis.setDensity(density);
                 userAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
                 userAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+                userAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
 
                 userAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
                 List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();

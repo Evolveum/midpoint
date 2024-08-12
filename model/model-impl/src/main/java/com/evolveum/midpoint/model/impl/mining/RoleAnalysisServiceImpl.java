@@ -1967,6 +1967,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
                     roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
                     roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
+                    roleAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
+
                     List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
                     for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
                         roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
@@ -1994,6 +1996,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
                     roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue());
                     roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
+                    roleAnalysisAttributeAnalysis.setParentType(roleAttributeAnalysisStructure.getComplexType());
                     List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAttributeAnalysisStructure.getAttributeStatistics();
                     for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
                         roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
@@ -2195,6 +2198,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             RoleAnalysisAttributeAnalysis correspondingAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
             correspondingAttributeAnalysis.setItemPath(clusterItemPath);
+            correspondingAttributeAnalysis.setParentType(clusterAnalysis.getParentType());
 
             int counter = 0;
             int sum = 0;
@@ -2226,6 +2230,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         for (RoleAnalysisAttributeDef item : attributesForUserAnalysis) {
             RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
             roleAnalysisAttributeAnalysis.setItemPath(item.getDisplayValue());
+            roleAnalysisAttributeAnalysis.setParentType(UserType.COMPLEX_TYPE);
             List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
 
             ItemPath path = item.getPath();
@@ -2296,6 +2301,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
             roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
             roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
+            roleAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
             List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
             for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
                 roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
@@ -2352,6 +2358,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
             roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
             roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
+            roleAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
+
             List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
             for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
                 roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);

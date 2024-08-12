@@ -8,19 +8,24 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
 import java.util.*;
+import javax.xml.namespace.QName;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Represents a form containing multiple progress bars, each visualizing the frequency of certain values.
@@ -56,9 +61,36 @@ public class ProgressBarForm extends BasePanel<String> {
         add(container);
 
         String title = analysisResult.getItemPath();
-        int valuesCount = analysisResult.getAttributeStatistics().size();
-        String attribute = getPageBase().createStringResource("Attribute.item.name").getString();
-        Label titleForm = new Label(ID_FORM_TITLE, attribute + ": " + title + " (" + valuesCount + ")");
+        IconWithLabel titleForm = new IconWithLabel(ID_FORM_TITLE, Model.of(title)) {
+            @Override
+            protected String getIconCssClass() {
+                QName parentType = analysisResult.getParentType();
+                if (parentType == null) {
+                    return super.getIconCssClass();
+                }
+
+                if (parentType.equals(UserType.COMPLEX_TYPE)) {
+                    return GuiStyleConstants.CLASS_OBJECT_USER_ICON + " fa-sm";
+                } else {
+                    return GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " fa-sm";
+                }
+            }
+
+            @Override
+            protected Component getSubComponent(String id) {
+                List<RoleAnalysisAttributeStatistics> attributeStatistics = analysisResult.getAttributeStatistics();
+                if (attributeStatistics == null) {
+                    return super.getSubComponent(id);
+                }
+                int attributeCount = attributeStatistics.size();
+                Label label = new Label(id, attributeCount);
+                label.setOutputMarkupId(true);
+                label.add(AttributeAppender.append("class",
+                        "badge bg-transparent-red border border-danger text-danger"));
+                return label;
+            }
+        };
+
         titleForm.setOutputMarkupId(true);
         container.add(titleForm);
 
@@ -115,7 +147,7 @@ public class ProgressBarForm extends BasePanel<String> {
                     @Override
                     public String getProgressBarColor() {
                         if (finalIdentifier != null) {
-                            return "red";
+                            return "#CA444B";
                         }
                         return super.getProgressBarColor();
                     }
@@ -207,7 +239,7 @@ public class ProgressBarForm extends BasePanel<String> {
                     @Override
                     public String getProgressBarColor() {
                         if (finalIdentifier != null) {
-                            return "red";
+                            return "#CA444B";
                         }
                         return super.getProgressBarColor();
                     }
@@ -223,9 +255,15 @@ public class ProgressBarForm extends BasePanel<String> {
         }
 
         if (totalBars > maxVisibleBars) {
-            AjaxLinkPanel showAllButton = new AjaxLinkPanel("showAllButton", Model.of("...")) {
+            IconWithLabel iconWithLabel = new IconWithLabel("showAllButton",
+                    createStringResource("ProgressBarForm.showAllButton")) {
                 @Override
-                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                protected boolean isLink() {
+                    return true;
+                }
+
+                @Override
+                protected void onClickPerform(AjaxRequestTarget target) {
                     int counter = 0;
                     for (Component component : repeatingProgressBar) {
                         counter++;
@@ -237,10 +275,20 @@ public class ProgressBarForm extends BasePanel<String> {
                             }
                         }
                     }
-                    ajaxRequestTarget.add(container);
+                    target.add(container);
+                }
+
+                @Override
+                protected @NotNull Component getSubComponent(String id) {
+                    Label image = new Label(id);
+                    image.add(AttributeModifier.replace("class", "fa fa-long-arrow-right"));
+                    image.add(AttributeModifier.replace("style", "color:rgb(32, 111, 157)"));
+                    image.setOutputMarkupId(true);
+                    return image;
                 }
             };
-            container.add(showAllButton);
+            iconWithLabel.setOutputMarkupId(true);
+            container.add(iconWithLabel);
         } else {
             WebMarkupContainer showAllButton = new WebMarkupContainer("showAllButton");
             showAllButton.setVisible(false);

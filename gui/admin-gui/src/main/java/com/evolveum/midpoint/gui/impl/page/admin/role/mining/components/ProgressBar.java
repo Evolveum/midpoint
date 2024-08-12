@@ -9,12 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
 import java.util.*;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -105,9 +108,14 @@ public class ProgressBar extends BasePanel<String> {
             value = " (in-group=" + getInClusterCount()
                     + ", in-repo=" + getInRepoCount() + ")";
         }
-        Label label = new Label(ID_BAR_TITTLE_DATA, value);
-        label.setOutputMarkupId(true);
-        add(label);
+
+        Label help = new Label(ID_BAR_TITTLE_DATA);
+        IModel<String> helpModel = Model.of(value);
+        help.add(AttributeModifier.replace("data-original-title",
+                createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
+        help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
+        help.setOutputMarkupId(true);
+        add(help);
     }
 
     private void setProgressBarParameters(@NotNull WebMarkupContainer progressBar) {

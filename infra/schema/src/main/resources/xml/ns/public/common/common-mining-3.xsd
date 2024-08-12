@@ -1553,6 +1553,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="parentType" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Specifies the parent type of the object.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisAttributeAnalysis.parentType</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
