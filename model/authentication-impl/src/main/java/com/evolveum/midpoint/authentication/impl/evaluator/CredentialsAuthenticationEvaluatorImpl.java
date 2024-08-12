@@ -122,7 +122,7 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
         // Lockout
-        if (isLockedOut(principal, getAuthenticationData(principal, connEnv), credentialsPolicy)) {
+        if (isLockedOut(getAuthenticationData(principal, connEnv), credentialsPolicy)) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth instanceof MidpointAuthentication) {
                 ((MidpointAuthentication) auth).setOverLockoutMaxAttempts(true);
@@ -175,7 +175,7 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
 
         AuthenticationAttemptDataType authenticationAttemptData = getAuthenticationData(principal, connEnv);
         // Lockout
-        if (isLockedOut(principal, authenticationAttemptData, passwordCredentialsPolicy)) {
+        if (isLockedOut(authenticationAttemptData, passwordCredentialsPolicy)) {
             recordModuleAuthenticationFailure(principal.getUsername(), principal, connEnv, passwordCredentialsPolicy, "password locked-out");
             throw new LockedException("web.security.provider.locked");
         }
@@ -255,10 +255,9 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         return decryptedPassword;
     }
 
-    private boolean isLockedOut(MidPointPrincipal principal,
-            AuthenticationAttemptDataType authenticationAttemptData, CredentialPolicyType credentialsPolicy) {
-        boolean isPrincipalLocked = !principal.isAccountNonLocked();
-        return isPrincipalLocked && isOverFailedLockoutAttempts(authenticationAttemptData, credentialsPolicy)
+
+    private boolean isLockedOut(AuthenticationAttemptDataType authenticationAttemptData, CredentialPolicyType credentialsPolicy) {
+        return isOverFailedLockoutAttempts(authenticationAttemptData, credentialsPolicy)
                 && !isLockoutExpired(authenticationAttemptData, credentialsPolicy);
     }
 

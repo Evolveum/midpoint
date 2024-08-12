@@ -6,101 +6,169 @@
  */
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerPanel;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationAttemptDataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BehaviorType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 
 import java.io.Serial;
 
-public class LockoutStatusPanel extends Panel {
+public class LockoutStatusPanel extends BasePanel<PrismPropertyWrapper<LockoutStatusType>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_LABEL = "label";
     private static final String ID_BUTTON = "button";
-    private boolean resetToInitialState = false;
-    private LockoutStatusType initialValue;
 
-    public LockoutStatusPanel(String id) {
-        this(id, null);
+    IModel<PrismContainerWrapper<BehaviorType>> behaviorModel;
+    PrismContainerWrapper<BehaviorType> bb = null;
+
+    public LockoutStatusPanel(String id, IModel<PrismPropertyWrapper<LockoutStatusType>> model,
+            IModel<PrismContainerWrapper<BehaviorType>> behaviorModel) {
+        super(id, model);
+        this.behaviorModel = behaviorModel;
     }
 
-    public LockoutStatusPanel(String id, IModel<LockoutStatusType> model) {
-        super(id);
-        initLayout(model);
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
-    private void initLayout(final IModel<LockoutStatusType> model) {
-        initialValue = model.getObject();
-
+    private void initLayout() {
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
 
-        Label label = new Label(ID_LABEL, getLabelModel(model));
+        Label label = new Label(ID_LABEL, getLabelModel());
         container.add(label);
 
         AjaxButton button = new AjaxButton(ID_BUTTON, getButtonModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (resetToInitialState) {
-                    model.setObject(initialValue);
-                } else {
-                    model.setObject(LockoutStatusType.NORMAL);
-                }
-                lockoutStatusResetPerformed(resetToInitialState);
-                resetToInitialState = !resetToInitialState;
-
-                reloadComponents(target);
+                lockoutStatusChangePerformed(target);
             }
         };
         container.add(button);
     }
 
-    protected void lockoutStatusResetPerformed(boolean resetToNormalState) {
-        //to be overridden
-    }
-
-    //todo ugly hack to fix 9856: when lockout status is reset to Normal, also reset lockout expiration timestamp
-    private void reloadComponents(AjaxRequestTarget target) {
-        PrismContainerPanel<?,?> containerPanel = findParent(PrismContainerPanel.class);
-        if (containerPanel != null) {
-            containerPanel.visitChildren(FormComponent.class, (formComponent, object) -> {
-                target.add(formComponent);
-            });
+    private void lockoutStatusChangePerformed(AjaxRequestTarget target) {
+        if (isModified()) {
+            resetToInitialValue();
+        } else {
+            resetToNormalState();
         }
         target.add(LockoutStatusPanel.this.get(ID_CONTAINER));
     }
 
+    private void resetToInitialValue() {
+        PrismPropertyValueWrapper<LockoutStatusType> value = getLockoutStateValueWrapper();
+        if (value != null) {
+            value.setRealValue(value.getOldValue().getRealValue());
+            value.setStatus(ValueStatus.NOT_CHANGED);
+        }
+        resetFailedAttemptsValue(true);
+    }
+
+    private void resetToNormalState() {
+        PrismPropertyValueWrapper<LockoutStatusType> value = getLockoutStateValueWrapper();
+        if (value != null) {
+            value.setRealValue(LockoutStatusType.NORMAL);
+            value.setStatus(ValueStatus.MODIFIED);
+        }
+        resetFailedAttemptsValue(false);
+    }
+
+    private void resetFailedAttemptsValue(boolean toInitialValue) {
+        PrismContainerWrapper<BehaviorType> behavior = behaviorModel.getObject();
+        if (behavior != null) {
+            try {
+                PrismContainerWrapper<AuthenticationBehavioralDataType> authWrapper =
+                        behavior.findContainer(BehaviorType.F_AUTHENTICATION);
+                if (authWrapper != null) {
+                    authWrapper.getValues().forEach(bv -> {
+                        if (toInitialValue) {
+                            bv.setRealValue(bv.getOldValue().getRealValue());
+                        } else {
+                            PrismProperty<AuthenticationAttemptDataType> authAttempt =
+                                    bv.getNewValue().findProperty(AuthenticationBehavioralDataType.F_AUTHENTICATION_ATTEMPT);
+                            if (authAttempt != null) {
+                                authAttempt.getValues().forEach(authAttemptValue -> {
+                                    try {
+                                        if (authAttemptValue.getRealValue() != null) {
+                                            authAttemptValue.getRealValue().setFailedAttempts(0);
+                                        }
+                                    } catch (Exception e) {
+//                                    nothing to do
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            } catch (SchemaException e) {
+                //nothing to do
+            }
+        }
+
+    }
+
     private IModel<String> getButtonModel() {
         return () -> {
-            String key = resetToInitialState ? "LockoutStatusPanel.undoButtonLabel" : "LockoutStatusPanel.unlockButtonLabel";
-
+            String key = isModified() ? "LockoutStatusPanel.undoButtonLabel" : "LockoutStatusPanel.unlockButtonLabel";
             return getString(key);
         };
     }
 
-    private IModel<String> getLabelModel(IModel<LockoutStatusType> model) {
+    private IModel<String> getLabelModel() {
         return () -> {
-            LockoutStatusType object = model != null ? model.getObject() : null;
+            LockoutStatusType lockoutStatus = getLockoutStateRealValue();
 
-            String labelValue = object == null ?
-                    getString("LockoutStatusType.UNDEFINED") : getString(WebComponentUtil.createEnumResourceKey(object));
+            String labelValue = lockoutStatus == null ?
+                    getString("LockoutStatusType.UNDEFINED") : getString(LocalizationUtil.createKeyForEnum(lockoutStatus));
 
-            if (resetToInitialState) {
+            if (isModified()) {
                 labelValue += " " + getString("LockoutStatusPanel.changesSaving");
             }
 
             return labelValue;
         };
+    }
+
+    private boolean isModified() {
+        PrismPropertyValueWrapper<LockoutStatusType> value = getLockoutStateValueWrapper();
+        return value != null && ValueStatus.MODIFIED.equals(value.getStatus());
+    }
+
+    private LockoutStatusType getLockoutStateRealValue() {
+        PrismPropertyValueWrapper<LockoutStatusType> value = getLockoutStateValueWrapper();
+        return value != null ? value.getRealValue() : null;
+    }
+
+    private PrismPropertyValueWrapper<LockoutStatusType> getLockoutStateValueWrapper() {
+        PrismPropertyWrapper<LockoutStatusType> lockoutStatusWrapper = getModelObject();
+        PrismPropertyValueWrapper<LockoutStatusType> value = null;
+        try {
+            value = lockoutStatusWrapper != null ? lockoutStatusWrapper.getValue() : null;
+        } catch (Exception e) {
+            //nothing to do
+        }
+        return value;
     }
 }
