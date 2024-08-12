@@ -69,15 +69,6 @@ public class RoleAnalysisTableTools {
     }
 
     /**
-     * Generate a script for applying image scale adjustments.
-     *
-     * @return The JavaScript script for applying image scale adjustments.
-     */
-    public static String applyImageScaleScript() {
-        return "MidPointTheme.initScaleResize('#imageScaleContainer');";
-    }
-
-    /**
      * Apply square table cell styles to ensure a consistent appearance.
      *
      * @param cellItem The table cell item to which the styles should be applied.

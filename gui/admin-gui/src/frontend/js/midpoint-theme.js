@@ -629,6 +629,7 @@ breakLongerTextInTableCell(cellId) {
         let div = document.querySelector(containerId);
         let scale = 0.5;
         let component = null;
+        const minDragDistance = 10
 
         if (!div) {
             console.error('Container not found');
@@ -637,24 +638,27 @@ breakLongerTextInTableCell(cellId) {
 
         if (containerId === '#tableScaleContainer') {
             component = div.querySelector('div');
-        } else if (containerId === '#imageScaleContainer') {
-            component = div.querySelector('img');
         } else if (containerId === '#chartScaleContainer') {
             component = div.querySelector('canvas');
         }
 
-        if (component) {
-            div.addEventListener('wheel', handleZoom);
-            div.addEventListener('mousedown', startDrag);
-            div.addEventListener('mouseup', stopDrag);
-        } else {
+        if (!component) {
             console.error('Component not found');
+            return
         }
 
+        div.addEventListener('wheel', handleZoom);
+        div.addEventListener('mousedown', startDrag);
+        div.addEventListener('mouseup', stopDrag);
+        div.addEventListener('mouseleave', stopDrag);
+
         let startX, startY, startScrollLeft, startScrollTop;
+        let isMouseDown = false
+        let isDragging = false
 
         function startDrag(e) {
                 e.preventDefault();
+                isMouseDown = true
                 startX = e.clientX;
                 startY = e.clientY;
                 startScrollLeft = div.scrollLeft;
@@ -666,11 +670,25 @@ breakLongerTextInTableCell(cellId) {
                 e.preventDefault();
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
+                const delta = Math.sqrt(dx * dx + dy * dy)
+                if (!isDragging && isMouseDown && delta > minDragDistance) {
+                  // mouse-down-move at least `minDragDistance` pixels from the origin to assume dragging
+                  isDragging = true
+                  // prevents other gesture handlers to interact
+                  component.style['pointer-events'] = 'none'
+                }
+                if (!isDragging) {
+                  return
+                }
                 div.scrollLeft = startScrollLeft - dx;
                 div.scrollTop = startScrollTop - dy;
             }
 
-            function stopDrag() {
+            function stopDrag(e) {
+                isMouseDown = false
+                isDragging = false
+                e.preventDefault()
+                component.style['pointer-events'] = 'inherit'
                 div.removeEventListener('mousemove', drag);
             }
 
