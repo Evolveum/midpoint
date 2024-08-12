@@ -14,7 +14,7 @@ doc-type: intro
 
 == Introduction
 
-Entitlement is a resource object similar to an account.
+An entitlement is a resource object similar to an account.
 But unlike account the entitlement does *not* represent a user.
 The entitlement represents a privilege, access right, resource-side role or group or any similar concept.
 The entitlements are very frequently used to represent groups.
@@ -57,7 +57,8 @@ image::schemas-entitlement-1.png[]
 
 == Entitlement, Account and User
 
-The primary purpose of an entitlement is to be associated with accounts (*not* users!). E.g. an account can be added as a member of a group.
+The primary purpose of an entitlement is to be associated with accounts (*not* users!).
+E.g. an account can be added as a member of a group.
 This is realized in midPoint by associating a "group entitlement" with user's account.
 MidPoint xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning component] modifies the resource in appropriate way to add account to a group.
 Similarly to other shadow-related operations midPoint then forgets about it.
@@ -71,15 +72,17 @@ Therefore midPoint does not need to remember the association.
 It can read it directly from the resource anytime.
 And that's exactly what midPoint does when an account xref:/midpoint/reference/resources/shadow/[shadow] is retrieved:
 
+#*TODO* update this figure - associations are represented in slightly different way now#
+
 image::schemas-entitlement-3.png[]
 
 MidPoint fetches the shadow from its repository and it uses the identifiers stored in the shadow to locate account object on the resource.
 MidPoint retrieves the account object.
 Then midPoint looks for entitlement information in the account and processes any associations.
-MidPoint may need to retrieve or search additional objects to fully process the associations.
+MidPoint (or the respective connector) may need to retrieve or search additional objects to fully process the associations.
 E.g. standard LDAP groups store the list of members in the group object therefore midPoint (or the LDAP connector) needs to search the group objects to fully process the association information.
-MidPoint does all that transparently.
-Regardless what kind of grouping and association mechanism is used midPoint presents the data in a unified form.
+All that is done transparently.
+Regardless what kind of grouping and association mechanism is used, midPoint presents the data in a unified form.
 
 NOTE: Recently-introduced shadow caching feature allows to store parts of these information right in the repository.
 This includes relations between shadows, like the group membership.
@@ -106,32 +109,47 @@ Typical examples:
 Each access right is a value of this association, and has the user (as its subject), the directory (as its object), and the access level (as its attribute).
 
 ** *HR contracts*: a person has a set of contracts, where each contract has an organizational unit, a cost center, a job position, validity, and other data.
-Each contract is a value of this association, with the person being the subject, organization unit, cost center, and job positions (assuming they are represented by shadows) are the objects, and everything else is stored in attributes and activation data.
+Each contract is a value of this association.
+The person is the subject.
+The organization unit, the cost center, and the job position are the objects (assuming they are represented as separate resource objects in HR).
+Everything else is stored in association attributes and activation data.
 
 [NOTE]
 ====
 Simple associations are supported by midPoint in full.
 
-Complex associations are xref:/midpoint/versioning/experimental/[an experimental feature].
+Complex associations are xref:/midpoint/versioning/experimental/[an experimental feature]. #TODO is this (still) true?#
 ====
 
-=== Where Defined
-
-Associations are defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration].
+== Associations and Reference Attributes
 
 Technically, associations are based on so-called *reference attributes*.
 These are special attributes describing relations (links) between resource objects.
+Each reference attribute resides on the *subject*, and each of its value points to a single *object*.
+
+Normally, reference attributes are hidden from the users.
+They are visible only to the lower layers of midPoint, including connectors.
 
 [NOTE]
 ====
 A simple association is equivalent to a reference attribute.
 
-A complex association is implemented using a separate object (holding the association data), and its references to the object and the subjects of the association.
+A complex association is implemented using a separate resource object (holding the association data), called *association data object*. #TODO maybe a better name is required#
+A subject of the association has a reference to this association data object.
+The association data object has references to individual objects of the association.
+
+#TODO a figure would be helpful here#
 ====
 
 Some connectors, LDAP/AD in particular, support reference attributes out of the box.
 Others will provide this support later.
-Until that, it is possible to define *simulated references* in the xref:/midpoint/reference/resources/resource-configuration/capabilities/[Capabilities] section, so that you can utilize the full power of associations in your deployments.
+Until that, it is possible to define *simulated references* in midPoint, so that you can utilize the full power of associations in your deployments.
+
+=== Defining Associations
+
+Associations are defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration].
+
+Simulated references are defined in the xref:/midpoint/reference/resources/resource-configuration/capabilities/[Capabilities] section.
 
 Let's cover defining simulated references first.
 If you use connector having this capability, feel free to skip to #TODO# section.
@@ -181,7 +199,7 @@ The value of `sub` means subtree search: it goes deep down the hierarchy, as dee
 The value of `one` means one-level search. The search is reaching just one level below the base context object.
 
 Experimental.
-|
+| `sub`
 
 | `auxiliaryObjectClass`
 | Restriction of the participant to the specified auxiliary object class, if present.
@@ -231,6 +249,12 @@ The following example shows how to define `groupMembership` reference type that 
 </capabilities>
 ----
 
+[NOTE]
+====
+When defining associations on top of simulated reference attributes, it is possible to re-use the delineation information from the associations themselves.
+See #TODO section# below for an example.
+====
+
 ==== Bindings
 
 Next, we should define how subjects and objects are bound together.
@@ -241,7 +265,7 @@ The *subject-to-object* direction is quite simple.
 In this case the subject (account) has a list of its entitlements (groups).
 It may look like this:
 
-.subject-to-object direction
+.Subject-to-object direction
 [source,ldif]
 ----
 objectclass: account
@@ -274,7 +298,7 @@ In this case the binding points the other way around.
 The object (group) has the list of subjects (accounts) that are the members.
 Like this:
 
-.object-to-subject direction
+.Object-to-subject direction
 [source,ldif]
 ----
 objectclass: account
@@ -411,126 +435,110 @@ This is a typical example of subject-to-object reference.
 </capabilities>
 ----
 
-#TODO rework the following#
+=== Association Participants Definition
 
+Now, let's have a look at how associations - or more precisely, association _types_ - are defined on top of reference attributes.
 
-=== Association Definition Examples
+First of all, association types are defined independently of participating object types.
+Each type of associations is contained in its own `associationType` item under `schemaHandling`.
 
-The following example illustrates definition of an LDAP-style group entitlement association:
+A minimalistic definition of an association type looks like this:
 
+.A minimalistic association type definition
 [source,xml]
 ----
 <resource>
-    ...
+    <!-- ... -->
     <schemaHandling>
-        <objectType>
-            <kind>account</kind>
-            ...
-            <association>
-                <ref>ri:group</ref>
-                <kind>entitlement</kind>
-                <intent>group</intent>
-                <direction>objectToSubject</direction>
-                <associationAttribute>ri:members</associationAttribute>
-                <valueAttribute>ri:dn</valueAttribute>
-                <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
-                <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
-            </association>
-        </objectType>
-        <objectType>
-            <kind>entitlement</kind>
-            <intent>group</intent>
-            <default>true</default>
-            <objectClass>ri:GroupObjectClass</objectClass>
-        </objectType>
+        <!-- ... -->
+        <associationType>
+            <name>groupMembership</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                </association>
+            </subject>
+        </associationType>
     </schemaHandling>
 </resource>
 ----
 
-The definition defines one account type and one entitlement type _group_. The entitlement and account are associated by using entitlement's attribute `members`. The `members` property of a group contains a collection of usernames that belong to the group.
+The definition must contain the association type name, which must be unique resource-wide.
 
-Following example illustrates the reverse direction of association.
-This association is realized by account's attribute `privileges` that contains a list of privileges assigned to an account.
+Then, it must contain a specification of the subject type or types to which it applies.
+In the above example, the `groupMembership` association type applies to `account/default` object type.
+The `association` item then defines how the association manifests itself on that object type.
+In particular, `ri:group` is the name under which the association is present on that shadows.
 
+If not specified otherwise, `ri:group` is the reference attribute that provides the data for this association.
+In other words, everything, that the connector (or the module for simulating reference attributes) provides within that attribute, is considered as values of this association.
+
+The engineer can restrict the values from the connector by looking at specific object types.
+
+#TODO continue from here#
+
+.An example of association type definition
 [source,xml]
 ----
 <resource>
-    ...
+    <!-- ... -->
     <schemaHandling>
-        <objectType>
-            <kind>account</kind>
-            ...
-            <association>
-                <ref>ri:priv</ref>
-                <kind>entitlement</kind>
-                <intent>privilege</intent>
-                <direction>subjectToObject</direction>
-                <associationAttribute>ri:privileges</associationAttribute>
-                <valueAttribute>icfs:name</valueAttribute>
-            </association>
-        </objectType>
-        <objectType>
-            <kind>entitlement</kind>
-            <intent>privilege</intent>
-            <default>false</default>
-            <objectClass>ri:CustomprivilegeObjectClass</objectClass>
-        </objectType>
+        <!-- ... -->
+        <associationType>
+            <name>securityGroupMembership</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:group</ref>
+                    <!-- ... -->
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>security-group</kind>
+                </objectType>
+            </object>
+        </associationType>
     </schemaHandling>
 </resource>
 ----
 
-MidPoint will present all entitlements and associations in the uniform fashion regardless of the association direction, object classes or attribute names.
-MidPoint will transparently process correct object retrieval and modification requests.
 
-[TIP]
-.Entitlements and connectors
-====
-Entitlements are resource objects.
-Therefore the component that closely communicates with the resource should be able to identify entitlements.
-This component is the connector.
-However current xref:/connectors/connectors/[Identity Connector Framework] does not support this functionality.
-Therefore the entitlements and associations needs to be manually defined in xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling]. However we are cooperating on evolution of the connector framework and introduction of connector entitlement support is quite high on our wishlist.
+=== Association Behavior Definition
 
-====
-
-
-[TIP]
-.Multi-intent associations
-====
-The association may point to many intents (many object types with different intents).
-This is sometimes useful, especially if there are many types of groups and each type is constructed in a slightly different way.
-The multi-intent associations are supported and often very useful.
-But there is an important hard limitation: all the object types referenced from a single association must have the same object type, attributes, matching rules, .... they must be equivalent in every aspect except for attribute mappings.
-====
-
-
-=== Association Behavior in MidPoint
-
-MidPoint works with associations in almost the same way how it works with resource object attributes.
+#MidPoint works with associations in almost the same way how it works with resource object attributes.
 The associations are not stored in midPoint (xref:/midpoint/reference/resources/shadow/[Shadow Objects]). The associations are retrieved fresh from the resource.
 This applies to all parts of midPoint and particularly to xref:/midpoint/reference/synchronization/introduction/[synchronization] and the user interface.
 E.g. the user interface will retrieve the associations only when the resource object (account) on the projection tab is expanded.
-Exactly at the same time when attributes are retrieved.
+Exactly at the same time when attributes are retrieved.#
 
 
 === Associations Versus Attributes
 
-Some midPoint deployments may have a dilemma whether to use associations or simple attributes.
+#Some midPoint deployments may have a dilemma whether to use associations or simple attributes.
 E.g. the `groups` attribute in the example above may as well be managed as a simple multi-valued attribute.
 No need for associations here.
-However there are two arguments in favor of associations:
+However there are two arguments in favor of associations:#
 
-* Associations are smart.
+* #Associations are smart.
 Association knows that the values in that attribute are supposed to represent group name.
 The midPoint user interface may use this information to list all available groups when user wants to add a new associations.
 User then simply selects value from the list.
-No need to enter the group name manually.
+No need to enter the group name manually.#
 
-* The object-to-subject associations are very difficult to model as simple attributes.
+* #The object-to-subject associations are very difficult to model as simple attributes.
 In this case the attribute that needs to be modified is in fact in a different object.
 MidPoint tries to isolate the operations to a single object (or a set of related objects).
 Therefore modeling object-to-subject associations using simple attributes may be very difficult.
-The association mechanisms makes this very easy.
+The association mechanisms makes this very easy.#
 
 
 == Assigning Entitlements
@@ -569,13 +577,13 @@ Like this:
 ----
 <resource>
     <schemaHandling>
-       ....
-       <association>
-                 <ref>ri:group</ref>
-                 <tolerant>false</tolerant>
-                  ....
-             </association>
-              ...
+        ...
+        <association>
+            <ref>ri:group</ref>
+            <tolerant>false</tolerant>
+            ...
+        </association>
+        ...
 ----
 
 This has to be defined in the schemaHandling and *not* in the role or meta-role.
