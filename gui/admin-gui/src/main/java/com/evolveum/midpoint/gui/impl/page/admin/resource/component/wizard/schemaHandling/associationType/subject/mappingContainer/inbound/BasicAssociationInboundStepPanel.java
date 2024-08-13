@@ -67,7 +67,9 @@ public class BasicAssociationInboundStepPanel
                     || wrapper.getItemName().equals(MappingType.F_TARGET)
                     || wrapper.getItemName().equals(MappingType.F_EXPRESSION)
                     || wrapper.getItemName().equals(MappingType.F_CONDITION)
-                    || wrapper.getItemName().equals(MappingType.F_ENABLED)) {
+                    || wrapper.getItemName().equals(MappingType.F_ENABLED)
+                    || wrapper.getItemName().equals(MappingType.F_TIME_FROM)
+                    || wrapper.getItemName().equals(MappingType.F_TIME_TO)) {
                 return ItemVisibility.HIDDEN;
             }
             return ItemVisibility.AUTO;

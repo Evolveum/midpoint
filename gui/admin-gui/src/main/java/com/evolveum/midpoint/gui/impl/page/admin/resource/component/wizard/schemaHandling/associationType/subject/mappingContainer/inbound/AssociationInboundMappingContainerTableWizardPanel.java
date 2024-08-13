@@ -54,4 +54,9 @@ public abstract class AssociationInboundMappingContainerTableWizardPanel extends
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("AssociationInboundMappingContainerTableWizardPanel.subText");
     }
+
+    @Override
+    protected String getTitleIconClass() {
+        return "fa fa-arrow-right-to-bracket";
+    }
 }

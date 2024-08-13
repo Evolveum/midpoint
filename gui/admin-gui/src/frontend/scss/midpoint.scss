@@ -735,6 +735,9 @@ li.dropdown.user.user-menu {
 
   > li {
 
+    overflow: hidden;
+    max-width: fit-content;
+
     > a {
       color: inherit;
       text-decoration: none;

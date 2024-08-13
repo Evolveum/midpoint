@@ -18,9 +18,12 @@ import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -54,7 +57,7 @@ public class MappingContainerTablePanel extends SingleSelectContainerTileTablePa
 
     @Override
     protected Component createTile(String id, IModel<TemplateTile<PrismContainerValueWrapper<MappingType>>> model) {
-        return new MappingTilePanel(id, model) {
+        MappingTilePanel tile = new MappingTilePanel(id, model) {
             @Override
             protected void onRemovePerformed(PrismContainerValueWrapper value, AjaxRequestTarget target) {
                 super.onRemovePerformed(value, target);
@@ -72,6 +75,8 @@ public class MappingContainerTablePanel extends SingleSelectContainerTileTablePa
                 return false;
             }
         };
+        tile.add(new VisibleBehaviour(() -> ValueStatus.DELETED != model.getObject().getValue().getStatus()));
+        return tile;
     }
 
     protected void onTileClick(AjaxRequestTarget target, MappingTile modelObject) {
@@ -107,5 +112,13 @@ public class MappingContainerTablePanel extends SingleSelectContainerTileTablePa
         RepeatingView repView = new RepeatingView(id);
         repView.add(createAddButton(repView.newChildId()));
         return repView;
+    }
+
+    @Override
+    protected Component createHeader(String id) {
+        WebMarkupContainer header = new WebMarkupContainer(id);
+        header.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+        header.add(AttributeModifier.remove("class"));
+        return header;
     }
 }

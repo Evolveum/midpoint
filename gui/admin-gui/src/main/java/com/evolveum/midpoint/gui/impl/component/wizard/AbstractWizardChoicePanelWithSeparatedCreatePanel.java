@@ -42,7 +42,7 @@ public abstract class AbstractWizardChoicePanelWithSeparatedCreatePanel<C extend
             }
 
             @Override
-            public IModel<PrismContainerValueWrapper<C>> getValueModel() {
+            public IModel<PrismContainerValueWrapper<C>> getDefaultValueModel() {
                 return AbstractWizardChoicePanelWithSeparatedCreatePanel.this.getValueModel();
             }
 
@@ -50,7 +50,7 @@ public abstract class AbstractWizardChoicePanelWithSeparatedCreatePanel<C extend
             public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
                 OperationResult result = AbstractWizardChoicePanelWithSeparatedCreatePanel.this.onSavePerformed(target);
                 if (result != null && !result.isError()) {
-                    refreshValueModel();
+                    getHelper().refreshValueModel();
                     showTypePreviewFragment(target);
                 }
                 return result;

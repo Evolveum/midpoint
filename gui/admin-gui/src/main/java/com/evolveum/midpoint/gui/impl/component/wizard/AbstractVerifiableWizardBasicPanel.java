@@ -103,4 +103,8 @@ public abstract class AbstractVerifiableWizardBasicPanel<C extends Containerable
     protected String getPanelType() {
         return null;
     }
+
+    public WizardPanelHelper<C, AHD> getHelper() {
+        return superHelper;
+    }
 }

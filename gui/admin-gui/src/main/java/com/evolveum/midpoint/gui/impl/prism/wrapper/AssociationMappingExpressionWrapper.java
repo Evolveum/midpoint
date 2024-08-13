@@ -11,6 +11,10 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationSynchronizationExpressionEvaluatorType;
+
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -32,7 +36,7 @@ public abstract class AssociationMappingExpressionWrapper<C extends Containerabl
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrismSchemaWrapper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssociationMappingExpressionWrapper.class);
 
     private final ItemPath wrapperPath;
     private final ExpressionType expression;
@@ -70,6 +74,9 @@ public abstract class AssociationMappingExpressionWrapper<C extends Containerabl
                         break;
                     }
 
+                    applyDeltasOfAttributeMapping(valueToAdd, pVal, AssociationSynchronizationExpressionEvaluatorType.F_ATTRIBUTE);
+                    applyDeltasOfAttributeMapping(valueToAdd, pVal, AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF);
+
                     valueToAdd = WebPrismUtil.cleanupEmptyContainerValue(valueToAdd);
                     if (valueToAdd == null || valueToAdd.isIdOnly()) {
                         LOGGER.trace("Value is empty, skipping delta creation.");
@@ -81,7 +88,8 @@ public abstract class AssociationMappingExpressionWrapper<C extends Containerabl
                         break;
                     }
 
-                    delta.addValueToAdd(createSchemaValue(valueToAdd));
+
+                    delta.addValueToAdd(createExpressionValue(valueToAdd));
                     deltas.add((D) delta);
                     LOGGER.trace("Computed delta: \n {}", delta);
                     break;
@@ -105,13 +113,13 @@ public abstract class AssociationMappingExpressionWrapper<C extends Containerabl
                         }
 
                         delta.addValueToAdd(
-                                createSchemaValue(WebPrismUtil.cleanupEmptyContainerValue(newValue)));
+                                createExpressionValue(WebPrismUtil.cleanupEmptyContainerValue(newValue)));
                         deltas.add((D) delta);
                     }
                     break;
                 case DELETED:
-                    PrismProperty<ExpressionType> schemaProperty = objectWrapper.getItem().findProperty(wrapperPath);
-                    delta.addValueToDelete(schemaProperty.getValue().clone());
+                    PrismProperty<ExpressionType> expressionProperty = objectWrapper.getItem().findProperty(wrapperPath);
+                    delta.addValueToDelete(expressionProperty.getValue().clone());
                     deltas.add((D) delta);
                     LOGGER.trace("Computed delta: \n {}", delta.debugDump());
                     break;
@@ -120,5 +128,23 @@ public abstract class AssociationMappingExpressionWrapper<C extends Containerabl
         return deltas;
     }
 
-    protected abstract PrismPropertyValue<ExpressionType> createSchemaValue(PrismContainerValue<C> value) throws SchemaException;
+    private void applyDeltasOfAttributeMapping(
+            PrismContainerValue<C> valueToAdd, PrismContainerValueWrapper<C> pVal, ItemName path) throws SchemaException {
+        PrismContainerWrapper<Containerable> container = pVal.findContainer(path);
+        Collection<ItemDelta<? extends PrismValue, ? extends ItemDefinition>> itemDeltas = container.getDelta();
+        if (itemDeltas == null || itemDeltas.isEmpty()) {
+            return;
+        }
+
+        if (CollectionUtils.isNotEmpty(itemDeltas)) {
+            PrismContainer<Containerable> itemContainer = valueToAdd.findContainer(path);
+            itemContainer.clear();
+            itemDeltas.forEach(itemDelta -> itemDelta.setParentPath(ItemPath.EMPTY_PATH));
+            for (ItemDelta<? extends PrismValue, ? extends ItemDefinition> subDelta : itemDeltas) {
+                subDelta.applyTo(valueToAdd);
+            }
+        }
+    }
+
+    protected abstract PrismPropertyValue<ExpressionType> createExpressionValue(PrismContainerValue<C> value) throws SchemaException;
 }
