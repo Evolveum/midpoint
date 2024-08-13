@@ -642,8 +642,7 @@ li.dropdown.user.user-menu {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  min-width: 0;
-  max-width: 100%;
+  width: 100%;
 }
 
 .navbar-right {
@@ -660,17 +659,6 @@ li.dropdown.user.user-menu {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-  }
-}
-
-.navbar-left {
-  width: fit-content;
-  min-width: 0;
-}
-
-@media (min-width: 1200px) {
-  .navbar-left {
-    min-width: auto;
   }
 }
 
