@@ -65,11 +65,6 @@ public class SingleSelectTileTablePanel<O extends ObjectType> extends TileTableP
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected PageStorage getPageStorage() {
-                return SingleSelectTileTablePanel.this.getPageStorage();
-            }
-
-            @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return getCustomQuery();
             }
