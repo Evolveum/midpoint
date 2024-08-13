@@ -48,14 +48,16 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<LockoutStatusType> panelCtx) {
         PrismObjectWrapper<FocusType> focus = panelCtx.getItemWrapperModel().getObject().findObjectWrapper();
         PrismContainerWrapper<BehaviorType> behavior = null;
+        PrismContainerWrapper<ActivationType> activation = null;
         if (focus != null) {
             try {
+                activation = focus.findContainer(FocusType.F_ACTIVATION);
                 behavior = focus.findContainer(FocusType.F_BEHAVIOR);
             } catch (SchemaException e) {
                 //nothing to do
             }
         }
         PrismPropertyWrapper<LockoutStatusType> lockoutStatus = panelCtx.unwrapWrapperModel();
-        return new LockoutStatusPanel(panelCtx.getComponentId(), Model.of(lockoutStatus), Model.of(behavior));
+        return new LockoutStatusPanel(panelCtx.getComponentId(), Model.of(lockoutStatus), Model.of(behavior), Model.of(activation));
     }
 }
