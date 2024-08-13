@@ -10,6 +10,8 @@ import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.repo.sqlbase.NativeOnlySupportedException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -60,6 +62,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author skublik
@@ -209,6 +213,7 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     private IModel<DashboardWidgetDto> loadWidgetData(IModel<DashboardWidgetType> model) {
         return new LoadableModel<>(false) {
+
             @Override
             protected DashboardWidgetDto load() {
                 Task task = createSimpleTask("Get DashboardWidget");
@@ -221,8 +226,16 @@ public class PageDashboardConfigurable extends PageDashboard {
 
                     return new DashboardWidgetDto(dashboardWidget, PageDashboardConfigurable.this);
                 } catch (Exception e) {
-                    LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
-                    result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
+                    var nativeOnlySupport = findNativeOnlyException(e);
+                    if (nativeOnlySupport != null) {
+                        // Here we can handle special case - that filter is only supported on native repository (and we are using generic)
+                        LOGGER.warn("Couldn't get DashboardWidget with widget {}. Uses features supported only native repository.",
+                                model.getObject().getIdentifier(), nativeOnlySupport.getMessage());
+                        result.recordPartialError("Couldn't get widget, reason: " + nativeOnlySupport.getLocalizedUserFriendlyMessage(), e);
+                    } else {
+                        LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
+                        result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
+                    }
                 }
 
                 result.computeStatusIfUnknown();
@@ -231,6 +244,18 @@ public class PageDashboardConfigurable extends PageDashboard {
                 return new DashboardWidgetDto(null, PageDashboardConfigurable.this);
             }
         };
+    }
+
+    @Nullable
+    static final NativeOnlySupportedException findNativeOnlyException(Exception e) {
+        Throwable next = e;
+        while (next != null) {
+            if (next instanceof NativeOnlySupportedException nativeOnly) {
+                return nativeOnly;
+            }
+            next = e.getCause();
+        }
+        return null;
     }
 
     private boolean isCollectionLoadable(DashboardWidgetType widget) {
