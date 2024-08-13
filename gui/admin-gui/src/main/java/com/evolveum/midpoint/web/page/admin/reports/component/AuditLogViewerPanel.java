@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -39,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
@@ -136,11 +135,6 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         PageStorage pageStorage = getPageStorage();
         SelectableBeanContainerDataProvider<AuditEventRecordType> provider = new SelectableBeanContainerDataProvider<AuditEventRecordType>(
                 AuditLogViewerPanel.this, getSearchModel(), null, false) {
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return pageStorage;
-            }
 
             @Override
             protected Integer countObjects(Class<AuditEventRecordType> type, ObjectQuery query,
