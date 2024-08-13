@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -269,7 +270,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         setUseCounting(provider);
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createHeader(String headerId) {
@@ -346,6 +347,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
             return Objects.requireNonNullElse(previewSize, UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
+        }
+
+        PageStorage pageStorage = getPageStorage();
+        if (pageStorage != null) {
+            ObjectPaging paging = pageStorage.getPaging();
+            if (paging != null) {
+                return paging.getMaxSize();
+            }
         }
 
         Integer collectionViewPagingSize = getViewPagingMaxSize();

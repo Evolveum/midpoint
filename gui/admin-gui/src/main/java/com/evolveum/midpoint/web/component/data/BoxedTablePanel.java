@@ -209,7 +209,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return (int) getDataTable().getItemsPerPage();
     }
 
-    private int getItemsPerPage(UserProfileStorage.TableId tableId) {
+    protected int getItemsPerPage(UserProfileStorage.TableId tableId) {
         if (tableId == null) {
             return UserProfileStorage.DEFAULT_PAGING_SIZE;
         }
@@ -350,7 +350,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                     Table table = findParent(Table.class);
                     UserProfileStorage.TableId tableId = table.getTableId();
 
-                    if (tableId != null && table.enableSavePageSize()) {
+                    if (tableId != null && table.enableSavePageSize() && boxedTablePanel.useUserProfileStorage()) {
                         Integer pageSize = (int) getPageBase().getItemsPerPage(tableId);
 
                         table.setItemsPerPage(pageSize);

@@ -78,7 +78,7 @@ public class PagingSizePanel extends BasePanel<Integer> {
             public Integer getObject() {
                 Table tablePanel = findParent(Table.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
-                if (tableId == null || !tablePanel.enableSavePageSize()) {
+                if (tableId == null || !tablePanel.enableSavePageSize() || !tablePanel.useUserProfileStorage()) {
                     return tablePanel.getItemsPerPage();
                 }
 
@@ -90,7 +90,7 @@ public class PagingSizePanel extends BasePanel<Integer> {
                 Table tablePanel = findParent(Table.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
                 if (o != null) {
-                    if (tableId == null || !tablePanel.enableSavePageSize()) {
+                    if (tableId == null || !tablePanel.enableSavePageSize() || !tablePanel.useUserProfileStorage()) {
                         tablePanel.setItemsPerPage(o);
                         return;
                     }
