@@ -71,17 +71,17 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
     private void initLayout() {
 
         List<ITab> tabs = new ArrayList<>();
-        tabs.add(createAttributeTableTab());
         tabs.add(createObjectTableTab());
+        tabs.add(createAttributeTableTab());
 
         TabCenterTabbedPanel<ITab> tabPanel = new TabCenterTabbedPanel<>(ID_TAB_TABLE, tabs) {
             @Override
             protected void onClickTabPerformed(int index, Optional<AjaxRequestTarget> target) {
                 if (getTable().isValidFormComponents(target.orElse(null))) {
                     if (index == 0) {
-                        initialTab = MappingDirection.ATTRIBUTE;
-                    } else if (index == 1) {
                         initialTab = MappingDirection.OBJECTS;
+                    } else if (index == 1) {
+                        initialTab = MappingDirection.ATTRIBUTE;
                     }
                     super.onClickTabPerformed(index, target);
                 }
@@ -89,10 +89,10 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
         };
         tabPanel.setOutputMarkupId(true);
         switch (initialTab) {
-            case ATTRIBUTE:
+            case OBJECTS:
                 tabPanel.setSelectedTab(0);
                 break;
-            case OBJECTS:
+            case ATTRIBUTE:
                 tabPanel.setSelectedTab(1);
                 break;
         }

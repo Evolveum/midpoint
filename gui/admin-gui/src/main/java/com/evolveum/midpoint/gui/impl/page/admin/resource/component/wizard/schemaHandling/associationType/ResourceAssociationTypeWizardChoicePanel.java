@@ -6,6 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType;
 
+import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -19,8 +29,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Resou
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
+import java.util.List;
+
 public abstract class ResourceAssociationTypeWizardChoicePanel
         extends ResourceWizardChoicePanel<ResourceAssociationTypeWizardChoicePanel.ResourceAssociationTypePreviewTileType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceAssociationTypeWizardChoicePanel.class);
 
     private final WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper;
 
@@ -97,5 +111,36 @@ public abstract class ResourceAssociationTypeWizardChoicePanel
     @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("ResourceAssociationTypeWizardChoicePanel.text");
+    }
+
+    @Override
+    protected String getDescriptionForTile(ResourceAssociationTypePreviewTileType type) {
+        List<ResourceObjectTypeIdentificationType> objectTypes = List.of();
+        if (ResourceAssociationTypePreviewTileType.SUBJECT == type) {
+            objectTypes =
+                    AssociationChildWrapperUtil.getObjectTypesOfSubject(getValueModel().getObject());
+        } else if (ResourceAssociationTypePreviewTileType.OBJECT == type) {
+            objectTypes =
+                    AssociationChildWrapperUtil.getObjectTypesOfObject(getValueModel().getObject());
+        }
+
+        if (!objectTypes.isEmpty()) {
+            try {
+                CompleteResourceSchema schema = getAssignmentHolderDetailsModel().getRefinedSchema();
+                return StringUtils.join(
+                        objectTypes.stream()
+                                .map(objectType ->
+                                        GuiDisplayNameUtil.getDisplayName(
+                                                schema.getObjectTypeDefinition(
+                                                                ResourceObjectTypeIdentification.of(objectType))
+                                                        .getDefinitionBean()))
+                                .toList(),
+                        " ,");
+            } catch (CommonException e) {
+                LOGGER.error("Couldn't load resource schema");
+            }
+        }
+
+        return super.getDescriptionForTile(type);
     }
 }

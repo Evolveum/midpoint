@@ -43,7 +43,7 @@ public class AssociationOutboundMappingWizardPanel extends AbstractWizardPanel<A
     }
 
     protected void initLayout() {
-        add(createChoiceFragment(createTablePanel(MappingDirection.ATTRIBUTE)));
+        add(createChoiceFragment(createTablePanel(MappingDirection.OBJECTS)));
     }
 
     protected OutboundMappingsTableWizardPanel createTablePanel(

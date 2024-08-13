@@ -19,21 +19,34 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractAssociationMappingContainerTableWizardPanel extends AbstractResourceWizardBasicPanel<ShadowAssociationDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractAssociationMappingContainerTableWizardPanel.class);
 
+    private static final String ID_TITLE_ICON = "titleIcon";
+    private static final String ID_TITLE_LABEL = "titleLabel";
     private static final String ID_TABLE = "table";
     private IModel<PrismContainerWrapper<MappingType>> containerModel;
 
@@ -58,7 +71,22 @@ public abstract class AbstractAssociationMappingContainerTableWizardPanel extend
 
     private void initLayout() {
 
-        MappingContainerTablePanel table = new MappingContainerTablePanel(ID_TABLE, getTableId(), new PropertyModel<>(getContainerModel(), "values")) {
+        WebMarkupContainer icon = new WebMarkupContainer(ID_TITLE_ICON);
+        add(icon);
+        icon.add(AttributeAppender.append("class", getTitleIconClass()));
+
+        add(new Label(ID_TITLE_LABEL, getTitleLabelModel()));
+
+        IModel<List<PrismContainerValueWrapper<MappingType>>> model = new IModel<List<PrismContainerValueWrapper<MappingType>>>() {
+            @Override
+            public List<PrismContainerValueWrapper<MappingType>> getObject() {
+                List<PrismContainerValueWrapper<MappingType>> list = new ArrayList<>(getContainerModel().getObject().getValues());
+                list.removeIf(value -> ValueStatus.DELETED == value.getStatus());
+                return list;
+            }
+        };
+
+        MappingContainerTablePanel table = new MappingContainerTablePanel(ID_TABLE, getTableId(), model) {
             @Override
             protected void onTileClick(AjaxRequestTarget target, MappingTile modelObject) {
                 AbstractAssociationMappingContainerTableWizardPanel.this.onTileClick(target, modelObject);
@@ -89,6 +117,12 @@ public abstract class AbstractAssociationMappingContainerTableWizardPanel extend
         add(table);
     }
 
+    protected IModel<String> getTitleLabelModel() {
+        return getTextModel();
+    }
+
+    protected abstract String getTitleIconClass();
+
     protected abstract String getAddButtonLabelKey();
 
     protected abstract void onClickCreateMapping(PrismContainerValueWrapper<MappingType> valueWrapper, AjaxRequestTarget target);
@@ -107,7 +141,12 @@ public abstract class AbstractAssociationMappingContainerTableWizardPanel extend
     }
 
     @Override
-    protected boolean isSubmitButtonVisible() {
-        return false;
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        getHelper().onExitPerformed(target);
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        super.onSubmitPerformed(target);
     }
 }

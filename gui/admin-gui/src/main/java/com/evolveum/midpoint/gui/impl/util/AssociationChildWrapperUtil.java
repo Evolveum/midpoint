@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.util;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -20,15 +19,16 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AssociationChildWrapperUtil {
 
@@ -55,7 +55,7 @@ public class AssociationChildWrapperUtil {
             return null;
         }
 
-        ResourceObjectTypeIdentificationType objectTypeOfSubject = getObjectTypeOfSubject(propertyWrapper);
+        ResourceObjectTypeIdentificationType objectTypeOfSubject = getFirstObjectTypeOfSubject(propertyWrapper);
         if (objectTypeOfSubject == null) {
             return null;
         }
@@ -73,11 +73,33 @@ public class AssociationChildWrapperUtil {
         return objectTypeDef.findReferenceAttributeDefinition(ref);
     }
 
-    public static ResourceObjectTypeIdentificationType getObjectTypeOfSubject(PrismValueWrapper propertyWrapper) {
+    public static ResourceObjectTypeIdentificationType getFirstObjectTypeOfSubject(PrismValueWrapper propertyWrapper) {
+        List<ResourceObjectTypeIdentificationType> values = getObjectTypesOfSubject(propertyWrapper);
+        if (values.isEmpty()) {
+            return null;
+        }
+        return values.get(0);
+    }
+
+    public static List<ResourceObjectTypeIdentificationType> getObjectTypesOfSubject(
+            PrismValueWrapper propertyWrapper) {
         PrismContainerValueWrapper<ShadowAssociationTypeSubjectDefinitionType> subject =
                 propertyWrapper.getParentContainerValue(ShadowAssociationTypeSubjectDefinitionType.class);
+
+        if (subject == null && propertyWrapper.getClass().equals(ShadowAssociationTypeSubjectDefinitionType.class)) {
+            subject = (PrismContainerValueWrapper<ShadowAssociationTypeSubjectDefinitionType>) propertyWrapper;
+        }
+
+        if (subject == null && propertyWrapper instanceof PrismContainerValueWrapper<?> containerValue) {
+            try {
+                subject = containerValue.findContainerValue(ShadowAssociationTypeDefinitionType.F_SUBJECT);
+            } catch (UnsupportedOperationException | SchemaException e) {
+                LOGGER.error("Couldn't find child subject container in " + containerValue);
+            }
+        }
+
         if (subject == null) {
-            return null;
+            return List.of();
         }
 
         PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectType = null;
@@ -85,15 +107,59 @@ public class AssociationChildWrapperUtil {
             objectType =
                     subject.findContainer(ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't find child container object type in " + subject);
+            LOGGER.error("Couldn't find child object type container in " + subject);
         }
 
         if (objectType == null || objectType.getValues().isEmpty()) {
-            return null;
+            return List.of();
         }
 
-        PrismContainerValueWrapper<ResourceObjectTypeIdentificationType> objectTypeValue = objectType.getValues().get(0);
-        return objectTypeValue.getRealValue();
+        return objectType.getValues().stream().map(PrismContainerValueWrapper::getRealValue).toList();
+    }
+
+    public static List<ResourceObjectTypeIdentificationType> getObjectTypesOfObject(
+            PrismValueWrapper propertyWrapper) {
+        PrismContainerValueWrapper<ShadowAssociationTypeObjectDefinitionType> objectValue =
+                propertyWrapper.getParentContainerValue(ShadowAssociationTypeObjectDefinitionType.class);
+
+        if (objectValue == null && propertyWrapper.getClass().equals(ShadowAssociationTypeObjectDefinitionType.class)) {
+            objectValue = (PrismContainerValueWrapper<ShadowAssociationTypeObjectDefinitionType>) propertyWrapper;
+        }
+
+        PrismContainerWrapper<ShadowAssociationTypeObjectDefinitionType> object = null;
+
+        if (objectValue != null) {
+            object = objectValue.getParent();
+        }
+
+        if (object == null && propertyWrapper instanceof PrismContainerValueWrapper<?> containerValue) {
+            try {
+                object = containerValue.findContainer(ShadowAssociationTypeDefinitionType.F_OBJECT);
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find child object container in " + containerValue);
+            }
+        }
+
+        if (object == null) {
+            return List.of();
+        }
+        List<ResourceObjectTypeIdentificationType> ret = new ArrayList<>();
+        for (PrismContainerValueWrapper<ShadowAssociationTypeObjectDefinitionType> value : object.getValues()) {
+            PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectType = null;
+            try {
+                objectType =
+                        value.findContainer(ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE);
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find child object type container in " + value);
+            }
+
+            if (objectType == null || objectType.getValues().isEmpty()) {
+                return List.of();
+            }
+
+            ret.addAll(objectType.getValues().stream().map(PrismContainerValueWrapper::getRealValue).toList());
+        }
+        return ret;
     }
 
     private static ItemName getRef(PrismValueWrapper<ItemPathType> propertyWrapper) {
@@ -105,10 +171,14 @@ public class AssociationChildWrapperUtil {
 
         PrismPropertyWrapper<ItemPathType> refProperty = null;
         try {
-            refProperty = associationTypeContainer.findProperty(ShadowAssociationDefinitionType.F_REF);
+            refProperty = associationTypeContainer.findProperty(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF);
             if (refProperty == null || refProperty.getValue() == null) {
-                return null;
+                refProperty = associationTypeContainer.findProperty(ShadowAssociationDefinitionType.F_REF);
+                if (refProperty == null || refProperty.getValue() == null) {
+                    return null;
+                }
             }
+
         } catch (SchemaException e) {
             LOGGER.error("Couldn't find property ref object in " + associationTypeContainer);
         }

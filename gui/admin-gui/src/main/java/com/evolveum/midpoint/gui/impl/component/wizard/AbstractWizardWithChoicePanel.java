@@ -29,8 +29,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
  */
 public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD extends AssignmentHolderDetailsModel> extends AbstractWizardPanel<C, AHD> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractWizardWithChoicePanel.class);
-
     private boolean showChoicePanel = false;
 
     public AbstractWizardWithChoicePanel(
@@ -72,12 +70,12 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
             @Override
             public void onExitPerformedAfterValidate(AjaxRequestTarget target) {
                 getAssignmentHolderModel().reloadPrismObjectModel();
-                refreshValueModel();
+                getHelper().refreshValueModel();
                 showTypePreviewFragment(target);
             }
 
             @Override
-            public IModel<PrismContainerValueWrapper<V>> getValueModel() {
+            public IModel<PrismContainerValueWrapper<V>> getDefaultValueModel() {
                 return PrismContainerValueWrapperModel.fromContainerValueWrapper(AbstractWizardWithChoicePanel.this.getValueModel(), path);
             }
 
@@ -85,7 +83,7 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
             public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
                 OperationResult result = AbstractWizardWithChoicePanel.this.onSavePerformed(target);
                 if (isWizardFlow && result != null && !result.isError()) {
-                    refreshValueModel();
+                    getHelper().refreshValueModel();
                     showTypePreviewFragment(target);
                 }
                 return result;
@@ -104,12 +102,12 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
             @Override
             public void onExitPerformedAfterValidate(AjaxRequestTarget target) {
                 getAssignmentHolderModel().reloadPrismObjectModel();
-                refreshValueModel();
+                getHelper().refreshValueModel();
                 showTypePreviewFragment(target);
             }
 
             @Override
-            public IModel<PrismContainerValueWrapper<C>> getValueModel() {
+            public IModel<PrismContainerValueWrapper<C>> getDefaultValueModel() {
                 return AbstractWizardWithChoicePanel.this.getValueModel();
             }
 
@@ -117,7 +115,7 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
             public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
                 OperationResult result = AbstractWizardWithChoicePanel.this.onSavePerformed(target);
                 if (isWizardFlow && result != null && !result.isError()) {
-                    refreshValueModel();
+                    getHelper().refreshValueModel();
                     showTypePreviewFragment(target);
                 }
                 return result;
@@ -129,7 +127,7 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
 
         if (!((PageAssignmentHolderDetails)getPageBase()).hasUnsavedChanges(target)) {
             getAssignmentHolderModel().reloadPrismObjectModel();
-            refreshValueModel();
+            getHelper().refreshValueModel();
             showTypePreviewFragment(target);
             return;
         }
@@ -141,7 +139,7 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 getAssignmentHolderModel().reloadPrismObjectModel();
-                refreshValueModel();
+                getHelper().refreshValueModel();
                 showTypePreviewFragment(target);
             }
         };
@@ -150,64 +148,4 @@ public abstract class AbstractWizardWithChoicePanel<C extends Containerable, AHD
     }
 
     protected abstract void showTypePreviewFragment(AjaxRequestTarget target);
-
-    private <C extends Containerable> IModel<PrismContainerValueWrapper<C>> refreshValueModel(
-            IModel<PrismContainerValueWrapper<C>> valueModel) {
-        ItemPath path = valueModel.getObject().getPath();
-        valueModel.detach();
-
-        return new LoadableDetachableModel<>() {
-
-            private ItemPath pathWithId;
-
-            @Override
-            protected PrismContainerValueWrapper<C> load() {
-                ItemPath usedPath = path;
-                if (pathWithId == null) {
-                    if (!usedPath.isEmpty() && ItemPath.isId(usedPath.last())) {
-                        try {
-                            PrismContainerValueWrapper<C> newValue = getAssignmentHolderModel().getObjectWrapper().findContainerValue(usedPath);
-                            if (newValue != null) {
-                                return newValue;
-                            }
-                            usedPath = path.subPath(0, path.size() - 1);
-                        } catch (SchemaException e) {
-                            LOGGER.debug("Template was probably used for creating new resource. Cannot find container value wrapper, \nparent: {}, \npath: {}",
-                                    getAssignmentHolderModel().getObjectWrapper(), usedPath);
-                        }
-                    }
-                }
-
-                if (pathWithId == null && !usedPath.isEmpty() && ItemPath.isId(usedPath.last())) {
-                    pathWithId = usedPath;
-                }
-
-                try {
-                    if (pathWithId != null) {
-                        return getAssignmentHolderModel().getObjectWrapper().findContainerValue(pathWithId);
-                    }
-                    PrismContainerWrapper<C> container = getAssignmentHolderModel().getObjectWrapper().findContainer(usedPath);
-                    PrismContainerValueWrapper<C> ret = null;
-                    for (PrismContainerValueWrapper<C> value : container.getValues()) {
-                        if (ret == null || ret.getNewValue().getId() == null
-                                || (value.getNewValue().getId() != null && ret.getNewValue().getId() < value.getNewValue().getId())) {
-                            ret = value;
-                        }
-                    }
-                    if (ret != null && ret.getNewValue().getId() != null) {
-                        pathWithId = ret.getPath();
-                    }
-                    return ret;
-                } catch (SchemaException e) {
-                    LOGGER.error("Cannot find container value wrapper, \nparent: {}, \npath: {}",
-                            getAssignmentHolderModel().getObjectWrapper(), pathWithId);
-                }
-                return null;
-            }
-        };
-    }
-
-    protected void refreshValueModel() {
-        getHelper().setValueModel(refreshValueModel(getValueModel()));
-    }
 }

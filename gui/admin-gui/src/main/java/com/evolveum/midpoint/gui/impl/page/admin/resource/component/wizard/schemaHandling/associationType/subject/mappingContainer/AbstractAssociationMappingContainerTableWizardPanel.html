@@ -10,7 +10,15 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="card ml-auto mr-auto col-11 px-0" wicket:id="table"/>
+    <div class="card ml-auto mr-auto col-11 px-0">
+        <div class="card-header">
+                <span>
+                    <i wicket:id="titleIcon"/>
+                    <span class="pl-1" wicket:id="titleLabel"/>
+                </span>
+        </div>
+        <div class="card-body p-0" wicket:id="table"/>
+    </div>
 </wicket:extend>
 </body>
 </html>

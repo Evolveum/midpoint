@@ -51,11 +51,12 @@ public class AssociationInboundMappingContainerWizardPanel extends AbstractWizar
         WizardPanelHelper<MappingType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderModel()) {
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
+                getHelper().refreshValueModel();
                 showChoiceFragment(target, createTableWizardPanel());
             }
 
             @Override
-            public IModel<PrismContainerValueWrapper<MappingType>> getValueModel() {
+            public IModel<PrismContainerValueWrapper<MappingType>> getDefaultValueModel() {
                 return new LoadableDetachableModel<>() {
                     @Override
                     protected PrismContainerValueWrapper<MappingType> load() {

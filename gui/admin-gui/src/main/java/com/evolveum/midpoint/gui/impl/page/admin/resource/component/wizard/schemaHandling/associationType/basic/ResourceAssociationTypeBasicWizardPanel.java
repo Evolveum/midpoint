@@ -107,8 +107,6 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                     getValueModel().getObject().findContainer(ShadowAssociationTypeDefinitionType.F_OBJECT);
             cleanParticipantContainer(objectContainer);
 
-
-            boolean selectSubject = true;
             if (value.getSubject().getKind() != null) {
                 PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeOfSubjectContainer =
                         getValueModel().getObject().findContainer(
@@ -117,7 +115,6 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                                         ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE));
 
                 addNewValue(objectTypeOfSubjectContainer, value.getSubject());
-                selectSubject = false;
             }
 
             PrismPropertyWrapper<ItemPathType> sourceAttributeRef =
@@ -148,21 +145,18 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                                     ShadowAssociationDefinitionType.F_REF));
             refAttribute.getValue().setRealValue(new ItemPathType(ItemPath.create(refQName)));
 
-
-            boolean selectObject = true;
             if (value.getObjects().size() == 1 && value.getObjects().get(0).getKind() != null) {
                 PrismContainerValueWrapper<Containerable> objectContainerValue = objectContainer.getValues().get(0);
                 PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeOfObjectContainer =
                         objectContainerValue.findContainer(ShadowAssociationTypeObjectDefinitionType.F_OBJECT_TYPE);
 
                 addNewValue(objectTypeOfObjectContainer, value.getObjects().get(0));
-                selectObject = false;
             }
 
             showWizardFragment(target,
                     new WizardPanel(
                             getIdOfWizardPanel(),
-                            new WizardModel(createBasicStepsForCreate(selectSubject, selectObject))));
+                            new WizardModel(createBasicStepsForCreate())));
 
         } catch (SchemaException e) {
             LOGGER.error("Couldn't save association configuration.", e);
@@ -189,7 +183,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
         container.getValues().add(valueWrapper);
     }
 
-    private List<WizardStep> createBasicStepsForCreate(boolean selectSubject, boolean selectObject) {
+    private List<WizardStep> createBasicStepsForCreate() {
         List<WizardStep> steps = new ArrayList<>();
 
         steps.add(new BasicSettingResourceAssociationTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
@@ -210,23 +204,19 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             }
         });
 
-        if (selectSubject) {
-            steps.add(new SubjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
-                @Override
-                protected void onExitPerformed(AjaxRequestTarget target) {
-                    ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
-                }
-            });
-        }
+        steps.add(new SubjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
+            }
+        });
 
-        if(selectObject) {
-            steps.add(new ObjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
-                @Override
-                protected void onExitPerformed(AjaxRequestTarget target) {
-                    ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
-                }
-            });
-        }
+        steps.add(new ObjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
+            }
+        });
 
         steps.add(new AssociationDataAssociationTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
 
@@ -236,8 +226,6 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                 if (result == null || result.isError()) {
                     target.add(getFeedback());
                     refresh(target);
-                } else {
-                    onExitPerformed(target);
                 }
             }
 

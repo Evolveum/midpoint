@@ -37,7 +37,7 @@ public class AssociationOutboundExpressionWrapper extends AssociationMappingExpr
         super(parent, item, status, wrapperPath, expression);
     }
 
-    protected PrismPropertyValue<ExpressionType> createSchemaValue(PrismContainerValue<AssociationConstructionExpressionEvaluatorType> value) throws SchemaException {
+    protected PrismPropertyValue<ExpressionType> createExpressionValue(PrismContainerValue<AssociationConstructionExpressionEvaluatorType> value) throws SchemaException {
         @NotNull AssociationConstructionExpressionEvaluatorType evaluatorBean = value.asContainerable();
         ExpressionType expressionClone = getExpression().clone();
         ExpressionUtil.updateAssociationConstructionExpressionValue(expressionClone, evaluatorBean);

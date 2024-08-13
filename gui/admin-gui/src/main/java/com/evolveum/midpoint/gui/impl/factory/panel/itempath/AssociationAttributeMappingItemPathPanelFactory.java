@@ -117,7 +117,7 @@ public class AssociationAttributeMappingItemPathPanelFactory extends AttributeMa
         }
 
         List<DisplayableValue<ItemPathType>> attributes = new ArrayList<>();
-        refAttribute.getRepresentativeTargetObjectDefinition().getAttributeDefinitions()
+        refAttribute.getRepresentativeTargetObjectDefinition().getSimpleAttributeDefinitions()
                 .forEach(attribute -> attributes.add(createDisplayValue(attribute)));
         attributes.add(createDisplayValue(refAttribute));
         return attributes;
