@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
 import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableChartedHeader;
+import com.evolveum.midpoint.prism.impl.query.ObjectPagingImpl;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -189,8 +191,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         PageStorage storage = getPageStorage();
         Search<C> search = loadSearch(storage);
 
+        //is this correct place for loading paging?
+        ObjectPaging paging = loadPaging(storage);
+
         if (storage != null && !isPreview()) {
             storage.setSearch(search);
+            storage.setPaging(paging);
         }
         getPageBase().getPageParameters().remove(PageBase.PARAMETER_SEARCH_BY_NAME);
         return search;
@@ -206,6 +212,30 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             search = createSearch();
         }
         return search;
+    }
+
+    private ObjectPaging loadPaging(PageStorage storage) {
+        ObjectPaging paging = null;
+        if (storage != null) {
+            paging = storage.getPaging();
+        }
+        if (paging == null) {
+            paging = createPaging();
+        }
+        return paging;
+    }
+
+    private ObjectPaging createPaging() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        ObjectPaging paging = null;
+        if (view != null) {
+            paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging());
+        }
+        if (paging == null) {
+            paging = ObjectPagingImpl.createEmptyPaging();
+            paging.setMaxSize(getDefaultPageSize());
+        }
+        return paging;
     }
 
     protected String getSearchByNameParameterValue() {
@@ -374,47 +404,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             }
 
             @Override
-            public int getItemsPerPage() {
-                PageStorage pageStorage = getPageStorage();
-                if (pageStorage != null) {
-                    ObjectPaging paging = pageStorage.getPaging();
-                    if (paging != null) {
-                        return paging.getMaxSize();
-                    }
-                }
-                return super.getItemsPerPage();
+            protected Integer getConfiguredPagingSize() {
+                return getViewPagingMaxSize();
             }
 
             @Override
-            public void setItemsPerPage(int size) {
-                super.setItemsPerPage(size);
-                PageStorage pageStorage = getPageStorage();
-                if (pageStorage != null) {
-                    ObjectPaging paging = pageStorage.getPaging();
-                    if (paging != null) {
-                        paging.setMaxSize(size);
-                    }
-                }
-            }
-
-            @Override
-            protected int getItemsPerPage(UserProfileStorage.TableId tableId) {
-                PageStorage pageStorage = getPageStorage();
-                if (pageStorage != null) {
-                    ObjectPaging paging = pageStorage.getPaging();
-                    if (paging != null) {
-                        return paging.getMaxSize();
-                    } else {
-                        return UserProfileStorage.DEFAULT_PAGING_SIZE;
-                    }
-                }
-                return super.getItemsPerPage(tableId);
-            }
-
-
-            @Override
-            public boolean useUserProfileStorage() {
-                return getPageStorage() == null;
+            protected void savePagingNewValue(Integer newValue) {
+                setPagingSizeNewValue(newValue);
             }
         };
         itemTable.setOutputMarkupId(true);
@@ -430,6 +426,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         itemTable.setShowAsCard(showTableAsCard());
 
         return itemTable;
+    }
+
+    private void setPagingSizeNewValue(Integer newValue) {
+        PageStorage pageStorage = getPageStorage();
+        if (pageStorage == null) {
+            return;
+        }
+        ObjectPaging paging = pageStorage.getPaging();
+        if (paging == null) {
+            return;
+        }
+        paging.setMaxSize(newValue);
     }
 
     protected boolean showTableAsCard() {
@@ -574,10 +582,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             return Objects.requireNonNullElse(previewSize, UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
         }
 
-        PageStorage pageStorage = getPageStorage();
-        if (pageStorage != null) {
-            ObjectPaging paging = pageStorage.getPaging();
-            if (paging != null) {
+        PageStorage storage = getPageStorage();
+        if (storage != null) {
+            ObjectPaging paging = storage.getPaging();
+            if (paging != null && paging.getMaxSize() != null) {
                 return paging.getMaxSize();
             }
         }

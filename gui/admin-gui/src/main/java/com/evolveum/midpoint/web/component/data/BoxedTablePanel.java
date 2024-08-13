@@ -217,7 +217,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         return (int) getDataTable().getItemsPerPage();
     }
 
-    protected int getItemsPerPage(UserProfileStorage.TableId tableId) {
+    private int getItemsPerPage(UserProfileStorage.TableId tableId) {
         if (tableId == null) {
             return UserProfileStorage.DEFAULT_PAGING_SIZE;
         }
@@ -264,11 +264,34 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             protected boolean isPagingVisible() {
                 return BoxedTablePanel.this.isPagingVisible();
             }
+
+            @Override
+            protected Integer getConfiguredPagingSize() {
+                return BoxedTablePanel.this.getConfiguredPagingSize();
+            }
+
+            @Override
+            protected void savePagingNewValue(Integer newValue) {
+                BoxedTablePanel.this.savePagingNewValue(newValue);
+            }
         };
     }
 
     protected boolean isPagingVisible() {
         return true;
+    }
+
+    protected Integer getConfiguredPagingSize() {
+        return null;
+    }
+
+    protected void savePagingNewValue(Integer newValue) {
+        if (tableId == null) {
+            return;
+        }
+        MidPointAuthWebSession session = getSession();
+        UserProfileStorage userProfile = session.getSessionStorage().getUserProfile();
+        userProfile.setPagingSize(tableId, newValue);
     }
 
     protected String getPaginationCssClass() {
@@ -354,17 +377,21 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
             PagingSizePanel menu = new PagingSizePanel(ID_PAGE_SIZE) {
 
                 @Override
-                protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
+                protected void onPageSizeChangePerformed(Integer newValue, AjaxRequestTarget target) {
                     Table table = findParent(Table.class);
                     UserProfileStorage.TableId tableId = table.getTableId();
 
-                    if (tableId != null && table.enableSavePageSize() && boxedTablePanel.useUserProfileStorage()) {
-                        Integer pageSize = (int) getPageBase().getItemsPerPage(tableId);
-
-                        table.setItemsPerPage(pageSize);
+                    if (tableId != null && table.enableSavePageSize()) {
+                        table.setItemsPerPage(newValue);
+                        PagingFooter.this.savePagingNewValue(newValue);
                     }
                     target.add(findParent(PagingFooter.class));
                     target.add((Component) table);
+                }
+
+                @Override
+                protected Integer getConfiguredPagingSize() {
+                    return PagingFooter.this.getConfiguredPagingSize();
                 }
             };
             // todo nasty hack, we should decide whether paging should be normal or "small"
@@ -395,6 +422,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
         protected boolean isPagingVisible() {
             return true;
+        }
+
+        protected Integer getConfiguredPagingSize() {
+            return null;
+        }
+
+        protected void savePagingNewValue(Integer newValue) {
+
         }
     }
 }

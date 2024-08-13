@@ -57,7 +57,7 @@ public class CountToolbar extends AbstractToolbar {
         PagingSizePanel pageSize = new PagingSizePanel(ID_PAGE_SIZE) {
 
             @Override
-            protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
+            protected void onPageSizeChangePerformed(Integer newValue, AjaxRequestTarget target) {
                 CountToolbar.this.pageSizeChanged(target);
             }
         };
