@@ -62,12 +62,13 @@ E.g. an account can be added as a member of a group.
 This is realized in midPoint by associating a "group entitlement" with user's account.
 MidPoint xref:/midpoint/architecture/archive/subsystems/provisioning/[provisioning component] modifies the resource in appropriate way to add account to a group.
 Similarly to other shadow-related operations midPoint then forgets about it.
+(Unless shadow caching is enabled.)
 The information remains only on the resource.
 When such association happens the situation looks like this:
 
 image::schemas-entitlement-2.png[]
 
-Similarly to accounts midPoint always reads fresh data from the resource when dealing with entitlements.
+Similarly to account attributes, midPoint always reads fresh data from the resource when dealing with entitlements.
 Therefore midPoint does not need to remember the association.
 It can read it directly from the resource anytime.
 And that's exactly what midPoint does when an account xref:/midpoint/reference/resources/shadow/[shadow] is retrieved:
@@ -90,19 +91,19 @@ However, the general principle described above still applies if the requested da
 
 == Associations
 
-Relations between accounts and entitlements are implemented using _associations_.
-(However, associations have much more applications, as described below.)
+Relations between accounts and entitlements are implemented using so-called *associations*.
+(However, associations have much broader applicability, as described below.)
 
 An association is a relation between a *subject* and one or more *objects*.
 
-When using associations to implement entitlements, subject is the party that receives the entitlement (usually an account), while the object is the entitlement (usually a group).
+When using associations to implement entitlements, the subject is the party that receives the entitlement (usually an account), while the object is the entitlement itself (usually a group).
 
-An association can be either *simple* or *complex*:
+An association can be either simple or complex:
 
-* A simple association is just a relation between one subject and one object.
+* A *simple association* is just a relation between one subject and one object.
 This is the typical way how entitlements are represented.
 
-* A complex association has either multiple objects present, or it can contain additional data (currently attributes and activation data) on its own.
+* A *complex association* has either multiple objects present, or it can contain additional data (currently attributes and activation data) on its own.
 Typical examples:
 
 ** *User access rights*: a user has a set of rights to read, write, and/or administer given directories.
@@ -125,7 +126,7 @@ Complex associations are xref:/midpoint/versioning/experimental/[an experimental
 
 Technically, associations are based on so-called *reference attributes*.
 These are special attributes describing relations (links) between resource objects.
-Each reference attribute resides on the *subject*, and each of its value points to a single *object*.
+Each reference attribute resides on the *subject*, and each of its values (as they may be single- or multi-valued, just like any other attributes) points to a single *object*.
 
 Normally, reference attributes are hidden from the users.
 They are visible only to the lower layers of midPoint, including connectors.
@@ -133,6 +134,7 @@ They are visible only to the lower layers of midPoint, including connectors.
 [NOTE]
 ====
 A simple association is equivalent to a reference attribute.
+There are no extra objects involved.
 
 A complex association is implemented using a separate resource object (holding the association data), called *association data object*. #TODO maybe a better name is required#
 A subject of the association has a reference to this association data object.
@@ -145,6 +147,83 @@ Some connectors, LDAP/AD in particular, support reference attributes out of the 
 Others will provide this support later.
 Until that, it is possible to define *simulated references* in midPoint, so that you can utilize the full power of associations in your deployments.
 
+[NOTE]
+====
+*A note on the terminology: items, values, and types*
+
+(Feel free to skip this note if it's too technical at first reading.)
+
+In midPoint, we distinguish between *items* (also called "prism items") and their *values*.
+
+Items are properties (like `givenName`), references (like `targetRef` in `assignment`), and containers (like `assignment`) that provide building blocks for objects in midPoint.
+Also attributes and associations are special kinds of items, used to describe the content of resource objects.
+
+Each item can be single-valued or multivalued.
+That means, it can have either zero to one value, or it can have zero, one, or more values.
+
+#TODO put here the links to the description of these prism concepts in the main docs. But do we have them?#
+
+For example, LDAP `employeeNumber` attribute is a single-valued one.
+It can have zero or more values.
+LDAP `telephoneNumber` attribute is a multivalued one.
+It can have zero, one, or more values.
+
+Reference attributes can be also single- or multivalued.
+For example, `group` attribute (pointing to the groups an account is member of) is multivalued.
+Each of the values is called _reference attribute value_, or _reference value_ for short, while the attribute itself is called _reference attribute_, or _reference_ for short.
+This may look strange at first, but it's perfectly logical once one get accustomed to it.
+
+And the same applies to associations.
+For example, `group` association (based on the `group` reference attribute) is multivalued as well.
+Each of the values is called _association value_, while the `group` item itself is _association_.
+
+*Types*
+
+Associations and simulated reference attributes are defined at the global (resource-wide) level.
+Their definitions comes in the form of _association types_ and _reference attribute types_, to distinguish between generic definition of given type, and its application to given object type (like `account/default`), where the definition manifests itself as _association_ and _reference attribute_.
+
+For example,
+
+- `ri:groupMembership` can be the association type name.
+When attached to `account/default` and `entitlement/group` object types, it can be seen there as `ri:group` association.
+
+- `ri:groupMembership` can be the simulated reference attribute type name.
+When present on `ri:inetOrgPerson` and `ri:groupOfNames` object classes, it can be seen there as `ri:group` reference attribute.
+====
+
+[NOTE]
+====
+*Second terminology note: simple vs reference vs complex*
+
+(Again, feel free to skip this note if it's too technical at first reading.)
+
+We have the following kinds of attributes:
+
+* *Simple* attributes: contain primitive values only (strings, integers, timestamps, and so on).
+These are the only ones present in midPoint 4.8 and earlier.
+Technically, they are a specialization of *properties* described above.
+
+* *Reference* attributes: contain "pointers" to other resource objects, i.e., each reference attribute value points to a single object.
+Technically, they are a specialization of *references* described above.
+
+* *Complex* attributes: these will contain complex values, i.e., those that consist of a tree of simple, reference, and complex attributes themselves.
+Technically, they will be a specialization of *containers* described above.
+They do not exist in midPoint nor ConnId yet.
+Their use is planned for the future.
+
+As for associations, we have two kinds of associations:
+
+* *Simple* associations: each association value points to a single resource object.
+They are functionally equivalent to reference attributes.
+
+* *Complex* associations: each association value has:
+** zero, one, or more reference attributes to association objects,
+** zero, one, or more simple attributes,
+** optionally, additional data like activation information.
+
+//Technically, associations are specialization of *containers*.
+====
+
 === Defining Associations
 
 Associations are defined in the xref:/midpoint/reference/resources/resource-configuration/schema-handling/[Resource Schema Handling] section of xref:/midpoint/reference/resources/resource-configuration/[Resource Configuration].
@@ -154,16 +233,17 @@ Simulated references are defined in the xref:/midpoint/reference/resources/resou
 Let's cover defining simulated references first.
 If you use connector having this capability, feel free to skip to #TODO# section.
 
-=== Simulated References Definition
-
-Each simulated reference has two sides: *object* and *subject*.
+=== Simulated Reference Type Definition
 
 ==== Participating Resource Objects
 
-First, we have to define what resource objects can participate in the reference on each of these sides.
+Each simulated reference type has two sides: object side and subject side.
+(In short, we call these also *participants*.)
+
+First, we have to define what resource objects can participate in the reference type on each of these sides.
 We call this the *delineation* and we use the following properties to do it:
 
-.Defining participating resource objects
+.Delineating reference type participants
 [autowidth]
 |===
 | Configuration item | Meaning | Example
@@ -174,7 +254,7 @@ We call this the *delineation* and we use the following properties to do it:
 
 | `baseContext`
 | The definition of base context (resource object container).
-This object will be used as a base for searches for the participants.
+This object will be used as a base for searches for the participant objects.
 Usually only the objects that are hierarchically below the `baseContext` are returned by such a search.
 
 Experimental.
@@ -257,9 +337,12 @@ See #TODO section# below for an example.
 
 ==== Bindings
 
-Next, we should define how subjects and objects are bound together.
+Next, we should define how subjects and objects are bound together, in particular:
 
-MidPoint supports bindings that either subject-to-object or object-to-subject.
+. how to find objects (i.e., reference attribute values) for given reference in the subject;
+. how to add/remove objects (i.e., reference attribute values) for given reference in the subject.
+
+MidPoint supports bindings that are either subject-to-object or object-to-subject.
 
 The *subject-to-object* direction is quite simple.
 In this case the subject (account) has a list of its entitlements (groups).
@@ -367,7 +450,6 @@ This is the `groupMembership` reference type typical for LDAP servers.
 * When querying, `ri:memberOf` attribute on the subject (account or group) is used.
 * When updating, `ri:members` attribute on the object (group) is used.
 * The reference is visible as (virtual) `group` reference attribute on the subject (account or group).
-#TODO explain this#
 
 .An example of LDAP group membership definition
 [source,xml]
@@ -437,7 +519,7 @@ This is a typical example of subject-to-object reference.
 
 === Association Participants Definition
 
-Now, let's have a look at how associations - or more precisely, association _types_ - are defined on top of reference attributes.
+Now, let's have a look at how associations - or more precisely, association types - are defined on top of reference attributes.
 
 First of all, association types are defined independently of participating object types.
 Each type of associations is contained in its own `associationType` item under `schemaHandling`.
@@ -469,24 +551,48 @@ A minimalistic definition of an association type looks like this:
 
 The definition must contain the association type name, which must be unique resource-wide.
 
-Then, it must contain a specification of the subject type or types to which it applies.
+Then, it must contain the specification of the subject type or types to which it applies.
 In the above example, the `groupMembership` association type applies to `account/default` object type.
-The `association` item then defines how the association manifests itself on that object type.
-In particular, `ri:group` is the name under which the association is present on that shadows.
+The `association` item then defines the association as present on that object type.
+In particular, `ri:group` is the name under which the association is known on shadows of `account/default` type.
 
 If not specified otherwise, `ri:group` is the reference attribute that provides the data for this association.
-In other words, everything, that the connector (or the module for simulating reference attributes) provides within that attribute, is considered as values of this association.
+In other words, all values of `ri:group` attribute (provided by the connector or the module for simulating reference attributes) are considered as values of `ri:group` association.
 
 The engineer can restrict the values from the connector by looking at specific object types.
 
-#TODO continue from here#
+For example, let's assume we have an Active Directory resource, with two kinds of groups: security groups and distribution groups.
+In midPoint, we will have two distinct object types for them: `entitlement/security-group` and `entitlement/distribution-group`.
+For simplicity, let us assume only one type of accounts: `account/default`.
 
-.An example of association type definition
+Also, let us assume that we have `ri:group` attribute, provided by connector, that provides information of all groups the particular account is member of - both security and distribution ones.
+This is how `memberOf` attribute works in AD.
+
+Finally, let's assume we want to define two distinct associations: `ri:securityGroup` holding all security groups, and `ri:distributionGroup` holding all distribution groups.
+
+The definition then looks like this:
+
+.An example of two distinct association type definitions
 [source,xml]
 ----
 <resource>
     <!-- ... -->
     <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <!-- delineation, attributes, correlation, and synchronization for accounts -->
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>security-group</intent>
+            <!-- delineation, attributes, correlation, and synchronization for security groups -->
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>distribution-group</intent>
+            <!-- delineation, attributes, correlation, and synchronization for distribution groups -->
+        </objectType>
         <!-- ... -->
         <associationType>
             <name>securityGroupMembership</name>
@@ -496,8 +602,9 @@ The engineer can restrict the values from the connector by looking at specific o
                     <intent>default</intent>
                 </objectType>
                 <association>
-                    <ref>ri:group</ref>
-                    <!-- ... -->
+                    <ref>ri:securityGroup</ref>
+                    <sourceAttributeRef>ri:group</sourceAttributeRef>
+                    <!-- inbound and outbound mappings for this type of association -->
                 </association>
             </subject>
             <object>
@@ -507,117 +614,389 @@ The engineer can restrict the values from the connector by looking at specific o
                 </objectType>
             </object>
         </associationType>
+        <associationType>
+            <name>distributionGroupMembership</name>
+            <subject>
+                <objectType>
+                    <kind>account</kind>
+                    <intent>default</intent>
+                </objectType>
+                <association>
+                    <ref>ri:distributionGroup</ref>
+                    <sourceAttributeRef>ri:group</sourceAttributeRef>
+                    <!-- inbound and outbound mappings for this type of association -->
+                </association>
+            </subject>
+            <object>
+                <objectType>
+                    <kind>entitlement</kind>
+                    <intent>distribution-group</kind>
+                </objectType>
+            </object>
+        </associationType>
     </schemaHandling>
 </resource>
 ----
 
+[NOTE]
+====
+*What happens with the values of the source reference attribute `ri:group`?*
 
-=== Association Behavior Definition
+In order to avoid duplication of data, each value of the source reference attribute (i.e., the one on which the association is based), is examined, and:
 
-#MidPoint works with associations in almost the same way how it works with resource object attributes.
-The associations are not stored in midPoint (xref:/midpoint/reference/resources/shadow/[Shadow Objects]). The associations are retrieved fresh from the resource.
-This applies to all parts of midPoint and particularly to xref:/midpoint/reference/synchronization/introduction/[synchronization] and the user interface.
-E.g. the user interface will retrieve the associations only when the resource object (account) on the projection tab is expanded.
-Exactly at the same time when attributes are retrieved.#
+. If it matches one of the associations (`ri:securityGroup` or `ri:distributionGroup` in the above example), it is *moved* to that association.
+This means that the value is removed from the attribute, and put into the association.
+. If it matches none of the associations (or there are no associations defined), it *remains* in the source attribute.
 
+Hence, at the beginning, when there are no associations defined, all the values are visible in the reference attribute.
+Later, as the association or more associations are defined, and data are cleaned up (i.e., all shadows are correctly classified into object types), there should be no values in the reference attribute, and everything should be visible in the association or associations.
+====
 
-=== Associations Versus Attributes
+=== Association Mappings
 
-#Some midPoint deployments may have a dilemma whether to use associations or simple attributes.
-E.g. the `groups` attribute in the example above may as well be managed as a simple multi-valued attribute.
-No need for associations here.
-However there are two arguments in favor of associations:#
+Just like simple attributes, associations are managed either manually via GUI, or, which is preferred, automatically using mappings.
 
-* #Associations are smart.
-Association knows that the values in that attribute are supposed to represent group name.
-The midPoint user interface may use this information to list all available groups when user wants to add a new associations.
-User then simply selects value from the list.
-No need to enter the group name manually.#
+==== Outbound Mappings
 
-* #The object-to-subject associations are very difficult to model as simple attributes.
-In this case the attribute that needs to be modified is in fact in a different object.
-MidPoint tries to isolate the operations to a single object (or a set of related objects).
-Therefore modeling object-to-subject associations using simple attributes may be very difficult.
-The association mechanisms makes this very easy.#
+Outbound mappings take information from the focus object (e.g., a user), and use it to create a value or values of given association.
 
+The most typical scenario is to take user's role membership, and for each role that a relevant group as its projection on given resource use that group as the association value object.
 
-== Assigning Entitlements
+The mapping then looks like this:
 
-Entitlements can be easily assigned to accounts by using the xref:/midpoint/reference/roles-policies/assignment/[assignment] mechanism.
-This allows the construction of roles that automatically associate user's accounts with appropriate groups.
-See xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page for more details.
+.Sample association outbound mapping
+[source,xml]
+----
+<associationType>
+    <name>userMembership</name>
+    <subject>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+        </objectType>
+        <association>
+            <ref>ri:group</ref>
+            <outbound>
+                <name>account-group-outbound</name>
+                <strength>strong</strength>
+                <expression>
+                    <associationConstruction> <!--1-->
+                        <objectRef> <!--2-->
+                            <mapping>
+                                <expression>
+                                    <associationFromLink/> <!--3-->
+                                </expression>
+                            </mapping>
+                        </objectRef>
+                    </associationConstruction>
+                </expression>
+            </outbound>
+        </association>
+    </subject>
+    <!-- ... -->
+</associationType>
+----
+<1> This means we are going to construct a value for this association (although very simple, consisting of a single object reference).
+<2> This describes the value of the object reference being constructed.
+<3> This says we are to determine it from the role membership, as described above.
 
+Instead of `associationFromLink`, we can use any other expression that returns `ShadowAssociationValueType` objects as its output.
+Another typical one is `associationTargetSearch`.
 
-== Entitlement Membership Removal
+The important question here is: how should midPoint treat association values that exist on the resource, but are not provided by outbound mapping(s)?
+We deal it below, in #TODO# section.
 
-Most midPoint operations are delta-based.
+==== Inbound Mappings
+
+Inbound mappings take existing association values, and create or update existing values in the midPoint focus object (e.g., a user).
+
+This process is more complex than it may seem.
+Previously (in midPoint 4.8 and before), it involved completely computing all values for respective focus object item (e.g., `assignment`).
+Now, it is possible to do more fine-grained updates: to select values that have to be updated, and to update their content.
+
+A new `associationSynchronization` expression evaluator was created for this purpose.
+It looks like this:
+
+.Sample association inbound mapping
+[source,xml]
+----
+<associationType>
+    <name>userMembership</name>
+    <subject>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+        </objectType>
+        <association>
+            <ref>ri:group</ref>
+            <inbound>
+                <name>account-group-inbound</name>
+                <strength>strong</strength>
+                <expression>
+                    <associationSynchronization> <!--1-->
+                        <objectRef> <!--2-->
+                            <correlator/>
+                            <mapping>
+                                <expression>
+                                    <shadowOwnerReferenceSearch/> <!--3-->
+                                </expression>
+                                <target>
+                                    <path>targetRef</path> <!--3-->
+                                </target>
+                            </mapping>
+                        </objectRef>
+                        <synchronization>
+                            <reaction>
+                                <situation>unmatched</situation>
+                                <actions>
+                                    <addFocusValue/>
+                                </actions>
+                            </reaction>
+                            <reaction>
+                                <situation>matched</situation>
+                                <actions>
+                                    <synchronize/>
+                                </actions>
+                            </reaction>
+                        </synchronization>
+                    </associationSynchronization>
+                </expression>
+            </inbound>
+        </association>
+    </subject>
+</associationType>
+----
+<1> This means we are going to synchronize association values into focus.
+<2> Association value has (potentially) many items.
+Here we say we are going to process the object reference.
+(For this particular association, there is only one, so it's not necessary to specify its name.)
+<3> This means we are going to take the association value object (typically, a group), find its owner in midPoint (typically a role), and put its reference to assignment's `targetRef` item.
+
+The core of the mapping (`shadowOwnerReferenceSearch`) reflects the `associationFromLink` evaluator used for outbound mappings.
+The main difference from the outbound direction, though, is the `synchronization` part. Let us explain.
+
+The association synchronization works like this:
+
+. First of all, currently it is limited to assignments.
+So, `associationSynchronization` evaluator *always* targets focus assignments.
+If you'd want to map the association to a different item, you have to use a different expression evaluator.
+
+. After getting an association value, the evaluator tries to look up which assignment this value correlates to.
+This is actually very similar to the process of correlation of accounts to focus objects.
+Hence, the configuration is similar as well.
+In the example above, `correlator` item is used to denote the object reference (or, more precisely, the corresponding focus item - `targetRef`) as the correlator.
+An equivalent, though more verbose, configuration would look like this:
++
+.Sample association inbound mapping
+[source,xml]
+----
+<associationSynchronization>
+    <objectRef>
+        <mapping>
+            <!-- ... -->
+        </mapping>
+    </objectRef>
+    <correlation>
+        <correlators>
+            <items>
+                <item>
+                    <ref>targetRef</ref> <!--1-->
+                </item>
+            </items>
+        </correlators>
+    </correlation>
+    <synchronization>
+        <!-- ... -->
+    </synchronization>
+</associationSynchronization>
+----
+<1> This denotes the `targetRef` as the item used for the correlation.
+
+. After the correlation is done, there are three possible outcomes:
+.. no matching assignment is found (`unmatched` synchronization situation),
+.. a matching assignment is found (`matched` synchronization situation),
+.. no matching assignment is found, but there is a matching indirect role membership value (`indirectlyMatched` synchronization situation, #not implemented yet#).
+
+. Appropriate synchronization action is selected, based on the configuration.
+There are currently these actions available:
+
+.. `addFocusValue`: A new assignment is created, based on the association value.
+Used for `unmatched` situation.
+.. `synchronize`: Existing assignment is updated, based on the association value.
+Used for `matched` situation.
+
+There may be situations when previously existing association value is no longer there.
+How does the inbound mapping decide whether to keep the assignment that was (presumably) created from this value, or not?
+It uses the same mechanism as other mappings targeting multivalued items: ranges.
+By default, the provenance metadata are used to know which assignments were created by this particular mapping; and the default behavior is to remove them after the mapping ceases to produce them as its output.
+
+==== Tolerating Existing Association Values
+
+Let's return to the question how midPoint knows which association values present on the resource to keep, and which to remove, if they are not provided by actual output mappings.
+
+Traditionally, there is the `tolerant` flag that drives this behavior for attributes.
+The same flag is present for associations, and is set like this:
+
+.Setting the tolerance for associations
+[source,xml]
+----
+<associationType>
+    <name>userGroupMembership</name>
+    <subject>
+        <objectType>
+            <!-- ... -->
+        </objectType>
+        <association>
+            <ref>ri:group</ref>
+            <!-- ... -->
+            <tolerant>false</tolerant>
+        </association>
+    </subject>
+</associationType>
+----
+
+Just as for attributes, the default value is `true`, which means that extra values are tolerated.
+The above example sets the tolerance to `false`, so that any extra association values are removed.
+
+The tolerance can be, however, overridden for each individual association value.
+This is currently supported for simple associations, and is driven by the object mark(s) present on the association _object_, e.g., a group.
+
+For example, let us assume a group `guests` shadow has the following mark.
+
+.Mark for tolerated association objects
+[source,xml]
+----
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000806">
+    <name>Tolerated</name>
+    <documentation>
+        Marks entitlement-like objects (i.e., objects in associations) that should be tolerated by midPoint.
+        Usually, these are ones that are in transition from being managed externally to being managed by midPoint.
+    </documentation>
+    <assignment>
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/> <!-- Object mark -->
+    </assignment>
+    <objectOperationPolicy>
+        <synchronize>
+            <membership>
+                <tolerant>true</tolerant>
+            </membership>
+        </synchronize>
+    </objectOperationPolicy>
+</mark>
+----
+
+Also assume that the tolerance for the association is set to `false`.
+
+When an association value pointing to the `guests` group is present on the resource, but not provided by any outbound mapping, it is tolerated because the value of `true` in the object mark overrides the value of `false` set in the association.
+
+We need a mechanism to set the mark on selected entitlement shadows.
+One option is to do that manually via GUI.
+A better one is to use automatic marking facility in midPoint, potentially with overriding these marks manually via GUI.
+
+Two typical options of setting up the mark are:
+
+#Beware, the exact syntax is not final yet.#
+
+.Setting the "tolerated" mark for all new shadows
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>group</intent>
+    <!-- delineation, attributes, etc -->
+    <marking>
+        <tolerated>
+            <applicationTime>classification</applicationTime> <!--1-->
+        </tolerated>
+    </marking>
+    <!-- ... -->
+</objectType>
+----
+<1> This causes marking each newly classified or reclassified shadow as "tolerated".
+
+.Setting the "tolerated" mark for selected shadows
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>group</intent>
+    <!-- delineation, attributes, etc -->
+    <marking>
+        <tolerated>
+            <filter>
+                <q:text>attributes/info = "temporary"</q:text> <!--1-->
+            </filter>
+        </tolerated>
+    </marking>
+    <!-- ... -->
+</objectType>
+----
+<1> This causes marking each group that has the value of `temporary` in its `info` attribute as "tolerated".
+
+==== Tolerance, Deltas, and Reconciliation
+
+MidPoint can remove association values even when the `tolerant` setting is on.
+The reason is that most midPoint operations are delta-based.
 E.g. if user interface is used to add or remove an assignment a xref:/midpoint/devel/prism/concepts/deltas/[delta] is created and sent as a parameter of the operation.
 In this case we know what has changed.
-Therefore we can easily add remove entitlement membership.
-We can do this even if the entitlement is set to be _tolerant_. We can do this because we know that the last assignment that "induced" that group was just removed.
+Therefore we can easily add and remove entitlement membership.
+We can do this even if the entitlement is set to be _tolerant_.
+We can do this because we know that the last assignment that "induced" that group was just removed.
 
-But the situation is different for reconciliation and recompute.
-E.g in case that the role definition is changed.
-There are in fact two operation: change of the role and then reconcile the user.
+But the situation is different for reconciliation and recomputation.
+E.g., in case that the role definition is changed.
+There are in fact two operation: the change of the role and then the reconciliation of the user.
 These operations are independent.
 Therefore for the second operation there is no delta.
 MidPoint does not know what has changed in the role.
-Therefore it cannot use the same logic to remove the user from the entilement.
+Therefore it cannot use the same logic to remove the user from the entitlement.
 Slightly different logic is used in reconciliation.
 Logic that is not based on deltas (because there are none).
 And in this case the tolerant flag is important.
-If it is set to true then midPoint will NOT remove the extra values from the attribute or the extra entitlements.
-If it is set to false then midPoint will remove them.
+If it is set to `true` then midPoint will *not* remove the extra values from the attribute or the extra entitlements.
+If it is set to `false` then midPoint will remove them.
 
 For these operations to work correctly even in reconciliation it is important to set the _tolerant_ property.
-Please make sure you have the association set to non-tolerant in the schemaHandling section of the resource definition.
-Like this:
+Please make sure you have the association set to non-tolerant in the `schemaHandling` section of the resource definition.
 
-[source,xml]
-----
-<resource>
-    <schemaHandling>
-        ...
-        <association>
-            <ref>ri:group</ref>
-            <tolerant>false</tolerant>
-            ...
-        </association>
-        ...
-----
-
-This has to be defined in the schemaHandling and *not* in the role or meta-role.
-The tolerance is the property of the attribute/association itself and *not* a property of any mapping, role or value.
+This has to be defined in the `schemaHandling` and *not* in the role or meta-role.
+The tolerance is the property of the attribute/association itself and *not* a property of any mapping or role.
 The values that are not given by any role and just that - not given by any role.
 So we do not have any role definition that we can apply to them.
 Therefore the setting whether the attribute/association is tolerant or not is somehow "global".
 Therefore it needs to be defined in `schemaHandling`.
 
-Also, please make sure that your mappings are strong, e.g.
-
-[source,xml]
-----
-<role>
-     ...
-     <inducement>
-         <construction>
-             ...
-             <association>
-                 <ref>ri:group</ref>
-                 <outbound>
-                     <strength>strong</strength>
-                     ...
-                 </outbound>
-             </association>
-         </construction>
-     </inducement>
-----
-
-Mappings that are of "normal" strength are inherently delta-based and they are usually NOT processed by the reconciliation at all.
+Also, please make sure that your mappings are strong.
+Mappings that are of "normal" strength are inherently delta-based and they are usually *not* processed by the reconciliation at all.
 For "normal" mappings the last change wins.
 But in reconciliation we have no idea what change was the last one - whether the one on the resource or the one in midPoint.
 Therefore we prefer the conservative approach and we rather maintain status quo.
 
+==== Mappings for Reference Attributes
+
+We described the mappings for associations.
+What about reference attributes, you may ask.
+As they are just an implementation vehicle for associations, they are not meant to be managed directly: neither in GUI (maybe except for emergency situations), nor via mappings.
+
+=== Associations/References Versus Attributes
+
+Some midPoint deployments may have a dilemma whether to use associations (based on reference attributes) or just simple attributes.
+E.g. if there is a readable and updatable `groups` simple attribute for accounts, we may question whether we should managed it a simple multi-valued attribute, without defining any reference or association over it.
+However there are two arguments in favor of associations/references:
+
+* Associations and references are smart.
+References knows that the their values are supposed to represent groups; whereas simple attributes see just plain strings, without knowing that they represents, e.g., the names of groups.
+The midPoint user interface may use this information from the reference attribute to list all available groups when user wants to add new reference attribute (or association) values.
+User then simply selects value(s) from the list.
+No need to enter the group name manually.
+
+* The object-to-subject references are very difficult to model as simple attributes.
+In this case the attribute that needs to be modified is in fact in a different object.
+MidPoint tries to isolate the operations to a single object (or a set of related objects).
+Therefore modeling object-to-subject references using simple attributes may be very difficult.
+The simulated (or connector-native) references makes this very easy.
 
 == See Also
 
