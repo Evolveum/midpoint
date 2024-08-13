@@ -246,8 +246,8 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
-        return structuralDefinition.getProtectedObjectPatterns();
+    public @NotNull ShadowMarkingRules getShadowMarkingRules() {
+        return structuralDefinition.getShadowMarkingRules();
     }
 
     @Override

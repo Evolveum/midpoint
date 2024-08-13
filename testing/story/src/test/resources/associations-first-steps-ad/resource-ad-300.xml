@@ -101,6 +101,11 @@
                     </target>
                 </inbound>
             </attribute>
+            <marking>
+                <tolerated>
+                    <applicationTime>classification</applicationTime>
+                </tolerated>
+            </marking>
             <synchronization>
                 <reaction>
                     <situation>unmatched</situation>
@@ -183,6 +188,7 @@
                             </associationSynchronization>
                         </expression>
                     </inbound>
+                    <tolerant>false</tolerant>
                 </association>
             </subject>
         </associationType>

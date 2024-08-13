@@ -3610,9 +3610,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         if (areMarksSupported()) {
             // Check if effective mark is applied in repository
-            PrismObject<ShadowType> repoAccount = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
+            var repoAccount = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
             var effectiveMarks = repoAccount.asObjectable().getEffectiveMarkRef();
-            assertTrue("Effective marks should not be empty", effectiveMarks.stream().anyMatch(r -> SystemObjectsType.MARK_PROTECTED.value().equals(r.getOid())));
+            assertTrue("Effective marks should not be empty",
+                    effectiveMarks.stream().anyMatch(r -> SystemObjectsType.MARK_PROTECTED.value().equals(r.getOid())));
         }
 
         assertSuccess(result);

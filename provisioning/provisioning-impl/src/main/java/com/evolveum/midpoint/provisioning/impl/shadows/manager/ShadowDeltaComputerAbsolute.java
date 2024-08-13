@@ -16,6 +16,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,8 +62,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * These two situations are discriminated by {@link #fromResource} flag.
  *
  * @see ShadowDeltaComputerRelative
- * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, RepoShadow, ResourceObjectShadow, ObjectDelta,
- * ResourceObjectClassification, OperationResult)
+ * @see ShadowUpdater#updateShadowInRepositoryAndInMemory(ProvisioningContext, RepoShadowWithState, ResourceObjectShadow,
+ * ObjectDelta, ResourceObjectClassification, EffectiveMarksAndPolicies, OperationResult)
  * @see ShadowObjectComputer
  */
 class ShadowDeltaComputerAbsolute {
@@ -81,6 +84,9 @@ class ShadowDeltaComputerAbsolute {
     /** The delta reflecting what happened with the object on the resource. Always `null` if {@link #fromResource} is false. */
     @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
 
+    /** Effective marks and policies for the shadow or resource object. Provided externally. */
+    @NotNull private final EffectiveMarksAndPolicies effectiveMarksAndPolicies;
+
     /**
      * True if the information we deal with ({@link #resourceObject}, {@link #resourceObjectDelta}) comes from the resource.
      *
@@ -99,7 +105,9 @@ class ShadowDeltaComputerAbsolute {
             @NotNull RepoShadow repoShadow,
             @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull EffectiveMarksAndPolicies effectiveMarksAndPolicies,
             boolean fromResource) {
+        this.effectiveMarksAndPolicies = effectiveMarksAndPolicies;
         argCheck(fromResource || resourceObjectDelta == null,
                 "Non-null delta with object not coming from resource?");
         this.ctx = ctx;
@@ -115,10 +123,12 @@ class ShadowDeltaComputerAbsolute {
             @NotNull RepoShadow repoShadow,
             @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull EffectiveMarksAndPolicies effectiveMarksAndPolicies,
             boolean fromResource)
             throws SchemaException, ConfigurationException {
-        return new ShadowDeltaComputerAbsolute(ctx, repoShadow, resourceObject, resourceObjectDelta, fromResource)
-                .execute();
+        var computer = new ShadowDeltaComputerAbsolute(
+                ctx, repoShadow, resourceObject, resourceObjectDelta, effectiveMarksAndPolicies, fromResource);
+        return computer.execute();
     }
 
     /**
@@ -143,7 +153,6 @@ class ShadowDeltaComputerAbsolute {
         }
 
         if (fromResource) { // TODO reconsider this
-            updateEffectiveMarks();
             if (ctx.getObjectDefinitionRequired().isActivationCached()) {
                 updateCachedActivation();
             }
@@ -156,20 +165,15 @@ class ShadowDeltaComputerAbsolute {
                 clearCachingMetadata();
             }
         }
+        updateEffectiveMarks();
         return computedModifications;
     }
 
     private void updateEffectiveMarks() throws SchemaException {
-        // protected status of resourceShadow was computed without exclusions present in
-        // original shadow
-        List<ObjectReferenceType> effectiveMarkRef = resourceObject.getBean().getEffectiveMarkRef();
-        if (!effectiveMarkRef.isEmpty()) {
-            // We should check if marks computed on resourceObject without exclusions should
-            // be excluded and not propagated to repository layer.
-            computedModifications.add(
-                    ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(
-                            repoShadow.getBean(), effectiveMarkRef));
-        }
+        computedModifications.add(
+                ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(
+                        repoShadow.getBean().getEffectiveMarkRef(),
+                        effectiveMarksAndPolicies.effectiveMarkRefs()));
     }
 
     private void updateShadowName() throws SchemaException {

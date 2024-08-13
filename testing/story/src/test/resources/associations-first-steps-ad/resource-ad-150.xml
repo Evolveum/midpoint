@@ -133,11 +133,13 @@
                 <association>
                     <ref>ri:group</ref>
                     <inbound>
-                        <name>access-inbound</name>
+                        <name>group-inbound</name>
+                        <strength>strong</strength>
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
                                     <ref>ri:group</ref>
+                                    <correlator/>
                                     <mapping>
                                         <name>group-to-targetRef</name>
                                         <expression>

@@ -249,7 +249,8 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         RepoShadow repoShadow = opState.getRepoShadowRequired(); // Shadow in opState was updated in the above call!
         ctx.applyDefinitionInNewCtx(repoShadow);
 
-        accessChecker.checkModifyAccess(ctx, requestedModifications, result);
+        determineEffectiveMarksAndPolicies(repoShadow, result);
+        accessChecker.checkAttributesModifyAccess(ctx, requestedModifications, result);
 
         if (resourceDelta.isEmpty()) {
             opState.setExecutionStatus(COMPLETED);

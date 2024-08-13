@@ -151,6 +151,8 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
         LOGGER.trace("Deleting object {} from {}, options={}, shadowState={}",
                 repoShadow, ctx.getResource(), options, repoShadow.getShadowLifecycleState());
 
+        determineEffectiveMarksAndPolicies(repoShadow, result);
+
         if (ctx.shouldExecuteResourceOperationDirectly()) {
             executeDeletionOperationDirectly(repoShadow, result);
         } else {

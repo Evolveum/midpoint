@@ -137,17 +137,15 @@ public interface ShadowAssociationDefinition
 
     ItemPath getStandardPath();
 
-    /** To be used only for trivial associations. */
+    /** To be used only for trivial associations; moreover, replaced by mark-based tolerance. */
     default List<String> getTolerantValuePatterns() {
         return getReferenceAttributeDefinition().getTolerantValuePatterns();
     }
 
-    /** To be used only for trivial associations. */
+    /** To be used only for trivial associations; moreover, replaced by mark-based tolerance. */
     default List<String> getIntolerantValuePatterns() {
         return getReferenceAttributeDefinition().getIntolerantValuePatterns();
     }
 
-    default boolean isTolerant() {
-        return getReferenceAttributeDefinition().isTolerant();
-    }
+    boolean isTolerant();
 }

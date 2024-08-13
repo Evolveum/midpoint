@@ -46,11 +46,9 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
     @NotNull private final ResourceObjectShadow originalObject;
 
     /**
-     * {@link #originalObject} converted to the raw definition - to avoid pushing artificial {@link PolyString} instances
-     * (created because of attribute normalization) to the resource.
-     *
-     * Moreover, we will modify the object sometimes (e.g. for simulated capabilities or entitlements).
-     * But we do not want the changes to propagate back to the calling code. Hence the clone.
+     * {@link #originalObject} cloned. The reason for cloning is that will modify the object sometimes
+     * (e.g. for simulated capabilities or entitlements). We do not want the changes to propagate back
+     * to the calling code.
      */
     @NotNull private final ResourceObjectShadow workingObject;
 
@@ -73,14 +71,14 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
 
     public static ResourceObjectAddReturnValue execute(
             @NotNull ProvisioningContext ctx,
-            @NotNull ResourceObjectShadow object,
+            @NotNull ResourceObjectShadow objectToAdd,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             boolean skipExplicitUniquenessCheck,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        return new ResourceObjectAddOperation(ctx, object, scripts, connOptions, skipExplicitUniquenessCheck)
+        return new ResourceObjectAddOperation(ctx, objectToAdd, scripts, connOptions, skipExplicitUniquenessCheck)
                 .doExecute(result);
     }
 
@@ -91,7 +89,7 @@ class ResourceObjectAddOperation extends ResourceObjectProvisioningOperation {
         LOGGER.trace("Adding resource object {}", workingObject);
 
         ctx.checkExecutionFullyPersistent();
-        ctx.checkProtectedObjectAddition(workingObject, result);
+        ctx.checkProtectedObjectAddition(workingObject);
         ctx.checkForCapability(CreateCapabilityType.class);
 
         if (!skipExplicitUniquenessCheck) {

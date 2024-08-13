@@ -49,6 +49,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Computes deltas to be applied to repository shadows when they are being updated by midPoint.
  *
@@ -244,8 +246,9 @@ class ShadowDeltaComputerRelative {
                 .asItemDelta();
     }
 
-    private ItemDelta<?, ?> computeEffectiveMarkDelta(ItemDelta<?, ?> modification) throws SchemaException {
-        return ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(repoShadow.getBean(), modification);
+    private @Nullable ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ItemDelta<?, ?> policyStatementDelta)
+            throws SchemaException {
+        return ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(repoShadow.getBean(), policyStatementDelta);
     }
 
     /**

@@ -71,7 +71,7 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
 
     @BeforeMethod
     public void onNativeOnly() {
-        skipIfNotNativeRepository();
+        skipClassIfNotNativeRepository();
     }
 
     @Override

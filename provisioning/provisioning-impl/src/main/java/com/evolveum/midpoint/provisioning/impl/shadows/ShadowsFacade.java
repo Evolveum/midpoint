@@ -37,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisionin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
+
 /**
  * Facade for the whole "shadows" package.
  *
@@ -76,7 +78,9 @@ public class ShadowsFacade {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
-        return ShadowGetOperation.execute(oid, repositoryShadow, identifiersOverride, options, context, task, result);
+        var shadow = ShadowGetOperation.execute(oid, repositoryShadow, identifiersOverride, options, context, task, result);
+        checkReturnedShadowValidity(shadow.getBean());
+        return shadow;
     }
 
     public String addResourceObject(
@@ -150,7 +154,9 @@ public class ShadowsFacade {
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         return ShadowSearchLikeOperation
                 .create(query, options, context, task, result)
-                .executeIterativeSearch(handler, result);
+                .executeIterativeSearch(
+                        createCheckingHandler(handler),
+                        result);
     }
 
     public @NotNull SearchResultList<PrismObject<ShadowType>> searchObjects(
@@ -161,9 +167,11 @@ public class ShadowsFacade {
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return ShadowSearchLikeOperation
+        var shadows = ShadowSearchLikeOperation
                 .create(query, options, context, task, result)
                 .executeNonIterativeSearch(result);
+        checkReturnedShadowsValidity(shadows);
+        return shadows;
     }
 
     public SearchResultMetadata searchObjectsIterative(

@@ -47,6 +47,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isSyncInboundDisabled;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -203,7 +205,7 @@ public abstract class SynchronizationContext<F extends FocusType>
         if (policy == null) {
             policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, result);
         }
-        return !policy.getSynchronize().getInbound().isEnabled();
+        return isSyncInboundDisabled(policy);
     }
 
     public boolean isProtected() {

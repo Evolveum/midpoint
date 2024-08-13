@@ -6,207 +6,141 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static org.testng.AssertJUnit.*;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.test.TestObject;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.api.LiveSyncTokenStorage;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
-import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * The test of Provisioning service on the API level. The test is using dummy
- * resource for speed and flexibility.
+ * Testing the shadow marks functionality.
  *
- * @author Radovan Semancik
+ * Basic tests (adding, modifying, deleting, syncing protected shadow) are already covered by standard TestDummy* tests.
+ *
+ * This is *not* a complete dummy test: only a few methods are contained here.
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class TestDummyShadowMarks extends AbstractBasicDummyTest {
+public class TestDummyShadowMarks extends AbstractDummyTest {
 
     private static final File RESOURCE_DUMMY_SHADOW_MARKS_FILE = new File(TEST_DIR,"resource-dummy-shadow-marks.xml");
 
-    private static final String MARK_PROTECTED_OID = SystemObjectsType.MARK_PROTECTED.value();
+    private static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
+            "initial-objects/archetype", "701-archetype-object-mark.xml",
+            SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
     @Override
     protected File getResourceDummyFile() {
         return RESOURCE_DUMMY_SHADOW_MARKS_FILE;
     }
 
-    @Test
-    public void test200MarkShadowProtected() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        // WHEN
-        PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
-
-        assertNull(account + " is not protected", account.asObjectable().isProtectedObject());
-
-        PolicyStatementType policyStat = new PolicyStatementType()
-                .markRef(SystemObjectsType.MARK_PROTECTED.value(), MarkType.COMPLEX_TYPE)
-                .type(PolicyStatementTypeType.APPLY);
-
-        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
-                .createModificationAddContainer(ShadowType.class, ACCOUNT_DAEMON_OID, ShadowType.F_POLICY_STATEMENT, policyStat);
-        provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);
-
-     // THEN
-        assertSuccess(result);
-
-        var accountAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
-
-        assertEquals("Provisioning: Effective mark references Protected", MARK_PROTECTED_OID, accountAfter.asObjectable().getEffectiveMarkRef().get(0).getOid());
-        assertEquals(accountAfter + " is not protected", Boolean.TRUE, accountAfter.asObjectable().isProtectedObject());
-
-        var accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
-        assertEquals("Repository: Effective mark references Protected", MARK_PROTECTED_OID, accountRepo.asObjectable().getEffectiveMarkRef().get(0).getOid());
-        assertSteadyResource();
+    @BeforeMethod
+    public void onNativeOnly() {
+        skipClassIfNotNativeRepository();
     }
 
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-    @Test
-    public void test201GetProtectedAccountShadow() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
+        assertSuccess(
+                provisioningService.testResource(RESOURCE_DUMMY_OID, initTask, initResult));
 
-        // WHEN
-        var account = provisioningService.getShadow(ACCOUNT_DAEMON_OID, null, task, result);
-
-        assertTrue(account + " is not protected", account.isProtectedObject());
-        checkUniqueness(account);
-
-        assertSuccess(result);
-        assertSteadyResource();
-    }
-
-    /**
-     * Attribute modification should fail.
-     */
-    @Test
-    public void test202ModifyProtectedAccountShadowAttributes() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        syncServiceMock.reset();
-
-        Collection<PropertyDelta<String>> modifications = new ArrayList<>(1);
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
-        ResourceObjectClassDefinition defaultAccountDefinition =
-                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
-        ShadowSimpleAttributeDefinition<String> fullnameAttrDef = defaultAccountDefinition.findSimpleAttributeDefinition("fullname");
-        ShadowSimpleAttribute<String> fullnameAttr = fullnameAttrDef.instantiate();
-        PropertyDelta<String> fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
-                fullnameAttrDef.getItemName()));
-        fullnameDelta.setRealValuesToReplace("Good Daemon");
-        modifications.add(fullnameDelta);
-
-        // WHEN
-        try {
-            provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, modifications, null, null, task, result);
-            AssertJUnit.fail("Expected security exception while modifying 'daemon' account");
-        } catch (SecurityViolationException e) {
-            displayExpectedException(e);
-        }
-
-        assertFailure(result);
-        syncServiceMock.assertSingleNotifyFailureOnly();
-
-//        checkConsistency();
-
-        assertSteadyResource();
-    }
-
-    /**
-     * Modification of non-attribute property should go OK.
-     */
-    @Test
-    public void test203ModifyProtectedAccountShadowProperty() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        syncServiceMock.reset();
-
-        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
-                .createModificationReplaceProperty(ShadowType.class, ACCOUNT_DAEMON_OID,
-                        ShadowType.F_SYNCHRONIZATION_SITUATION, SynchronizationSituationType.DISPUTED);
-
-        // WHEN
-        provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);
-
-        // THEN
-        assertSuccess(result);
-
-        syncServiceMock.assertSingleNotifySuccessOnly();
-
-        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
-        assertEquals("Wrong situation", SynchronizationSituationType.DISPUTED, shadowAfter.asObjectable().getSynchronizationSituation());
-
-        var accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
-        assertEquals("Repository: Effective mark references Protected", MARK_PROTECTED_OID, accountRepo.asObjectable().getEffectiveMarkRef().get(0).getOid());
-
-        assertSteadyResource();
+        resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, initResult);
+        resourceBean = resource.asObjectable();
     }
 
     @Test
-    public void test209DeleteProtectedAccountShadow() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        syncServiceMock.reset();
+    public void test100MarkAndUnmarkShadow() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var accountName = getTestNameShort();
 
-        try {
-            when();
+        given("a non-protected account on the resource");
+        var shadowOid = provisioningService.addObject(
+                createAccountShadow(accountName),
+                null,
+                null,
+                task,
+                result);
 
-            provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, task, result);
+        var shadowBefore = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
+        assertShadow(shadowBefore, "before")
+                .assertNotProtected();
 
-            AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
-        } catch (SecurityViolationException e) {
-            then();
-            displayExpectedException(e);
-        }
+        when("marking the shadow as protected (via statement)");
+        markShadow(shadowOid, MARK_PROTECTED_OID, task, result);
 
-        assertFailure(result);
+        then("shadow is marked as protected (when obtained by provisioning)");
+        var accountAfter = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
+        assertShadow(accountAfter, "after")
+                .assertProtected()
+                .assertEffectiveMarks(MARK_PROTECTED_OID);
 
-        syncServiceMock.assertSingleNotifyFailureOnly();
+        var accountAfterRepo = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        assertShadow(accountAfterRepo, "after")
+                .assertEffectiveMarks(MARK_PROTECTED_OID);
 
-//        checkConsistency();
+        when("shadow is unmarked");
+        unmarkShadow(shadowOid, MARK_PROTECTED_OID, task, result);
 
-        assertSteadyResource();
+        then("shadow is no longer marked as protected (when obtained by provisioning)");
+        var accountAfter2 = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
+        assertShadow(accountAfter2, "after")
+                .assertNotProtected()
+                .assertEffectiveMarks();
+
+        var accountAfterRepo2 = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        assertShadow(accountAfterRepo2, "after")
+                .assertEffectiveMarks();
+    }
+
+    @Test
+    public void test110MarkOnClassification() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var groupName = getTestNameShort();
+
+        given("a group on the resource");
+        dummyResource.addGroup(new DummyGroup(groupName));
+
+        when("group is retrieved from the resource");
+        var shadows = provisioningService.searchShadows(
+                Resource.of(resource)
+                        .queryFor(RI_GROUP_OBJECT_CLASS)
+                        .and().item(ICFS_NAME_PATH).eq(groupName)
+                        .build(),
+                null, task, result);
+        assertThat(shadows).as("matching shadows").hasSize(1);
+        var shadow = shadows.get(0);
+
+        then("shadow is correctly marked");
+        assertShadowAfter(shadow.getPrismObject())
+                .assertEffectiveMarks(MARK_INVALID_DATA.oid);
     }
 
     private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException, ConfigurationException {
@@ -224,151 +158,5 @@ public class TestDummyShadowMarks extends AbstractBasicDummyTest {
         PrismProperty<String> icfsNameProp = attrsCont.findOrCreateProperty(SchemaConstants.ICFS_NAME);
         icfsNameProp.setRealValue(username);
         return shadow;
-    }
-
-    @Test
-    protected void testAddProtectedAccount(String username) throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        syncServiceMock.reset();
-
-        PrismObject<ShadowType> shadow = createAccountShadow(username);
-
-        // WHEN
-        try {
-            provisioningService.addObject(shadow, null, null, task, result);
-            AssertJUnit.fail("Expected security exception while adding '" + username + "' account");
-        } catch (SecurityViolationException e) {
-            displayExpectedException(e);
-        }
-
-        assertFailure(result);
-
-        syncServiceMock.assertSingleNotifyFailureOnly();
-
-        assertSteadyResource();
-    }
-
-    private final LiveSyncTokenStorage tokenStorage = new DummyTokenStorageImpl();
-
-    @Test
-    public void test300LiveSyncInit() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-
-        dummyResource.setSyncStyle(DummySyncStyle.DUMB);
-        dummyResource.clearDeltas();
-        syncServiceMock.reset();
-
-        // Dry run to remember the current sync token in the task instance.
-        // Otherwise a last sync token would be used and
-        // no change would be detected
-        ResourceOperationCoordinates coords = getDefaultAccountObjectClassCoordinates();
-
-        when();
-        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, task, result);
-
-        then();
-        assertSuccess(result);
-
-        // No change, no fun
-        syncServiceMock.assertNoNotifyChange();
-
-        checkAllShadows();
-
-        assertSteadyResource();
-    }
-
-    @Test
-    public void test301LiveSyncModifyProtectedAccount() throws Exception {
-        // GIVEN
-        Task syncTask = getTestTask();
-        OperationResult result = syncTask.getResult();
-
-        syncServiceMock.reset();
-
-        DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_DAEMON_USERNAME, daemonIcfUid);
-        dummyAccount.replaceAttributeValue("fullname", "Maxwell deamon");
-
-        ResourceOperationCoordinates coords = getDefaultAccountObjectClassCoordinates();
-
-        when();
-        mockLiveSyncTaskHandler.synchronize(coords, tokenStorage, syncTask, result);
-
-        then();
-        assertSuccess(result);
-
-        ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-        displayDumpable("The change", lastChange);
-
-        syncServiceMock.assertNoNotifyChange();
-
-        checkAllShadows();
-
-        assertSteadyResource();
-    }
-
-
-
-    private @NotNull ResourceOperationCoordinates getDefaultAccountObjectClassCoordinates() {
-        return ResourceOperationCoordinates.ofObjectClass(
-                RESOURCE_DUMMY_OID,
-                RI_ACCOUNT_OBJECT_CLASS);
-    }
-
-    /**
-     * Modification of non-attribute property should go OK.
-     */
-    @Test
-    public void test400RemoveProtectedMark() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        syncServiceMock.reset();
-
-
-        PolicyStatementType policyStat = new PolicyStatementType()
-                .markRef(SystemObjectsType.MARK_PROTECTED.value(), MarkType.COMPLEX_TYPE)
-                .type(PolicyStatementTypeType.APPLY);
-        ObjectDelta<ShadowType> shadowDelta = prismContext.deltaFactory().object()
-                .createModificationDeleteContainer(ShadowType.class, ACCOUNT_DAEMON_OID, ShadowType.F_POLICY_STATEMENT, policyStat);
-
-        // WHEN
-        provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);
-
-        // THEN
-        assertSuccess(result);
-
-        syncServiceMock.assertSingleNotifySuccessOnly();
-
-        PrismObject<ShadowType> accountAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
-        assertNull(accountAfter + " is not protected", accountAfter.asObjectable().isProtectedObject());
-
-        var accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, result);
-        assertTrue("Repository: Effective marks should be empty", accountRepo.asObjectable().getEffectiveMarkRef().isEmpty());
-        assertSteadyResource();
-    }
-
-    @Test
-    public void test401DeleteUnprotectedAccountShadow() throws Exception {
-        // GIVEN
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        syncServiceMock.reset();
-
-
-        when();
-
-        provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, task, result);
-        assertSuccess(result);
-
-        syncServiceMock.assertSingleNotifySuccessOnly();
-        assertSteadyResource();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    private void checkAllShadows() throws SchemaException, ConfigurationException {
-        ObjectChecker<ShadowType> checker = null;
-        IntegrationTestTools.checkAllShadows(resourceBean, repositoryService, checker);
     }
 }

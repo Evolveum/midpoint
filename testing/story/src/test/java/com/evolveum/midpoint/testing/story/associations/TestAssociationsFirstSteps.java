@@ -102,7 +102,7 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
 
     @BeforeMethod
     public void onNativeOnly() {
-        skipIfNotNativeRepository();
+        skipClassIfNotNativeRepository();
     }
 
     private static DummyTestResource createDmsResource(String fileName) {

@@ -4413,6 +4413,26 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repositoryService.isNative();
     }
 
+    /**
+     * To be used like this:
+     *
+     * [source,java]
+     * ----
+     * {@literal @}BeforeMethod
+     * public void onNativeOnly() {
+     *     skipClassIfNotNativeRepository();
+     * }
+     * ----
+     *
+     * Name different from {@link #skipIfNotNativeRepository()} to be easily identifiable via IDE.
+     */
+    protected void skipClassIfNotNativeRepository() {
+        if (!isNativeRepository()) {
+            throw new SkipException("Skipping the test class designed for the native repository only.");
+        }
+    }
+
+    /** To be used at individual test method level. */
     protected void skipIfNotNativeRepository() {
         if (!isNativeRepository()) {
             throw new SkipException("Skipping the test designed for the native repository only.");

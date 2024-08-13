@@ -944,6 +944,17 @@ public class ShadowAssociationDefinitionImpl
         }
     }
 
+    @Override
+    public boolean isTolerant() {
+        if (modernAssociationDefinitionBean != null) {
+            var maybe = modernAssociationDefinitionBean.isTolerant();
+            if (maybe != null) {
+                return maybe;
+            }
+        }
+        return getReferenceAttributeDefinition().isTolerant();
+    }
+
     private record LegacyAssociationTypeInformation(
             @Nullable MappingType outboundMappingBean,
             @NotNull List<InboundMappingType> inboundMappingBeans) implements Serializable {

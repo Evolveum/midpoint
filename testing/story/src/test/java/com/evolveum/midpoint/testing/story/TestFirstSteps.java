@@ -163,7 +163,7 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     @BeforeMethod
     public void onNativeOnly() {
-        skipIfNotNativeRepository();
+        skipClassIfNotNativeRepository();
     }
 
     private static CsvTestResource createHrResource(String fileName) {

@@ -148,9 +148,6 @@ class ShadowedObjectConstruction {
 
         var updatedObject = resourceObject.withNewContent(resultingShadowedBean);
 
-        // Called here, as we need AbstractShadow to be present.
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, updatedObject, result);
-
         LOGGER.trace("Shadowed resource object:\n{}", updatedObject.debugDumpLazily(1));
 
         return updatedObject;

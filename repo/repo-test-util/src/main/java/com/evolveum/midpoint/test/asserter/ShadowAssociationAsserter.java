@@ -87,6 +87,7 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
         return asserter;
     }
 
+    /** Looks by default objectRef OID. */
     public ShadowAssociationValueAsserter<ShadowAssociationAsserter<R>> forShadowOid(String shadowOid) {
         var value = findByShadowOid(shadowOid);
         assertThat(value).as("association value with shadow OID " + shadowOid).isNotNull();

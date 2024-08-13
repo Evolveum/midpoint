@@ -37,6 +37,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState.EXISTING;
+
 /**
  * Contains associations-related methods at the *shadows* level.
  */
@@ -246,6 +248,7 @@ class AssociationsHelper {
             try {
                 var rawRepoShadow = shadowFinder.getRepoShadow(oid, null, result);
                 var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
+                ctx.computeAndUpdateEffectiveMarksAndPolicies(repoShadow, EXISTING, result);
                 refAttrValue.setShadow(repoShadow);
             } catch (Exception e) {
                 LoggingUtils.logUnexpectedException(

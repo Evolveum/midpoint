@@ -63,7 +63,7 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
 
     @BeforeMethod
     public void onNativeOnly() {
-        skipIfNotNativeRepository();
+        skipClassIfNotNativeRepository();
     }
 
     @Override

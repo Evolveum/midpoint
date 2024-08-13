@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.LazilyInitializableMixin;
-import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.CompleteResourceObject;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectChange;
@@ -81,7 +80,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     @Override
-    protected RepoShadow acquireOrLookupRepoShadow(OperationResult result)
+    protected RepoShadowWithState acquireOrLookupRepoShadow(OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
         if (isDelete()) {
             return lookupRepoShadowForDeletionChange(result);
@@ -97,14 +96,15 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
      *
      * We look for live shadows, as we are not interested in dead ones. Most probably we were notified about them already.
      */
-    private @Nullable RepoShadow lookupRepoShadowForDeletionChange(OperationResult result)
+    private @Nullable RepoShadowWithState lookupRepoShadowForDeletionChange(OperationResult result)
             throws SchemaException, ConfigurationException {
         // This context is the best we know at this moment. It is possible that it is wildcard (no OC known).
         @Nullable ResourceObjectDefinition objectDefinition = effectiveCtx.getObjectDefinition();
         if (objectDefinition != null) {
             var identification = ResourceObjectIdentification.fromIdentifiers(objectDefinition, getIdentifiers());
             schemaCheck(identification.hasPrimaryIdentifier(), "No primary identifier in %s", this);
-            return b.shadowFinder.lookupLiveRepoShadowByPrimaryId(effectiveCtx, identification.ensurePrimary(), result);
+            return RepoShadowWithState.existingOptional(
+                    b.shadowFinder.lookupLiveRepoShadowByPrimaryId(effectiveCtx, identification.ensurePrimary(), result));
         } else {
             // This is the wildcard case. The only way how to detect the OC is to read existing repo shadow.
             // So we must take the risk of guessing the primary identifier definition correctly - in other words,
@@ -112,13 +112,14 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
             var primaryIdentifier =
                     ResourceObjectIdentifier.primaryFromIdentifiers(
                             effectiveCtx.getAnyDefinition(), getIdentifiers(), this);
-            return b.shadowFinder.lookupLiveRepoShadowByPrimaryIdWithoutObjectClass(effectiveCtx, primaryIdentifier, result);
+            return RepoShadowWithState.existingOptional(
+                    b.shadowFinder.lookupLiveRepoShadowByPrimaryIdWithoutObjectClass(effectiveCtx, primaryIdentifier, result));
         }
     }
 
     @Override
     public void classifyUpdateAndCombine(Task task, OperationResult result)
-            throws CommonException, NotApplicableException, EncryptionException {
+            throws CommonException, NotApplicableException {
 
         if (isDelete()) {
             if (repoShadow == null) {
@@ -235,7 +236,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         } else if (effectiveCtx.getObjectDefinitionRequired().isCachingEnabled()) {
             // This might not be correct, because of partial caching and/or index-only attributes!
             resourceObject = ExistingResourceObjectShadow.fromRepoShadow(
-                    repoShadow.clone(),
+                    repoShadow.shadow().clone(),
                     getPrimaryIdentifierValue());
             var resourceObjectDelta = resourceObjectChange.getObjectDelta();
             if (resourceObjectDelta != null) {
@@ -311,8 +312,8 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
 
     private void postProcessForDeletion(OperationResult result) throws SchemaException {
         assert repoShadow != null;
-        if (!repoShadow.isDead() || repoShadow.doesExist()) {
-            b.shadowUpdater.markShadowTombstone(repoShadow, effectiveCtx.getTask(), result);
+        if (!repoShadow.shadow().isDead() || repoShadow.shadow().doesExist()) {
+            b.shadowUpdater.markShadowTombstone(repoShadow.shadow(), effectiveCtx.getTask(), result);
         }
     }
 
@@ -353,7 +354,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
     }
 
     public String getRepoShadowOid() {
-        return RepoShadow.getOid(repoShadow);
+        return repoShadow != null ? repoShadow.shadow().getOid() : null;
     }
 
     @Override

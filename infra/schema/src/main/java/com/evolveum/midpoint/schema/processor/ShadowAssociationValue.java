@@ -79,6 +79,15 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     // FIXME decide on this
     private final boolean hasAssociationObject;
 
+    /**
+     * For complex associations, this is the association object itself: except attributes and activation.
+     *
+     * Ignored by equals/hashCode for now.
+     *
+     * Experimental: to be decided if this is the right approach.
+     */
+    private ShadowType associationObjectExtraItems;
+
     private ShadowAssociationValue(
             OriginType type, Objectable source,
             PrismContainerable<?> container, Long id,
@@ -191,6 +200,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     protected void copyValues(CloneStrategy strategy, ShadowAssociationValue clone) {
         super.copyValues(strategy, clone);
         clone.definition = this.definition;
+        clone.associationObjectExtraItems = CloneUtil.cloneCloneable(this.associationObjectExtraItems);
     }
 
     @Override
@@ -319,6 +329,11 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
             shadow.getBean().setActivation(
                     CloneUtil.cloneCloneable(
                             asContainerable().getActivation()));
+            // TODO review this
+            if (associationObjectExtraItems != null) {
+                shadow.getBean().setEffectiveOperationPolicy(
+                        CloneUtil.cloneCloneable(associationObjectExtraItems.getEffectiveOperationPolicy()));
+            }
             return ShadowReferenceAttributeValue.fromShadow(shadow, true);
         } else {
             return getSingleObjectRefValueRequired().clone();
@@ -382,6 +397,10 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         asContainerable().setActivation(
                 CloneUtil.cloneCloneable(
                         associationObject.getBean().getActivation()));
+        // TODO implement more nicely
+        associationObjectExtraItems = associationObject.getBean().clone();
+        associationObjectExtraItems.setAttributes(null);
+        associationObjectExtraItems.setActivation(null);
         return this;
     }
 
@@ -428,5 +447,14 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
 
     public boolean hasAssociationObject() {
         return hasAssociationObject;
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        var sb = new StringBuilder(super.debugDump(indent));
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "Has association object", hasAssociationObject, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Association object extra items", associationObjectExtraItems, indent + 1);
+        return sb.toString();
     }
 }

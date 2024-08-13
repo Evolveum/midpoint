@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableChartedHeader;
 import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -306,7 +308,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         setUseCounting(provider);
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createHeader(String headerId) {
@@ -369,6 +371,50 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             @Override
             protected boolean isPagingVisible() {
                 return ContainerableListPanel.this.isPagingVisible();
+            }
+
+            @Override
+            public int getItemsPerPage() {
+                PageStorage pageStorage = getPageStorage();
+                if (pageStorage != null) {
+                    ObjectPaging paging = pageStorage.getPaging();
+                    if (paging != null) {
+                        return paging.getMaxSize();
+                    }
+                }
+                return super.getItemsPerPage();
+            }
+
+            @Override
+            public void setItemsPerPage(int size) {
+                super.setItemsPerPage(size);
+                PageStorage pageStorage = getPageStorage();
+                if (pageStorage != null) {
+                    ObjectPaging paging = pageStorage.getPaging();
+                    if (paging != null) {
+                        paging.setMaxSize(size);
+                    }
+                }
+            }
+
+            @Override
+            protected int getItemsPerPage(UserProfileStorage.TableId tableId) {
+                PageStorage pageStorage = getPageStorage();
+                if (pageStorage != null) {
+                    ObjectPaging paging = pageStorage.getPaging();
+                    if (paging != null) {
+                        return paging.getMaxSize();
+                    } else {
+                        return UserProfileStorage.DEFAULT_PAGING_SIZE;
+                    }
+                }
+                return super.getItemsPerPage(tableId);
+            }
+
+
+            @Override
+            public boolean useUserProfileStorage() {
+                return getPageStorage() == null;
             }
         };
         itemTable.setOutputMarkupId(true);
@@ -526,6 +572,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
             return Objects.requireNonNullElse(previewSize, UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
+        }
+
+        PageStorage pageStorage = getPageStorage();
+        if (pageStorage != null) {
+            ObjectPaging paging = pageStorage.getPaging();
+            if (paging != null) {
+                return paging.getMaxSize();
+            }
         }
 
         Integer collectionViewPagingSize = getViewPagingMaxSize();

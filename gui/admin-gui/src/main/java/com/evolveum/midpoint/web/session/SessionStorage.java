@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.session;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  */
 public class SessionStorage implements Serializable, DebugDumpable {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     public static final String KEY_SIMULATION = "simulation";
     public static final String KEY_CONFIGURATION = "configuration";

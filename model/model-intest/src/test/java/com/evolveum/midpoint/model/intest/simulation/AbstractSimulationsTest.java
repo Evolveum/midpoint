@@ -125,7 +125,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
 
     @BeforeMethod
     public void onNativeOnly() {
-        skipIfNotNativeRepository();
+        skipClassIfNotNativeRepository();
     }
 
     @Override

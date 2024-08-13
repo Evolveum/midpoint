@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState.EXISTING;
 import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.determineContentDescription;
 import static com.evolveum.midpoint.schema.GetOperationOptions.getErrorReportingMethod;
 
@@ -336,9 +337,9 @@ class ShadowSearchLikeOperation {
                 // We don't need to keep the raw repo shadow. (At least not now.)
                 RepoShadow repoShadow = ctx.adoptRawRepoShadowSimple(rawRepoShadow);
 
-                // Fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
-                // TODO we will eventually store the "protected" flag right in the repo shadow, so this code will be obsolete
-                ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, repoShadow, result);
+                // Effective operation policies are not stored in repo, so they must be computed anew.
+                // Object marks maybe need to be updated as well.
+                ctx.computeAndUpdateEffectiveMarksAndPolicies(repoShadow, EXISTING, result);
 
                 ProvisioningUtil.validateShadow(repoShadow.getBean(), true); // TODO move elsewhere
 
