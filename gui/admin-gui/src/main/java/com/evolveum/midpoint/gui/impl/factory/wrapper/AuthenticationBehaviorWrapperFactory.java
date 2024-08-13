@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -34,7 +37,8 @@ public class AuthenticationBehaviorWrapperFactory extends OperationalContainerWr
     }
 
     @Override
-    protected PrismContainerWrapper<AuthenticationBehavioralDataType> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<AuthenticationBehavioralDataType> childContainer, ItemStatus status) {
+    public PrismContainerWrapper<AuthenticationBehavioralDataType> createWrapperInternal(PrismContainerValueWrapper<?> parent,
+            PrismContainer<AuthenticationBehavioralDataType> childContainer, ItemStatus status, WrapperContext context) {
         return new AuthenticationBehaviorWrapper(parent, childContainer, status);
     }
 
