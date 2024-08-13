@@ -35,7 +35,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
@@ -86,11 +85,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<>(
                 getPageBase(), getSearchModel(), null) {
             @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return ObjectListPanel.this.getPageStorage();
-            }
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {

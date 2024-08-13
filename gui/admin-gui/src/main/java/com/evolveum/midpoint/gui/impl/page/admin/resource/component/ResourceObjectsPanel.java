@@ -562,10 +562,6 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     protected final RepositoryShadowBeanObjectDataProvider createProvider(IModel<Search<ShadowType>> searchModel, CompiledShadowCollectionView collection) {
         RepositoryShadowBeanObjectDataProvider provider = new RepositoryShadowBeanObjectDataProvider(
                 getPageBase(), searchModel, null) {
-            @Override
-            protected PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getResourceContentStorage(getKind());
-            }
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {

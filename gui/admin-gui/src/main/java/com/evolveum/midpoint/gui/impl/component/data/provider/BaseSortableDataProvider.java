@@ -247,7 +247,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         Iterator<? extends T> iterator = internalIterator(first, count);
         return iterator;
     }
-    
+
     public abstract Iterator<? extends T> internalIterator(long first, long count);
 
     @Override

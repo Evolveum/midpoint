@@ -71,11 +71,6 @@ public class RepositoryAssignmentDataProviderFactory  implements ContainerValueD
         RepoAssignmentListProvider provider = new RepoAssignmentListProvider(component, search, model, objectType, oid, path) {
 
             @Override
-            protected PageStorage getPageStorage() {
-                return customization.getPageStorage();
-            }
-
-            @Override
             protected List<PrismContainerValueWrapper<AssignmentType>> postFilter(
                     List<PrismContainerValueWrapper<AssignmentType>> assignmentList) {
                 return customization.postFilter(assignmentList);
