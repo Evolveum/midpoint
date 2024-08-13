@@ -693,15 +693,20 @@ li.dropdown.user.user-menu {
 
   //.border-radius(2px);
 
-  > li > a {
-    color: inherit;
-    text-decoration: none;
-    display: inline-block;
+  > li {
+        overflow: hidden;
+        max-width: fit-content;
 
-    > .fa, > .fas, > .far, > .glyphicon, > .ion, > .fe {
-      margin-right: 5px;
-    }
-  }
+        > a {
+          color: inherit;
+          text-decoration: none;
+          display: inline-block;
+
+          > .fa, > .fas, > .far, > .glyphicon, > .ion, > .fe {
+            margin-right: 5px;
+            }
+          }
+        }
 
   > li + li:before {
     content: '>\00a0';
