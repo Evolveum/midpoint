@@ -214,16 +214,6 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
             if (pcw.isVirtual()) {
                 return ItemVisibility.AUTO;
             }
-
-            ItemPath path = pcw.getPath();
-            if (path != null ) {
-                path = path.namedSegmentsOnly();
-
-                if (path.startsWith(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_EXTENSION))) {
-                    return ItemVisibility.AUTO;
-                }
-            }
-
             return ItemVisibility.HIDDEN;
         }
         return ItemVisibility.AUTO;

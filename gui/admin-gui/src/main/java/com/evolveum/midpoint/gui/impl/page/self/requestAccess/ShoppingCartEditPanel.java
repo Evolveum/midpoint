@@ -7,18 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import java.io.Serial;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.ObjectTypeListUtil;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
-
-import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
-
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,11 +23,9 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -58,7 +51,6 @@ import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -83,13 +75,9 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private static final String ID_SAVE = "save";
     private static final String ID_CLOSE = "close";
     private static final String ID_RELATION = "relation";
-    private static final String ID_TENANT_REF = "tenantRef";
-    private static final String ID_ORG_REF = "orgRef";
-    private static final String ID_DESCRIPTION = "description";
-    private static final String ID_FOCUS_TYPE = "focusType";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_CUSTOM_VALIDITY = "customValidity";
-    private static final String ID_EXTENSION = "extension";
+    private static final String ID_ASSIGNMENT_DETAILS = "assignmentDetails";
     private static final String ID_MESSAGE = "message";
 
     private Fragment footer;
@@ -102,7 +90,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     private IModel<CustomValidity> customValidityModel;
 
-    private IModel<PrismContainerValueWrapper<AssignmentType>> assignmentExtension;
+    private IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
 
     private boolean validitySettingsEnabled;
 
@@ -145,7 +133,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             }
         };
 
-        assignmentExtension = new LoadableModel<>(false) {
+        assignmentModel = new LoadableModel<>(false) {
             @Override
             protected PrismContainerValueWrapper load() {
                 try {
@@ -168,8 +156,10 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
                     WrapperContext context = new WrapperContext(task, result);
 
-                    context.setDetailsPageTypeConfiguration(Arrays.asList(createExtensionPanelConfiguration()));
+                    context.setDetailsPageTypeConfiguration(Arrays.asList(createassignmentDetailsPanelConfiguration()));
                     context.setCreateIfEmpty(true);
+                    context.setReadOnly(false);
+                    context.setShowEmpty(true);
 
                     // create whole wrapper, instead of only the concrete container value wrapper
                     PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.ADDED, context);
@@ -177,7 +167,6 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                     if (assignmentWrapper == null) {
                         return null;
                     }
-
                     PrismContainerValueWrapper<AssignmentType> valueWrapper = assignmentWrapper.getValues().iterator().next();
                     // todo this should be done automatically by wrappers - if parent ADDED child should probably have ADDED status as well...
                     valueWrapper.setStatus(ValueStatus.ADDED);
@@ -235,7 +224,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         add(message);
     }
 
-    private ContainerPanelConfigurationType createExtensionPanelConfiguration() {
+    private ContainerPanelConfigurationType createassignmentDetailsPanelConfiguration() {
         ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
         c.identifier("sample-panel");
         c.type(AssignmentType.COMPLEX_TYPE);
@@ -245,22 +234,12 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     }
 
     private void initLayout() {
-        TextArea<String> description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<>(getModel(), "assignment.description"));
-        description.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        description.add(new VisibleBehaviour(() -> isItemVisible(AssignmentType.F_DESCRIPTION)));
-        description.setOutputMarkupId(true);
-        add(description);
-
         DropDownChoice relation = new DropDownChoice(ID_RELATION, () -> requestAccess.getObject().getRelation(), relationChoices,
                 RelationUtil.getRelationChoicesRenderer());
         relation.add(new EnableBehaviour(() -> false));
         add(relation);
 
-        initFocusTypePanel();
-        initTenantRefPanel();
-        initOrgRefPanel();
-
-        AssignmentsDetailsPanel extension = new AssignmentsDetailsPanel(ID_EXTENSION, assignmentExtension, false, createExtensionPanelConfiguration()) {
+        AssignmentsDetailsPanel detailsPanel = new AssignmentsDetailsPanel(ID_ASSIGNMENT_DETAILS, assignmentModel, false, createassignmentDetailsPanelConfiguration()) {
 
             @Override
             protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
@@ -281,28 +260,17 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
             @Override
             protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?> itemWrapper) {
-                return itemWrapper.getPath().startsWith(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_EXTENSION)) ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
+                List<ItemPath> hiddenContainers = getListOfHiddenContainers();
+                for (ItemPath path : hiddenContainers) {
+                    if (path.equivalent(itemWrapper.getPath())) {
+                        return ItemVisibility.HIDDEN;
+                    }
+                }
+                return super.getBasicTabVisibity(itemWrapper);
             }
         };
-        extension.add(new VisibleBehaviour(() -> {
-            try {
-                PrismContainerValueWrapper<AssignmentType> wrapper = assignmentExtension.getObject();
-                if (wrapper == null) {
-                    return false;
-                }
-                PrismContainerWrapper cw = wrapper.findItem(ItemPath.create(AssignmentType.F_EXTENSION));
-                if (cw == null || cw.isEmpty()) {
-                    return false;
-                }
-                PrismContainerValueWrapper pcvw = (PrismContainerValueWrapper) cw.getValue();
-                List items = pcvw.getItems();
-
-                return items != null && !items.isEmpty();
-            } catch (SchemaException ex) {
-                return true;
-            }
-        }));
-        add(extension);
+        detailsPanel.add(new VisibleBehaviour(this::isDetailsPanelVisible));
+        add(detailsPanel);
 
         IModel<ActivationStatusType> model = new Model<>() {
 
@@ -347,53 +315,6 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         add(customValidity);
     }
 
-    private void initFocusTypePanel() {
-        List<QName> focusTypes = ObjectTypeListUtil.createFocusTypeList();
-        DropDownChoice<QName> focusType = new DropDownChoice<>(ID_FOCUS_TYPE,
-                new PropertyModel<>(getModel(), "assignment.focusType"),
-                Model.ofList(focusTypes), new QNameObjectTypeChoiceRenderer());
-        focusType.setOutputMarkupId(true);
-        focusType.add(new VisibleBehaviour(() -> isItemVisible(AssignmentType.F_FOCUS_TYPE)));
-        add(focusType);
-    }
-
-    private void initTenantRefPanel() {
-        ValueChoosePanel<ObjectReferenceType> valueChoosePanel = new ValueChoosePanel<>(ID_TENANT_REF,
-                new PropertyModel<>(getModel(), "assignment.tenantRef")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected ObjectFilter createCustomFilter() {
-                return getPageBase().getPrismContext().queryFor(OrgType.class)
-                        .item(OrgType.F_TENANT).eq(true)
-                        .buildFilter();
-            }
-
-            @Override
-            public List<QName> getSupportedTypes() {
-                return Collections.singletonList(OrgType.COMPLEX_TYPE);
-            }
-        };
-        valueChoosePanel.setOutputMarkupId(true);
-        valueChoosePanel.add(new VisibleBehaviour(() -> isItemVisible(AssignmentType.F_TENANT_REF)));
-        add(valueChoosePanel);
-    }
-
-    private void initOrgRefPanel() {
-        ValueChoosePanel<ObjectReferenceType> valueChoosePanel = new ValueChoosePanel<>(ID_ORG_REF,
-                new PropertyModel<>(getModel(), "assignment.orgRef")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public List<QName> getSupportedTypes() {
-                return Collections.singletonList(OrgType.COMPLEX_TYPE);
-            }
-        };
-        valueChoosePanel.setOutputMarkupId(true);
-        valueChoosePanel.add(new VisibleBehaviour(() -> isItemVisible(AssignmentType.F_ORG_REF)));
-        add(valueChoosePanel);
-    }
-
     private boolean isItemVisible(ItemPath path) {
         ItemSecurityConstraints constraints = assignmentSecurityConstraints.getObject();
         if (constraints == null) {
@@ -417,23 +338,6 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                CustomValidity cv = customValidityModel.getObject();
-                XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(cv.getFrom());
-                XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(cv.getTo());
-
-                ShoppingCartItem item = getModelObject();
-                AssignmentType assignment = item.getAssignment();
-                ActivationType activation = assignment.getActivation();
-
-                if (from != null || to != null) {
-                    if (activation == null) {
-                        activation = new ActivationType();
-                        assignment.setActivation(activation);
-                    }
-
-                    activation.validFrom(from).validTo(to);
-                }
-
                 savePerformed(target, ShoppingCartEditPanel.this.getModel());
             }
         });
@@ -483,45 +387,118 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
         try {
+            PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentModel.getObject();
             // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
-            PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentExtension.getObject();
             if (containerValueWrapper == null) {
-                updateSelectedAssignment();
+                updateSelectedAssignment(target);
                 return;
             }
 
             PrismObjectWrapper<UserType> wrapper = containerValueWrapper.getParent().findObjectWrapper();
             if (wrapper.getObjectDelta().isEmpty()) {
-                updateSelectedAssignment();
+                updateSelectedAssignment(target);
                 return;
             }
 
-            UserType user = wrapper.getObjectApplyDelta().asObjectable();
-            // TODO wrappers for some reason create second assignment with (first one was passed from this shopping cart to fake user)
-            // that second assignment contains modified extension...very nasty hack
-            List<AssignmentType> assignments = user.getAssignment();
-            if (assignments.size() < 2) {
-                updateSelectedAssignment();
+            PrismContainerWrapper<AssignmentType> assignmentWrapper = wrapper.findContainer(UserType.F_ASSIGNMENT);
+            if (assignmentWrapper == null || assignmentWrapper.getValues().isEmpty() || assignmentWrapper.getDelta().isEmpty()) {
+                updateSelectedAssignment(target);
                 return;
             }
-            AssignmentType modified = user.getAssignment().get(1);
 
-            AssignmentType a = getModelObject().getAssignment();
-            a.setExtension(modified.getExtension());
+            PrismContainerValueWrapper<AssignmentType> value = assignmentWrapper.getValues().iterator().next();
+            PrismContainerValue<AssignmentType> assignmentWithDelta = value.getContainerValueApplyDelta();
+            updateSelectedAssignment(assignmentWithDelta.getRealValue(), target);
 
-            updateSelectedAssignment();
+
+//            UserType user = wrapper.getObjectApplyDelta().asObjectable();
+//            // TODO wrappers for some reason create second assignment with (first one was passed from this shopping cart to fake user)
+//            // that second assignment contains modified extension...very nasty hack
+//            List<AssignmentType> assignments = user.getAssignment();
+//            if (assignments.size() < 2) {
+//                updateSelectedAssignment();
+//                return;
+//            }
+//            AssignmentType modified = user.getAssignment().get(1);
+//
+//            AssignmentType a = getModelObject().getAssignment();
+//            a.setExtension(modified.getExtension());
+//
+//            updateSelectedAssignment();
         } catch (CommonException ex) {
             getPageBase().error(getString("ShoppingCartEditPanel.message.couldntProcessExtension", ex.getMessage()));
             LOGGER.debug("Couldn't process extension attributes", ex);
         }
     }
 
-    private void updateSelectedAssignment() {
+    private void updateActivation(AssignmentType assignment) {
+        CustomValidity cv = customValidityModel.getObject();
+        XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(cv.getFrom());
+        XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(cv.getTo());
+
+        ActivationType activation = assignment.getActivation();
+
+        if (from != null || to != null) {
+            if (activation == null) {
+                activation = new ActivationType();
+                assignment.setActivation(activation);
+            }
+
+            activation.validFrom(from).validTo(to);
+        }
+    }
+
+    private void updateSelectedAssignment(AjaxRequestTarget target) {
         AssignmentType a = getModelObject().getAssignment();
-        requestAccess.getObject().updateSelectedAssignment(a);
+        updateSelectedAssignment(a, target);
+    }
+
+    private void updateSelectedAssignment(AssignmentType assignment, AjaxRequestTarget target) {
+        updateActivation(assignment);
+        requestAccess.getObject().updateSelectedAssignment(assignment);
+        assignmentUpdatePerformed(target);
+    }
+
+    protected void assignmentUpdatePerformed(AjaxRequestTarget target) {
+        // to be overriden
     }
 
     protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
 
+    }
+
+    private List<ItemPath> getListOfHiddenContainers() {
+        return Arrays.asList(
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_IDENTIFIER),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DOCUMENTATION),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_SUBTYPE),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_LIFECYCLE_STATE),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER)
+        );
+    }
+
+    private boolean isDetailsPanelVisible() {
+        PrismContainerValueWrapper<AssignmentType> wrapper = assignmentModel.getObject();
+        return !isEmpty(wrapper);
+//        try {
+//            if (isEmpty(wrapper)) {
+//                return false;
+//            }
+//            PrismContainerWrapper cw = wrapper.findItem(ItemPath.create(AssignmentType.F_EXTENSION));
+//            if (cw == null || cw.isEmpty()) {
+//                return false;
+//            }
+//            PrismContainerValueWrapper pcvw = (PrismContainerValueWrapper) cw.getValue();
+//            List items = pcvw.getItems();
+//
+//            return items != null && !items.isEmpty();
+//        } catch (SchemaException ex) {
+//            return true;
+//        }
+    }
+
+    private boolean isEmpty(PrismContainerValueWrapper<AssignmentType> wrapper) {
+        return wrapper == null || wrapper.getNewValue() == null || wrapper.getNewValue().isEmpty();
     }
 }
