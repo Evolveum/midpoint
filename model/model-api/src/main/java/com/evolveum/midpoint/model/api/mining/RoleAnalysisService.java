@@ -38,9 +38,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidInducements;
-
 public interface RoleAnalysisService {
 
     /**
@@ -371,6 +368,7 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
+            @Nullable List<DetectedPattern> detectedPatterns,
             @NotNull OperationResult result,
             @NotNull Task task);
     /**

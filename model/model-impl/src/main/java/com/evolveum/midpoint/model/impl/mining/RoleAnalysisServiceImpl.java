@@ -20,7 +20,6 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentT
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,8 +27,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
-
-import com.evolveum.midpoint.util.MiscUtil;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -947,13 +944,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
+            @Nullable List<DetectedPattern> detectedPatterns,
             @NotNull OperationResult result,
             @NotNull Task task) {
         RoleAnalysisChunkMode chunkMode = option.getChunkMode();
         List<MiningUserTypeChunk> miningUserTypeChunks;
         List<MiningRoleTypeChunk> miningRoleTypeChunks;
 
-        MiningOperationChunk chunk = null;
+        MiningOperationChunk chunk;
         switch (chunkMode) {
             case EXPAND_ROLE -> {
                 miningRoleTypeChunks = new ExpandedMiningStructure()
@@ -982,7 +980,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                         .executeOperation(this, cluster, true, processMode, result, task, option);
             }
         }
-        chunk.setSortMode(option.getSortMode());
         chunk.setProcessMode(processMode);
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
         RangeType frequencyRange = detectionOption.getFrequencyRange();
@@ -991,6 +988,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             chunk.setMinFrequency(frequencyRange.getMin() / 100);
             chunk.setMaxFrequency(frequencyRange.getMax() / 100);
         }
+
+        //TODO think about it
+        if (detectedPatterns != null && !detectedPatterns.isEmpty()) {
+            updateChunkWithPatterns(chunk, detectedPatterns, task, result);
+        }
+
+        chunk.setSortMode(option.getSortMode());
         return chunk;
     }
 
@@ -1003,8 +1007,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result,
             @NotNull Task task) {
 
-        MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, option, processMode, result, task);
-        updateChunkWithPatterns(basicChunk, detectedPatterns, task, result);
+        MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, option, processMode, detectedPatterns, result, task);
 
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
         RangeType frequencyRange = detectionOption.getFrequencyRange();
