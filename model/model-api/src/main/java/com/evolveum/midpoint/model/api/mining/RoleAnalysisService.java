@@ -290,7 +290,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-
     /**
      * Deletes a single RoleAnalysisSessionType object.
      *
@@ -389,13 +388,11 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             @NotNull Task task);
 
-
     void updateChunkWithPatterns(
             MiningOperationChunk chunk,
             List<DetectedPattern> detectedPatterns,
             Task task,
             OperationResult result);
-
 
     /**
      * Method for preparing an expanded mining structure for role analysis.
@@ -800,6 +797,14 @@ public interface RoleAnalysisService {
             @NotNull OperationResult parentResult);
 
     /**
+     * Counts the number of role assignments owned by users in the system.
+     *
+     * @param result The operation result.
+     * @return The count of user-owned role assignments.
+     */
+    int countUserOwnedRoleAssignment(OperationResult result);
+
+    /**
      * Calculates the confidence of an attribute based on the specified process mode and cluster statistics.
      *
      * @param processModeType The process mode type.
@@ -1035,6 +1040,5 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull Task task,
             @NotNull OperationResult result);
-
 
 }

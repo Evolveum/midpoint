@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
@@ -27,6 +30,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.repo.api.AggregateQuery;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -2091,6 +2097,24 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 CommunicationException | ExpressionEvaluationException e) {
             throw new RuntimeException("Couldn't count objects of type " + type + ": " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public int countUserOwnedRoleAssignment(OperationResult result) {
+        int aggregateResult = 0;
+        var spec = AggregateQuery.forType(AssignmentType.class);
+        try {
+            spec.count(F_NAME, ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), F_NAME))
+                    .filter(PrismContext.get().queryFor(AssignmentType.class).ownedBy(UserType.class, UserType.F_ASSIGNMENT)
+                            .and().ref(AssignmentType.F_TARGET_REF).type(RoleType.class).buildFilter())
+                    .count(F_ASSIGNMENT, ItemPath.SELF_PATH);
+
+            aggregateResult = repositoryService.countAggregate(spec, result);
+
+        } catch (SchemaException e) {
+            LOGGER.error("Cloud not count user owned role assignment", e);
+        }
+        return aggregateResult;
     }
 
     @Override
