@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -75,7 +77,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private static final String ID_RELATION = "relation";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_CUSTOM_VALIDITY = "customValidity";
-    private static final String ID_EXTENSION = "extension";
+    private static final String ID_ASSIGNMENT_DETAILS = "assignmentDetails";
     private static final String ID_MESSAGE = "message";
 
     private Fragment footer;
@@ -241,7 +243,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         relation.add(new EnableBehaviour(() -> false));
         add(relation);
 
-        AssignmentsDetailsPanel detailsPanel = new AssignmentsDetailsPanel(ID_EXTENSION, assignmentModel, false, createassignmentDetailsPanelConfiguration()) {
+        AssignmentsDetailsPanel detailsPanel = new AssignmentsDetailsPanel(ID_ASSIGNMENT_DETAILS, assignmentModel, false, createassignmentDetailsPanelConfiguration()) {
 
             @Override
             protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
@@ -419,20 +421,31 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 return;
             }
 
-            UserType user = wrapper.getObjectApplyDelta().asObjectable();
-            // TODO wrappers for some reason create second assignment with (first one was passed from this shopping cart to fake user)
-            // that second assignment contains modified extension...very nasty hack
-            List<AssignmentType> assignments = user.getAssignment();
-            if (assignments.size() < 2) {
+            PrismContainerWrapper<AssignmentType> assignmentWrapper = wrapper.findContainer(UserType.F_ASSIGNMENT);
+            if (assignmentWrapper == null || assignmentWrapper.getValues().isEmpty() || assignmentWrapper.getDelta().isEmpty()) {
                 updateSelectedAssignment();
                 return;
             }
-            AssignmentType modified = user.getAssignment().get(1);
 
-            AssignmentType a = getModelObject().getAssignment();
-            a.setExtension(modified.getExtension());
+            PrismContainerValueWrapper<AssignmentType> value = assignmentWrapper.getValues().iterator().next();
+            PrismContainerValue<AssignmentType> assignmentWithDelta = value.getContainerValueApplyDelta();
+            requestAccess.getObject().updateSelectedAssignment(assignmentWithDelta.getRealValue());
 
-            updateSelectedAssignment();
+
+//            UserType user = wrapper.getObjectApplyDelta().asObjectable();
+//            // TODO wrappers for some reason create second assignment with (first one was passed from this shopping cart to fake user)
+//            // that second assignment contains modified extension...very nasty hack
+//            List<AssignmentType> assignments = user.getAssignment();
+//            if (assignments.size() < 2) {
+//                updateSelectedAssignment();
+//                return;
+//            }
+//            AssignmentType modified = user.getAssignment().get(1);
+//
+//            AssignmentType a = getModelObject().getAssignment();
+//            a.setExtension(modified.getExtension());
+//
+//            updateSelectedAssignment();
         } catch (CommonException ex) {
             getPageBase().error(getString("ShoppingCartEditPanel.message.couldntProcessExtension", ex.getMessage()));
             LOGGER.debug("Couldn't process extension attributes", ex);
