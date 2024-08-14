@@ -82,8 +82,18 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
     private void initTitle() {
         RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
 
-        String sessionName = partition.getTargetSessionRef().getTargetName().toString();
-        String clusterName = partition.getTargetClusterRef().getTargetName().toString();
+        //TODO check
+        String sessionName = "unknown";
+        String clusterName = "unknown";
+
+        if (partition.getTargetSessionRef() != null && partition.getTargetSessionRef().getTargetName() != null) {
+            sessionName = partition.getTargetSessionRef().getTargetName().toString();
+        }
+
+        if (partition.getTargetClusterRef() != null && partition.getTargetClusterRef().getTargetName() != null) {
+            clusterName = partition.getTargetClusterRef().getTargetName().toString();
+        }
+
         String title = sessionName + " / " + clusterName;
 
         IconWithLabel titlePanel = new IconWithLabel(ID_TITLE, () -> title) {
