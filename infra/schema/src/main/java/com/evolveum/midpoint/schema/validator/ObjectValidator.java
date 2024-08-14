@@ -88,6 +88,13 @@ public class ObjectValidator {
         return result;
     }
 
+    public <C extends Containerable> ValidationResult validate(PrismContainerValue<C> object) {
+        ValidationResult result = new ValidationResult();
+        object.accept(visitable -> visit(visitable, result));
+
+        return result;
+    }
+
     private void visit(Visitable<?> visitable, ValidationResult result) {
         if (visitable instanceof Item<?, ?>) {
             visitItem((Item<?, ?>) visitable, result);
@@ -305,7 +312,7 @@ public class ObjectValidator {
         }
     }
 
-    private void checkOid(ValidationResult result, PrismValue item, String oid) {
+    public void checkOid(ValidationResult result, PrismValue item, String oid) {
         if (oid == null) {
             return;
         }
@@ -316,16 +323,31 @@ public class ObjectValidator {
         }
     }
 
+    public void checkOid(ValidationResult result, ItemPath item, String oid) {
+        if (oid == null || !typesToCheck.contains(ValidationItemType.INCORRECT_OID_FORMAT)) {
+            return;
+        }
+        try {
+            UUID.fromString(oid);
+        } catch (IllegalArgumentException e) {
+            warn(result, ValidationItemType.INCORRECT_OID_FORMAT, "OID '" + oid + "' is not valid UUID", item, oid);
+        }
+    }
+
     private <V extends PrismValue, D extends ItemDefinition<?>> void warn(
             ValidationResult result, ValidationItemType type, String message, Item<V, D> item, Object data) {
+        msg(result, type, ValidationItemStatus.WARNING, message, item != null ? item.getPath() : null, data);
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition<?>> void warn(
+            ValidationResult result, ValidationItemType type, String message, ItemPath item, Object data) {
         msg(result, type, ValidationItemStatus.WARNING, message, item, data);
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>> void msg(
-            ValidationResult result, ValidationItemType type, ValidationItemStatus status, String message, Item<V, D> item,
+            ValidationResult result, ValidationItemType type, ValidationItemStatus status, String message, ItemPath path,
             Object data) {
 
-        ItemPath path = item != null ? item.getPath() : null;
         LocalizableMessage msg = new SingleLocalizableMessage(null, null, message);
 
         result.addItem(new ValidationItem<>(type, status, msg, path, data));
