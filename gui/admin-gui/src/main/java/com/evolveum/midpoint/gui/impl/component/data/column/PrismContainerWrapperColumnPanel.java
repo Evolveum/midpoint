@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.data.column;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
@@ -20,9 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
@@ -97,15 +94,19 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
         Iterator<? extends ItemWrapper<?, ?>> iterator = object.getItems().iterator();
         while (iterator.hasNext()) {
             ItemWrapper<?, ?> itemWrapper = iterator.next();
-            if (itemWrapper.isMultiValue()
-                    || itemWrapper.getValues().isEmpty()
-                    || itemWrapper.getValues().get(0).getRealValue() == null) {
+            if (itemWrapper.getValues().isEmpty()) {
                 continue;
             }
-            Referencable reference = (Referencable) itemWrapper.getValues().get(0).getRealValue();
-            sb.append(itemWrapper.getDisplayName())
-                    .append(" : ")
-                    .append(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(reference, false));
+            for (PrismValueWrapper value : itemWrapper.getValues()) {
+                Object realValue = itemWrapper.getValues().get(0).getRealValue();
+                sb.append(itemWrapper.getDisplayName())
+                        .append(" : ");
+                if (realValue instanceof Referencable reference) {
+                    sb.append(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(reference, false));
+                } else {
+                    sb.append(realValue);
+                }
+            }
         }
 
         return sb.toString();
