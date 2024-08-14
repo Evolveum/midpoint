@@ -11,15 +11,12 @@ import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDispla
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
-import static com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel.*;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -55,20 +52,21 @@ import com.evolveum.midpoint.gui.api.component.Toggle;
 import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTile;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.pattern.RoleAnalysisPatternTileModel;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.pattern.RoleAnalysisPatternTilePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTile;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisClusterOccupationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
 import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -79,14 +77,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.mining.CollapsableContainerPanel;
 import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
 
@@ -464,42 +460,12 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        CollapsableContainerPanel collapseContainerUser = (CollapsableContainerPanel) cellItem
-                                .findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
-                        CollapsableContainerPanel collapseContainerRole = (CollapsableContainerPanel) cellItem
-                                .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
-
-                        if (!collapseContainerUser.isExpanded()) {
-                            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
-                            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
-                            if (model.getObject() != null) {
-                                DetectedPattern pattern = model.getObject();
-                                userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
-                                roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
-                            }
-
-                            CollapsableContainerPanel webMarkupContainerUser = new CollapsableContainerPanel(
-                                    ID_FIRST_COLLAPSABLE_CONTAINER);
-                            webMarkupContainerUser.setOutputMarkupId(true);
-                            webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
-                            webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
-                            webMarkupContainerUser.setExpanded(true);
-
-                            if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
-                                RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_COLLAPSABLE_CONTENT,
-                                        Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult);
-                                roleAnalysisAttributePanel.setOutputMarkupId(true);
-                                webMarkupContainerUser.add(roleAnalysisAttributePanel);
-                            } else {
-                                Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
-                                label.setOutputMarkupId(true);
-                                webMarkupContainerUser.add(label);
-                            }
-
-                            collapseContainerUser.replaceWith(webMarkupContainerUser);
-                            target.add(webMarkupContainerUser);
+                        if (model.getObject() != null) {
+                            RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
+                                    ((PageBase) getPage()).getMainPopupBodyId(),
+                                    model);
+                            ((PageBase) getPage()).showMainPopup(component, target);
                         }
-                        target.appendJavaScript(getCollapseScript(collapseContainerUser, collapseContainerRole));
                     }
 
                 };
