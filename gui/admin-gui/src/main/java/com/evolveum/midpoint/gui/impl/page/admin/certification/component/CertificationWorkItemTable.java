@@ -7,6 +7,20 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.values;
+
+import java.io.Serial;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -34,24 +48,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.io.Serial;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.DELEGATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.values;
 
 public class CertificationWorkItemTable extends ContainerableListPanel<AccessCertificationWorkItemType, PrismContainerValueWrapper<AccessCertificationWorkItemType>> {
 
@@ -247,11 +246,6 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         ContainerListDataProvider<AccessCertificationWorkItemType> provider = new ContainerListDataProvider<>(this,
                 searchModel, options) {
             @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return null;
-            }
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {

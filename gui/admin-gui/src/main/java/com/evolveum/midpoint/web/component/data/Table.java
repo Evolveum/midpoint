@@ -22,10 +22,6 @@ public interface Table {
 
     boolean enableSavePageSize();
 
-    default boolean useUserProfileStorage() {
-        return true;
-    }
-
     void setItemsPerPage(int size);
 
     int getItemsPerPage();
