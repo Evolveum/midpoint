@@ -312,14 +312,13 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     private SimpleCaseSchemaType createCaseSchema(@Nullable ResourceBusinessConfigurationType business) {
-        if (business == null) {
-            return null;
-        }
         SimpleCaseSchemaType schema = new SimpleCaseSchemaType();
-        schema.getAssigneeRef().addAll(
-                CloneUtil.cloneCollectionMembers(business.getOperatorRef()));
+        if (business != null) {
+            schema.getAssigneeRef().addAll(
+                    CloneUtil.cloneCollectionMembers(business.getOperatorRef()));
+            schema.setDuration(business.getOperatorActionMaxDuration());
+        }
         schema.setDefaultAssigneeName(configuration.getDefaultAssignee());
-        schema.setDuration(business.getOperatorActionMaxDuration());
         return schema;
     }
 
