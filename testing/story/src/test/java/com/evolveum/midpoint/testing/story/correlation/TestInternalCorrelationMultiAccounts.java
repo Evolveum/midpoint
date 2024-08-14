@@ -81,9 +81,9 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
 
     private UserType john;
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipClassIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override

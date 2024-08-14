@@ -270,6 +270,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         initSystemExecuted = true;
 
+        if (requiresNativeRepository() && !isNativeRepository()) {
+            IntegrationTestTools.display("Skipping system initialization, as the test class requires native repository");
+            return;
+        }
+
         // Check whether we are already initialized
         assertNotNull(repositoryService, "Repository is not wired properly");
         assertNotNull(taskManager, "Task manager is not wired properly");
@@ -4413,22 +4418,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repositoryService.isNative();
     }
 
-    /**
-     * To be used like this:
-     *
-     * [source,java]
-     * ----
-     * {@literal @}BeforeMethod
-     * public void onNativeOnly() {
-     *     skipClassIfNotNativeRepository();
-     * }
-     * ----
-     *
-     * Name different from {@link #skipIfNotNativeRepository()} to be easily identifiable via IDE.
-     */
-    protected void skipClassIfNotNativeRepository() {
-        if (!isNativeRepository()) {
-            throw new SkipException("Skipping the test class designed for the native repository only.");
+    /** To be overridden by test classes that require native repo as a whole. */
+    protected boolean requiresNativeRepository() {
+        return false;
+    }
+
+    /** This is to skip all methods for test classes that completely require native repository. */
+    @BeforeMethod
+    public void checkNativeRepositoryRequirement() {
+        if (requiresNativeRepository() && !isNativeRepository()) {
+            throw new SkipException("Skipping test method, as the whole class requires native repository");
         }
     }
 

@@ -69,9 +69,9 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
 
     private String johnOid;
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipClassIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override

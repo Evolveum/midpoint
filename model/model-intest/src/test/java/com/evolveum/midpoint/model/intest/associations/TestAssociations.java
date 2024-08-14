@@ -179,9 +179,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         return SYSTEM_CONFIGURATION_FILE;
     }
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipClassIfNotNativeRepository(); // because it uses marks
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override

@@ -113,9 +113,9 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     private String testersShadowOid;
     private String operatorsShadowOid;
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipClassIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     private static DummyTestResource createAdResource(String fileName) {
