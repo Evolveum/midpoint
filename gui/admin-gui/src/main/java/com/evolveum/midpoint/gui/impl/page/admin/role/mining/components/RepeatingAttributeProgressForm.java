@@ -135,11 +135,11 @@ public class RepeatingAttributeProgressForm extends BasePanel<String> {
                     ajaxRequestTarget.add(containerFirstGroup);
                 }
             };
-            containerFirstGroup.add(showAllButton);
+            add(showAllButton);
         } else {
             WebMarkupContainer showAllButton = new WebMarkupContainer(ID_SHOW_MORE_PROGRESS_BAR);
             showAllButton.setVisible(false);
-            containerFirstGroup.add(showAllButton);
+            add(showAllButton);
         }
 
     }

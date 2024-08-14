@@ -11,16 +11,16 @@
 
 
     <div class="d-flex flex-wrap align-items-center gap-1 pt-2">
+        <div wicket:id="progressBarTitle" class="col progress-label p-0 text-truncate" style="text-transform: capitalize; font-size:16px;"></div>
+        <!--        <div wicket:id="progressBarDetails" class="col progress-label p-0" style="font-size:16px;"></div>-->
+        <div wicket:id="progressBarPercentage" class="col-auto progress-label float-right p-0" style="font-size:14px;"></div>
         <span class="btn btn-tool progress-label p-0">
           <i wicket:id="progressBarDetails" data-toggle="tooltip" data-placement="right"
                   class="fa fa-fw fa-info-circle text-info float-left"></i>
         </span>
-        <div wicket:id="progressBarTitle" class="col progress-label p-0 text-truncate" style="text-transform: capitalize; font-size:16px;"></div>
-        <!--        <div wicket:id="progressBarDetails" class="col progress-label p-0" style="font-size:16px;"></div>-->
-        <div wicket:id="progressBarPercentage" class="col-auto progress-label float-right p-0" style="font-size:14px;"></div>
     </div>
 
-    <div class="d-flex flex-wrap align-items-center">
+    <div class="d-flex flex-wrap align-items-center gap-1">
         <div class="col p-0">
             <div wicket:id="progressBarContainer" class="progress" style="border-radius: 3px; height:13px;">
 
