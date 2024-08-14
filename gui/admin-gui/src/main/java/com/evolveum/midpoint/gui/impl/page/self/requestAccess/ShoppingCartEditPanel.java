@@ -88,7 +88,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     private IModel<CustomValidity> customValidityModel;
 
-    private IModel<PrismContainerValueWrapper<AssignmentType>> assignmentExtension;
+    private IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel;
 
     private boolean validitySettingsEnabled;
 
@@ -131,7 +131,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             }
         };
 
-        assignmentExtension = new LoadableModel<>(false) {
+        assignmentModel = new LoadableModel<>(false) {
             @Override
             protected PrismContainerValueWrapper load() {
                 try {
@@ -154,21 +154,25 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
                     WrapperContext context = new WrapperContext(task, result);
 
-                    context.setDetailsPageTypeConfiguration(Arrays.asList(createExtensionPanelConfiguration()));
+                    context.setDetailsPageTypeConfiguration(Arrays.asList(createassignmentDetailsPanelConfiguration()));
                     context.setCreateIfEmpty(true);
+                    context.setReadOnly(false);
                     context.setShowEmpty(true);
 
                     // create whole wrapper, instead of only the concrete container value wrapper
-                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.ADDED, context);
+                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.NOT_CHANGED, context);
                     PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
                     if (assignmentWrapper == null) {
                         return null;
                     }
+                    //todo how to make assignment editable?
+//                    assignmentWrapper.setReadOnly(false);
 
                     PrismContainerValueWrapper<AssignmentType> valueWrapper = assignmentWrapper.getValues().iterator().next();
                     // todo this should be done automatically by wrappers - if parent ADDED child should probably have ADDED status as well...
                     valueWrapper.setStatus(ValueStatus.ADDED);
                     valueWrapper.setShowEmpty(true);
+//                    valueWrapper.setReadOnly(false, true);
 
                     return valueWrapper;
                 } catch (Exception ex) {
@@ -222,7 +226,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         add(message);
     }
 
-    private ContainerPanelConfigurationType createExtensionPanelConfiguration() {
+    private ContainerPanelConfigurationType createassignmentDetailsPanelConfiguration() {
         ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
         c.identifier("sample-panel");
         c.type(AssignmentType.COMPLEX_TYPE);
@@ -237,7 +241,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         relation.add(new EnableBehaviour(() -> false));
         add(relation);
 
-        AssignmentsDetailsPanel detailsPanel = new AssignmentsDetailsPanel(ID_EXTENSION, assignmentExtension, false, createExtensionPanelConfiguration()) {
+        AssignmentsDetailsPanel detailsPanel = new AssignmentsDetailsPanel(ID_EXTENSION, assignmentModel, false, createassignmentDetailsPanelConfiguration()) {
 
             @Override
             protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
@@ -267,26 +271,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 return super.getBasicTabVisibity(itemWrapper);
             }
         };
-        //TODO change extension visibility to be based on security constraints.
-        // eg. if valueWrapper is ampty - no items are allowed to be modified at all
-//        detailsPanel.add(new VisibleBehaviour(() -> {
-//            try {
-//                PrismContainerValueWrapper<AssignmentType> wrapper = assignmentExtension.getObject();
-//                if (wrapper == null) {
-//                    return false;
-//                }
-//                PrismContainerWrapper cw = wrapper.findItem(ItemPath.create(AssignmentType.F_EXTENSION));
-//                if (cw == null || cw.isEmpty()) {
-//                    return false;
-//                }
-//                PrismContainerValueWrapper pcvw = (PrismContainerValueWrapper) cw.getValue();
-//                List items = pcvw.getItems();
-//
-//                return items != null && !items.isEmpty();
-//            } catch (SchemaException ex) {
-//                return true;
-//            }
-//        }));
+        detailsPanel.add(new VisibleBehaviour(this::isDetailsPanelVisible));
         add(detailsPanel);
 
         IModel<ActivationStatusType> model = new Model<>() {
@@ -422,7 +407,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
         try {
             // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
-            PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentExtension.getObject();
+            PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentModel.getObject();
             if (containerValueWrapper == null) {
                 updateSelectedAssignment();
                 return;
@@ -473,5 +458,29 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER),
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE)
         );
+    }
+
+    private boolean isDetailsPanelVisible() {
+        PrismContainerValueWrapper<AssignmentType> wrapper = assignmentModel.getObject();
+        return !isEmpty(wrapper);
+//        try {
+//            if (isEmpty(wrapper)) {
+//                return false;
+//            }
+//            PrismContainerWrapper cw = wrapper.findItem(ItemPath.create(AssignmentType.F_EXTENSION));
+//            if (cw == null || cw.isEmpty()) {
+//                return false;
+//            }
+//            PrismContainerValueWrapper pcvw = (PrismContainerValueWrapper) cw.getValue();
+//            List items = pcvw.getItems();
+//
+//            return items != null && !items.isEmpty();
+//        } catch (SchemaException ex) {
+//            return true;
+//        }
+    }
+
+    private boolean isEmpty(PrismContainerValueWrapper<AssignmentType> wrapper) {
+        return wrapper == null || wrapper.getNewValue() == null || wrapper.getNewValue().isEmpty();
     }
 }
