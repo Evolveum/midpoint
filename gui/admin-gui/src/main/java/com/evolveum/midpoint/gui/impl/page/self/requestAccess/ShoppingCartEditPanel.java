@@ -162,19 +162,15 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                     context.setShowEmpty(true);
 
                     // create whole wrapper, instead of only the concrete container value wrapper
-                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.NOT_CHANGED, context);
+                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.ADDED, context);
                     PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
                     if (assignmentWrapper == null) {
                         return null;
                     }
-                    //todo how to make assignment editable?
-//                    assignmentWrapper.setReadOnly(false);
-
                     PrismContainerValueWrapper<AssignmentType> valueWrapper = assignmentWrapper.getValues().iterator().next();
                     // todo this should be done automatically by wrappers - if parent ADDED child should probably have ADDED status as well...
                     valueWrapper.setStatus(ValueStatus.ADDED);
                     valueWrapper.setShowEmpty(true);
-//                    valueWrapper.setReadOnly(false, true);
 
                     return valueWrapper;
                 } catch (Exception ex) {
