@@ -359,6 +359,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             protected boolean isPagingVisible() {
                 return ContainerableListPanel.this.isPagingVisible();
             }
+
+            @Override
+            protected void savePagingNewValue(Integer newValue) {
+                setPagingSizeNewValue(newValue);
+            }
         };
         itemTable.setOutputMarkupId(true);
 
@@ -372,6 +377,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
 
         return itemTable;
+    }
+
+    private void setPagingSizeNewValue(Integer newValue) {
+        PageStorage pageStorage = getPageStorage();
+        if (pageStorage == null) {
+            return;
+        }
+        ObjectPaging paging = pageStorage.getPaging();
+        if (paging == null) {
+            return;
+        }
+        paging.setMaxSize(newValue);
     }
 
     private int getDefaultPageSize() {
