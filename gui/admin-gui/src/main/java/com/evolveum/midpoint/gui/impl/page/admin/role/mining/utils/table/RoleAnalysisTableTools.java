@@ -39,12 +39,12 @@ public class RoleAnalysisTableTools {
 
     public static @NotNull String densityBasedColor(double density) {
 
-        if (density >= 60) {
-            return "#198754";
+        if (density >= 80) {
+            return "#528BB8";
         } else if (density > 30) {
             return "#008099";
         } else {
-            return "#777";
+            return "#CA444B";
         }
 
     }
