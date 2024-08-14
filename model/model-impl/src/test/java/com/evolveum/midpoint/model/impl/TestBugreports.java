@@ -6,15 +6,15 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
+import com.evolveum.midpoint.repo.sqlbase.NativeOnlySupportedException;
+import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import com.google.common.io.CharSource;
 import org.springframework.test.annotation.DirtiesContext;
@@ -24,6 +24,8 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+
+import static org.assertj.core.api.Assertions.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -89,6 +91,25 @@ public class TestBugreports extends AbstractInternalModelIntegrationTest {
                 """);
         modelService.importObjectsFromStream(inducementAndAssignment, PrismContext.LANG_XML, options ,task, result);
         assertThatOperationResult(result).isSuccess();
+    }
+
+    @Test
+    public void bug9854DetailedErrorShouldBeThrown() throws Exception {
+        var task = createTask();
+        var result = createOperationResult();
+        var query = TypedQuery.parse(ResourceType.class, """
+                operationalState/lastAvailabilityStatus = "up"
+                            and archetypeRef not matches (oid = "00000000-0000-0000-0000-000000000703")
+                            and template != true and abstract != true
+                """);
+        try {
+            modelService.searchObjects(query, task, result);
+        } catch (SystemException e) {
+            assertThat(e).hasCauseInstanceOf(NativeOnlySupportedException.class);
+            
+
+        }
+
     }
 
     private InputStream asStream(String s) throws IOException {
