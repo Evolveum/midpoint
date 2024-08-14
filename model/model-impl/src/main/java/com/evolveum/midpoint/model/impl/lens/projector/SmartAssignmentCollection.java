@@ -341,7 +341,11 @@ public class SmartAssignmentCollection<F extends AssignmentHolderType>
                                         focusContext.getObjectTypeClass(), focusOid, toGenerateList.size(), result)
                                 .iterator();
             } catch (ObjectNotFoundException e) {
-                // NOOP
+                if (!focusContext.isPrimaryAdd()) {
+                    // Object should exists, but was not found.
+                    throw e;
+                }
+                // We are doing add and object does not exists which is OK.
             }
         }
         if (allocated == null) {
