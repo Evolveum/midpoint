@@ -643,6 +643,7 @@ li.dropdown.user.user-menu {
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
+  max-width: fit-content;
 }
 
 .navbar-right {
