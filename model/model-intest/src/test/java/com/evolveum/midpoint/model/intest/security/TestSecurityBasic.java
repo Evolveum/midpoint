@@ -129,6 +129,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertReadDenyRaw();
         assertAddDeny();
         assertModifyDeny();
+        assertEmptyDeltaExecutionNotAuthorized(UserType.class, USER_GUYBRUSH_OID);
         assertDeleteDeny();
 
         assertReadCertCasesAllow();
@@ -2149,6 +2150,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyDeny();
+        assertEmptyDeltaExecutionAuthorized(UserType.class, USER_GUYBRUSH_OID);
         assertDeleteDeny();
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -2899,6 +2901,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertReadAllow(NUMBER_OF_ALL_USERS + 1);
         assertAddDeny();
         assertModifyAllow();
+        assertEmptyDeltaExecutionAuthorized(UserType.class, USER_GUYBRUSH_OID);
         assertDeleteDeny();
 
         PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -3153,6 +3156,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAddAllow(USER_HERMAN_FILE);
 
         assertModifyDeny();
+        assertEmptyDeltaExecutionAuthorized(UserType.class, USER_GUYBRUSH_OID);
 
         assertDeleteDeny();
 

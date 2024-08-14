@@ -317,14 +317,33 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
 
     @Override
     protected boolean isSaveButtonVisible() {
-        return !ItemStatus.NOT_CHANGED.equals(getModelObject().getStatus()) || getModelObject().canModify() ||
-                isAuthorizedToModify(); //this check was added due to MID-9380
+        // Note: when adding objects, the status below is "ADDED", so the first condition causes the button to be visible.
+        // Hence, there's no need to ask for canAdd() here.
+        //
+        // TODO:
+        //  - is that OK?
+        //  - also, is it OK we don't check for isForcedPreview() as we do in the parent?
+        return getModelObject().getStatus() != ItemStatus.NOT_CHANGED
+                || isEditingObject() && (getModelObject().canModify() || isAuthorizedToModify());
     }
 
+    /**
+     * This check was added due to MID-9380, MID-9898.
+     *
+     * It looks if there's an authorization to execute (any) modification.
+     *
+     * However, a better approach is probably to ask if there is a request authorization for operations that
+     * are not covered by specific item-level modification rights: `#assign`, `#unassign`, `#recompute`.
+     */
     protected boolean isAuthorizedToModify() {
         try {
-            return getPageBase().isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
-                    AuthorizationPhaseType.EXECUTION, getModelObject().getObject(), null, null, null);
+            var object = getModelObject().getObject();
+            return getPageBase().isAuthorized(
+                    ModelAuthorizationAction.MODIFY.getUrl(),
+                    AuthorizationPhaseType.EXECUTION,
+                    object,
+                    object.createModifyDelta(), // this is because the delta must not be null
+                    null, null);
         } catch (Exception e) {
             return false;
         }

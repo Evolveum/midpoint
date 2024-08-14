@@ -438,7 +438,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
             return determineObjectDecision(currentObject, itemDecisionFunctionDelete);
         } else {
             AccessDecision decision = null;
-            for (ItemDelta<?,?> itemDelta: delta.getModifications()) {
+            var modifications = delta.getModifications();
+            if (modifications.isEmpty()) {
+                // Empty delta should be allowed (as far as items are concerned). This is a quick fix for MID-9898.
+                return AccessDecision.ALLOW;
+            }
+            for (ItemDelta<?,?> itemDelta: modifications) {
                 ItemPath itemPath = itemDelta.getPath();
                 AccessDecision itemDecision = itemDecisionFunction.decide(itemPath.namedSegmentsOnly(), false);
                 if (itemDecision == null) {

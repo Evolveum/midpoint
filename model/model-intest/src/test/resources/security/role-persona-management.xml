@@ -16,7 +16,7 @@
         <phase>request</phase>
         <object>
             <type>UserType</type>
-               <special>self</special>
+            <special>self</special>
         </object>
         <item>givenName</item>
     </authorization>
@@ -26,7 +26,7 @@
         <phase>execution</phase>
         <object>
             <type>UserType</type>
-               <special>self</special>
+            <special>self</special>
         </object>
     </authorization>
     <authorization>
@@ -34,7 +34,7 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
             <type>UserType</type>
-               <special>self</special>
+            <special>self</special>
         </object>
     </authorization>
     <authorization>

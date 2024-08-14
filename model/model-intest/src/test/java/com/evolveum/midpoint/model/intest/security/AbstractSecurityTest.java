@@ -14,8 +14,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.*;
-
 import com.evolveum.midpoint.test.TestResource;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -1217,5 +1215,53 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertItemFlags(userJackEditSchema, UserType.F_ACTIVATION, true, false, true);
         assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
         assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
+    }
+
+    /**
+     * Checks whether the principal is able to modify the object with empty delta in execution phase.
+     * It is the same check as is used in GUI when deciding whether to show the Save button.
+     *
+     * Unlike other assertions, here we do not try to execute the operation. We just ask if we're authorized to do so.
+     */
+    protected <O extends ObjectType> void assertEmptyDeltaExecutionAuthorized(Class<O> objectType, String objectOid)
+            throws CommonException {
+        logAttempt("modify (just asking about)", objectType, objectOid, null);
+        if (isEmptyDeltaExecutionAuthorized(objectType, objectOid)) {
+            logAllow("modify (just asking about)", objectType, objectOid, null);
+        } else {
+            failAllow("modify (just asking about)", objectType, objectOid, null);
+        }
+    }
+
+    /** The opposite of {@link #assertEmptyDeltaExecutionAuthorized(Class, String)}. */
+    protected <O extends ObjectType> void assertEmptyDeltaExecutionNotAuthorized(Class<O> objectType, String objectOid)
+            throws CommonException {
+        logAttempt("modify (just asking about)", objectType, objectOid, null);
+        if (!isEmptyDeltaExecutionAuthorized(objectType, objectOid)) {
+            logDeny("modify (just asking about)", objectType, objectOid, null);
+        } else {
+            failDeny("modify (just asking about)", objectType, objectOid, null);
+        }
+    }
+
+    private <O extends ObjectType> boolean isEmptyDeltaExecutionAuthorized(Class<O> objectType, String objectOid)
+            throws CommonException {
+        var task = taskManager.createTaskInstance(
+                AbstractSecurityTest.class.getName() + ".getEmptyDeltaExecutionAuthorization");
+        var result = task.getResult();
+        var object = repositoryService.getObject(objectType, objectOid, null, result);
+        var delta = prismContext.deltaFactory().object().createEmptyModifyDelta(objectType, objectOid);
+        var params = new AuthorizationParameters.Builder<O, ObjectType>()
+                .oldObject(object)
+                .delta(delta)
+                .target(null)
+                .build();
+        return securityEnforcer.isAuthorized(
+                ModelAuthorizationAction.MODIFY.getUrl(),
+                AuthorizationPhaseType.EXECUTION,
+                params,
+                null,
+                task,
+                task.getResult());
     }
 }
