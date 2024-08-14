@@ -14,6 +14,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -30,12 +32,25 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOutlierPartitionType> {
+/**
+ * This class represents a panel that provides an overview of a role analysis partition.
+ * It displays various widgets with information about the partition, such as anomalies, patterns, similarity, attribute, category, and duplicated assignments.
+ * It is part of the admin GUI of the application.
+ * Popups are supported (for example, when we want to display top/specific outlier partition in dialog).
+ */
+public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOutlierPartitionType> implements Popupable {
 
     private static final String ID_WIDGETS = "widgets";
 
     IModel<RoleAnalysisOutlierType> outlierModel;
 
+    /**
+     * Constructor for the RoleAnalysisPartitionOverviewPanel.
+     *
+     * @param id The Wicket component ID.
+     * @param model The model representing the role analysis partition.
+     * @param outlierModel The model representing the outlier object.
+     */
     public RoleAnalysisPartitionOverviewPanel(
             @NotNull String id,
             @NotNull IModel<RoleAnalysisOutlierPartitionType> model, IModel<RoleAnalysisOutlierType> outlierModel) {
@@ -97,7 +112,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
 
         RoleAnalysisHeaderWithWidgetsPanel components = new RoleAnalysisHeaderWithWidgetsPanel(ID_WIDGETS, loadDetailsModel()) {
             @Override
-            protected Component getHeaderComponent(String id) {
+            protected @NotNull Component getHeaderComponent(String id) {
                 return RoleAnalysisPartitionOverviewPanel.this.getHeaderComponent(id);
             }
         };
@@ -417,4 +432,33 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
         return progressBar;
     }
 
+    @Override
+    public int getWidth() {
+        return 70;
+    }
+
+    @Override
+    public int getHeight() {
+        return 80;
+    }
+
+    @Override
+    public String getWidthUnit() {
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit() {
+        return "%";
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return null;
+    }
+
+    @Override
+    public Component getContent() {
+        return this;
+    }
 }
