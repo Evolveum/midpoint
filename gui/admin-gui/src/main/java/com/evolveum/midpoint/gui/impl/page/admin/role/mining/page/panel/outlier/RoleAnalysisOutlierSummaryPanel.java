@@ -141,7 +141,7 @@ public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<
 
     @Override
     protected String getIconBoxAdditionalCssClass() {
-        return "summary-panel-role";
+        return "summary-panel-outlier";
     }
 
     @Override

@@ -282,6 +282,6 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
 
     @Override
     protected String getIconBoxAdditionalCssClass() {
-        return "summary-panel-role";
+        return "summary-panel-cluster";
     }
 }
