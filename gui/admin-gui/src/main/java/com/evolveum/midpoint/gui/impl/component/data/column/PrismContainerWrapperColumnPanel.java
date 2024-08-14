@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -90,26 +91,37 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
     }
 
     private String getAssociationLabel(PrismContainerValueWrapper<ShadowAttributesType> object) {
-        StringBuilder sb = new StringBuilder();
+        List<String> stringValues = new ArrayList<>();
         Iterator<? extends ItemWrapper<?, ?>> iterator = object.getItems().iterator();
         while (iterator.hasNext()) {
             ItemWrapper<?, ?> itemWrapper = iterator.next();
             if (itemWrapper.getValues().isEmpty()) {
                 continue;
             }
+
             for (PrismValueWrapper value : itemWrapper.getValues()) {
-                Object realValue = itemWrapper.getValues().get(0).getRealValue();
-                sb.append(itemWrapper.getDisplayName())
-                        .append(" : ");
-                if (realValue instanceof Referencable reference) {
-                    sb.append(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(reference, false));
-                } else {
-                    sb.append(realValue);
+                StringBuilder sb = new StringBuilder();
+                Object realValue = value.getRealValue();
+                sb.append(itemWrapper.getDisplayName());
+
+                if (realValue != null) {
+                    if (realValue instanceof Referencable reference) {
+                        if (reference.getOid() != null) {
+                            sb.append(" : ")
+                                .append(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(reference, false));
+                        }
+                    } else {
+                        sb.append(" : ").append(realValue);
+                    }
+                }
+
+                if (!sb.isEmpty()) {
+                    stringValues.add(sb.toString());
                 }
             }
         }
 
-        return sb.toString();
+        return StringUtils.join(stringValues, ", ");
     }
 
 

@@ -344,7 +344,7 @@ public final class WebComponentUtil {
     }
 
     public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes, boolean translate) {
-        if (ref == null) {
+        if (ref == null || ref.getOid() == null) {
             return "";
         }
         String name = ref.getTargetName() == null ? "" :
