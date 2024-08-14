@@ -14,12 +14,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDef
 /**
  * TEMPORARY
  */
-public class ResourceObjectAssociationNewConfigItem
+public class ShadowAssociationDefinitionConfigItem
         extends ConfigurationItem<ShadowAssociationDefinitionType>
         implements AssociationConfigItem {
 
     @SuppressWarnings({ "unused", "WeakerAccess" }) // called dynamically
-    public ResourceObjectAssociationNewConfigItem(@NotNull ConfigurationItem<ShadowAssociationDefinitionType> original) {
+    public ShadowAssociationDefinitionConfigItem(@NotNull ConfigurationItem<ShadowAssociationDefinitionType> original) {
         super(original);
     }
 

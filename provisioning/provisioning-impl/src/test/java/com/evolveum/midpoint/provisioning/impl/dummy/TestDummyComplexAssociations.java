@@ -260,7 +260,7 @@ public class TestDummyComplexAssociations extends AbstractDummyTest {
                 .as("ann's contracts")
                 .hasSize(1);
 
-        var annContractAfter = annContractsValuesAfter.iterator().next().getAssociationObject();
+        var annContractAfter = annContractsValuesAfter.iterator().next().getAssociationDataObject();
         assertShadow(annContractAfter.getBean(), "ann's contract")
                 .display()
                 .assertEffectiveOperationsDeeply()
@@ -331,7 +331,7 @@ public class TestDummyComplexAssociations extends AbstractDummyTest {
                 Resource.of(resource)
                         .deltaFor(Person.OBJECT_CLASS_NAME.xsd())
                         .item(Person.LinkNames.CONTRACT.associationPath())
-                        .add(ShadowAssociationValue.fromAssociationObject(bobContractShadow.clone(), contractAssocDef))
+                        .add(ShadowAssociationValue.fromAssociationDataObject(bobContractShadow.clone(), contractAssocDef))
                         .asItemDeltas(),
                 null, null, task, result);
 
@@ -354,7 +354,7 @@ public class TestDummyComplexAssociations extends AbstractDummyTest {
                 .as("contracts after adding")
                 .hasSize(1);
 
-        var contractAfterAdding = contractsAfterAdding.iterator().next().getAssociationObject();
+        var contractAfterAdding = contractsAfterAdding.iterator().next().getAssociationDataObject();
         assertShadow(contractAfterAdding.getBean(), "contract after adding")
                 .display()
                 .assertEffectiveOperationsDeeply()
@@ -388,7 +388,7 @@ public class TestDummyComplexAssociations extends AbstractDummyTest {
                 Resource.of(resource)
                         .deltaFor(Person.OBJECT_CLASS_NAME.xsd())
                         .item(Person.LinkNames.CONTRACT.associationPath())
-                        .delete(ShadowAssociationValue.fromAssociationObject(bobContractShadow.clone(), contractAssocDef))
+                        .delete(ShadowAssociationValue.fromAssociationDataObject(bobContractShadow.clone(), contractAssocDef))
                         .asItemDeltas(),
                 null, null, task, result);
 

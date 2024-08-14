@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
+import com.evolveum.midpoint.schema.config.AbstractAttributeMappingsDefinitionConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
@@ -70,7 +71,7 @@ public class AssociationValuesTripleComputation {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationValuesTripleComputation.class);
 
-    private final boolean hasAssociationObject;
+    private final boolean complexAssociation;
     @NotNull private final ShadowAssociationDefinition associationDefinition;
     @NotNull private final AssociationOutboundMappingType outboundBean;
     @NotNull private final LensProjectionContext projectionContext;
@@ -85,7 +86,7 @@ public class AssociationValuesTripleComputation {
             @NotNull LensProjectionContext projectionContext,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull OperationResult result) {
-        this.hasAssociationObject = associationDefinition.hasAssociationObject();
+        this.complexAssociation = associationDefinition.isComplex();
         this.associationDefinition = associationDefinition;
         this.outboundBean = outboundBean;
         this.projectionContext = projectionContext;
@@ -178,7 +179,7 @@ public class AssociationValuesTripleComputation {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        var objectParticipants = associationDefinition.getObjectParticipants(projectionContext.getResourceSchemaRequired());
+        var objectParticipants = associationDefinition.getObjectParticipants();
         LOGGER.trace("Trying to find relevant shadows for focus {} having {} linkRefs (object types: {})",
                 focus, focus.getLinkRef().size(), objectParticipants);
 
@@ -232,16 +233,16 @@ public class AssociationValuesTripleComputation {
             for (var attrDefBean : outboundBean.getObjectRef()) {
                 evaluateAttribute(attrDefBean, true);
             }
-            var associationObject = consolidate();
+            var associationDataObject = consolidate();
             ShadowAssociationValue associationValue;
-            if (hasAssociationObject) {
+            if (complexAssociation) {
                 associationValue =
-                        ShadowAssociationValue.fromAssociationObject(
-                                AbstractShadow.of(associationObject),
+                        ShadowAssociationValue.fromAssociationDataObject(
+                                AbstractShadow.of(associationDataObject),
                                 associationDefinition);
             } else {
                 associationValue = ShadowAssociationValue.empty(associationDefinition);
-                var referenceAttributes = ShadowUtil.getAttributesContainer(associationObject).getReferenceAttributes();
+                var referenceAttributes = ShadowUtil.getAttributesContainer(associationDataObject).getReferenceAttributes();
                 if (referenceAttributes.isEmpty()) {
                     return resultingTriple;
                 }
@@ -255,10 +256,12 @@ public class AssociationValuesTripleComputation {
         private void evaluateAttribute(AttributeOutboundMappingsDefinitionType attrDefBean, boolean isObjectRef)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
+
+            var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
+            var mappingsCI = AbstractAttributeMappingsDefinitionConfigItem.of(attrDefBean, origin);
+            var targetItemName = isObjectRef ? mappingsCI.getObjectRefOrDefault(associationDefinition) : mappingsCI.getRef();
+            var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
             for (var outboundBean : attrDefBean.getMapping()) {
-                var targetItemName = attrDefBean.getRef().getItemPath().firstNameOrFail();
-                var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
-                var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
                 var mappingConfigItem = MappingConfigItem.of(outboundBean, origin);
 
                 MappingBuilder<PrismValue, ItemDefinition<?>> builder =
@@ -280,9 +283,9 @@ public class AssociationValuesTripleComputation {
                 var magicAssignmentIdi = assignmentPathVariables.getMagicAssignment();
 
                 var outputDefinition =
-                        associationDefinition.hasAssociationObject() ?
+                        associationDefinition.isComplex() ?
                                 associationDefinition
-                                        .getAssociationObjectDefinition()
+                                        .getAssociationDataObjectDefinition()
                                         .findAttributeDefinitionRequired(targetItemName) :
                                 projectionContext
                                         .getCompositeObjectDefinition()
@@ -321,8 +324,8 @@ public class AssociationValuesTripleComputation {
         private @NotNull ShadowType consolidate()
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            var shadowDef = associationDefinition.hasAssociationObject() ?
-                    associationDefinition.getAssociationObjectDefinition() :
+            var shadowDef = associationDefinition.isComplex() ?
+                    associationDefinition.getAssociationDataObjectDefinition() :
                     projectionContext.getCompositeObjectDefinitionRequired();
             var shadow = shadowDef.createBlankShadow().getBean();
             //noinspection unchecked

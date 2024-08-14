@@ -14,7 +14,6 @@ import com.evolveum.midpoint.schema.processor.ShadowAttributesContainerDefinitio
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import com.google.common.base.Preconditions;
@@ -55,15 +54,15 @@ public class AssociationsToShadowReferencesTransformer implements FilterItemPath
             } else if (currentDef instanceof ShadowAssociationDefinition assocDef) {
                 // We are inside associations container, inside named association.
                 rewritten.add(assocDef.getItemName()); // Add association name (normalize it)
-                if (assocDef.hasAssociationObject()) {
-                    // Association has associated object, we should emit dereference to associated object
+                if (assocDef.isComplex()) {
+                    // Association has associated data object, we should emit dereference to associated object
                     // Since actual references and attributes are in separate shadow
                     rewritten.add(new ObjectReferencePathSegment());
                 }
             } else if (prevDef instanceof ShadowAssociationDefinition assocDef && (ItemPath.isName(seg))) {
-                // We are searching attributes inside assocation
+                // We are searching attributes inside association
                 if (QNameUtil.match(ShadowAssociationValueType.F_OBJECTS,ItemPath.toName(seg))) {
-                    if (assocDef.hasAssociationObject()) {
+                    if (assocDef.isComplex()) {
                         // If this association is represented by  associated object we nee to use referenceAttributes again
                         // for references
                         rewritten.add(ShadowType.F_REFERENCE_ATTRIBUTES);

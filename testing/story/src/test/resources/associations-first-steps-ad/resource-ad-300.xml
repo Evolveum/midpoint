@@ -142,7 +142,6 @@
                         <expression>
                             <associationConstruction>
                                 <objectRef>
-                                    <ref>ri:group</ref>
                                     <mapping>
                                         <name>group</name>
                                         <expression>
@@ -159,7 +158,6 @@
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
-                                    <ref>ri:group</ref>
                                     <correlator/>
                                     <mapping>
                                         <name>group-to-targetRef</name>

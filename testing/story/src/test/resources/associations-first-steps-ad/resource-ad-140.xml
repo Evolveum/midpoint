@@ -138,7 +138,6 @@
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
-                                    <ref>ri:group</ref>
                                     <mapping>
                                         <name>group-to-targetRef</name>
                                         <expression>

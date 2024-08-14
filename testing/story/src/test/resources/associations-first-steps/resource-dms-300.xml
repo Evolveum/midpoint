@@ -150,7 +150,6 @@
                                     </mapping>
                                 </attribute>
                                 <objectRef>
-                                    <ref>ri:document</ref>
                                     <mapping>
                                         <name>document</name>
                                         <expression>
@@ -166,7 +165,6 @@
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
-                                    <ref>ri:document</ref>
                                     <correlator/>
                                     <mapping>
                                         <name>document-to-targetRef</name>

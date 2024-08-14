@@ -94,7 +94,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
             @NotNull ShadowAssociationDefinition definition) {
         super(type, source, container, id, definition.getComplexTypeDefinition());
         this.definition = definition;
-        this.hasAssociationObject = definition.hasAssociationObject();
+        this.hasAssociationObject = definition.isComplex();
     }
 
     /**
@@ -112,8 +112,8 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         }
 
         var newValue = empty(definition);
-        if (definition.hasAssociationObject()) {
-            ShadowDefinitionApplicator applicator = new ShadowDefinitionApplicator(definition.getAssociationObjectDefinition());
+        if (definition.isComplex()) {
+            var applicator = new ShadowDefinitionApplicator(definition.getAssociationDataObjectDefinition());
 
             var rawAttributes = bean.getAttributes();
             if (rawAttributes != null) {
@@ -170,7 +170,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     }
 
     /** Creates a new value from the association object. */
-    public static @NotNull ShadowAssociationValue fromAssociationObject(
+    public static @NotNull ShadowAssociationValue fromAssociationDataObject(
             @NotNull AbstractShadow associationObject,
             @NotNull ShadowAssociationDefinition associationDefinition) throws SchemaException {
         var newValue = empty(associationDefinition);
@@ -321,8 +321,8 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
      */
     public @NotNull ShadowReferenceAttributeValue toReferenceAttributeValue() throws SchemaException {
         var def = getDefinitionRequired();
-        if (def.hasAssociationObject()) {
-            var shadow = def.getAssociationObjectDefinition().createBlankShadow();
+        if (def.isComplex()) {
+            var shadow = def.getAssociationDataObjectDefinition().createBlankShadow();
             // We do not preserve the OID, kind/intent and similar things.
             copy(shadow.getAttributesContainer(), getAttributesContainer());
             copy(shadow.getAttributesContainer(), getObjectsContainer());
@@ -372,7 +372,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     public ShadowAssociationValue fillFromReferenceAttributeValue(@NotNull ShadowReferenceAttributeValue refAttrValue)
             throws SchemaException {
         var def = getDefinitionRequired();
-        if (def.hasAssociationObject()) {
+        if (def.isComplex()) {
             return fillFromAssociationObject(refAttrValue.getShadow());
         } else {
             getOrCreateObjectsContainer()
@@ -433,7 +433,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
      * Returns the associated object as an {@link AbstractShadow}.
      * Fails if there's none.
      */
-    public @NotNull AbstractShadow getAssociationObject() {
+    public @NotNull AbstractShadow getAssociationDataObject() {
         try {
             if (hasAssociationObject) {
                 return toReferenceAttributeValue().getShadowRequired();

@@ -112,13 +112,16 @@ class AssociationSynchronizationExpressionEvaluator
         Evaluation(
                 @NotNull PrismValueDeltaSetTriple<?> inputTriple,
                 @NotNull ShadowAssociationDefinition associationDefinition,
-                @NotNull ExpressionEvaluationContext context) {
+                @NotNull ExpressionEvaluationContext context)
+                throws ConfigurationException {
             this.inputTriple = inputTriple;
             this.associationDefinition = associationDefinition;
             this.context = context;
             this.inboundDefinition =
                     ResourceObjectInboundDefinition.forAssociationSynchronization(
-                            expressionEvaluatorBean, context.getTargetDefinitionBean());
+                            associationDefinition,
+                            expressionEvaluatorBean,
+                            context.getTargetDefinitionBean());
             this.candidateAssignments = getCandidateAssignments();
         }
 
@@ -236,7 +239,7 @@ class AssociationSynchronizationExpressionEvaluator
                 PreMappingsEvaluator.computePreFocusForAssociationValue(
                         associationValue,
                         associationValue.hasAssociationObject() ?
-                                associationValue.getAssociationObject().getObjectDefinition() :
+                                associationValue.getAssociationDataObject().getObjectDefinition() :
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,
                         projectionContext.getResourceRequired(),
@@ -357,7 +360,7 @@ class AssociationSynchronizationExpressionEvaluator
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         context.getTask(),
                         associationValue.hasAssociationObject() ?
-                                associationValue.getAssociationObject().getObjectDefinition() :
+                                associationValue.getAssociationDataObject().getObjectDefinition() :
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,
                         false);
