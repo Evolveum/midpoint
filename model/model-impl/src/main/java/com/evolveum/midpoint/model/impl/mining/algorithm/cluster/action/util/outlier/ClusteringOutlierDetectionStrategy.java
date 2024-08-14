@@ -129,7 +129,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
                             memberOid, task, result);
                     List<String> allowedProperties = miningRoleTypeChunk.getProperties();
                     RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(memberOid, miningRoleTypeChunks,
-                            processingTimes, session, roleAnalysisService, task, result,allowedProperties);
+                            processingTimes, session, roleAnalysisService, task, result, allowedProperties);
                     statistics.setPatternAnalysis(patternAnalysis);
                     double anomalyConfidence = calculateAssignmentAnomalyConfidence(
                             roleAnalysisService, attributesForUserAnalysis, userTypeObject, userCountInRepo, anomalyResult,
@@ -205,7 +205,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
         partitionAnalysis.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
 
         RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(memberOid, miningRoleTypeChunks, null,
-                session, roleAnalysisService, task, result,null);
+                session, roleAnalysisService, task, result, null);
         partitionAnalysis.setPatternAnalysis(roleAnalysisPatternInfo);
 
         double outlierConfidenceBasedAssignment = 0;
@@ -272,7 +272,7 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
         }
 
         return roleAnalysisService.prepareBasicChunkStructure(
-                tempCluster, displayValueOption, RoleAnalysisProcessModeType.USER, result, task);
+                tempCluster, displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
     }
 
     private void processClusterAttributeAnalysis(
