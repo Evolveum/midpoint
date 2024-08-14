@@ -342,23 +342,6 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                CustomValidity cv = customValidityModel.getObject();
-                XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(cv.getFrom());
-                XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(cv.getTo());
-
-                ShoppingCartItem item = getModelObject();
-                AssignmentType assignment = item.getAssignment();
-                ActivationType activation = assignment.getActivation();
-
-                if (from != null || to != null) {
-                    if (activation == null) {
-                        activation = new ActivationType();
-                        assignment.setActivation(activation);
-                    }
-
-                    activation.validFrom(from).validTo(to);
-                }
-
                 savePerformed(target, ShoppingCartEditPanel.this.getModel());
             }
         });
@@ -408,28 +391,28 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
         try {
-            // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
             PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentModel.getObject();
+            // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
             if (containerValueWrapper == null) {
-                updateSelectedAssignment();
+                updateSelectedAssignment(target);
                 return;
             }
 
             PrismObjectWrapper<UserType> wrapper = containerValueWrapper.getParent().findObjectWrapper();
             if (wrapper.getObjectDelta().isEmpty()) {
-                updateSelectedAssignment();
+                updateSelectedAssignment(target);
                 return;
             }
 
             PrismContainerWrapper<AssignmentType> assignmentWrapper = wrapper.findContainer(UserType.F_ASSIGNMENT);
             if (assignmentWrapper == null || assignmentWrapper.getValues().isEmpty() || assignmentWrapper.getDelta().isEmpty()) {
-                updateSelectedAssignment();
+                updateSelectedAssignment(target);
                 return;
             }
 
             PrismContainerValueWrapper<AssignmentType> value = assignmentWrapper.getValues().iterator().next();
             PrismContainerValue<AssignmentType> assignmentWithDelta = value.getContainerValueApplyDelta();
-            requestAccess.getObject().updateSelectedAssignment(assignmentWithDelta.getRealValue());
+            updateSelectedAssignment(assignmentWithDelta.getRealValue(), target);
 
 
 //            UserType user = wrapper.getObjectApplyDelta().asObjectable();
@@ -452,9 +435,36 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         }
     }
 
-    private void updateSelectedAssignment() {
+    private void updateActivation(AssignmentType assignment) {
+        CustomValidity cv = customValidityModel.getObject();
+        XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(cv.getFrom());
+        XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(cv.getTo());
+
+        ActivationType activation = assignment.getActivation();
+
+        if (from != null || to != null) {
+            if (activation == null) {
+                activation = new ActivationType();
+                assignment.setActivation(activation);
+            }
+
+            activation.validFrom(from).validTo(to);
+        }
+    }
+
+    private void updateSelectedAssignment(AjaxRequestTarget target) {
         AssignmentType a = getModelObject().getAssignment();
-        requestAccess.getObject().updateSelectedAssignment(a);
+        updateSelectedAssignment(a, target);
+    }
+
+    private void updateSelectedAssignment(AssignmentType assignment, AjaxRequestTarget target) {
+        updateActivation(assignment);
+        requestAccess.getObject().updateSelectedAssignment(assignment);
+        assignmentUpdatePerformed(target);
+    }
+
+    protected void assignmentUpdatePerformed(AjaxRequestTarget target) {
+        // to be overriden
     }
 
     protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
@@ -468,8 +478,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_SUBTYPE),
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_LIFECYCLE_STATE),
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
-                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER),
-                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE)
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER)
         );
     }
 

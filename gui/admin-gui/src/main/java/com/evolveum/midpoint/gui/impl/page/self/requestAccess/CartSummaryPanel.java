@@ -102,6 +102,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     private final WizardModel wizard;
 
     private IModel<List<RelationDefinitionType>> systemRelations;
+    private LoadableDetachableModel<List<ShoppingCartItem>> shoppingCartItemsModel;
 
     public CartSummaryPanel(String id, WizardModel wizard, IModel<RequestAccess> model, PageBase page) {
         super(id, model);
@@ -122,6 +123,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
                 return registry.getRelationDefinitions();
             }
         };
+        shoppingCartItemsModel = initShoppingCartItemsModel();
     }
 
     @Override
@@ -138,7 +140,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     private void initLayout() {
         List<IColumn<ShoppingCartItem, String>> columns = createColumns();
 
-        ISortableDataProvider<ShoppingCartItem, String> provider = new ListDataProvider<>(this, () -> getModelObject().getShoppingCartItems());
+        ISortableDataProvider<ShoppingCartItem, String> provider = new ListDataProvider<>(this, shoppingCartItemsModel);
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns) {
 
             @Override
@@ -526,6 +528,11 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
             protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
                 getPageBase().hideMainPopup(target);
             }
+
+            @Override
+            protected void assignmentUpdatePerformed(AjaxRequestTarget target) {
+                reloadTable(target);
+            }
         };
 
         page.showMainPopup(panel, target);
@@ -579,4 +586,24 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
         setResponsePage(PageRequestAccess.class, params);
     }
+
+    private LoadableDetachableModel<List<ShoppingCartItem>> initShoppingCartItemsModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<ShoppingCartItem> load() {
+                return getModelObject().getShoppingCartItems();
+            }
+        };
+    }
+
+    private void reloadTable(AjaxRequestTarget target) {
+        if (shoppingCartItemsModel != null) {
+            shoppingCartItemsModel.detach();
+        }
+        Component table = get(ID_TABLE);
+        target.add(table);
+    }
+
 }
