@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -77,7 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 public class CartSummaryPanel extends BasePanel<RequestAccess> implements AccessRequestMixin {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_TABLE = "table";
     private static final String ID_TABLE_HEADER_FRAGMENT = "tableHeaderFragment";
