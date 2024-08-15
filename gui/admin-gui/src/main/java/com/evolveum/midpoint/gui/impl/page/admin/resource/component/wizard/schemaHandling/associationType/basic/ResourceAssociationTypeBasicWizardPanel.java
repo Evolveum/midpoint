@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -253,6 +255,14 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             }
 
             @Override
+            public VisibleEnableBehaviour getBackBehaviour() {
+                return new VisibleBehaviour(() -> showChoicePanel);
+            }
+        });
+
+        steps.add(new AssociationDataAssociationTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
+
+            @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 OperationResult result = ResourceAssociationTypeBasicWizardPanel.this.onSavePerformed(target);
                 if (result == null || result.isError()) {
@@ -264,8 +274,19 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             }
 
             @Override
-            public VisibleEnableBehaviour getBackBehaviour() {
-                return new VisibleBehaviour(() -> showChoicePanel);
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
+            }
+
+            @Override
+            protected ItemVisibilityHandler getVisibilityHandler() {
+                return wrapper -> {
+                    if (wrapper.getItemName().equals(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF)
+                            || wrapper.getItemName().equals(ShadowAssociationDefinitionType.F_REF)) {
+                        return ItemVisibility.HIDDEN;
+                    }
+                    return ItemVisibility.AUTO;
+                };
             }
         });
         return steps;
