@@ -15,9 +15,8 @@ import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
 
-import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,8 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTyp
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,10 +54,16 @@ public abstract class ChoiceAssociationPopupPanel extends SimplePopupable {
             String id,
             ResourceDetailsModel resourceDetailsModel,
             List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> associations) {
-        super(id, 500, 600, () -> LocalizationUtil.translate("ChoiceAssociationPopupPanel.title"));
+        super(id, 940, 600, () -> LocalizationUtil.translate("ChoiceAssociationPopupPanel.title"));
         this.resourceDetailsModel = resourceDetailsModel;
         initLayout(associations);
         initFooter();
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        getContent().add(AttributeAppender.append("class", "card-footer"));
     }
 
     private void initFooter() {
@@ -93,7 +98,11 @@ public abstract class ChoiceAssociationPopupPanel extends SimplePopupable {
                     try {
                         CompleteResourceSchema resourceSchema = resourceDetailsModel.getRefinedSchema();
                         AssociationDefinitionWrapper defWrapper = new AssociationDefinitionWrapper(associationWrapper, resourceSchema);
-                        Tile<AssociationDefinitionWrapper> tile = new Tile<>(null, defWrapper.getAssociationAttribute().getLocalPart());
+                        String title = GuiDisplayNameUtil.getDisplayName(associationWrapper.getRealValue(), true);
+                        if (title == null) {
+                            title = defWrapper.getAssociationAttribute().getLocalPart();
+                        }
+                        Tile<AssociationDefinitionWrapper> tile = new Tile<>(null, title);
                         tile.setValue(defWrapper);
                         list.add(tile);
                     } catch (ConfigurationException | SchemaException e) {
