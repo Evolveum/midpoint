@@ -61,9 +61,9 @@ public class TestProjectionPolicyRules extends AbstractLensTest {
                         controller.getAccountObjectClass(), ATTR_MEMBER_OF_ORG, String.class, false, true);
             });
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipClassIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override

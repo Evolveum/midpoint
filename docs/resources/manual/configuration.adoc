@@ -34,9 +34,7 @@ Following example shows the use of internal manual connector implementation:
         </filter>
     </connectorRef>
 
-    <connectorConfiguration>
-        <conf:defaultAssignee>administrator</conf:defaultAssignee> <!-- EXPERIMENTAL !!! -->
-    </connectorConfiguration>
+    <connectorConfiguration/>
 
     <!-- Static schema definition -->
     <schema>
@@ -49,6 +47,10 @@ Following example shows the use of internal manual connector implementation:
              </xsd:schema>
           </definition>
     </schema>
+
+    <business>
+        <operatorRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/> <!-- administrator; this is the default -->
+    </business>
 
 </resource>
 ----
@@ -80,9 +82,7 @@ The following example shows combination of midPoint built-in manual connector an
         </filter>
     </connectorRef>
 
-    <connectorConfiguration>
-        <conf:defaultAssignee>administrator</conf:defaultAssignee> <!-- EXPERIMENTAL !!! -->
-    </connectorConfiguration>
+    <connectorConfiguration/>
 
     <additionalConnector>
         <name>csv</name>
@@ -130,6 +130,10 @@ The following example shows combination of midPoint built-in manual connector an
     <consistency>
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
     </consistency>
+
+    <business>
+        <operatorRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/> <!-- administrator; this is the default -->
+    </business>
 
 </resource>
 ----

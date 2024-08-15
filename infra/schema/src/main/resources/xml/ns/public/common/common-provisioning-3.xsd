@@ -4423,17 +4423,6 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="deleted">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The value existed on the resource, but it has been deleted.
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DELETED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="matched">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4441,6 +4430,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MATCHED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="matchedIndirectly">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The target reference exists among references to indirectly assigned abstract roles.
+                        (I.e., it is present in current roleMembershipRef values.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MATCHED_INDIRECTLY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

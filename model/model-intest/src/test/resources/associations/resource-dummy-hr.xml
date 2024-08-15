@@ -263,13 +263,6 @@
                                             <synchronize/>
                                         </actions>
                                     </reaction>
-                                    <reaction>
-                                        <situation>deleted</situation>
-                                        <actions>
-                                            <!-- This should case deletion of no-longer-connected assignments. Not implemented yet. -->
-                                            <deleteFocusValue/>
-                                        </actions>
-                                    </reaction>
                                 </synchronization>
                             </associationSynchronization>
                         </expression>

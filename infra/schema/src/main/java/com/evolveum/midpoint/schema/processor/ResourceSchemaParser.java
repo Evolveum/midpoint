@@ -517,7 +517,10 @@ class ResourceSchemaParser {
             definition.add(
                     ShadowAssociationDefinitionImpl.modern(
                             assocTypeCI.getSubject().getAssociationNameRequired(),
-                            refAttrDef, subjectSideCI.value(), assocTypeCI.value()));
+                            refAttrDef,
+                            subjectSideCI,
+                            assocTypeCI,
+                            resourceSchema));
         }
 
         /**

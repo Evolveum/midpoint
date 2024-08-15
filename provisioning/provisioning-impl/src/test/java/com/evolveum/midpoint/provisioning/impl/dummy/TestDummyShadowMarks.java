@@ -58,9 +58,9 @@ public class TestDummyShadowMarks extends AbstractDummyTest {
         return RESOURCE_DUMMY_SHADOW_MARKS_FILE;
     }
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipClassIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override

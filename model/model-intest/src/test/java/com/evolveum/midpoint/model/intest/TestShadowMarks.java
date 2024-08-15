@@ -61,9 +61,9 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
 
     private Object markPolicyNoOutbound;
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipClassIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override

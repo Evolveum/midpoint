@@ -270,6 +270,11 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         displayTestTitle("Initializing TEST CLASS: " + getClass().getName());
         initSystemExecuted = true;
 
+        if (requiresNativeRepository() && !isNativeRepository()) {
+            IntegrationTestTools.display("Skipping system initialization, as the test class requires native repository");
+            return;
+        }
+
         // Check whether we are already initialized
         assertNotNull(repositoryService, "Repository is not wired properly");
         assertNotNull(taskManager, "Task manager is not wired properly");
@@ -1332,9 +1337,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertRepoShadowAttributes(Collection<Item<?, ?>> attributes, int expectedNumberOfIdentifiers) {
-        assertThat(attributes)
-                .as("attributes in repo shadow")
-                .hasSize(expectedNumberOfIdentifiers);
+        var a = assertThat(attributes)
+                .as("attributes in repo shadow");
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            a.hasSizeGreaterThanOrEqualTo(expectedNumberOfIdentifiers);
+        } else {
+            a.hasSize(expectedNumberOfIdentifiers);
+        }
     }
 
     protected String getIcfUid(PrismObject<ShadowType> shadow) {
@@ -1366,9 +1375,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertCounterIncrement(InternalCounters counter, int expectedIncrement) {
         long currentCount = InternalMonitor.getCount(counter);
         long actualIncrement = currentCount - getLastCount(counter);
-        assertThat(actualIncrement)
-                .as("Increment in " + counter.getLabel())
-                .isEqualTo(expectedIncrement);
+        var a = assertThat(actualIncrement)
+                .as("Increment in " + counter.getLabel());
+        if (InternalsConfig.isShadowCachingOnByDefault()
+                && (counter == InternalCounters.SHADOW_FETCH_OPERATION_COUNT || counter == InternalCounters.CONNECTOR_OPERATION_COUNT)) {
+            a.isLessThanOrEqualTo(expectedIncrement);
+        } else {
+            a.isEqualTo(expectedIncrement);
+        }
         lastCountMap.put(counter, currentCount);
     }
 
@@ -1893,6 +1907,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertActivationAdministrativeStatus(PrismObject<ShadowType> shadow, ActivationStatusType expectedStatus) {
+        if (InternalsConfig.isShadowCachingOnByDefault() && expectedStatus == null) {
+            return; // there may be a value from the cache
+        }
         ActivationType activationType = shadow.asObjectable().getActivation();
         if (activationType == null) {
             if (expectedStatus != null) {
@@ -2719,6 +2736,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertNoAttribute(ShadowType shadow, QName attrQname) {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            return; // The attribute may be there because of caching
+        }
         PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer == null || attributesContainer.isEmpty()) {
             return;
@@ -4413,22 +4433,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repositoryService.isNative();
     }
 
-    /**
-     * To be used like this:
-     *
-     * [source,java]
-     * ----
-     * {@literal @}BeforeMethod
-     * public void onNativeOnly() {
-     *     skipClassIfNotNativeRepository();
-     * }
-     * ----
-     *
-     * Name different from {@link #skipIfNotNativeRepository()} to be easily identifiable via IDE.
-     */
-    protected void skipClassIfNotNativeRepository() {
-        if (!isNativeRepository()) {
-            throw new SkipException("Skipping the test class designed for the native repository only.");
+    /** To be overridden by test classes that require native repo as a whole. */
+    protected boolean requiresNativeRepository() {
+        return false;
+    }
+
+    /** This is to skip all methods for test classes that completely require native repository. */
+    @BeforeMethod
+    public void checkNativeRepositoryRequirement() {
+        if (requiresNativeRepository() && !isNativeRepository()) {
+            throw new SkipException("Skipping test method, as the whole class requires native repository");
         }
     }
 
@@ -4570,5 +4584,17 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected ConfigurationItemOrigin testOrigin() {
         return ConfigurationItemOrigin.generated(); // to be considered safe by the expression profile manager
+    }
+
+    protected void invalidateShadowCacheIfNeeded(String resourceOid)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                ResourceType.class,
+                resourceOid,
+                prismContext.deltaFor(ResourceType.class)
+                        .item(ResourceType.F_CACHE_INVALIDATION_TIMESTAMP)
+                        .replace(clock.currentTimeXMLGregorianCalendar())
+                        .asItemDeltas(),
+                getTestOperationResult());
     }
 }

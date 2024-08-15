@@ -159,7 +159,6 @@
                         <expression>
                             <associationConstruction>
                                 <objectRef>
-                                    <ref>ri:group</ref>
                                     <mapping>
                                         <expression>
                                             <associationFromLink/>

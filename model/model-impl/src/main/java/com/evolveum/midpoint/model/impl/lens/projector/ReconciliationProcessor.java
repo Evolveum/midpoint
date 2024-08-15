@@ -731,8 +731,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             // TODO maybe we should override also patterns evaluation here
 
             AbstractShadow shadowToGetToleranceFrom;
-            if (assocDef.hasAssociationObject()) {
-                shadowToGetToleranceFrom = isCValue.getAssociationObject();
+            if (assocDef.isComplex()) {
+                shadowToGetToleranceFrom = isCValue.getAssociationDataObject();
             } else {
                 // We are strict here: it's simpler + it's better to get exception instead of unstable behavior.
                 // If the real life tells otherwise, we will change this.

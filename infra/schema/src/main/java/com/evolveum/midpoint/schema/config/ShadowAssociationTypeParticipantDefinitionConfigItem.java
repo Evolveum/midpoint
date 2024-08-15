@@ -64,10 +64,10 @@ public interface ShadowAssociationTypeParticipantDefinitionConfigItem<PT extends
         return refAttrName.matches(getReferenceAttributeNameRequired());
     }
 
-    default @Nullable ResourceObjectAssociationNewConfigItem getAssociation() {
+    default @Nullable ShadowAssociationDefinitionConfigItem getAssociation() {
         return child(
                 value().getAssociation(),
-                ResourceObjectAssociationNewConfigItem.class,
+                ShadowAssociationDefinitionConfigItem.class,
                 ShadowAssociationTypeParticipantDefinitionType.F_ASSOCIATION);
     }
 }

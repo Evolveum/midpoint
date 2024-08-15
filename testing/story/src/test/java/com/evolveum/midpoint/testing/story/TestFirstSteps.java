@@ -161,9 +161,9 @@ public class TestFirstSteps extends AbstractStoryTest {
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired CaseManager caseManager;
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipClassIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     private static CsvTestResource createHrResource(String fileName) {

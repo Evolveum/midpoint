@@ -137,7 +137,6 @@
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
-                                    <ref>ri:document</ref>
                                     <mapping>
                                         <name>document-to-targetRef</name>
                                         <expression>

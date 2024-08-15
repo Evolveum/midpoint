@@ -179,9 +179,9 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         return SYSTEM_CONFIGURATION_FILE;
     }
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipClassIfNotNativeRepository(); // because it uses marks
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override
@@ -844,13 +844,13 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 adScenario.group.getByNameRequired(ROLE_TESTERS_NAME));
 
         and("provisioning the user with 'operators' membership");
-        traced(() -> executeChanges(
+        executeChanges(
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                         .add(new AssignmentType()
                                 .targetRef(roleOperators.getOid(), RoleType.COMPLEX_TYPE))
                         .asObjectDelta(userOid),
-                null, task, result));
+                null, task, result);
 
         assertSuccess(result);
 
@@ -878,6 +878,39 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .end();
         // @formatter:on
+    }
+
+    /** Importing association value whose owning role is indirectly assigned. No assignment should be created. */
+    @Test
+    public void test340ImportIndirectlyMatched() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var businessRoleName = "business-role-" + getTestNameShort();
+        var userName = "user-" + getTestNameShort();
+
+        given("a business role exists that includes 'administrators'");
+        var businessRole = new RoleType()
+                .name(businessRoleName)
+                .inducement(new AssignmentType()
+                        .targetRef(roleAdministrators.getOid(), RoleType.COMPLEX_TYPE));
+        addObject(businessRole, task, result);
+
+        when("user with the business role is created");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .targetRef(businessRole.getOid(), RoleType.COMPLEX_TYPE));
+        addObject(user, task, result);
+
+        and("user is reconciled");
+        reconcileUser(user.getOid(), task, result);
+
+        then("user has only the single assignment, not the one with 'administrators' role");
+        assertUserAfter(user.getOid())
+                .assignments()
+                .assertRole(businessRole.getOid())
+                .assertNoRole(roleAdministrators.getOid())
+                .assertAssignments(1);
     }
 
     private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {

@@ -764,9 +764,9 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
                                 ref.getElementName() + " value " + refAttrVal + " in " + assocContext);
                     }
                 }
-                if (assoc.getDefinitionRequired().hasAssociationObject()) {
+                if (assoc.getDefinitionRequired().isComplex()) {
                     assertEffectiveOperationsDeeply(
-                            assocVal.getAssociationObject().getBean(),
+                            assocVal.getAssociationDataObject().getBean(),
                             "object in " + assocContext);
                 }
             }

@@ -120,9 +120,9 @@ class ShadowsUtil {
                             }
                         }
                     }
-                    if (assoc.getDefinitionRequired().hasAssociationObject()) {
+                    if (assoc.getDefinitionRequired().isComplex()) {
                         try {
-                            checkReturnedShadowValidityDeeply(assocVal.getAssociationObject().getBean());
+                            checkReturnedShadowValidityDeeply(assocVal.getAssociationDataObject().getBean());
                         } catch (IllegalStateException e) {
                             throw in("association object", e);
                         }

@@ -77,7 +77,7 @@ public class ShadowAssociationValueAsserter<R> extends AbstractAsserter<R> {
     public ShadowAsserter<ShadowAssociationValueAsserter<R>> associationObject() {
         var asserter =
                 new ShadowAsserter<>(
-                        value.getAssociationObject().getPrismObject(),
+                        value.getAssociationDataObject().getPrismObject(),
                         this,
                         "association object in "+desc());
         copySetupTo(asserter);

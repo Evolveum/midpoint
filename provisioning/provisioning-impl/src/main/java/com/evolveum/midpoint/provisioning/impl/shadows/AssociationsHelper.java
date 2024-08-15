@@ -277,12 +277,12 @@ class AssociationsHelper {
             return false;
         }
 
-        var participantsMap = assocDef.getObjectParticipants(ctx.getResourceSchema());
+        var participantsMap = assocDef.getObjectParticipants();
         for (QName objectName : participantsMap.keySet()) {
             var expectedObjectTypes = participantsMap.get(objectName);
             LOGGER.trace("Checking participating object {}; expecting: {}", objectName, expectedObjectTypes);
             AbstractShadow objectShadow;
-            if (assocDef.hasAssociationObject()) {
+            if (assocDef.isComplex()) {
                 var objectRefAttrValue = refAttrShadow.getReferenceAttributeSingleValue(objectName);
                 if (objectRefAttrValue == null) {
                     LOGGER.trace("Reference attribute {} not found, skipping the check", objectName);
