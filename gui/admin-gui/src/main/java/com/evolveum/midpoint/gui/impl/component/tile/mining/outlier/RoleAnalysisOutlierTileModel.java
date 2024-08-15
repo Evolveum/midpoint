@@ -9,32 +9,20 @@ package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateAssignmentOutlierResultModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T> {
 
     String icon;
     String name;
-    DetectedAnomalyResult descriptionType;
     String processMode;
-    RoleAnalysisOutlierType outlierParent;
-    OutlierObjectModel outlierObjectModel;
+    RoleAnalysisOutlierType outlier;
     RoleAnalysisOutlierPartitionType partition;
 
     public RoleAnalysisOutlierTileModel(String icon, String title) {
@@ -42,43 +30,14 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
     }
 
     public RoleAnalysisOutlierTileModel(
-            @NotNull RoleAnalysisOutlierPartitionType partition,
-            @NotNull DetectedAnomalyResult descriptionType,
-            @NotNull String name,
-            @NotNull String processMode,
-            @NotNull RoleAnalysisOutlierType outlierParent,
-            @NotNull PageBase pageBase) {
+            @Nullable RoleAnalysisOutlierPartitionType partition,
+            @NotNull RoleAnalysisOutlierType outlier,
+            @NotNull String processMode) {
         this.partition = partition;
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
-        this.name = name;
-        this.descriptionType = descriptionType;
         this.processMode = processMode;
-        this.outlierParent = outlierParent;
-
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask("Load object");
-        OperationResult result = task.getResult();
-
-        ObjectReferenceType ref = descriptionType.getTargetObjectRef();
-        QName type = ref.getType();
-
-        if (type.equals(UserType.COMPLEX_TYPE)) {
-            //TODO
-            return;
-        }
-
-        ObjectReferenceType targetObjectRef = outlierParent.getTargetObjectRef();
-        PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, targetObjectRef.getOid(), pageBase, task, result);
-//        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
-//                targetObjectRef.getOid(), task, task.getResult());
-
-        if (userTypeObject == null) {
-            //TODO show result ? it userTypeObject is null then probably there was a error during loading
-            return;
-        }
-
-        this.outlierObjectModel = generateAssignmentOutlierResultModel(
-                roleAnalysisService, descriptionType,partition, userTypeObject, outlierParent, task, task.getResult());
+        this.outlier = outlier;
+        this.name = outlier.getName().getOrig();
     }
 
     @Override
@@ -107,24 +66,12 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         this.processMode = processMode;
     }
 
-    public DetectedAnomalyResult getDescriptionType() {
-        return descriptionType;
+    public RoleAnalysisOutlierType getOutlier() {
+        return outlier;
     }
 
-    public void setDescriptionType(DetectedAnomalyResult descriptionType) {
-        this.descriptionType = descriptionType;
-    }
-
-    public RoleAnalysisOutlierType getOutlierParent() {
-        return outlierParent;
-    }
-
-    public void setOutlierParent(RoleAnalysisOutlierType outlierParent) {
-        this.outlierParent = outlierParent;
-    }
-
-    public OutlierObjectModel getOutlierObjectModel() {
-        return outlierObjectModel;
+    public void setOutlier(RoleAnalysisOutlierType outlier) {
+        this.outlier = outlier;
     }
 
     public RoleAnalysisOutlierPartitionType getPartition() {
