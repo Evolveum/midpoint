@@ -83,8 +83,10 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
     @NotNull protected abstract IModel<String> getBreadcrumbLabel();
 
     protected void removeLastBreadcrumb() {
-        int index = getBreadcrumb().size() - 1;
-        getBreadcrumb().remove(index);
+        if (!getBreadcrumb().isEmpty()) {
+            int index = getBreadcrumb().size() - 1;
+            getBreadcrumb().remove(index);
+        }
     }
 
     private void initLayout() {

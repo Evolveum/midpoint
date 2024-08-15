@@ -62,9 +62,6 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                     case CREDENTIALS:
                         showCredentialsWizardPanel(target);
                         break;
-                    case ASSOCIATIONS:
-                        showAssociationsWizard(target);
-                        break;
                     case ACTIVATION:
                         showActivationsWizard(target);
                         break;
@@ -130,13 +127,6 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
         showWizardFragment(
                 target,
                 new ActivationsWizardPanel(getIdOfWizardPanel(), createHelper(ResourceObjectTypeDefinitionType.F_ACTIVATION, false))
-        );
-    }
-
-    private void showAssociationsWizard(AjaxRequestTarget target) {
-        showChoiceFragment(
-                target,
-                new AssociationsWizardPanel(getIdOfChoicePanel(), createHelper(false))
         );
     }
 

@@ -135,7 +135,7 @@ public abstract class ResourceAssociationTypeWizardChoicePanel
                                                                 ResourceObjectTypeIdentification.of(objectType))
                                                         .getDefinitionBean()))
                                 .toList(),
-                        " ,");
+                        ", ");
             } catch (CommonException e) {
                 LOGGER.error("Couldn't load resource schema");
             }

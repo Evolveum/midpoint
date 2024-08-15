@@ -8,11 +8,9 @@
 package com.evolveum.midpoint.gui.impl.util;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
@@ -25,6 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -162,25 +161,44 @@ public class AssociationChildWrapperUtil {
         return ret;
     }
 
-    private static ItemName getRef(PrismValueWrapper<ItemPathType> propertyWrapper) {
-        PrismContainerValueWrapper<ShadowAssociationDefinitionType> associationTypeContainer =
+    private static ItemName getRef(PrismValueWrapper<?> propertyWrapper) {
+        PrismContainerValueWrapper<ShadowAssociationDefinitionType> associationDefTypValue =
                 propertyWrapper.getParentContainerValue(ShadowAssociationDefinitionType.class);
-        if (associationTypeContainer == null) {
+
+        if (associationDefTypValue == null) {
+            PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationTypeContainer =
+                    propertyWrapper.getParentContainerValue(ShadowAssociationTypeDefinitionType.class);
+
+            if (associationTypeContainer == null && propertyWrapper.getClass().equals(ShadowAssociationTypeDefinitionType.class)) {
+                associationTypeContainer = (PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>) propertyWrapper;
+            }
+
+            if (associationTypeContainer != null) {
+                try {
+                    associationDefTypValue = associationTypeContainer.findContainerValue(
+                            ItemPath.create(ShadowAssociationTypeDefinitionType.F_SUBJECT, ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION));
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find ShadowAssociationDefinitionType container in " + associationTypeContainer, e);
+                }
+            }
+        }
+
+        if (associationDefTypValue == null) {
             return null;
         }
 
         PrismPropertyWrapper<ItemPathType> refProperty = null;
         try {
-            refProperty = associationTypeContainer.findProperty(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF);
+            refProperty = associationDefTypValue.findProperty(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF);
             if (refProperty == null || refProperty.getValue() == null) {
-                refProperty = associationTypeContainer.findProperty(ShadowAssociationDefinitionType.F_REF);
+                refProperty = associationDefTypValue.findProperty(ShadowAssociationDefinitionType.F_REF);
                 if (refProperty == null || refProperty.getValue() == null) {
                     return null;
                 }
             }
 
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't find property ref object in " + associationTypeContainer);
+            LOGGER.error("Couldn't find property ref object in " + associationDefTypValue);
         }
 
         try {
@@ -190,7 +208,7 @@ public class AssociationChildWrapperUtil {
             }
             return refBean.getItemPath().firstName();
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't find value for property ref in " + associationTypeContainer);
+            LOGGER.error("Couldn't find value for property ref in " + associationDefTypValue);
         }
 
         return null;
@@ -209,5 +227,34 @@ public class AssociationChildWrapperUtil {
             }
         }
         return false;
+    }
+
+    public static List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> findAssociationDefinitions(PrismObjectWrapper<ResourceType> objectWrapper, ResourceObjectTypeDefinition objectTypeDef) throws SchemaException {
+        List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> associations = new ArrayList<>();
+        PrismContainerWrapper<ShadowAssociationTypeDefinitionType> associationContainer =
+                objectWrapper.findContainer(ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE));
+
+        if (associationContainer == null) {
+            return associations;
+        }
+
+        for (PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value : associationContainer.getValues()) {
+            if (value.getRealValue() == null) {
+                continue;
+            }
+
+            PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeContainer = value.findContainer(
+                    ItemPath.create(
+                            ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                            ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE));
+            objectTypeContainer.getValues().forEach(objectTypeValue -> {
+                if (objectTypeValue.getRealValue() != null
+                        && objectTypeDef.getKind() == objectTypeValue.getRealValue().getKind()
+                        && StringUtils.equals(objectTypeDef.getIntent(), objectTypeValue.getRealValue().getIntent())) {
+                    associations.add(value);
+                }
+            });
+        }
+        return associations;
     }
 }

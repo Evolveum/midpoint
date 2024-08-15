@@ -62,13 +62,13 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
         title.setEscapeModelStrings(false);
         add(title);
 
-        String subject = defineParticipant(getModelObject().getValue().getSubject(), "subject");
+        String subject = defineObject(getModelObject().getValue().getSubjects(), "subject", "subjects");
 
         Label subjectTitle = new Label(ID_SUBJECT, subject);
         subjectTitle.setEscapeModelStrings(false);
         add(subjectTitle);
 
-        String object = defineObject(getModelObject().getValue().getObjects());
+        String object = defineObject(getModelObject().getValue().getObjects(), "object", "objects");
 
         Label objectTitle = new Label(ID_OBJECT, object);
         objectTitle.setEscapeModelStrings(false);
@@ -82,21 +82,21 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
         });
     }
 
-    private String defineObject(List<AssociationDefinitionWrapper.ParticipantWrapper> objects) {
+    private String defineObject(List<AssociationDefinitionWrapper.ParticipantWrapper> objects, String keyPartSingular, String keyPartPlural) {
         if (objects.isEmpty()) {
             return "";
         }
 
         if (objects.size() == 1) {
-            return defineParticipant(objects.get(0), "object");
+            return defineParticipant(objects.get(0), keyPartSingular);
         }
 
-        StringBuilder ret = new StringBuilder(LocalizationUtil.translate("AssociationTilePanel.objects.title"))
+        StringBuilder ret = new StringBuilder(LocalizationUtil.translate("AssociationTilePanel." + keyPartPlural + ".title"))
                 .append(" ");
         Iterator<AssociationDefinitionWrapper.ParticipantWrapper> iterator = objects.iterator();
         while(iterator.hasNext()) {
             AssociationDefinitionWrapper.ParticipantWrapper object = iterator.next();
-            ret.append(defineParticipant(object, "objects"));
+            ret.append(defineParticipant(object, keyPartPlural));
             if (iterator.hasNext()) {
                 ret.append(", ");
             }
