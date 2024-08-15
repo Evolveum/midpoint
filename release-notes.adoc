@@ -38,6 +38,17 @@ In 4.8.3 and before, there were situations that two strong mappings produced dif
 (If the item contained the same value that was produced by one of these mappings.)
 Such configurations are in principle unstable, so this kind of errors should be identified and fixed.
 Please see bug:MID-9621[] and https://github.com/Evolveum/midpoint/commit/607236b4d357c9aa67d563d13d434edba6c61d02[this commit].
+* Fix for getting current login users on another node. See bug:MID-9746[].
+* Fix for redirecting from the Preview Changes panel to the Details panel when the panel configuration doesn't contain panelType.
+See bug:MID-9699[].
+* Fix for missing value in lookup table for lifecycle state displayed in LifecycleStatePanel. See bug:MID-9637[].
+* Disable full-text search for the Construction Step panel of the Role Wizard. See bug:MID-9693[].
+* Fix for saved search state of assignment panel on pages of different assignment holder type. See bug:MID-9457[].
+* Fix for memory leak in MidpointAutowiredBeanFactoryObjectPostProcessor caused by undestroyed unused authentication filters.
+See bug:MID-9580[] and bug:MID-9834[].
+* Fix for full-text search panel for assignments panels that used a custom collection filter. See bug:MID-9692[].
+* Fixed updating of model before form validation by expression validator with dependency on another attribute. See bug:MID-9688[].
+* Fix for resolving container value id when adding two new assignments generated from scripts. See bug:MID-9743[].
 
 == Changes with Respect To Version 4.8.2
 
