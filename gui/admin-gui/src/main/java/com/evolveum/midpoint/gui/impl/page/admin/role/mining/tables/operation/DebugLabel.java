@@ -7,14 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation;
 
 import java.io.Serial;
-import java.util.*;
-
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -39,8 +31,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.Role
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisInfoBox;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-
-import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformPatternWithAttributes;
 
 public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popupable {
 
@@ -105,7 +95,7 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
                 @Contract(pure = true)
                 @Override
                 protected @NotNull String getCssClassForHeaderItemsContainer() {
-                    return "row pl-4 pr-4 pt-4";
+                    return "d-flex flex-wrap p-2";
                 }
 
                 @Contract(pure = true)
@@ -146,8 +136,6 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
             container.add(exploreButton);
         }
     }
-
-
 
     public DetectedPattern getPattern() {
         return getModelObject().getDetectedPattern();

@@ -2860,6 +2860,47 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
     }
 
+    @Override
+    public List<RoleAnalysisOutlierType> getSessionOutliers(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+            Map<RoleAnalysisOutlierType,Double> outlierMap = new HashMap<>();
+            ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
+
+                RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
+                List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+                for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                    ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
+                    String oid = targetSessionRef.getOid();
+                    if (sessionOid.equals(oid)) {
+                        Double overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
+                        outlierMap.put(outlier.asObjectable(),overallConfidence);
+                        break;
+                    }
+                }
+
+                return true;
+            };
+
+            try {
+                modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+                        null, task, result);
+            } catch (Exception ex) {
+                throw new RuntimeException("Couldn't search outliers", ex);
+            }
+
+            List<Map.Entry<RoleAnalysisOutlierType, Double>> sortedEntries = new ArrayList<>(outlierMap.entrySet());
+            sortedEntries.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+
+            List<RoleAnalysisOutlierType> topOutliers = new ArrayList<>();
+            for (Map.Entry<RoleAnalysisOutlierType, Double> entry : sortedEntries) {
+                topOutliers.add(entry.getKey());
+            }
+
+            return topOutliers;
+    }
+
     @Nullable
     private static DetectedPattern findMultiplePatternWithBestConfidence(
             @NotNull List<DetectedPattern> topDetectedPatterns) {

@@ -39,7 +39,7 @@ public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends
     private static final String ID_DIRECT = "direct";
     private static final String ID_INDIRECT = "indirect";
     private static final String ID_DUPLICATED = "duplicated";
-
+    private static final String ID_ACTION_BUTTON = "actionButton";
     public RoleAnalysisAccessDistributionPanel(String id) {
         super(id);
         initLayout();
@@ -203,6 +203,14 @@ public class RoleAnalysisAccessDistributionPanel<T extends Serializable> extends
         duplicated.setOutputMarkupId(true);
         containerFooter.add(duplicated);
 
+        Component actionComponent = getActionComponent(ID_ACTION_BUTTON);
+        actionComponent.setOutputMarkupId(true);
+        add(actionComponent);
+
+    }
+
+    protected Component getActionComponent(String id) {
+        return new WebMarkupContainer(id);
     }
 
     protected Component getPanelComponent(String id) {

@@ -4,7 +4,11 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+
+import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -14,19 +18,17 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
-import org.apache.wicket.markup.html.WebMarkupContainer;
-
-@PanelInstance(identifier = "roleModeSettings",
-        applicableForType = RoleAnalysisSessionType.class,
+@PanelInstance(identifier = "settings",
+        applicableForType = RoleAnalysisClusterType.class,
         display = @PanelDisplay(
                 label = "PageRoleAnalysisSession.settings.panel",
                 icon = GuiStyleConstants.CLASS_OPTIONS_COGS,
                 order = 40))
-public class RoleAnalysisRoleSessionOptions extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
+public class RoleAnalysisClusterOptionsPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
 
     private static final String ID_CONTAINER = "container";
 
-    public RoleAnalysisRoleSessionOptions(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
+    public RoleAnalysisClusterOptionsPanel(String id, ObjectDetailsModels<RoleAnalysisSessionType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 

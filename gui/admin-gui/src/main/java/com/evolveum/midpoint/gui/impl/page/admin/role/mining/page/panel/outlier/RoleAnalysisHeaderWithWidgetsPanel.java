@@ -53,10 +53,15 @@ public class RoleAnalysisHeaderWithWidgetsPanel extends BasePanel<List<WidgetIte
             @Contract(pure = true)
             @Override
             protected @NotNull String replaceWidgetCssClass() {
-                return "col-4 mb-3";
+                return RoleAnalysisHeaderWithWidgetsPanel.this.replaceWidgetCssClass();
             }
         };
         components.setOutputMarkupId(true);
         add(components);
     }
+
+    protected @NotNull String replaceWidgetCssClass() {
+        return "col-4 mb-3";
+    }
+
 }

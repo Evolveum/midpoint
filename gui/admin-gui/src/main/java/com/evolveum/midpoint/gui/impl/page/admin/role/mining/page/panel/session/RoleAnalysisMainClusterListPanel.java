@@ -638,7 +638,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
 
                         };
                         objectButton.titleAsLabel(true);
-                        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm rounded-pill"));
+                        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm rounded"));
                         objectButton.add(AttributeAppender.append("style", "width:120px"));
 
                         cellItem.add(objectButton);

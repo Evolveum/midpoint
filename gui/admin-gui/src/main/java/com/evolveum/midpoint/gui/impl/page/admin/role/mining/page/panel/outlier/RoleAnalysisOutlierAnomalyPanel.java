@@ -32,7 +32,6 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.RoleAnalysisOutlierTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.AnomalyTableCategory;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedAnomalyTable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -272,10 +271,6 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
 
     public PageBase getPageBase() {
         return ((PageBase) getPage());
-    }
-
-    protected RoleAnalysisOutlierTable getTable() {
-        return (RoleAnalysisOutlierTable) get(((PageBase) getPage()).createComponentPath(ID_CONTAINER, ID_PANEL));
     }
 
 }

@@ -940,6 +940,11 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             boolean single);
 
+    List<RoleAnalysisOutlierType> getSessionOutliers(
+            @NotNull String sessionOid,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
     //TODO: replace this method (experiment)
     List<String> findJaccardCloseObject(
             @NotNull String userOid,

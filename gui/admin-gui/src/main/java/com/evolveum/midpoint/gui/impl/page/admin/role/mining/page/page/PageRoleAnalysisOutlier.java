@@ -80,8 +80,13 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
     }
 
     @Override
-    protected String getAdditionalMainPanelCssClass() {
+    protected String getMainPanelCssClass() {
         return "col p-0 rounded";
+    }
+
+    @Override
+    protected String getMainPanelCssStyle() {
+        return "align-items: stretch;";
     }
 
     @Override

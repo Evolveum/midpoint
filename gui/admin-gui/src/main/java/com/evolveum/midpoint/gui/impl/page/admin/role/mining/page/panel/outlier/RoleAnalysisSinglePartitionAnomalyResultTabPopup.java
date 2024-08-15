@@ -232,7 +232,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                                 @Contract(pure = true)
                                 @Override
                                 protected @NotNull String getCssClassForHeaderItemsContainer() {
-                                    return "row pl-4 pr-4 pt-4";
+                                    return "d-flex flex-wrap p-2";
                                 }
 
                                 @Contract(pure = true)

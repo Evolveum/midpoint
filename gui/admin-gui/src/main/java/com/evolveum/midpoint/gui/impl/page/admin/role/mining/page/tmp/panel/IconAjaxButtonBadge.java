@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -59,6 +61,8 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
         add(image);
 
         Label label = new Label(ID_TEXT, getModel());
+        label.add(AttributeAppender.append("title", getModel()));
+        label.add(new TooltipBehavior());
         label.setOutputMarkupId(true);
         add(label);
 

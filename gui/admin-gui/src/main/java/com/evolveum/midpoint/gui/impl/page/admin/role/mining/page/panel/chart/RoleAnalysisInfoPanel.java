@@ -26,6 +26,16 @@ import java.util.Map;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
+import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.component.RoleAnalysisIdentifyWidgetPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.model.IdentifyWidgetItem;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDistributionProgressPanel;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.AttributeModifier;
@@ -41,6 +51,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.file.File;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -53,7 +64,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.RoleAnalysisAggregateChartModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisItemPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -82,6 +92,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
+
+import org.jetbrains.annotations.Nullable;
 
 public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
@@ -124,8 +136,15 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         chartContainer.setOutputMarkupId(true);
         add(chartContainer);
 
-        Label cardTitle = new Label(ID_CARD_TITLE,
-                createStringResource("PageRoleAnalysis.chart.access.distribution.title"));
+
+        IconWithLabel cardTitle = new IconWithLabel(ID_CARD_TITLE,
+                createStringResource("PageRoleAnalysis.chart.access.distribution.title")){
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getIconCssClass() {
+                return "fa fa-chart-pie";
+            }
+        };
         cardTitle.setOutputMarkupId(true);
         cardTitle.add(AttributeModifier.replace("title", createStringResource("PageRoleAnalysis.chart.access.distribution.title")));
         cardTitle.add(new TooltipBehavior());
@@ -181,47 +200,184 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
     }
 
     private void initInfoPatternPanel() {
-        RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERN_PANEL,
-                Model.of("Role suggestions")) {
+
+        if (getModelPatterns() == null) {
+            WebMarkupContainer roleAnalysisInfoOutlierPanel = new WebMarkupContainer(ID_PATTERN_PANEL);
+            roleAnalysisInfoOutlierPanel.setOutputMarkupId(true);
+            add(roleAnalysisInfoOutlierPanel);
+        }
+
+        RoleAnalysisIdentifyWidgetPanel test = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERN_PANEL,
+                createStringResource("Pattern.suggestions.title"), getModelPatterns()) {
+
             @Override
-            protected void addItem(RepeatingView repeatingView) {
-                addPatternItems(repeatingView);
+            protected Component getBodyHeaderPanel(String id) {
+                List<ProgressBar> progressBars = new ArrayList<>();
+
+                progressBars.add(new ProgressBar(4 * 100 / (double) 5, ProgressBar.State.SUCCESS));
+                progressBars.add(new ProgressBar(1 * 100 / (double) 5, ProgressBar.State.WARNINIG));
+
+                RoleAnalysisDistributionProgressPanel<?> panel = new RoleAnalysisDistributionProgressPanel<>(id) {
+                    @Override
+                    protected Component getPanelComponent(String id) {
+                        return new ProgressBarPanel(id, new LoadableModel<>() {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected List<ProgressBar> load() {
+                                return progressBars;
+                            }
+                        });
+                    }
+
+                    @Override
+                    protected Component getLegendComponent(String id) {
+                        RepeatingView view = new RepeatingView(id);
+                        MetricValuePanel resolved = new MetricValuePanel(view.newChildId()) {
+                            @Contract("_ -> new")
+                            @Override
+                            protected @NotNull Component getTitleComponent(String id) {
+                                return new IconWithLabel(id, Model.of("Resolved")) {
+                                    @Override
+                                    protected String getIconCssClass() {
+                                        return "fa fa-circle text-success fa-2xs";
+                                    }
+
+                                    @Override
+                                    protected String getLabelComponentCssClass() {
+                                        return "text-success";
+                                    }
+
+                                    @Override
+                                    protected String getComponentCssClass() {
+                                        return super.getComponentCssClass() + " gap-2";
+                                    }
+                                };
+                            }
+
+                            @Contract("_ -> new")
+                            @Override
+                            protected @NotNull Component getValueComponent(String id) {
+                                Label label = new Label(id, 4);
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
+                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                return label;
+                            }
+                        };
+                        resolved.setOutputMarkupId(true);
+                        view.add(resolved);
+
+                        MetricValuePanel inProgress = new MetricValuePanel(view.newChildId()) {
+                            @Contract("_ -> new")
+                            @Override
+                            protected @NotNull Component getTitleComponent(String id) {
+                                return new IconWithLabel(id, Model.of("In progress")) {
+                                    @Override
+                                    protected String getIconCssClass() {
+                                        return "fa fa-circle text-warning fa-2xs";
+                                    }
+
+                                    @Override
+                                    protected String getLabelComponentCssClass() {
+                                        return "text-warning";
+                                    }
+
+                                    @Override
+                                    protected String getComponentCssClass() {
+                                        return super.getComponentCssClass() + " gap-2";
+                                    }
+                                };
+                            }
+
+                            @Contract("_ -> new")
+                            @Override
+                            protected @NotNull Component getValueComponent(String id) {
+                                Label label = new Label(id, 1);
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
+                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                return label;
+                            }
+                        };
+                        inProgress.setOutputMarkupId(true);
+                        view.add(inProgress);
+
+                        return view;
+
+                    }
+                };
+
+                panel.setOutputMarkupId(true);
+                panel.add(AttributeAppender.append("class", "col-12"));
+                return panel;
             }
 
             @Override
-            public String getCardBodyCssClass() {
-                return " overflow-auto ";
-            }
-
-            @Override
-            public String getCardBodyStyle() {
-                return " height:34vh;";
+            protected @NotNull String getIconCssClass() {
+                return GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
             }
         };
-        roleAnalysisInfoPatternPanel.setOutputMarkupId(true);
-        add(roleAnalysisInfoPatternPanel);
+        add(test);
+
+//        RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERN_PANEL,
+//                Model.of("Role suggestions")) {
+//            @Override
+//            protected void addItem(RepeatingView repeatingView) {
+//                addPatternItems(repeatingView);
+//            }
+//
+//            @Override
+//            public String getCardBodyCssClass() {
+//                return " overflow-auto ";
+//            }
+//
+//            @Override
+//            public String getCardBodyStyle() {
+//                return " height:34vh;";
+//            }
+//        };
+//        roleAnalysisInfoPatternPanel.setOutputMarkupId(true);
+//        add(roleAnalysisInfoPatternPanel);
     }
 
     private void initInfoOutlierPanel() {
-        RoleAnalysisItemPanel roleAnalysisInfoOutlierPanel = new RoleAnalysisItemPanel(ID_OUTLIER_PANEL,
-                Model.of("Outlier suggestions")) {
-            @Override
-            protected void addItem(RepeatingView repeatingView) {
-                addOutliersItems(repeatingView);
-            }
 
-            @Override
-            public String getCardBodyCssClass() {
-                return " overflow-auto ";
-            }
+        if (getModelOutliers() == null) {
+            WebMarkupContainer roleAnalysisInfoOutlierPanel = new WebMarkupContainer(ID_OUTLIER_PANEL);
+            roleAnalysisInfoOutlierPanel.setOutputMarkupId(true);
+            add(roleAnalysisInfoOutlierPanel);
+        }
 
-            @Override
-            public String getCardBodyStyle() {
-                return " height:34vh;";
-            }
-        };
-        roleAnalysisInfoOutlierPanel.setOutputMarkupId(true);
-        add(roleAnalysisInfoOutlierPanel);
+        RoleAnalysisIdentifyWidgetPanel test = new RoleAnalysisIdentifyWidgetPanel(ID_OUTLIER_PANEL,
+                createStringResource("Outlier.suggestions.title"), getModelOutliers());
+        add(test);
+
+//        RoleAnalysisItemPanel roleAnalysisInfoOutlierPanel = new RoleAnalysisItemPanel(ID_OUTLIER_PANEL,
+//                Model.of("Outlier suggestions")) {
+//            @Override
+//            protected void addItem(RepeatingView repeatingView) {
+//                addOutliersItems(repeatingView);
+//            }
+//
+//            @Override
+//            public String getCardBodyCssClass() {
+//                return " overflow-auto ";
+//            }
+//
+//            @Override
+//            public String getCardBodyStyle() {
+//                return " height:34vh;";
+//            }
+//        };
+//        roleAnalysisInfoOutlierPanel.setOutputMarkupId(true);
+//        add(roleAnalysisInfoOutlierPanel);
+    }
+
+    protected @Nullable IModel<List<IdentifyWidgetItem>> getModelOutliers() {
+        return null;
+    }
+
+    protected @Nullable IModel<List<IdentifyWidgetItem>> getModelPatterns() {
+        return null;
     }
 
     private void initExportButton(Form<?> toolForm) {

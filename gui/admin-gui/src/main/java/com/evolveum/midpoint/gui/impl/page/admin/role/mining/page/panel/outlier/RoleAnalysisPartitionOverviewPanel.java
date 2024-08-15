@@ -32,6 +32,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * This class represents a panel that provides an overview of a role analysis partition.
  * It displays various widgets with information about the partition, such as anomalies, patterns, similarity, attribute, category, and duplicated assignments.
@@ -115,9 +117,24 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
             protected @NotNull Component getHeaderComponent(String id) {
                 return RoleAnalysisPartitionOverviewPanel.this.getHeaderComponent(id);
             }
+
+            @Override
+            protected @NotNull String replaceWidgetCssClass() {
+                String css = super.replaceWidgetCssClass();
+                String thisCss = RoleAnalysisPartitionOverviewPanel.this.replaceWidgetCssClass();
+                if(thisCss != null) {
+                    return thisCss;
+                }
+
+                return css;
+            }
         };
         components.setOutputMarkupId(true);
         add(components);
+    }
+
+    protected @Nullable String replaceWidgetCssClass() {
+        return null;
     }
 
     public IModel<RoleAnalysisOutlierType> getOutlierModel() {

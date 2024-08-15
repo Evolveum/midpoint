@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.aspects;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModelMain;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierPartitionPanel.PARAM_ANOMALY_OID;
@@ -12,8 +12,6 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.o
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisOutlier;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.OutlierPartitionPage;
 import com.evolveum.midpoint.gui.impl.util.AccessMetadataUtil;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -570,12 +568,11 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                 int finalDirectAssignment = directAssignment;
                 int finalIndirectAssignment = indirectAssignment;
                 int finalDuplicatedRoleAssignmentCount = duplicatedRoleAssignmentCount;
-                int finalAllAssignmentCount = allAssignmentCount;
                 return new RoleAnalysisAccessDistributionPanel(id) { //TODO create model - this overriding is not very good. might be oneliner when the model is properly created
 
                     @Override
                     protected String getCount() {
-                        return String.valueOf(finalAllAssignmentCount);
+                        return String.valueOf(allAssignmentCount);
                     }
 
                     @Override
@@ -601,14 +598,10 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                     @Override
                     protected Component getPanelComponent(String id1) {
 
-//                float completedDirect = (float) directAssignment / allAssignmentCount * 100;
-//                float completedIndirect = (float) indirectAssignment / allAssignmentCount * 100;
-//                float completedDuplicated = (float) duplicatedRoleAssignmentCount / allAssignmentCount * 100;
-
                         List<ProgressBar> progressBars = new ArrayList<>();
-                        addProgressBar(progressBars, ProgressBar.State.SUCCESS, finalDirectAssignment, finalAllAssignmentCount);
-                        addProgressBar(progressBars, ProgressBar.State.WARNINIG, finalIndirectAssignment, finalAllAssignmentCount);
-                        addProgressBar(progressBars, ProgressBar.State.DANGER, finalDuplicatedRoleAssignmentCount, finalAllAssignmentCount);
+                        addProgressBar(progressBars, ProgressBar.State.SUCCESS, finalDirectAssignment, allAssignmentCount);
+                        addProgressBar(progressBars, ProgressBar.State.WARNINIG, finalIndirectAssignment, allAssignmentCount);
+                        addProgressBar(progressBars, ProgressBar.State.DANGER, finalDuplicatedRoleAssignmentCount, allAssignmentCount);
 
                         ProgressBarPanel components1 = new ProgressBarPanel(id1, new LoadableModel<>() {
                             @Serial private static final long serialVersionUID = 1L;

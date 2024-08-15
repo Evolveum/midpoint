@@ -20,6 +20,8 @@ import java.util.Set;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -274,7 +276,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         };
 
         objectButton.titleAsLabel(true);
-        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm rounded-pill"));
+        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm "));
         objectButton.add(AttributeAppender.append("style", "width:100px"));
         objectButton.setOutputMarkupId(true);
         add(objectButton);
@@ -330,6 +332,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         migrationButton.setOutputMarkupId(true);
         migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
         migrationButton.setOutputMarkupId(true);
+        migrationButton.add(new VisibleBehaviour(() -> false));
         add(migrationButton);
     }
 
