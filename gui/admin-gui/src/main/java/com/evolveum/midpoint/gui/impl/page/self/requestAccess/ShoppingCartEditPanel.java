@@ -164,7 +164,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                     context.setSecurityConstraints(assignmentSecurityConstraints.getObject());
 
                     // create whole wrapper, instead of only the concrete container value wrapper
-                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.ADDED, context);
+                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.NOT_CHANGED, context);
                     PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
                     if (assignmentWrapper == null) {
                         return null;
@@ -271,7 +271,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 if (isItemVisible(itemWrapper.getPath())) {
                     return ItemVisibility.AUTO;
                 }
-                return super.getBasicTabVisibity(itemWrapper);
+                return ItemVisibility.HIDDEN;
             }
         };
         detailsPanel.add(new VisibleBehaviour(this::isDetailsPanelVisible));
@@ -308,14 +308,15 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 WebComponentUtil.getEnumChoiceRenderer(this));
         administrativeStatus.add(
                 new VisibleBehaviour(
-                        () -> isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS))));
+                        () -> isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
+                                ActivationType.F_ADMINISTRATIVE_STATUS))));
         administrativeStatus.setNullValid(true);
         add(administrativeStatus);
 
         CustomValidityPanel customValidity = new CustomValidityPanel(ID_CUSTOM_VALIDITY, customValidityModel);
         customValidity.add(new VisibleEnableBehaviour(
-                () -> isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM))
-                        || isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)),
+                () -> isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM))
+                        || isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)),
                 () -> validitySettingsEnabled));
         add(customValidity);
     }
@@ -326,8 +327,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             return false;
         }
 
-        AuthorizationDecisionType decision = constraints.findItemDecision(
-                AssignmentHolderType.F_ASSIGNMENT.append(path));
+        AuthorizationDecisionType decision = constraints.findItemDecision(path);
 
         return decision == AuthorizationDecisionType.ALLOW;
     }
