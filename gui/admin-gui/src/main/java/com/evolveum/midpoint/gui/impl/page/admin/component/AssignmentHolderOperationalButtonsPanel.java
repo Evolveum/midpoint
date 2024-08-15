@@ -14,7 +14,6 @@ import com.evolveum.midpoint.gui.api.component.FocusTypeAssignmentPopupTabPanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -38,7 +37,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -306,10 +304,17 @@ public class AssignmentHolderOperationalButtonsPanel<AH extends AssignmentHolder
     protected boolean isSaveButtonVisible() {
         // Note: when adding objects, the status below is "ADDED", so the first condition causes the button to be visible.
         // Hence, there's no need to ask for canAdd() here.
-        //
-        // TODO:
-        //  - is that OK?
-        //  - also, is it OK we don't check for isForcedPreview() as we do in the parent?
+        return !isForcedPreview()
+                && isObjectStatusAndAuthorizationVerifiedForModification();
+    }
+
+    /**
+     * The same object status and authorization checks should be produced for
+     * both save and preview buttons visibility. Therefore, this method should be used
+     * as a part of the visibility check for both buttons.
+     * @return
+     */
+    protected boolean isObjectStatusAndAuthorizationVerifiedForModification() {
         return getModelObject().getStatus() != ItemStatus.NOT_CHANGED
                 || isEditingObject() && (getModelObject().canModify() || isAuthorizedToModify());
     }
