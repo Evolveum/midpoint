@@ -1010,7 +1010,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
@@ -1925,7 +1925,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);

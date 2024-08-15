@@ -824,13 +824,17 @@ public abstract class AbstractResourceObjectDefinitionImpl
         boolean readCachedCapabilityPresent = isReadCachedCapabilityPresent();
 
         boolean enabledBecauseOfReadCachedCapability = false;
+        boolean defaultIsMaxCaching = false;
         if (workingCopy.getCachingStrategy() == null) {
             if (readCachedCapabilityPresent) {
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
                 enabledBecauseOfReadCachedCapability = true;
+                defaultIsMaxCaching = true;
+            } else if (InternalsConfig.isShadowCachingOnByDefault()) {
+                workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
+                defaultIsMaxCaching = InternalsConfig.isShadowCachingFullByDefault();
             } else {
-                workingCopy.setCachingStrategy(
-                        InternalsConfig.shadowCachingOnByDefault ? CachingStrategyType.PASSIVE : CachingStrategyType.NONE);
+                workingCopy.setCachingStrategy(CachingStrategyType.NONE);
             }
         }
 
@@ -840,7 +844,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         var scope = workingCopy.getScope();
         if (scope.getAttributes() == null) {
             scope.setAttributes(
-                    enabledBecauseOfReadCachedCapability ?
+                    defaultIsMaxCaching ?
                             ShadowSimpleAttributesCachingScopeType.ALL : ShadowSimpleAttributesCachingScopeType.DEFINED);
         }
         if (scope.getAssociations() == null) {
@@ -866,7 +870,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
         if (workingCopy.getTimeToLive() == null) {
             workingCopy.setTimeToLive(
-                    XmlTypeConverter.createDuration(enabledBecauseOfReadCachedCapability ? "P1000Y" : "P1D"));
+                    XmlTypeConverter.createDuration(defaultIsMaxCaching ? "P1000Y" : "P1D"));
         }
         return workingCopy;
     }
