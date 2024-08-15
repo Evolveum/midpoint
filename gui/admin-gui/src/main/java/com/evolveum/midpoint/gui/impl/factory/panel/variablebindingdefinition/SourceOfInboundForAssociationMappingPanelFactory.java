@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -54,13 +55,17 @@ public class SourceOfInboundForAssociationMappingPanelFactory extends SourceOrTa
             return Collections.emptyIterator();
         }
 
-        ShadowReferenceAttributeDefinition shadowRefAttrParent = AssociationChildWrapperUtil.getShadowReferenceAttribute(itemWrapperModel.getObject().getParent(), pageBase);
-        if(shadowRefAttrParent == null) {
+        ShadowAssociationDefinition assocDef = AssociationChildWrapperUtil.getShadowAssociationDefinition(itemWrapperModel.getObject().getParent(), pageBase);
+        if(assocDef == null) {
             return Collections.emptyIterator();
         }
 
         List<String> toSelect = new ArrayList<>();
-        shadowRefAttrParent.getRepresentativeTargetObjectDefinition().getSimpleAttributeDefinitions()
+        if (!assocDef.isComplex()) {
+            return toSelect.iterator();
+        }
+
+        assocDef.getAssociationDataObjectDefinition().getSimpleAttributeDefinitions()
                 .forEach(simpleAttr -> {
                     QName name = PrismContext.get().getSchemaRegistry().getNamespacePrefixMapper()
                             .setQNamePrefix(new QName(simpleAttr.getItemName().getNamespaceURI(), simpleAttr.getItemName().getLocalPart()));

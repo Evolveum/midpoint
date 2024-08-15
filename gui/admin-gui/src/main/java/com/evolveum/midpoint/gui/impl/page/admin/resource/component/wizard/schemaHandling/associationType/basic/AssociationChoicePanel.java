@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.AssociationsListView;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 
+import com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -69,7 +70,7 @@ public abstract class AssociationChoicePanel
                     resourceSchema.getObjectTypeDefinitions().forEach(objectTypeDef ->
                             objectTypeDef.getReferenceAttributeDefinitions().forEach(
                                     associationDef -> {
-                                        if (!associationDef.canRead()) {
+                                        if (!associationDef.canRead() || ShadowReferenceParticipantRole.SUBJECT != associationDef.getParticipantRole()) {
                                             return;
                                         }
 

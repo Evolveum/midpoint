@@ -10,6 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -46,6 +55,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "OutboundMappingsTableWizardPanel.objectsTable", icon = "fa-regular fa-cube"))
 public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceWizardBasicPanel<AssociationConstructionExpressionEvaluatorType> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(OutboundMappingsTableWizardPanel.class);
 
     private static final String ATTRIBUTE_PANEL_TYPE = "rw-association-outbound-attribute-mappings";
     private static final String OBJECT_PANEL_TYPE = "rw-association-outbound-object-mappings";
@@ -101,7 +112,8 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
 
     private ITab createAttributeTableTab() {
         return new IconPanelTab(
-                getPageBase().createStringResource("OutboundMappingsTableWizardPanel.attributeMappingsTable")) {
+                getPageBase().createStringResource("OutboundMappingsTableWizardPanel.attributeMappingsTable"),
+                new VisibleBehaviour(() -> isAttributeVisible())) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -133,6 +145,20 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
                 return Model.of("fa fa-arrow-right-from-bracket");
             }
         };
+    }
+
+    private boolean isAttributeVisible() {
+        try {
+            ShadowAssociationDefinition assocDef = AssociationChildWrapperUtil.getShadowAssociationDefinition(
+                    getAssignmentHolderDetailsModel().getRefinedSchema(), getValueModel().getObject());
+            if (assocDef == null) {
+                return false;
+            }
+            return assocDef.isComplex();
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Cannot load resource schema", e);
+            return false;
+        }
     }
 
     private ITab createObjectTableTab() {

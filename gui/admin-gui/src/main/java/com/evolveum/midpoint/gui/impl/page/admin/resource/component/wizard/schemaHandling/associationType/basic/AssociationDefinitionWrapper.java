@@ -66,8 +66,8 @@ public class AssociationDefinitionWrapper implements Serializable {
 
     public AssociationDefinitionWrapper(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value, ResourceSchema resourceSchema) {
         this.sourceValue = value;
-        ShadowReferenceAttributeDefinition refAttrDef = AssociationChildWrapperUtil.getShadowReferenceAttribute(resourceSchema, value);
-        this.associationAttribute = refAttrDef.getItemName();
+        ShadowAssociationDefinition assocDef = AssociationChildWrapperUtil.getShadowAssociationDefinition(resourceSchema, value);
+        this.associationAttribute = assocDef.getItemName();
 
         List<ResourceObjectTypeIdentificationType> subjects = AssociationChildWrapperUtil.getObjectTypesOfSubject(value);
         subjects.forEach(subject -> {
