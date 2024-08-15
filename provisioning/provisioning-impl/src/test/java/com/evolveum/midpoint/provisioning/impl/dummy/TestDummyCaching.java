@@ -150,7 +150,7 @@ public class TestDummyCaching extends TestDummy {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), true, null, startTs);
+        assertCachingMetadata(shadow.getBean(), null, startTs);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -213,7 +213,7 @@ public class TestDummyCaching extends TestDummy {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), true, null, startTs);
+        assertCachingMetadata(shadow.getBean(), null, startTs);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -237,12 +237,12 @@ public class TestDummyCaching extends TestDummy {
         accountWill.setEnabled(true);
 
         try {
-            XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-
             // WHEN
             when();
 
+            var startTs = clock.currentTimeXMLGregorianCalendar();
             var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
+            var endTs = clock.currentTimeXMLGregorianCalendar();
 
             // THEN
             then();
@@ -271,7 +271,13 @@ public class TestDummyCaching extends TestDummy {
 
             checkUniqueness(shadow);
 
-            assertCachingMetadata(shadow.getBean(), false, null, startTs);
+            if (getCachedAccountAttributes().contains(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME)) {
+                // Ship is cached, so we won't update the cached data if it's incomplete
+                assertCachingMetadata(shadow.getBean(), null, startTs);
+            } else {
+                // Ship is not cached, so we can update the cached data even if it's incomplete
+                assertCachingMetadata(shadow.getBean(), startTs, endTs);
+            }
 
             assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -324,7 +330,7 @@ public class TestDummyCaching extends TestDummy {
                 display("fetchResult", fetchResult);
                 assertEquals("Wrong fetch result status in " + shadow, OperationResultStatusType.SUCCESS, fetchResult.getStatus());
             }
-            assertCachingMetadata(shadow.getBean(), true, null, startTs);
+            assertCachingMetadata(shadow.getBean(), null, startTs);
 
             if (shadow.getName().getOrig().equals("meathook")) {
                 assertCachedAttributeValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
@@ -473,14 +479,10 @@ public class TestDummyCaching extends TestDummy {
     }
 
     @Override
-    protected void assertCachingMetadata(ShadowType shadow, boolean expectedCached, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+    protected void assertCachingMetadata(ShadowType shadow, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
         CachingMetadataType cachingMetadata = shadow.getCachingMetadata();
-        if (expectedCached) {
-            assertNotNull("No caching metadata in " + shadow, cachingMetadata);
-            TestUtil.assertBetween("retrievalTimestamp in caching metadata in " + shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
-        } else {
-            super.assertCachingMetadata(shadow, expectedCached, startTs, endTs);
-        }
+        assertNotNull("No caching metadata in " + shadow, cachingMetadata);
+        TestUtil.assertBetween("retrievalTimestamp in caching metadata in " + shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
     }
 
     @Override
