@@ -13,33 +13,9 @@
     <div class="col-12">
         <div class="form-group">
             <label class="col-form-label font-weight-bold">
-                <wicket:message key="AssignmentType.description"/>
-            </label>
-            <textarea class="form-control"  wicket:id="description"/>
-        </div>
-        <div class="form-group">
-            <label class="col-form-label font-weight-bold">
                 <wicket:message key="ObjectReferenceType.relation"/>
             </label>
             <select class="form-control" wicket:id="relation"/>
-        </div>
-        <div class="form-group">
-            <label class="col-form-label font-weight-bold">
-                <wicket:message key="AssignmentType.focusType"/>
-            </label>
-            <select class="form-control" wicket:id="focusType"/>
-        </div>
-        <div class="form-group">
-            <label class="col-form-label font-weight-bold">
-                <wicket:message key="AssignmentEditorPanel.tenantRef"/>
-            </label>
-            <div wicket:id="tenantRef"/>
-        </div>
-        <div class="form-group">
-            <label class="col-form-label font-weight-bold">
-                <wicket:message key="AssignmentEditorPanel.orgRef"/>
-            </label>
-            <div wicket:id="orgRef"/>
         </div>
     </div>
     <wicket:enclosure child="administrativeStatus">
@@ -65,14 +41,14 @@
             </div>
         </div>
     </wicket:enclosure>
-    <wicket:enclosure child="extension">
+    <wicket:enclosure child="assignmentDetails">
         <div class="col-12">
             <div class="form-group">
                 <label class="col-form-label">
-                    <wicket:message key="AssignmentType.extension"/>
+                    <wicket:message key="RoleCatalogPanel.details"/>
                     <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
                 </label>
-                <div wicket:id="extension"/>
+                <div wicket:id="assignmentDetails"/>
             </div>
         </div>
     </wicket:enclosure>

@@ -161,14 +161,7 @@ public class PageDebugList extends PageAdminConfiguration {
         add(main);
 
         RepositoryObjectDataProvider<? extends ObjectType> provider = new RepositoryObjectDataProvider<>(
-                this, (IModel) searchModel) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return getSessionStorage().getConfiguration();
-            }
-        };
+                this, (IModel) searchModel);
 
         create(provider);
 

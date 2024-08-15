@@ -209,11 +209,6 @@ public abstract class InboundAttributeMappingsTable<P extends Containerable> ext
                 new PropertyModel<>(getContainerModel(), "values")) {
 
             @Override
-            protected PageStorage getPageStorage() {
-                return InboundAttributeMappingsTable.this.getPageStorage();
-            }
-
-            @Override
             protected List<PrismContainerValueWrapper<MappingType>> searchThroughList() {
                 List<PrismContainerValueWrapper<MappingType>> list = super.searchThroughList();
 

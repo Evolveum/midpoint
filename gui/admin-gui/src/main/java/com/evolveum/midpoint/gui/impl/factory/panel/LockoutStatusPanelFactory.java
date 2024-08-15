@@ -6,17 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BehaviorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 import jakarta.annotation.PostConstruct;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-
+import org.apache.wicket.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.web.component.LockoutStatusPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -44,7 +46,18 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
 
     @Override
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<LockoutStatusType> panelCtx) {
-        LockoutStatusPanel panel = new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
-        return panel;
+        PrismObjectWrapper<FocusType> focus = panelCtx.getItemWrapperModel().getObject().findObjectWrapper();
+        PrismContainerWrapper<BehaviorType> behavior = null;
+        PrismContainerWrapper<ActivationType> activation = null;
+        if (focus != null) {
+            try {
+                activation = focus.findContainer(FocusType.F_ACTIVATION);
+                behavior = focus.findContainer(FocusType.F_BEHAVIOR);
+            } catch (SchemaException e) {
+                //nothing to do
+            }
+        }
+        PrismPropertyWrapper<LockoutStatusType> lockoutStatus = panelCtx.unwrapWrapperModel();
+        return new LockoutStatusPanel(panelCtx.getComponentId(), Model.of(lockoutStatus), Model.of(behavior), Model.of(activation));
     }
 }

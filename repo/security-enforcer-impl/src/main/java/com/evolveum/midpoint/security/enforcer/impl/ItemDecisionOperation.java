@@ -103,10 +103,18 @@ class ItemDecisionOperation {
         } else if (delta.isDelete()) {
             return decideOnObjectValueByItems(currentObject.getValue(), itemDecisionFunctionDelete);
         } else {
+            var modifications = delta.getModifications();
+            if (modifications.isEmpty()) {
+                // Empty delta should be allowed (as far as items are concerned).
+                // This is a quick fix for MID-9898. What should be re-thought, is the behavior of null/DEFAULT item-level
+                // decisions below (see the "to do" comment).
+                return AccessDecision.ALLOW;
+            }
             AccessDecision decision = null;
-            for (ItemDelta<?, ?> modification : delta.getModifications()) {
+            for (ItemDelta<?, ?> modification : modifications) {
                 ItemPath itemPath = modification.getPath();
                 AccessDecision modDecision = itemDecisionFunction.decide(itemPath.namedSegmentsOnly(), false);
+                // TODO shouldn't we treat null or DEFAULT as "allow"? When exactly do they occur?
                 if (modDecision == null) {
                     // null decision means: skip this modification
                     continue;
@@ -335,6 +343,6 @@ class ItemDecisionOperation {
 
     /** Special simple tracer for this class. The caller may use it to redirect logging to its own sink. Temporary. */
     interface SimpleTracer {
-        void trace(String message, Object... params);
+        void trace(@NotNull String message, Object... params);
     }
 }

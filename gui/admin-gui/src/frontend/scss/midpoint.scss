@@ -642,14 +642,8 @@ li.dropdown.user.user-menu {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  min-width: 0;
-  max-width: 100%;
-}
-
-@media (min-width: 1200px) {
-  .navbar-title {
-    min-width: fit-content;
-  }
+  width: 100%;
+  max-width: fit-content;
 }
 
 .navbar-right {
@@ -666,17 +660,6 @@ li.dropdown.user.user-menu {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-  }
-}
-
-.navbar-left {
-  width: fit-content;
-  min-width: 0;
-}
-
-@media (min-width: 1200px) {
-  .navbar-left {
-    min-width: auto;
   }
 }
 
@@ -699,15 +682,20 @@ li.dropdown.user.user-menu {
 
   //.border-radius(2px);
 
-  > li > a {
-    color: inherit;
-    text-decoration: none;
-    display: inline-block;
+  > li {
+        overflow: hidden;
+        max-width: fit-content;
 
-    > .fa, > .fas, > .far, > .glyphicon, > .ion, > .fe {
-      margin-right: 5px;
-    }
-  }
+        > a {
+          color: inherit;
+          text-decoration: none;
+          display: inline-block;
+
+          > .fa, > .fas, > .far, > .glyphicon, > .ion, > .fe {
+            margin-right: 5px;
+            }
+          }
+        }
 
   > li + li:before {
     content: '>\00a0';

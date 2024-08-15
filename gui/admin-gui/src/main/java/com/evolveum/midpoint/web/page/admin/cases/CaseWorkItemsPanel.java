@@ -12,8 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -34,7 +32,7 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.ContainerListDataP
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -49,7 +47,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -153,11 +150,6 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         ContainerListDataProvider<CaseWorkItemType> provider = new ContainerListDataProvider<>(this,
                 searchModel, options) {
             private static final long serialVersionUID = 1L;
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getWorkItemStorage();
-            }
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {

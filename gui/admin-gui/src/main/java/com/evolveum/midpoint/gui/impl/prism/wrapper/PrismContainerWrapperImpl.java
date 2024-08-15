@@ -240,7 +240,10 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         if (isOperational()) {
             return null;
         }
+        return computeDeltasInternal();
+    }
 
+    protected <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> Collection<D> computeDeltasInternal() throws SchemaException {
         Collection<D> deltas = new ArrayList<>();
         for (PrismContainerValueWrapper<C> pVal : getValues()) {
             LOGGER.trace("Processing delta for value:\n {}", pVal);
