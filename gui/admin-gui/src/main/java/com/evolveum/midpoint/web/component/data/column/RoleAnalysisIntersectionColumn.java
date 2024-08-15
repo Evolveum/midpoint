@@ -7,16 +7,13 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.*;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.refreshCells;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.resolveCellTypeUserTable;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applySquareTableCell;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import com.evolveum.midpoint.common.mining.objects.chunk.*;
-import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
-import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -28,9 +25,14 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningUserTypeChunk;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkAction;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -40,6 +42,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.Pa
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
@@ -114,7 +117,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
         CompositedIcon compositedIcon = compositedIconBuilder.build();
 
         return new AjaxLinkTruncateDto(baseMiningChunk.getChunkName(), compositedIcon, baseMiningChunk.getStatus(),
-                AjaxLinkTruncatePanelAction.PanelMode.ROTATED){
+                AjaxLinkTruncatePanelAction.PanelMode.ROTATED) {
             @Override
             public boolean isActionEnabled() {
                 RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
@@ -199,6 +202,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
         cellItem.add(new AjaxEventBehavior("click") {
             @Override
             protected void onEvent(AjaxRequestTarget ajaxRequestTarget) {
+                onChunkSelectionPerform(ajaxRequestTarget);
+
                 setRelationSelected(false);
                 RoleAnalysisOperationMode chunkStatus;
                 RoleAnalysisOperationMode rowStatus = rowChunk.getStatus();
@@ -258,6 +263,16 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
         updateWithPatterns(Collections.singletonList(detectedPattern), PageBase);
         onUniquePatternDetectionPerform(ajaxRequestTarget);
         refreshTable(ajaxRequestTarget);
+    }
+
+    private void onChunkSelectionPerform(AjaxRequestTarget target) {
+        if (getSelectedPatterns() != null && !getSelectedPatterns().isEmpty()) {
+            MiningOperationChunk chunk = getMiningChunk();
+            List<MiningRoleTypeChunk> roles = chunk.getMiningRoleTypeChunks();
+            List<MiningUserTypeChunk> users = chunk.getMiningUserTypeChunks();
+            refreshCells(chunk.getProcessMode(), users, roles, getMinFrequency(), getMaxFrequency());
+        }
+        onUniquePatternDetectionPerform(target);
     }
 
     protected void onUniquePatternDetectionPerform(AjaxRequestTarget target) {
