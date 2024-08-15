@@ -515,4 +515,9 @@ public class ShadowReferenceAttributeDefinitionImpl
     public @NotNull PrismReferenceValue migrateIfNeeded(@NotNull PrismReferenceValue value) throws SchemaException {
         return ShadowReferenceAttributeValue.fromRefValue(value);
     }
+
+    @Override
+    public @NotNull ShadowReferenceParticipantRole getParticipantRole() {
+        return nativeDefinition.getReferenceParticipantRole();
+    }
 }

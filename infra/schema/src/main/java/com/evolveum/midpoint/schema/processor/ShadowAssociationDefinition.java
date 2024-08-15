@@ -47,6 +47,16 @@ public interface ShadowAssociationDefinition
      */
     @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants();
 
+    /**
+     * Returns the name(s) of participant(s) playing the role of association object:
+     *
+     * - Exactly one for simple associations.
+     * - Zero, one, or more for complex associations.
+     */
+    default @NotNull Collection<QName> getObjectParticipantNames() {
+        return getObjectParticipants().keySet();
+    }
+
     default boolean matches(@NotNull ShadowType potentialTarget) {
         return getReferenceAttributeDefinition().getTargetParticipantTypes().stream()
                 .anyMatch(participantType -> participantType.matches(potentialTarget));
