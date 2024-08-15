@@ -12,6 +12,8 @@ import java.util.Map;
 
 import com.evolveum.midpoint.repo.sqlbase.NativeOnlySupportedException;
 
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -89,6 +91,8 @@ public class PageDashboardConfigurable extends PageDashboard {
     private static final String OPERATION_COMPILE_DASHBOARD_COLLECTION = DOT_CLASS + "compileDashboardCollection";
 
     private static final Map<String, Class<? extends WebPage>> LINKS_REF_COLLECTIONS;
+    private static final String NATIVE_ONLY_SUPPORTED_KEY = "PageDashboardConfigurable.widget.native.only";
+    private static final String UNSUPPORTED_KEY = "PageDashboardConfigurable.widget.unsupported";
 
     static {
         Map<String, Class<? extends WebPage>> map = new HashMap<>();
@@ -188,7 +192,6 @@ public class PageDashboardConfigurable extends PageDashboard {
             data.setTitle(widget.getNumberLabel());
             data.setDescription(widget.getMessage());
             data.setIcon(widget.getIconCssClass());
-
             return data;
         }) {
 
@@ -226,24 +229,46 @@ public class PageDashboardConfigurable extends PageDashboard {
 
                     return new DashboardWidgetDto(dashboardWidget, PageDashboardConfigurable.this);
                 } catch (Exception e) {
+                    var ret = new DashboardWidgetDto(null, PageDashboardConfigurable.this);
                     var nativeOnlySupport = findNativeOnlyException(e);
                     if (nativeOnlySupport != null) {
                         // Here we can handle special case - that filter is only supported on native repository (and we are using generic)
                         LOGGER.warn("Couldn't get DashboardWidget with widget {}. Uses features supported only native repository.",
                                 model.getObject().getIdentifier(), nativeOnlySupport.getMessage());
-                        result.recordPartialError("Couldn't get widget, reason: " + nativeOnlySupport.getLocalizedUserFriendlyMessage(), e);
+                        result.recordHandledError(nativeOnlySupport.getLocalizedUserFriendlyMessage(), e);
+                        result.setUserFriendlyMessage(new SingleLocalizableMessage(
+                                NATIVE_ONLY_SUPPORTED_KEY, new Object[]{model.getObject().getIdentifier()}));
+
+
+                        return createUnsupportedWidget(model);
                     } else {
                         LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
                         result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
                     }
+                    result.computeStatusIfUnknown();
+                    showResult(result);
+
+                    return ret;
                 }
-
-                result.computeStatusIfUnknown();
-                showResult(result);
-
-                return new DashboardWidgetDto(null, PageDashboardConfigurable.this);
             }
         };
+    }
+
+    private DashboardWidgetDto createUnsupportedWidget(IModel<DashboardWidgetType> model) {
+        // Let's modify widget to warning
+        var data = getDashboardService().createEmptyWidgetData(model.getObject());
+        var display = data.getDisplay();
+        display.setColor("var(--warning)");
+        display.setCssStyle("color: var(--navy) !important;");
+        display.setIcon(new IconType().cssClass("fa fa-exclamation-triangle"));
+        data.getWidget().setData(null);
+        var unsupportedShort = getLocalizationService().translate(UNSUPPORTED_KEY, new Object[]{}, getLocale());
+        data.setNumberMessage(unsupportedShort);
+        var ret = new DashboardWidgetDto(data, PageDashboardConfigurable.this);
+        var unsupportedLong = getLocalizationService().translate(NATIVE_ONLY_SUPPORTED_KEY, new Object[]{ret.getMessage()},getLocale());
+        ret.setMessage(unsupportedLong);
+        return ret;
+
     }
 
     @Nullable
