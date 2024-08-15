@@ -256,12 +256,13 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     private DashboardWidgetDto createUnsupportedWidget(IModel<DashboardWidgetType> model) {
         // Let's modify widget to warning
-        var data = getDashboardService().createEmptyWidgetData(model.getObject());
+        var widget = model.getObject();
+        widget.setData(null);
+        var data = getDashboardService().createEmptyWidgetData(widget);
         var display = data.getDisplay();
         display.setColor("var(--warning)");
         display.setCssStyle("color: var(--navy) !important;");
         display.setIcon(new IconType().cssClass("fa fa-exclamation-triangle"));
-        data.getWidget().setData(null);
         var unsupportedShort = getLocalizationService().translate(UNSUPPORTED_KEY, new Object[]{}, getLocale());
         data.setNumberMessage(unsupportedShort);
         var ret = new DashboardWidgetDto(data, PageDashboardConfigurable.this);
