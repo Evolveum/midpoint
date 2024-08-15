@@ -237,22 +237,29 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
         public void evaluateSpecialInbounds(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
+            // TODO how exactly can be the password cached? Normally it's hashed, and that means it is not usable for inbounds.
+            var passwordValueLoaded = projectionContext.isPasswordValueLoaded();
+            var activationLoaded = projectionContext.isActivationLoaded();
             // TODO convert to mapping creation requests
             evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
                     inboundsSource.getInboundDefinition().getPasswordInbound(),
                     SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE,
+                    passwordValueLoaded,
                     result);
             evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
                     getActivationInbound(ActivationType.F_ADMINISTRATIVE_STATUS),
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                    activationLoaded,
                     result);
             evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
                     getActivationInbound(ActivationType.F_VALID_FROM),
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+                    activationLoaded,
                     result);
             evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
                     getActivationInbound(ActivationType.F_VALID_TO),
                     SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
+                    activationLoaded,
                     result);
         }
 
@@ -268,7 +275,8 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
          */
         private void evaluateSpecialInbounds(
                 List<MappingType> inboundMappingBeans,
-                ItemPath sourcePath, ItemPath targetPath, OperationResult result)
+                ItemPath sourcePath, ItemPath targetPath,
+                boolean sourceItemAvailable, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
@@ -279,13 +287,12 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
             LOGGER.trace("Collecting {} inbounds for special property {}", inboundMappingBeans.size(), sourcePath);
 
             F focus = inboundsTarget.getTargetRealValue();
-//        if (focus == null) {
-//            LOGGER.trace("No current/new focus, skipping.");
-//            return;
-//        }
-            if (!projectionContext.isFullShadow()) {
-                // TODO - is this ok?
-                LOGGER.trace("Full shadow not loaded, skipping.");
+            if (focus == null) {
+                LOGGER.trace("No current/new focus, skipping.");
+                return;
+            }
+            if (!sourceItemAvailable) {
+                LOGGER.trace("Source item not loaded, skipping.");
                 return;
             }
 

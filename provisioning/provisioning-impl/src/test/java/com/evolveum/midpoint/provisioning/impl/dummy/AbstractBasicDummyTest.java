@@ -1531,8 +1531,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), false, startTs, endTs);
-        assertCachingMetadata(repoShadow.getBean(), true, startTs, endTs);
+        assertCachingMetadata(shadow.getBean(), startTs, endTs);
+        assertCachingMetadata(repoShadow.getBean(), startTs, endTs);
 
         assertShadowPasswordMetadata( // MID-3860
                 shadow.getPrismObject(), true,
@@ -1639,7 +1639,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), false, startTs, endTs);
+        assertCachingMetadata(shadow.getBean(), startTs, endTs);
 
         assertSteadyResource();
     }
@@ -1696,7 +1696,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         assertNull("Unexpected caching metadata in " + shadowRepo, shadowRepo.asObjectable().getCachingMetadata());
     }
 
-    protected void assertCachingMetadata(ShadowType shadow, boolean expectedCached, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+    protected void assertCachingMetadata(ShadowType shadow, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
         assertNull("Unexpected caching metadata in " + shadow, shadow.getCachingMetadata());
     }
 

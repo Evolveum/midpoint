@@ -351,7 +351,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), false, startTs, endTs);
+        assertCachingMetadata(shadow.getBean(), startTs, endTs);
 
         assertSteadyResource();
     }
@@ -390,7 +390,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), false, startTs, endTs);
+        assertCachingMetadata(shadow.getBean(), startTs, endTs);
 
         assertSteadyResource();
     }
@@ -432,7 +432,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                 throw new SystemException(e.getMessage(), e);
             }
 
-            assertCachingMetadata(shadow.getBean(), false, startTs, endTs);
+            assertCachingMetadata(shadow.getBean(), startTs, endTs);
 
             if (shadow.getName().getOrig().equals("meathook")) {
                 meathookAccountOid = object.getOid();
