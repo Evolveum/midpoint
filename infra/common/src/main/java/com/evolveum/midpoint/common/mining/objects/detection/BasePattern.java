@@ -33,7 +33,11 @@ public abstract class BasePattern implements Serializable {
     private PatternType patternType;
 
     private boolean patternSelected;
+    String outlierOid;
 
+    public String getOutlierOid() {
+        return outlierOid;
+    }
     public BasePattern(Set<String> roles,
             Set<String> users,
             Double metric,

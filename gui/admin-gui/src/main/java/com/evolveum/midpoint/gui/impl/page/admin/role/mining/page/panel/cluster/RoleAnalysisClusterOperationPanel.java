@@ -128,18 +128,38 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         OperationResult result = task.getResult();
         List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(cluster, task, result);
         for (RoleAnalysisOutlierType outlier : searchResultList) {
-
             Set<String> roles = new HashSet<>();
             List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
             for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-                for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
-                    roles.add(detectedAnomaly.getTargetObjectRef().getOid());
+                if (outlierPartition.getTargetClusterRef() != null
+                        && outlierPartition.getTargetClusterRef().getOid() != null
+                        && outlierPartition.getTargetClusterRef().getOid().equals(cluster.getOid())) {
+                    List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+                    for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+                        roles.add(detectedAnomaly.getTargetObjectRef().getOid());
 //                    anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
+                    }
+                    break;
                 }
             }
             Set<String> users = Collections.singleton(outlier.getTargetObjectRef().getOid());
-            DetectedPattern detectedPattern = new DetectedPattern(roles, users, outlier.getOverallConfidence(), null);
+            DetectedPattern detectedPattern = new DetectedPattern(roles, users, outlier.getOverallConfidence(), null) {
+                @Override
+                public String getOutlierOid() {
+                    return outlier.getOid();
+                }
+
+                @Override
+                public String getIdentifier() {
+                    return outlier.getName().getOrig();
+                }
+
+                @Override
+                public ObjectReferenceType getClusterRef() {
+                    return new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE);
+                }
+            };
+
             detectedPattern.setPatternType(BasePattern.PatternType.OUTLIER);
             outlierPatterns.add(detectedPattern);
         }
@@ -232,7 +252,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
         return false;
     }
 
-    @NotNull  public List<String> getCandidateRoleContainerId() {
+    @NotNull
+    public List<String> getCandidateRoleContainerId() {
         StringValue stringValue = getPageBase().getPageParameters().get(PARAM_CANDIDATE_ROLE_ID);
         if (!stringValue.isNull()) {
             String[] split = stringValue.toString().split(",");
@@ -303,6 +324,14 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
             @Override
             protected void initHeaderItem(@NotNull RepeatingView headerItems) {
+
+                IModel<String> operationDescription = new LoadableDetachableModel<>() {
+                    @Override
+                    protected @NotNull String load() {
+                        return getModelObject().isShowAsExpandCard() ? "Maximize" : "Minimize";
+                    }
+                };
+
                 RoleAnalysisTableOpPanelItem refreshIcon = new RoleAnalysisTableOpPanelItem(
                         headerItems.newChildId(), getModel()) {
 
@@ -340,11 +369,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
                     @Override
                     protected void addDescriptionComponents() {
-                        appendText("Switch table view", null); //TODO string resource model
+                        appendText(operationDescription, null); //TODO string resource model
                     }
                 };
-                refreshIcon.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex"
-                        + " align-self-stretch mt-1"));
+
                 headerItems.add(refreshIcon);
             }
 
@@ -372,8 +400,8 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
     }
 
     private void resetOperationPanel(@NotNull AjaxRequestTarget target) {
-         operationPanelModel.getObject().clearSelectedPatterns();
-         target.add(get(ID_OPERATION_PANEL));
+        operationPanelModel.getObject().clearSelectedPatterns();
+        target.add(get(ID_OPERATION_PANEL));
     }
 
 }

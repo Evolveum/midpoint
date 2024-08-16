@@ -212,7 +212,7 @@ public class RoleAnalysisAspectsWebUtils {
                 bd = bd.setScale(2, RoundingMode.HALF_UP);
                 percentagePart = bd.doubleValue();
             }
-            String formattedReductionFactorConfidence = String.format("%.0f", percentagePart);
+            String formattedReductionFactorConfidence = String.format("%.2f", percentagePart);
             double itemsConfidence = pattern.getItemsConfidence();
             String formattedItemConfidence = String.format("%.1f", itemsConfidence);
             String description =

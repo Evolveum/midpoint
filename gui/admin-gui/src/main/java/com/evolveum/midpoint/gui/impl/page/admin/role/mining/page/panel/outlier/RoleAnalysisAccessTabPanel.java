@@ -89,7 +89,7 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<RoleAnalysisOutlierPar
         };
         tabPanel.setOutputMarkupId(true);
         tabPanel.setOutputMarkupPlaceholderTag(true);
-        tabPanel.add(AttributeAppender.append("class", "p-0 m-0"));
+        tabPanel.add(AttributeAppender.append("class", "p-0 pl-2 m-0"));
         container.add(tabPanel);
     }
 

@@ -118,7 +118,7 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
         };
         tabPanel.setOutputMarkupId(true);
         tabPanel.setOutputMarkupPlaceholderTag(true);
-        tabPanel.add(AttributeAppender.append("class", "p-0 m-0"));
+        tabPanel.add(AttributeAppender.append("class", "ml-2 mr-2 m-0"));
         container.add(tabPanel);
     }
 

@@ -6,14 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
-import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconTextPanel;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
+
+import java.io.Serial;
+import java.util.Set;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -29,10 +25,15 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serial;
-import java.util.Set;
-
-import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
+import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconTextPanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPattern> {
 
@@ -58,6 +59,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
 
     private void initLayout() {
 
+        add(AttributeAppender.replace("class","d-flex align-items-center rounded"));
         add(new Behavior() {
             @Override
             public void onConfigure(Component component) {
@@ -128,9 +130,21 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
             case PATTERN -> iconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
             case OUTLIER -> iconClass = GuiStyleConstants.CLASS_ICON_OUTLIER;
         }
+
+        DetectedPattern pattern = getModelObject();
+
+        String identifier = pattern.getIdentifier();
+        if (identifier == null || identifier.isEmpty()) {
+            identifier = "N/A";
+        }
+
+        if (identifier.length() > 2) {
+            identifier = String.valueOf(identifier.charAt(0)) + identifier.charAt(identifier.length() - 1);
+        }
+
         return new CompositedIconTextPanel(idIcon,
                 "fa-2x " + iconClass + " text-dark",
-                0 + 1 + "", //TODO number of pattern
+                identifier,
                 "text-secondary bg-white border border-white rounded-circle") {
             @Override
             protected String getBasicIconCssStyle() {
@@ -211,47 +225,45 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
                 String identifier = pattern.getIdentifier();
                 switch (pattern.getPatternType()) {
                     case PATTERN -> {
-                        return "Role suggestion #" + (identifier + 1);
+                        return "Role suggestion #" + (identifier);
                     }
                     case CANDIDATE -> {
                         return "Candidate role " + (identifier);
                     }
                     case OUTLIER -> {
-                        return "Outlier pattern #" + (identifier + 1);
+                        return identifier;
                     }
                 }
                 return "pattern type not found";
             }
         };
 
-        RepeatingView repeatingView = new RepeatingView(id);
-        repeatingView.setOutputMarkupId(true);
-
-        Label label = new Label(repeatingView.newChildId(), model);
-        label.setOutputMarkupId(true);
-
-        AjaxIconButton iconButton = new AjaxIconButton(repeatingView.newChildId(),
-                Model.of("fa fa-list"), Model.of("")) {
+        AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, model) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 DetectedPattern pattern = RoleAnalysisTableOpPanelPatternItem.this.getModelObject();
+                if (pattern.getPatternType() == BasePattern.PatternType.OUTLIER) {
+                    String outlierOid = pattern.getOutlierOid();
+                    dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, outlierOid, getPageBase(), true);
+                    return;
+                }
+
                 if (pattern.getPatternType() == BasePattern.PatternType.CANDIDATE) {
                     String roleOid = pattern.getRoleOid();
                     dispatchToObjectDetailsPage(RoleType.class, roleOid, getPageBase(), true);
                 }
 
-                RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
-                        ((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of(pattern));
-                ((PageBase) getPage()).showMainPopup(component, target);
+                if (pattern.getPatternType() == BasePattern.PatternType.PATTERN) {
+                    RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
+                            ((PageBase) getPage()).getMainPopupBodyId(),
+                            Model.of(pattern));
+                    ((PageBase) getPage()).showMainPopup(component, target);
+                }
             }
         };
-        iconButton.setOutputMarkupId(true);
-        iconButton.add(AttributeAppender.replace("class", "p-0"));
-        repeatingView.add(label);
-        repeatingView.add(iconButton);
-        return repeatingView;
 
+        linkPanel.setOutputMarkupId(true);
+        return linkPanel;
 
 //        WebMarkupContainer descriptionTitle = new WebMarkupContainer(id);
 //        descriptionTitle.setOutputMarkupId(true);
@@ -285,6 +297,11 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {
+                String associatedColor = getModelObject().getAssociatedColor();
+                if(associatedColor == null) {
+                    return null;
+                }
+
                 return "background-color: " + getModelObject().getAssociatedColor() + ";";
             }
         };

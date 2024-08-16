@@ -6,11 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
-import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
-
 import java.io.Serial;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -23,20 +20,12 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconTextPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelModel> {
 
@@ -53,7 +42,6 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
     private static final String ID_PATTERNS = "patterns";
     private static final String ID_PATTERN = "pattern";
-
 
     public RoleAnalysisTableOpPanelItemPanel(String id, LoadableDetachableModel<OperationPanelModel> model) {
         super(id, model);
@@ -155,6 +143,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
                 };
                 listItem.add(bodyItem);
+                listItem.add(AttributeAppender.append("class", "d-flex align-items-center rounded"));
             }
         };
         bodyItems.add(patterns);
@@ -164,14 +153,19 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     private void initFooterItem(RepeatingView footerItems) {
         RoleAnalysisTableOpPanelItem footerComponent = addFooterButtonItem(footerItems);
         footerComponent.setOutputMarkupId(true);
-        footerComponent.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex"
-                + " align-self-stretch "));
-//        footerComponent.add(AttributeAppender.append("style", "height: 60px;"));
         footerItems.add(footerComponent);
     }
 
     private void addCompareButtonItem(
             @NotNull RepeatingView subHeaderItems) {
+
+        IModel<String> operationDescription = new LoadableDetachableModel<>() {
+            @Override
+            protected @NotNull String load() {
+                return getModelObject().isCompareMode() ? "Compare mode" : "Explore mode";
+            }
+        };
+
         RoleAnalysisTableOpPanelItem compareButtonItem = new RoleAnalysisTableOpPanelItem(subHeaderItems.newChildId(), getModel()) {
             @Serial
             private static final long serialVersionUID = 1L;
@@ -184,7 +178,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             protected void performOnClick(AjaxRequestTarget ajaxRequestTarget) {
-                handleCompareModeClick(ajaxRequestTarget);
+                handleCompareModeClick(ajaxRequestTarget, this);
             }
 
             @Override
@@ -194,24 +188,31 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             public @NotNull Component getDescriptionTitleComponent(String id) {
-                Label label = new Label(id, "Exploration view");
+                Label label = new Label(id, Model.of("Explore"));
                 label.setOutputMarkupId(true);
                 return label;
             }
 
             @Override
             protected void addDescriptionComponents() {
-                appendText("Switch explore mode", null);
+                appendText(operationDescription, null);
             }
         };
 
         compareButtonItem.setOutputMarkupId(true);
-        compareButtonItem.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex align-self-stretch"));
         subHeaderItems.add(compareButtonItem);
     }
 
     private void addToggleModeItem(
             @NotNull RepeatingView subHeaderItems) {
+
+        IModel<String> operationDescription = new LoadableDetachableModel<>() {
+            @Override
+            protected @NotNull String load() {
+                return getModelObject().isCandidateRoleView() ? "Candidate role view" : "Object view";
+            }
+        };
+
         RoleAnalysisTableOpPanelItem toggleModeItem = new RoleAnalysisTableOpPanelItem(subHeaderItems.newChildId(), getModel()) {
             @Serial
             private static final long serialVersionUID = 1L;
@@ -241,17 +242,24 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             protected void addDescriptionComponents() {
-                appendText("Switch object view", null);
+                appendText(operationDescription, null);
             }
         };
 
         toggleModeItem.setOutputMarkupId(true);
-        toggleModeItem.add(AttributeAppender.replace("class", "btn btn-outline-dark border-0 d-flex align-self-stretch"));
         subHeaderItems.add(toggleModeItem);
     }
 
     private @NotNull RoleAnalysisTableOpPanelItem addFooterButtonItem(
             @NotNull RepeatingView footerItems) {
+
+        IModel<String> operationDescription = new LoadableDetachableModel<>() {
+            @Override
+            protected @NotNull String load() {
+                return getModelObject().isPanelExpanded() ? "Expanded" : "Collapsed";
+            }
+        };
+
         return new RoleAnalysisTableOpPanelItem(footerItems.newChildId(), getModel()) {
             @Override
             protected void performOnClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -270,9 +278,18 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
                 return label;
             }
 
+            @Contract(pure = true)
+            @Override
+            public @NotNull String replaceIconCssClass() {
+                if (getModelObject().isPanelExpanded()) {
+                    return "fa-2x fa fa-window-maximize text-dark";
+                }
+                return "fa-2x fa fa-columns text-dark";
+            }
+
             @Override
             protected void addDescriptionComponents() {
-                appendText("Switch panel view.", null);
+                appendText(operationDescription, null);
             } // TODO localization
 
             @Serial
@@ -285,11 +302,12 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     }
 
     private void handleCompareModeClick(
-            @NotNull AjaxRequestTarget ajaxRequestTarget) {
+            @NotNull AjaxRequestTarget ajaxRequestTarget, RoleAnalysisTableOpPanelItem components) {
         OperationPanelModel modelObject = getModelObject();
         modelObject.clearSelectedPatterns();
         boolean compareMode = modelObject.isCompareMode();
         modelObject.setCompareMode(!compareMode);
+        ajaxRequestTarget.add(components);
         ajaxRequestTarget.add(RoleAnalysisTableOpPanelItemPanel.this);
     }
 

@@ -11,9 +11,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.resolveCellTypeUserTable;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applySquareTableCell;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -80,14 +78,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             setRelationSelected(true);
         }
 
-        RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
-        if (roleAnalysis.isOutlierDetection()) {
-            if (RoleAnalysisOperationMode.INCLUDE == baseMiningChunk.getObjectStatus().getRoleAnalysisOperationMode()
-                    && RoleAnalysisOperationMode.NEGATIVE_EXCLUDE == rowChunk.getObjectStatus().getRoleAnalysisOperationMode()) {
-                cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
-            }
-
-        }
+        markChunkIfRequested(cellItem, isInclude);
 
         RoleAnalysisChunkAction chunkAction = getChunkAction();
         if (!chunkAction.equals(RoleAnalysisChunkAction.SELECTION)) {
@@ -96,6 +87,50 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             chunkActionSelectorBehavior(cellItem, rowChunk, baseMiningChunk);
         }
 
+    }
+
+    //think about this
+    private void markChunkIfRequested(Item<ICellPopulator<A>> cellItem, RoleAnalysisTableCellFillResolver.Status isInclude) {
+        RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
+        Set<String> markedUsers = getModel().getObject().getMarkedUsers();
+        if (roleAnalysis.isOutlierDetection()
+                && (isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_INCLUDE)
+                || isInclude.equals(RoleAnalysisTableCellFillResolver.Status.RELATION_DISABLE))) {
+
+            boolean isMarked = false;
+            if (getSelectedPatterns() != null && !getSelectedPatterns().isEmpty()) {
+                Set<String> usersInPatterns = new HashSet<>();
+                for (DetectedPattern pattern : getSelectedPatterns()) {
+                    usersInPatterns.addAll(pattern.getUsers());
+                }
+
+                for (String member : baseMiningChunk.getMembers()) {
+                    if (usersInPatterns.contains(member)) {
+                        isMarked = true;
+                        cellItem.add(AttributeAppender.append("style", "border: 5px solid #28a745;"));
+                        break;
+                    }
+                }
+
+            }
+
+            if (!isMarked
+                    && markedUsers != null
+                    && !markedUsers.isEmpty()) {
+                for (String member : baseMiningChunk.getMembers()) {
+                    if (markedUsers.contains(member)) {
+                        cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
+                        break;
+                    }
+                }
+            }
+
+//            if (RoleAnalysisOperationMode.INCLUDE == baseMiningChunk.getObjectStatus().getRoleAnalysisOperationMode()
+//                    && RoleAnalysisOperationMode.NEGATIVE_EXCLUDE == rowChunk.getObjectStatus().getRoleAnalysisOperationMode()) {
+//                cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
+//            }
+
+        }
     }
 
     @Override

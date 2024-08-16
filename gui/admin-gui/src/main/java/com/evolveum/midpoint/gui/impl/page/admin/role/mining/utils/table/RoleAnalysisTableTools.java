@@ -41,6 +41,7 @@ public class RoleAnalysisTableTools {
 
         if (density >= 80) {
             return "#528BB8";
+//            return "rgb(32, 111, 157)";
         } else if (density > 30) {
             return "#008099";
         } else {
@@ -55,6 +56,7 @@ public class RoleAnalysisTableTools {
             return "#CA444B";
         } else {
             return "#528BB8";
+//            return "rgb(32, 111, 157)";
         }
 
     }

@@ -148,7 +148,7 @@ public class RoleAnalysisTableOpPanelItem extends BasePanel<OperationPanelModel>
         return descriptionTitle;
     }
 
-    protected void appendText(String text, String additionalCssClass) {
+    protected void appendText(IModel<String> text, String additionalCssClass) {
         Label label = new Label(descriptionText.newChildId(), text);
         label.add(AttributeModifier.append("class", additionalCssClass));
         label.setOutputMarkupId(true);

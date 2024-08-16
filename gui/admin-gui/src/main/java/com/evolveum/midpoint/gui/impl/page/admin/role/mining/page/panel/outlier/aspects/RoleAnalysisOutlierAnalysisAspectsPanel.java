@@ -343,6 +343,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
         statusHeader.setOutputMarkupId(true);
+        statusHeader.add(AttributeAppender.append("class", "pl-0"));
         cardBodyComponent.add(statusHeader);
 
         RoleAnalysisOutlierType outlier = getObjectDetailsModels().getObjectType();
