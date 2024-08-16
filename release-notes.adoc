@@ -29,15 +29,12 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 
 == Changes with Respect To Version 4.8.3
 
-* Spring Boot/hibernate upgrade
-** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
+* Spring Boot/Hibernate upgrade
+** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5.
 ** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
 * Request access wizard multiple fixes
 * Checking for conflicts for single-valued items was fixed (strengthened).
-In 4.8.3 and before, there were situations that two strong mappings produced different values for a given single-valued item, yet no error was produced.
-(If the item contained the same value that was produced by one of these mappings.)
-Such configurations are in principle unstable, so this kind of errors should be identified and fixed.
-Please see bug:MID-9621[] and https://github.com/Evolveum/midpoint/commit/607236b4d357c9aa67d563d13d434edba6c61d02[this commit].
+See bug:MID-9621[] and xref:_behavior_changes_since_4_8_3[].
 * Fix for getting current login users on another node. See bug:MID-9746[].
 * Fix for redirecting from the Preview Changes panel to the Details panel when the panel configuration doesn't contain panelType.
 See bug:MID-9699[].
@@ -62,9 +59,24 @@ See bug:MID-9580[] and bug:MID-9834[].
 * Widgets which use filters supported only in native repository now displays warning with reason instead of empty state. See bug:MID-9854[].
 * Fixed import object issue, when previous version of role had only inducements and new version also has assignments. See bug:MID-9876[].
 * Fixed shopping cart details panel to show all the necessary properties. See bug:MID-9858[].
+<<<<<<< HEAD
 * Upgrade DatabaseTable Connector to 1.5.2.0 version.
 * Upgrade DatabaseTable Connector to 2.8 version.
 * Upgrade LDAP and AD Connector to 3.7.2 version.
+=======
+* Fixed org. structure search in members. See bug:MID-9905[].
+* Fixed showing Save button when #modify execution-phase item-limited authorization is present. See bug:MID-9898[].
+* Improved the optimizing triggers creator, so that it works also throughout the cluster. See bug:MID-9368[].
+* Fixed incorrect displaying owner/approver relations in All direct/indirect assignments panel. See bug:MID-9467[].
+* Added `midpoint.isFocusDeleted()` method to allow keeping projections' data when focus is being deleted. See bug:MID-9669[].
+* Fixed `filter` option support in `ninja` command. See bug:MID-9881[].
+* Fixed `NullPointerException` in Midpoint Java Client. See bug:MID-9772[].
+* Fixed the "unlink" functionality for dead shadows. See bug:MID-9668[].
+* Fixed object-class-specific simulated activation. See bug:MID-9765[].
+* Fixed the behavior when manual resource operation `CaseType` object gets accidentally deleted. See bug:MID-9286[].
+* Fixed handling of null or blank values for mail recipients. See bug:MID-9791[].
+* Fixed unwanted deletion of historical `midpoint.log` files at startup. See bug:MID-9833[].
+>>>>>>> refs/remotes/origin/support-4.8
 
 == Changes with Respect To Version 4.8.2
 
@@ -849,6 +861,15 @@ _Actions required:_
 * Inspect your configuration for deprecated items, and replace them by their suggested equivalents.
 Make sure you don't use any removed items.
 You can use `ninja` tool for this.
+
+[#_behavior_changes_since_4_8_3]
+=== Behavior Changes Since 4.8.3
+
+* Checking for conflicts for single-valued items was fixed (strengthened).
+In 4.8.3 and before, there were situations that two strong mappings produced different values for a given single-valued item, yet no error was produced.
+(If the item contained the same value that was produced by one of these mappings.)
+Such configurations are in principle unstable, so this kind of errors should be identified and fixed.
+Please see bug:MID-9621[] and https://github.com/Evolveum/midpoint/commit/607236b4d357c9aa67d563d13d434edba6c61d02[this commit].
 
 [#_behavior_changes_since_4_8_1]
 === Behavior Changes Since 4.8.1

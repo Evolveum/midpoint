@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.api.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -15,7 +14,6 @@ import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
