@@ -85,7 +85,7 @@ public class PageRequestAccess extends PageSelf {
     }
 
     private List<WizardStep> createSteps() {
-        IModel<RequestAccess> model = getRequestAccessModel();
+        LoadableDetachableModel<RequestAccess> model = getRequestAccessModel();
 
         PersonOfInterestPanel personOfInterest = new PersonOfInterestPanel(model, this);
         RelationPanel relationPanel = new RelationPanel(model, this);
