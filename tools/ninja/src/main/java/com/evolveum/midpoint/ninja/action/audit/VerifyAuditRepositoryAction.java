@@ -16,6 +16,7 @@ import com.evolveum.midpoint.ninja.action.ExportRepositoryAction;
 import com.evolveum.midpoint.ninja.action.RepositoryAction;
 import com.evolveum.midpoint.ninja.action.worker.ProgressReporterWorker;
 import com.evolveum.midpoint.ninja.impl.LogTarget;
+import com.evolveum.midpoint.ninja.util.ConsoleFormat;
 import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -43,7 +44,7 @@ public class VerifyAuditRepositoryAction extends RepositoryAction<VerifyAuditOpt
         return "verify audit";
     }
 
-    protected Runnable createConsumer(
+    protected VerifyAuditConsumerWorker createConsumer(
             BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
         return new VerifyAuditConsumerWorker(context, options, queue, operation);
     }
@@ -73,7 +74,7 @@ public class VerifyAuditRepositoryAction extends RepositoryAction<VerifyAuditOpt
 
         executor.execute(new ProgressReporterWorker<>(context, options, queue, operation));
 
-        Runnable consumer = createConsumer(queue, operation);
+        var consumer = createConsumer(queue, operation);
         executor.execute(consumer);
 
         // execute rest of the producers
@@ -86,6 +87,14 @@ public class VerifyAuditRepositoryAction extends RepositoryAction<VerifyAuditOpt
         if (!awaitResult) {
             log.error("Executor did not finish before timeout");
         }
+
+        log.info("");
+        log.info(
+                "Verification finished. {} Audit records have issue.", consumer.getRecordsWithIssueCount() );
+        log.info("{}, {} and {} unknown issues found.",
+                ConsoleFormat.formatMessageWithErrorParameters("{} errors", consumer.getErrorCount()),
+                ConsoleFormat.formatMessageWithWarningParameters("{} warnings", consumer.getWarningCount()),
+                consumer.getUnknownCount());
 
         handleResultOnFinish(null, operation, "Finished " + OPERATION_SHORT_NAME);
 
