@@ -3319,7 +3319,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check audit
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertRecords(2);
+        // If activation is cached, the weak inbound mapping is applied.
+        // This depends on the default cache use, which is currently USE_CACHED_OR_FRESH.
+        // It this changes, we will need to adapt this test.
+        dummyAuditService.assertRecords(isCached() ? 3 : 2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0, 3);
         dummyAuditService.assertHasDelta(0, ChangeType.ADD, UserType.class);
