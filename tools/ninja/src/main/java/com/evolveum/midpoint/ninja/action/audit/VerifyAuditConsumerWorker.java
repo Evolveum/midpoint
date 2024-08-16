@@ -13,10 +13,8 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.schema.validator.ObjectValidator;
-import com.evolveum.midpoint.schema.validator.ValidationItem;
-import com.evolveum.midpoint.schema.validator.ValidationItemType;
-import com.evolveum.midpoint.schema.validator.ValidationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -49,6 +47,11 @@ public class VerifyAuditConsumerWorker
             "Item path",
             "Message"
     );
+    private long recordsWithIssue = 0;
+    private long unknownCount = 0;
+    private long errorCount = 0;
+    private long warningCount = 0;
+
 
     public VerifyAuditConsumerWorker(NinjaContext context,
             VerifyAuditOptions options, BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
@@ -70,12 +73,38 @@ public class VerifyAuditConsumerWorker
         if (result.isEmpty()) {
             return;
         }
+        increaseStats(result);
+
+
         if (isCsv()) {
             writeCsvResult(writer, result, object);
         } else {
             writePlainResult(writer, result, object);
         }
 
+    }
+
+    private void increaseStats(ValidationResult result) {
+        recordsWithIssue++;
+        for (var item : result.getItems()) {
+            var status = item.status() != null ? item.status() : ValidationItemStatus.INFO;
+            increaseCounter(status);
+        }
+
+    }
+
+    private void increaseCounter(ValidationItemStatus status) {
+        switch (status) {
+            case INFO:
+                unknownCount++;
+                break;
+            case WARNING:
+                warningCount++;
+                break;
+            case ERROR:
+                errorCount++;
+                break;
+        }
     }
 
     private void writeCsvResult(Writer writer, ValidationResult result, AuditEventRecordType object) throws IOException {
@@ -164,5 +193,25 @@ public class VerifyAuditConsumerWorker
                 .setRecordSeparator('\n')
                 .setQuoteMode(QuoteMode.ALL)
                 .build();
+    }
+
+    public long getRecordsWithIssueCount() {
+        return recordsWithIssue;
+    }
+
+    public long getRecordsWithIssue() {
+        return recordsWithIssue;
+    }
+
+    public long getUnknownCount() {
+        return unknownCount;
+    }
+
+    public long getErrorCount() {
+        return errorCount;
+    }
+
+    public long getWarningCount() {
+        return warningCount;
     }
 }

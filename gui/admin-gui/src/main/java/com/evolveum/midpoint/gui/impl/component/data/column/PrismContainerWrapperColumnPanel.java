@@ -102,16 +102,14 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
             for (PrismValueWrapper value : itemWrapper.getValues()) {
                 StringBuilder sb = new StringBuilder();
                 Object realValue = value.getRealValue();
-                sb.append(itemWrapper.getDisplayName());
 
                 if (realValue != null) {
                     if (realValue instanceof Referencable reference) {
                         if (reference.getOid() != null) {
-                            sb.append(" : ")
-                                .append(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(reference, false));
+                            sb.append(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(reference, false));
                         }
                     } else {
-                        sb.append(" : ").append(realValue);
+                        sb.append(realValue);
                     }
                 }
 
