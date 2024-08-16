@@ -57,6 +57,7 @@ See bug:MID-9580[] and bug:MID-9834[].
 * Improved a reset of the user's lockout status through GUI to clean up lockout expiration and failed attempts values as well. See bug:MID-9856[].
 * Improved page header styles for better layout of the title, breadcrumbs and other elements. See bug:MID-9742[].
 * Fixed "Rows per page" setting in the table view. See bug:MID-9766[].
+* Fixed "Out of memory" problem while producing a bulk action on the work items page. See bug:MID-9671[].
 
 == Changes with Respect To Version 4.8.2
 
