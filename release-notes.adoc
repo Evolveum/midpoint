@@ -49,6 +49,7 @@ See bug:MID-9580[] and bug:MID-9834[].
 * Fix for full-text search panel for assignments panels that used a custom collection filter. See bug:MID-9692[].
 * Fixed updating of model before form validation by expression validator with dependency on another attribute. See bug:MID-9688[].
 * Fix for resolving container value id when adding two new assignments generated from scripts. See bug:MID-9743[].
+* Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
 
 == Changes with Respect To Version 4.8.2
 
