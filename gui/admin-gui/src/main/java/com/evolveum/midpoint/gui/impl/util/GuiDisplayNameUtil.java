@@ -167,11 +167,18 @@ public class GuiDisplayNameUtil {
     }
 
     public static String getDisplayName(ShadowAssociationTypeDefinitionType associationType) {
+        return getDisplayName(associationType, false);
+    }
+
+    public static String getDisplayName(ShadowAssociationTypeDefinitionType associationType, boolean allowNull) {
         if (StringUtils.isNotEmpty(associationType.getDisplayName())) {
             return associationType.getDisplayName();
         }
 
         if (associationType.getName() == null || StringUtils.isEmpty(associationType.getName().getLocalPart())) {
+            if (allowNull) {
+                return null;
+            }
             return PageBase.createStringResourceStatic("SchemaHandlingType.associationType").getString();
         }
         return associationType.getName().getLocalPart();

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.ninja.util.NinjaUtils;
 import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.validator.ObjectValidator;
 import com.evolveum.midpoint.schema.validator.ValidationItem;
 import com.evolveum.midpoint.schema.validator.ValidationItemType;
@@ -49,6 +50,11 @@ public class VerifyAuditConsumerWorker
             "Item path",
             "Message"
     );
+    private long recordsWithIssue = 0;
+    private long unknownCount = 0;
+    private long errorCount = 0;
+    private long warningCount = 0;
+
 
     public VerifyAuditConsumerWorker(NinjaContext context,
             VerifyAuditOptions options, BlockingQueue<AuditEventRecordType> queue, OperationStatus operation) {
@@ -70,12 +76,39 @@ public class VerifyAuditConsumerWorker
         if (result.isEmpty()) {
             return;
         }
+        increaseStats(result);
+
+
         if (isCsv()) {
             writeCsvResult(writer, result, object);
         } else {
             writePlainResult(writer, result, object);
         }
 
+    }
+
+    private void increaseStats(ValidationResult result) {
+        recordsWithIssue++;
+        for (var item : result.getItems()) {
+            var status = item.getStatus() != null ? item.getStatus() : OperationResultStatus.UNKNOWN;
+            increaseCounter(status);
+        }
+
+    }
+
+    private void increaseCounter(OperationResultStatus status) {
+        switch (status) {
+            case UNKNOWN:
+                unknownCount++;
+                break;
+            case WARNING:
+                warningCount++;
+                break;
+            case PARTIAL_ERROR:
+            case FATAL_ERROR:
+                errorCount++;
+                break;
+        }
     }
 
     private void writeCsvResult(Writer writer, ValidationResult result, AuditEventRecordType object) throws IOException {
@@ -164,5 +197,25 @@ public class VerifyAuditConsumerWorker
                 .setRecordSeparator('\n')
                 .setQuoteMode(QuoteMode.ALL)
                 .build();
+    }
+
+    public long getRecordsWithIssueCount() {
+        return recordsWithIssue;
+    }
+
+    public long getRecordsWithIssue() {
+        return recordsWithIssue;
+    }
+
+    public long getUnknownCount() {
+        return unknownCount;
+    }
+
+    public long getErrorCount() {
+        return errorCount;
+    }
+
+    public long getWarningCount() {
+        return warningCount;
     }
 }

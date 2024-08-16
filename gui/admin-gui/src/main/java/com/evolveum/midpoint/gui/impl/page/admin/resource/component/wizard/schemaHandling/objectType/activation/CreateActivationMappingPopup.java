@@ -38,6 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -61,6 +62,12 @@ public class CreateActivationMappingPopup extends OnePanelPopupPanel {
         this.parentModel = parentModel;
         this.detailsModel = detailsModel;
         setWidth(660);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        getContent().add(AttributeAppender.append("class", "p-0"));
     }
 
     @Override

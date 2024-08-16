@@ -87,7 +87,8 @@ public class SearchBoxConfigurationBuilder {
                 ItemPath.create(AccessCertificationCaseType.F_CURRENT_STAGE_OUTCOME)
         ));
         FIXED_SEARCH_ITEMS.put(PrismItemDefinitionType.class, List.of(
-                ItemPath.create(PrismItemDefinitionType.F_DISPLAY_NAME)
+                ItemPath.create(PrismItemDefinitionType.F_DISPLAY_NAME),
+                ItemPath.create(PrismItemDefinitionType.F_NAME)
         ));
     }
 

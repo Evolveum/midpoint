@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
 
 @PanelType(name = "resourceSchema")
 @PanelInstance(identifier = "resourceSchema", applicableForType = ResourceType.class,
@@ -55,6 +56,11 @@ public class ResourceSchemaPanel extends AbstractObjectMainPanel<ResourceType, R
             @Override
             protected void showWizardForNewDefinition(AjaxRequestTarget target) {
                 getObjectDetailsModels().getPageResource().showComplexOrEnumerationTypeWizard(target);
+            }
+
+            @Override
+            protected IModel<String> getLabelForNewItem() {
+                return createStringResource("ResourceSchemaPanel.createNewValue");
             }
         };
         view.setOutputMarkupId(true);

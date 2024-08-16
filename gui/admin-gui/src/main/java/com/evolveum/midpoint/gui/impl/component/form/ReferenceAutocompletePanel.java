@@ -96,7 +96,9 @@ public class ReferenceAutocompletePanel<R extends Referencable> extends ValueCho
     private String getTypeTranslation() {
         List<QName> types = getSupportedTypes();
         ObjectTypes type = ObjectTypes.OBJECT;
-        if (types.size() == 1 && !QNameUtil.match(types.get(0), ObjectType.COMPLEX_TYPE)) {
+        if (types.size() == 1
+                && !QNameUtil.match(types.get(0), ObjectType.COMPLEX_TYPE)
+                && ObjectTypes.getObjectTypeClassIfKnown(types.get(0)) != null) {
             type = ObjectTypes.getObjectTypeFromTypeQName(types.get(0));
         }
         return getPageBase().createStringResource(type).getString().toLowerCase();
