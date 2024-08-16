@@ -14,10 +14,7 @@ import com.evolveum.midpoint.ninja.util.OperationStatus;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.validator.ObjectValidator;
-import com.evolveum.midpoint.schema.validator.ValidationItem;
-import com.evolveum.midpoint.schema.validator.ValidationItemType;
-import com.evolveum.midpoint.schema.validator.ValidationResult;
+import com.evolveum.midpoint.schema.validator.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -90,22 +87,21 @@ public class VerifyAuditConsumerWorker
     private void increaseStats(ValidationResult result) {
         recordsWithIssue++;
         for (var item : result.getItems()) {
-            var status = item.getStatus() != null ? item.getStatus() : OperationResultStatus.UNKNOWN;
+            var status = item.status() != null ? item.status() : ValidationItemStatus.INFO;
             increaseCounter(status);
         }
 
     }
 
-    private void increaseCounter(OperationResultStatus status) {
+    private void increaseCounter(ValidationItemStatus status) {
         switch (status) {
-            case UNKNOWN:
+            case INFO:
                 unknownCount++;
                 break;
             case WARNING:
                 warningCount++;
                 break;
-            case PARTIAL_ERROR:
-            case FATAL_ERROR:
+            case ERROR:
                 errorCount++;
                 break;
         }
