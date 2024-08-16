@@ -127,10 +127,12 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 
 === Releases Of Other Components
 
-// * New version (1.5.1.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-//
-// * New version (2.7) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-//
+ * New version (1.5.2.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+
+ * New version (2.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
+** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
+
 // * New version (3.7) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
 // ** This version improve processing of fetching existing entry when updating it in AD connector. (bug:MID-8929[]).
 // ** Adding configuration option for suppression of user parameter exceptions and log only a warning message.
