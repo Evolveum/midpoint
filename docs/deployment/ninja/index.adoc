@@ -148,23 +148,25 @@ Usage: java [-Dloader.path=<jdbc_driver_jar_path>] -jar ninja.jar [options] [com
 
   Commands:
 
-    import                  Imports objects into MidPoint
-    export                  Exports objects from midPoint
-    delete                  Delete objects from MidPoint
     count                   Count objects in midPoint repository
-    verify                  Verify objects in midPoint repository
-    keys                    List keys from keystore
-    info                    Shows information about the repository for the provided midPoint home
-    import-audit            Imports audit records into MidPoint
-    export-audit            Exports audit records from MidPoint
-    export-mining           Export of anonymized structure of relationships between roles, users and organizations objects.
-    trace                   Edit trace file
+    delete                  Delete objects from MidPoint
     download-distribution   Download target midPoint distribution (latest LTS).
-    run-sql                 Run arbitrary SQL scripts
-    upgrade-installation    Upgrade installation
-    upgrade-distribution    Upgrade midPoint distribution and related DB schema
-    upgrade-objects         Upgrade objects
-    pre-upgrade-check       Pre-upgrade check
+    export                  Exports objects from midPoint
+    export-audit            Exports audit records from MidPoint
+    export-mining           Export of anonymized structure of relationships between roles, users and
+            organizations objects.
     help                    Print this help, or prints help for specific command.
+    import                  Imports objects into MidPoint
+    import-audit            Imports audit records into MidPoint
+    info                    Shows information about the repository for the provided midPoint home
     initial-objects         Initial objects
+    keys                    List keys from keystore
+    pre-upgrade-check       Pre-upgrade check
+    run-sql                 Run arbitrary SQL scripts
+    trace                   Edit trace file
+    upgrade-distribution    Upgrade midPoint distribution and related DB schema
+    upgrade-installation    Upgrade installation
+    upgrade-objects         Upgrade objects
+    verify                  Verify objects in midPoint repository
+    verify-audit            Verify audit records in midPoint repository
 ----

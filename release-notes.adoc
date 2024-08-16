@@ -50,6 +50,18 @@ See bug:MID-9580[] and bug:MID-9834[].
 * Fixed updating of model before form validation by expression validator with dependency on another attribute. See bug:MID-9688[].
 * Fix for resolving container value id when adding two new assignments generated from scripts. See bug:MID-9743[].
 * Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
+* Fixed configuration of the date/time parameters during report running. See bug:MID-9828[].
+* Fixed search filter saving on the tasks list page. See bug:MID-9751[].
+* Fixed Enter key behavior during the search in the popup window. See bug:MID-9831[].
+* Fixed localization of the confirmation messages during some member operations on the org. members panel. See bug:MID-9829[].
+* Improved a reset of the user's lockout status through GUI to clean up lockout expiration and failed attempts values as well. See bug:MID-9856[].
+* Improved page header styles for better layout of the title, breadcrumbs and other elements. See bug:MID-9742[].
+* Fixed "Rows per page" setting in the table view. See bug:MID-9766[].
+* Fixed "Out of memory" problem while producing a bulk action on the work items page. See bug:MID-9671[].
+* Added `verify-audit` action to Ninja which reports audits records with incorrect oids. See bug:MID-9450[].
+* Widgets which use filters supported only in native repository now displays warning with reason instead of empty state. See bug:MID-9854[].
+* Fixed import object issue, when previous version of role had only inducements and new version also has assignments. See bug:MID-9876[].
+* Fixed shopping cart details panel to show all the necessary properties. See bug:MID-9858[].
 
 == Changes with Respect To Version 4.8.2
 

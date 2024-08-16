@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -82,7 +84,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     private Fragment footer;
 
-    private IModel<ItemSecurityConstraints> assignmentSecurityConstraints;
+    private LoadableDetachableModel<ItemSecurityConstraints> assignmentSecurityConstraints;
 
     private IModel<RequestAccess> requestAccess;
 
@@ -160,9 +162,10 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                     context.setCreateIfEmpty(true);
                     context.setReadOnly(false);
                     context.setShowEmpty(true);
+                    context.setSecurityConstraints(assignmentSecurityConstraints.getObject());
 
                     // create whole wrapper, instead of only the concrete container value wrapper
-                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.ADDED, context);
+                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.NOT_CHANGED, context);
                     PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
                     if (assignmentWrapper == null) {
                         return null;
@@ -181,7 +184,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             }
         };
 
-        assignmentSecurityConstraints = new LoadableModel<>() {
+        assignmentSecurityConstraints = new LoadableDetachableModel<>() {
 
             @Override
             protected ItemSecurityConstraints load() {
@@ -266,7 +269,10 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                         return ItemVisibility.HIDDEN;
                     }
                 }
-                return super.getBasicTabVisibity(itemWrapper);
+                if (isItemVisible(itemWrapper.getPath())) {
+                    return ItemVisibility.AUTO;
+                }
+                return ItemVisibility.HIDDEN;
             }
         };
         detailsPanel.add(new VisibleBehaviour(this::isDetailsPanelVisible));
@@ -303,14 +309,26 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 WebComponentUtil.getEnumChoiceRenderer(this));
         administrativeStatus.add(
                 new VisibleBehaviour(
-                        () -> isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS))));
+                        () -> isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION,
+                                ActivationType.F_ADMINISTRATIVE_STATUS))));
         administrativeStatus.setNullValid(true);
         add(administrativeStatus);
 
-        CustomValidityPanel customValidity = new CustomValidityPanel(ID_CUSTOM_VALIDITY, customValidityModel);
+        CustomValidityPanel customValidity = new CustomValidityPanel(ID_CUSTOM_VALIDITY, customValidityModel) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            protected boolean isFromFieldVisible() {
+                return isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM));
+            }
+
+            protected boolean isToFieldVisible() {
+                return isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO));
+            }
+        };
         customValidity.add(new VisibleEnableBehaviour(
-                () -> isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM))
-                        || isItemVisible(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)),
+                () -> isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM))
+                        || isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)),
                 () -> validitySettingsEnabled));
         add(customValidity);
     }
@@ -321,8 +339,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             return false;
         }
 
-        AuthorizationDecisionType decision = constraints.findItemDecision(
-                AssignmentHolderType.F_ASSIGNMENT.append(path));
+        AuthorizationDecisionType decision = constraints.findItemDecision(path);
 
         return decision == AuthorizationDecisionType.ALLOW;
     }
@@ -473,9 +490,23 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DOCUMENTATION),
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_SUBTYPE),
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_LIFECYCLE_STATE),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA),
                 ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF),
-                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER)
-        );
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_CONSTRUCTION),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_PERSONA_CONSTRUCTION),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_FOCUS_MAPPINGS),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_POLICY_RULE),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ORDER_CONSTRAINT),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_LIMIT_TARGET_CONTENT),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_LIMIT_OTHER_PRIVILEGES),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_CONDITION),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_POLICY_EXCEPTION),
+                ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ASSIGNMENT_RELATION)
+                );
     }
 
     private boolean isDetailsPanelVisible() {
