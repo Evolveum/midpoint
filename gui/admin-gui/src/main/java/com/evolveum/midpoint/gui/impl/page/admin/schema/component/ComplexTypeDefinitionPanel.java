@@ -184,9 +184,18 @@ public class ComplexTypeDefinitionPanel<AH extends AssignmentHolderType, ADM ext
             protected boolean isNewItemButtonVisible() {
                 return ComplexTypeDefinitionPanel.this.isNewDefinitionButtonVisible();
             }
+
+            @Override
+            protected IModel<String> getLabelForNewItem() {
+                return ComplexTypeDefinitionPanel.this.getLabelForNewItem();
+            }
         };
         panel.setOutputMarkupId(true);
         add(panel);
+    }
+
+    protected IModel<String> getLabelForNewItem() {
+        return createStringResource("ComplexTypeDefinitionPanel.createNewValue");
     }
 
     protected boolean isNewDefinitionButtonVisible() {

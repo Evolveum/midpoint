@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.sche
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -33,6 +34,8 @@ public class AssociationDefinitionWrapper implements Serializable {
 
     private final List<ParticipantWrapper> objects = new ArrayList<>();
 
+    private ParticipantWrapper associationData;
+
     private PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> sourceValue;
 
     public AssociationDefinitionWrapper(
@@ -40,6 +43,15 @@ public class AssociationDefinitionWrapper implements Serializable {
             ShadowReferenceAttributeDefinition refAttrDef,
             ResourceSchema resourceSchema) {
         this.associationAttribute = refAttrDef.getItemName();
+
+        @NotNull Collection<ShadowRelationParticipantType> participants = refAttrDef.getTargetParticipantTypes();
+        if (participants.size() == 1) {
+            @NotNull ResourceObjectDefinition participantDef = participants.iterator().next().getObjectDefinition();
+            if (participantDef.getObjectClassDefinition().isEmbedded()) {
+                this.associationData = new ParticipantWrapper(participantDef.getObjectClassName());
+            }
+        }
+
         if (subject instanceof ResourceObjectTypeDefinition subjectObjectTypeDef) {
             this.subjects.add(new ParticipantWrapper(subjectObjectTypeDef.getKind(), subjectObjectTypeDef.getIntent(), subject.getObjectClassName()));
         } else {
@@ -66,15 +78,22 @@ public class AssociationDefinitionWrapper implements Serializable {
 
     public AssociationDefinitionWrapper(PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value, ResourceSchema resourceSchema) {
         this.sourceValue = value;
-        ShadowReferenceAttributeDefinition refAttrDef = AssociationChildWrapperUtil.getShadowReferenceAttribute(resourceSchema, value);
-        this.associationAttribute = refAttrDef.getItemName();
+        ShadowAssociationDefinition assocDef = AssociationChildWrapperUtil.getShadowAssociationDefinition(resourceSchema, value);
+        this.associationAttribute = assocDef.getItemName();
+        if (assocDef.isComplex()) {
+            ResourceObjectDefinition associationDataDef = assocDef.getAssociationDataObjectDefinition();
+            this.associationData = new ParticipantWrapper(associationDataDef.getObjectClassName());
+        }
 
         List<ResourceObjectTypeIdentificationType> subjects = AssociationChildWrapperUtil.getObjectTypesOfSubject(value);
         subjects.forEach(subject -> {
             @Nullable ResourceObjectDefinition objectTypeDef = resourceSchema.findObjectDefinition(ResourceObjectTypeIdentification.of(subject));
             if (objectTypeDef != null) {
-                if (objectTypeDef instanceof ResourceObjectTypeDefinition subjectObjectTypeDef) {
-                    this.subjects.add(new ParticipantWrapper(subjectObjectTypeDef.getKind(), subjectObjectTypeDef.getIntent(), objectTypeDef.getObjectClassName()));
+                if (objectTypeDef instanceof ResourceObjectTypeDefinition objectObjectTypeDef) {
+                    this.subjects.add(new ParticipantWrapper(
+                            objectObjectTypeDef.getKind(),
+                            objectObjectTypeDef.getIntent(),
+                            objectTypeDef.getObjectClassName()));
                 } else {
                     this.subjects.add(new ParticipantWrapper(objectTypeDef.getObjectClassName()));
                 }
@@ -86,7 +105,10 @@ public class AssociationDefinitionWrapper implements Serializable {
             @Nullable ResourceObjectDefinition objectTypeDef = resourceSchema.findObjectDefinition(ResourceObjectTypeIdentification.of(object));
             if (objectTypeDef != null) {
                 if (objectTypeDef instanceof ResourceObjectTypeDefinition objectObjectTypeDef) {
-                    this.objects.add(new ParticipantWrapper(objectObjectTypeDef.getKind(), objectObjectTypeDef.getIntent(), objectTypeDef.getObjectClassName()));
+                    this.objects.add(new ParticipantWrapper(
+                            objectObjectTypeDef.getKind(),
+                            objectObjectTypeDef.getIntent(),
+                            objectTypeDef.getObjectClassName()));
                 } else {
                     this.objects.add(new ParticipantWrapper(objectTypeDef.getObjectClassName()));
                 }
@@ -126,6 +148,10 @@ public class AssociationDefinitionWrapper implements Serializable {
     @Nullable
     public PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> getSourceValue() {
         return sourceValue;
+    }
+
+    public ParticipantWrapper getAssociationData() {
+        return associationData;
     }
 
     public void changeSubjectToObjectClassSelect() {

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEval
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
@@ -268,7 +269,8 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         VariablesMap variables = createVariables(
                 ExpressionConstants.VAR_USER, user, user.getDefinition());
 
-        assertExecuteScriptExpressionString(variables, null);
+        assertExecuteScriptExpressionString(variables,
+                InternalsConfig.isShadowCachingOnByDefault() ? "Guybrush Threepwood" : null);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
     }

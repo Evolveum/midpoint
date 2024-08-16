@@ -193,17 +193,37 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
             }
         });
 
-        selectedNewItems.forEach(wrapper -> {
+        if (objectParticipantContainer.getValues().isEmpty()) {
             try {
                 PrismContainerValue<ShadowAssociationTypeObjectDefinitionType> newValue = objectParticipantContainer.getItem().createNewValue();
-                newValue.asContainerable().beginObjectType().kind(wrapper.getKind()).intent(wrapper.getIntent());
+                selectedNewItems.forEach(wrapper -> {
+                    newValue.asContainerable().beginObjectType().kind(wrapper.getKind()).intent(wrapper.getIntent());
+                });
                 PrismContainerValueWrapper<ShadowAssociationTypeObjectDefinitionType> valueWrapper = WebPrismUtil.createNewValueWrapper(
                         objectParticipantContainer, newValue, getPageBase(), getDetailsModel().createWrapperContext());
                 objectParticipantContainer.getValues().add(valueWrapper);
             } catch (SchemaException e) {
                 LOGGER.error("Couldn't create new value for ShadowAssociationTypeObjectDefinitionType in " + objectParticipantContainer);
             }
-        });
+        } else {
+            try {
+                PrismContainerValueWrapper<ShadowAssociationTypeObjectDefinitionType> value = objectParticipantContainer.getValues().get(0);
+                PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeContainer = value.findContainer(ShadowAssociationTypeObjectDefinitionType.F_OBJECT_TYPE);
+                selectedNewItems.forEach(wrapper -> {
+                    try {
+                        PrismContainerValue<ResourceObjectTypeIdentificationType> newValue = objectTypeContainer.getItem().createNewValue();
+                        newValue.asContainerable().kind(wrapper.getKind()).intent(wrapper.getIntent());
+                        PrismContainerValueWrapper<ResourceObjectTypeIdentificationType> valueWrapper = WebPrismUtil.createNewValueWrapper(
+                                objectTypeContainer, newValue, getPageBase(), getDetailsModel().createWrapperContext());
+                        objectTypeContainer.getValues().add(valueWrapper);
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't create new value for ResourceObjectTypeIdentificationType in " + objectParticipantContainer, e);
+                    }
+                });
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find " + ShadowAssociationTypeObjectDefinitionType.F_OBJECT_TYPE.getLocalPart() + " container in " + objectParticipantContainer, e);
+            }
+        }
     }
 
     @Override

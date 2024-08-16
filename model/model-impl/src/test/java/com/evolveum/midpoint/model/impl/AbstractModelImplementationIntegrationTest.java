@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -117,19 +119,23 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         focusContext.setPrimaryDelta(addDelta);
     }
 
-    protected LensProjectionContext fillContextWithAccount(LensContext<UserType> context, String accountOid, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        PrismObject<ShadowType> account = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        provisioningService.applyDefinition(account, task, result);
+    protected LensProjectionContext fillContextWithAccount(
+            LensContext<UserType> context, String accountOid, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        // This is better than using repository directly
+        var account = provisioningService.getObject(ShadowType.class, accountOid, createNoFetchCollection(), task, result);
         return fillContextWithAccount(context, account, task, result);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     protected LensProjectionContext fillContextWithAccountFromFile(
             LensContext<UserType> context, File file, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, IOException, SchemaException {
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
         provisioningService.applyDefinition(account, task, result);
+        provisioningService.determineShadowState(account, task, result);
         return fillContextWithAccount(context, account, task, result);
     }
 

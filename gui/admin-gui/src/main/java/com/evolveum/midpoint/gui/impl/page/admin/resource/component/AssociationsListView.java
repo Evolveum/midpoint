@@ -16,7 +16,6 @@ import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
@@ -30,6 +29,12 @@ public abstract class AssociationsListView extends PageableListView<Tile<Associa
             ResourceDetailsModel resourceDetailsModel) {
         super(id, provider, null);
         this.resourceDetailsModel = resourceDetailsModel;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        setItemsPerPage(4);
     }
 
     @Override

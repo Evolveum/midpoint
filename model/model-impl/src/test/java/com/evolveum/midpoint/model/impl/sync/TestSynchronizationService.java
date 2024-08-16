@@ -6,9 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
+
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -893,10 +898,17 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         RESOURCE_DUMMY_LIMITED.controller.getDummyResource().getAccountByName(USER_JACK_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Limitistan");
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_LIMITED.oid);
+
+        // Sleeping here so that "get" operation below will cache data with timestamp that is different from the one
+        // in the invalidation record.
+        MiscUtil.sleepCatchingInterruptedException(50L);
+
         displayDumpable("Dummy resource before", getDummyResource());
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-        PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
+        PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModel(accountShadowJackDummyLimitedOid);
         // This is needed to avoid fetching the full shadow right after starting the synchronization
         accountShadowLimitedJackBefore.asObjectable().setContentDescription(ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE);
         change.setShadowedResourceObject(accountShadowLimitedJackBefore);
@@ -938,7 +950,15 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
                         RESOURCE_DUMMY_LIMITED.oid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, null);
         LensProjectionContext accCtxDummyLimited = context.findProjectionContextByKeyExact(keyDummyLimited);
         assertNotNull("No account sync context for " + keyDummyLimited, accCtxDummyLimited);
-        assertTrue("Wrong fullShadow for " + keyDummyLimited, accCtxDummyLimited.isFullShadow());
+
+        // This is tricky. In both cases (caching, not caching) the shadow is initially marked as "full".
+        // In both cases, it is downgraded to "shadow only" after the execution of computed deltas.
+        // But in the "not caching" case, it is loaded again, because of the reconciliation (although
+        // this could be perhaps optimized some day).
+        assertThat(accCtxDummyLimited.isFullShadow())
+                .as("fullShadow flag in " + keyDummyLimited)
+                .isEqualTo(!InternalsConfig.isShadowCachingOnByDefault());
+
         assertTrue("Wrong canProject for " + keyDummyLimited, accCtxDummyLimited.isCanProject());
 
         assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);

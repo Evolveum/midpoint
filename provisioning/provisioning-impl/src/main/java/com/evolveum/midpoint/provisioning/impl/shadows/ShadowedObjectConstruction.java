@@ -142,7 +142,7 @@ class ShadowedObjectConstruction {
         b.associationsHelper.convertReferenceAttributesToAssociations(
                 ctx, resultingShadowedBean, authoritativeDefinition, result);
 
-        copyCachingMetadata();
+        // caching metadata are kept from the repository shadow
 
         checkConsistence();
 

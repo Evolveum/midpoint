@@ -13,10 +13,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +30,7 @@ public class AssociationChildWrapperUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(DetailsPageUtil.class);
 
-    public static ShadowReferenceAttributeDefinition getShadowReferenceAttribute(PrismValueWrapper propertyWrapper, PageAdminLTE pageBase) {
+    public static ShadowAssociationDefinition getShadowAssociationDefinition(PrismValueWrapper propertyWrapper, PageAdminLTE pageBase) {
         ResourceSchema schema = null;
         try {
             schema = ResourceSchemaFactory.getCompleteSchema(
@@ -46,10 +43,10 @@ public class AssociationChildWrapperUtil {
             schema = ResourceDetailsModel.getResourceSchema(
                     propertyWrapper.getParent().findObjectWrapper(), pageBase);
         }
-        return getShadowReferenceAttribute(schema, propertyWrapper);
+        return getShadowAssociationDefinition(schema, propertyWrapper);
     }
 
-    public static ShadowReferenceAttributeDefinition getShadowReferenceAttribute(ResourceSchema schema, PrismValueWrapper propertyWrapper) {
+    public static ShadowAssociationDefinition getShadowAssociationDefinition(ResourceSchema schema, PrismValueWrapper propertyWrapper) {
         if (schema == null) {
             return null;
         }
@@ -69,7 +66,7 @@ public class AssociationChildWrapperUtil {
             return null;
         }
 
-        return objectTypeDef.findReferenceAttributeDefinition(ref);
+        return objectTypeDef.findAssociationDefinition(ref.asSingleName());
     }
 
     public static ResourceObjectTypeIdentificationType getFirstObjectTypeOfSubject(PrismValueWrapper propertyWrapper) {
@@ -189,12 +186,9 @@ public class AssociationChildWrapperUtil {
 
         PrismPropertyWrapper<ItemPathType> refProperty = null;
         try {
-            refProperty = associationDefTypValue.findProperty(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF);
+            refProperty = associationDefTypValue.findProperty(ShadowAssociationDefinitionType.F_REF);
             if (refProperty == null || refProperty.getValue() == null) {
-                refProperty = associationDefTypValue.findProperty(ShadowAssociationDefinitionType.F_REF);
-                if (refProperty == null || refProperty.getValue() == null) {
-                    return null;
-                }
+                return null;
             }
 
         } catch (SchemaException e) {
