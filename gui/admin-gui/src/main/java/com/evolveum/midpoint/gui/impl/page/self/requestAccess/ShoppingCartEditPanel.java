@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -313,7 +314,18 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         administrativeStatus.setNullValid(true);
         add(administrativeStatus);
 
-        CustomValidityPanel customValidity = new CustomValidityPanel(ID_CUSTOM_VALIDITY, customValidityModel);
+        CustomValidityPanel customValidity = new CustomValidityPanel(ID_CUSTOM_VALIDITY, customValidityModel) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            protected boolean isFromFieldVisible() {
+                return isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM));
+            }
+
+            protected boolean isToFieldVisible() {
+                return isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO));
+            }
+        };
         customValidity.add(new VisibleEnableBehaviour(
                 () -> isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM))
                         || isItemVisible(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO)),
