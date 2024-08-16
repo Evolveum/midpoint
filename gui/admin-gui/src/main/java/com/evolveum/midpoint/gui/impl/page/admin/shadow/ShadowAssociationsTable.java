@@ -233,6 +233,11 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
                     protected boolean isDuplicationSupported() {
                         return false;
                     }
+
+                    @Override
+                    protected boolean allowEditMultipleValuesAtOnce() {
+                        return false;
+                    }
                 };
         table.add(AttributeAppender.append("class", "card"));
         table.add(AttributeAppender.append(
