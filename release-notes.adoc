@@ -35,6 +35,8 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * Request access wizard multiple fixes
 ** Person of interest existing target selection was replaced with new one when using manual selection. See bug:MID-9761[].
 ** Search keywords used in the role catalog were not maintained. See bug:MID-9685[].
+** Improved shopping cart summary - list of users in tooltip now contains name. See MID-9762[].
+** Fixed search filter - now using relation when listing roles of teammates. See bug:MID-9698[].
 * Missing translation for boolean values fixed. See bug:MID-9865[].
 * Fixed NPE during navigation when editing object on repository pages. See bug:MID-9677[].
 * Fixed search on home page - after redirect to list of objects old search filter was used. See bug:MID-9875[].
