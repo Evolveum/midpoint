@@ -606,4 +606,11 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         target.add(table);
     }
 
+    @Override
+    protected void onDetach() {
+        if (shoppingCartItemsModel != null) {
+            shoppingCartItemsModel.detach();
+        }
+        super.onDetach();
+    }
 }
