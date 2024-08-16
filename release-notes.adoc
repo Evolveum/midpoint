@@ -122,6 +122,7 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Role wizard is now supported also for children of application and business roles (archetypes).
 * Dedicated data type for policy objects (xref:/midpoint/reference/schema/policy/[PolicyType])
 * Implementation of new task activities for opening next stage of certification campaign and certification remediation. More details can be found in the xrefv:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
+* Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
 
 === Releases Of Other Components
 
