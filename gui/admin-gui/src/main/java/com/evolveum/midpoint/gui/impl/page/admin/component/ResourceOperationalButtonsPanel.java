@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
@@ -159,6 +160,7 @@ public abstract class ResourceOperationalButtonsPanel extends AssignmentHolderOp
                                 super.noPerformed(target);
                                 try {
                                     String realValue = model.getObject().getValue().getOldValue().getRealValue();
+                                    model.getObject().getValue().setStatus(ValueStatus.NOT_CHANGED);
                                     model.getObject().getValue().getNewValue().setValue(realValue);
                                     target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL));
                                     target.add(ResourceOperationalButtonsPanel.this.get(ID_LIFECYCLE_STATE_PANEL).getParent());

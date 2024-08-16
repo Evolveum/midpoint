@@ -10,6 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -128,5 +133,29 @@ public class AssignmentWrapperFactoryImpl extends NoEmptyValueContainerWrapperFa
     @Override
     public int getOrder() {
         return 99;
+    }
+
+    @Override
+    public boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+        ItemSecurityConstraints securityConstraints = context.getSecurityConstraints();
+        if (securityConstraints == null) {
+            return super.skipCreateWrapper(def, status, context, isEmptyValue);
+        }
+        if (allowedItemExist(securityConstraints)) {
+            return false;
+        }
+        return super.skipCreateWrapper(def, status, context, isEmptyValue);
+    }
+
+    private boolean allowedItemExist(ItemSecurityConstraints securityConstraints) {
+        //todo go through all items and check if they are allowed
+        //or hack : go only through those items which we need
+        AuthorizationDecisionType descr = securityConstraints.findItemDecision(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION));
+        AuthorizationDecisionType tenantRef = securityConstraints.findItemDecision(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF));
+        AuthorizationDecisionType orgRef = securityConstraints.findItemDecision(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_ORG_REF));
+        AuthorizationDecisionType focusType = securityConstraints.findItemDecision(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_FOCUS_TYPE));
+        return AuthorizationDecisionType.ALLOW.equals(descr) || AuthorizationDecisionType.ALLOW.equals(tenantRef)
+                || AuthorizationDecisionType.ALLOW.equals(orgRef) || AuthorizationDecisionType.ALLOW.equals(focusType);
+
     }
 }
