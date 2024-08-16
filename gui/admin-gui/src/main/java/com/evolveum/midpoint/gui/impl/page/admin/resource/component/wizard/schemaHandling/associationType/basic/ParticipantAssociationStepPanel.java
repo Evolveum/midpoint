@@ -9,8 +9,14 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -281,5 +287,10 @@ public abstract class ParticipantAssociationStepPanel
 
     protected String getIcon() {
         return "fa fa-list";
+    }
+
+    @Override
+    protected VisibleEnableBehaviour getHeaderFragmentVisibility() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 }

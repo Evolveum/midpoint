@@ -322,14 +322,20 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     Fragment createHeaderFragment(String id) {
         Fragment fragment = new Fragment(id, ID_HEADER_FRAGMENT, TileTablePanel.this);
+        fragment.setOutputMarkupId(true);
 
         Component header = createHeader(ID_PANEL_HEADER);
         header.add(AttributeAppender.append("class", getTilesHeaderCssClasses()));
         fragment.add(header);
 
         fragment.add(createTogglePanel(ID_VIEW_TOGGLE));
+        fragment.add(getHeaderFragmentVisibility());
 
         return fragment;
+    }
+
+    protected VisibleEnableBehaviour getHeaderFragmentVisibility() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected Component createHeader(String id) {

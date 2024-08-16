@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
@@ -148,9 +149,18 @@ public abstract class MultiSelectContainerTileWizardStepPanel<E extends Serializ
                     protected Component createHeader(String id) {
                         return MultiSelectContainerTileWizardStepPanel.this.createTableHeader(id, super.createHeader(id));
                     }
+
+                    @Override
+                    protected VisibleEnableBehaviour getHeaderFragmentVisibility() {
+                        return MultiSelectContainerTileWizardStepPanel.this.getHeaderFragmentVisibility();
+                    }
                 };
         tilesTable.setOutputMarkupId(true);
         return tilesTable;
+    }
+
+    protected VisibleEnableBehaviour getHeaderFragmentVisibility() {
+        return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected Component createTableHeader(String id, Component header) {
