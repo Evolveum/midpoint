@@ -10,9 +10,12 @@ package com.evolveum.midpoint.gui.impl.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.component.tile.Tile;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -67,8 +70,8 @@ public class ProvisioningObjectsUtil {
     private static final String DOT_CLASS = ProvisioningObjectsUtil.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
-
-    @NotNull public static String determineDisplayNameForDefinition(ShadowType shadow, PageBase pageBase) {
+    @NotNull
+    public static String determineDisplayNameForDefinition(ShadowType shadow, PageBase pageBase) {
         ResourceObjectDefinition def = loadResourceObjectDefinition(shadow, pageBase);
         if (def == null) {
             return ""; //TODO do we want something like N/A here?
@@ -746,5 +749,20 @@ public class ProvisioningObjectsUtil {
             objects.add(objectParticipantDef);
         });
         return objects;
+    }
+
+    public static List<ShadowReferenceAttributeDefinition> getShadowReferenceAttributeDefinitions(
+            CompleteResourceSchema resourceSchema) {
+        List<ShadowReferenceAttributeDefinition> list = new ArrayList<>();
+        resourceSchema.getObjectTypeDefinitions().forEach(objectTypeDef ->
+                objectTypeDef.getReferenceAttributeDefinitions().forEach(
+                        associationDef -> {
+                            if (!associationDef.canRead()
+                                    || ShadowReferenceParticipantRole.SUBJECT != associationDef.getParticipantRole()) {
+                                return;
+                            }
+                            list.add(associationDef);
+                        }));
+        return list;
     }
 }
