@@ -33,6 +33,14 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 ** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5.
 ** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
 * Request access wizard multiple fixes
+** Person of interest existing target selection was replaced with new one when using manual selection. See bug:MID-9761[].
+** Search keywords used in the role catalog were not maintained. See bug:MID-9685[].
+* Missing translation for boolean values fixed. See bug:MID-9865[].
+* Fixed NPE during navigation when editing object on repository pages. See bug:MID-9677[].
+* Fixed search on home page - after redirect to list of objects old search filter was used. See bug:MID-9875[].
+* Added better validation for OID format for object and object references. See bug:MID-9852[].
+* Saving filter now doesn't trigger reconciliation, raw flag is used. See bug:MID-9744[].
+* Fixed initial-midpoint-home setup. See bug:MID-9885[].
 * Checking for conflicts for single-valued items was fixed (strengthened).
 See bug:MID-9621[] and xref:_behavior_changes_since_4_8_3[].
 * Fix for getting current login users on another node. See bug:MID-9746[].
