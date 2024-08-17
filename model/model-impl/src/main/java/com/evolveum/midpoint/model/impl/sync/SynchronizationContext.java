@@ -199,13 +199,8 @@ public abstract class SynchronizationContext<F extends FocusType>
     }
 
     boolean isMarkedSkipSynchronization(OperationResult result) {
-        var policy = shadowedResourceObject.getEffectiveOperationPolicy();
-        // Policy should not be null if was provided by provisioning-impl, but sometimes in tests
-        // provisioning is skipped, so we need to ensure policy is computed.
-        if (policy == null) {
-            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, result);
-        }
-        return isSyncInboundDisabled(policy);
+        return isSyncInboundDisabled(
+                shadowedResourceObject.getEffectiveOperationPolicy());
     }
 
     public boolean isProtected() {

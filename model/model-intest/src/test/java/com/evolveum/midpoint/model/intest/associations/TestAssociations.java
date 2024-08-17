@@ -41,6 +41,7 @@ import com.evolveum.midpoint.test.DummyTestResource;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAGED;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
@@ -137,12 +138,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<ArchetypeType> ARCHETYPE_AD_ROLE = TestObject.file(
             TEST_DIR, "archetype-ad-role.xml", "5200a309-554d-46c7-a551-b8a4fdc26a18");
 
-    // Temporary, move to initial objects later
-    private static final TestObject<MarkType> MARK_IGNORED = TestObject.file(
-            TEST_DIR, "mark-ignored.xml", SystemObjectsType.MARK_IGNORED.value());
-    private static final TestObject<MarkType> MARK_TOLERATED = TestObject.file(
-            TEST_DIR, "mark-tolerated.xml", SystemObjectsType.MARK_TOLERATED.value());
-
     private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
 
     // HR objects
@@ -193,10 +188,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         initTestObjects(initTask, initResult,
                 ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT, ARCHETYPE_DOCUMENT_NON_TOLERANT,
                 ARCHETYPE_AD_ROLE);
-
-        // TODO move to CommonInitialObjects later
-        initTestObjects(initTask, initResult,
-                MARK_TOLERATED, MARK_IGNORED);
 
         // The subresult is created to avoid failing on benign warnings from the above objects' initialization
         var subResult = initResult.createSubresult("initializeResources");
@@ -328,7 +319,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         var testersAsserter = assertRoleByName(ROLE_TESTERS_NAME, "after").display();
         roleTesters = testersAsserter.getObjectable();
         shadowTestersOid = testersAsserter.singleLink().getOid();
-        markShadow(shadowTestersOid, MARK_TOLERATED.oid, getTestTask(), getTestOperationResult());
+        markShadow(shadowTestersOid, MARK_UNMANAGED.oid, getTestTask(), getTestOperationResult());
 
         var operatorsAsserter = assertRoleByName(ROLE_OPERATORS_NAME, "after").display();
         roleOperators = operatorsAsserter.getObjectable();
@@ -630,6 +621,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                                 .targetRef(documentOid, ServiceType.COMPLEX_TYPE, RELATION_WRITE))
                         .asObjectDelta(userOid),
                 null, task, result);
+
+        assertSuccess(result);
 
         then("the account with read and write access to the document exists");
         // @formatter:off

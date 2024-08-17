@@ -2143,14 +2143,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     @Nullable
-    private ObjectOperationPolicyType operationPolicy(OperationResult result) {
+    private ObjectOperationPolicyType operationPolicy(OperationResult result) throws ConfigurationException {
         if (getObjectNewOrCurrentOrOld() == null) {
             return null;
         }
         return ObjectOperationPolicyHelper.get().getEffectivePolicy(getObjectNewOrCurrentOrOld().asObjectable(), result);
     }
 
-    public boolean isMarkedReadOnly(OperationResult result) {
+    public boolean isMarkedReadOnly(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
             return false;
@@ -2158,7 +2158,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return isAddDisabled(policy) && isModifyDisabled(policy) && isDeleteDisabled(policy);
     }
 
-    public boolean isInboundSyncDisabled(OperationResult result) {
+    public boolean isInboundSyncDisabled(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
             return false;
@@ -2166,7 +2166,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return isSyncInboundDisabled(policy); // TODO severity
     }
 
-    public boolean isOutboundSyncDisabled(OperationResult result) {
+    public boolean isOutboundSyncDisabled(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
             return false;

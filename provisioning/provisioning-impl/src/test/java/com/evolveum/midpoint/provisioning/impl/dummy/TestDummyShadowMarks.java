@@ -49,10 +49,6 @@ public class TestDummyShadowMarks extends AbstractDummyTest {
 
     private static final File RESOURCE_DUMMY_SHADOW_MARKS_FILE = new File(TEST_DIR,"resource-dummy-shadow-marks.xml");
 
-    private static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
-            "initial-objects/archetype", "701-archetype-object-mark.xml",
-            SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
-
     @Override
     protected File getResourceDummyFile() {
         return RESOURCE_DUMMY_SHADOW_MARKS_FILE;

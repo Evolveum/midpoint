@@ -871,19 +871,21 @@ For example, let us assume a group `guests` shadow has the following mark.
 [source,xml]
 ----
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000806">
-    <name>Tolerated</name>
+    oid="00000000-0000-0000-0000-000000000805">
+    <name>Unmanaged</name>
     <documentation>
-        Marks entitlement-like objects (i.e., objects in associations) that should be tolerated by midPoint.
-        Usually, these are ones that are in transition from being managed externally to being managed by midPoint.
+        Marks a shadow that is tolerated by midPoint but not managed by it.
+        MidPoint should not create, modify, nor delete such objects (at the low level).
+        MidPoint should not execute outbound mappings on such objects.
+        MidPoint should not manage membership of these objects (if applicable; e.g., for groups).
     </documentation>
-    <assignment>
-        <identifier>archetype</identifier>
-        <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/> <!-- Object mark -->
-    </assignment>
+    <!-- ... -->
     <objectOperationPolicy>
+        <!-- ... -->
         <synchronize>
+            <!-- ... -->
             <membership>
+                <!-- ... -->
                 <tolerant>true</tolerant>
             </membership>
         </synchronize>
@@ -901,9 +903,7 @@ A better one is to use automatic marking facility in midPoint, potentially with 
 
 Two typical options of setting up the mark are:
 
-#Beware, the exact syntax is not final yet.#
-
-.Setting the "tolerated" mark for all new shadows
+.Setting the "unmanaged" mark for all new shadows
 [source,xml]
 ----
 <objectType>
@@ -911,16 +911,15 @@ Two typical options of setting up the mark are:
     <intent>group</intent>
     <!-- delineation, attributes, etc -->
     <marking>
-        <tolerated>
-            <applicationTime>classification</applicationTime> <!--1-->
-        </tolerated>
+        <markRef oid="00000000-0000-0000-0000-000000000806"/>
+        <applicationTime>classification</applicationTime> <!--1-->
     </marking>
     <!-- ... -->
 </objectType>
 ----
-<1> This causes marking each newly classified or reclassified shadow as "tolerated".
+<1> This causes marking each newly classified or reclassified shadow as "unmanaged".
 
-.Setting the "tolerated" mark for selected shadows
+.Setting the "unmanaged" mark for selected shadows
 [source,xml]
 ----
 <objectType>
@@ -928,16 +927,17 @@ Two typical options of setting up the mark are:
     <intent>group</intent>
     <!-- delineation, attributes, etc -->
     <marking>
-        <tolerated>
+        <markRef oid="00000000-0000-0000-0000-000000000806"/>
+        <pattern>
             <filter>
                 <q:text>attributes/info = "temporary"</q:text> <!--1-->
             </filter>
-        </tolerated>
+        </pattern>
     </marking>
     <!-- ... -->
 </objectType>
 ----
-<1> This causes marking each group that has the value of `temporary` in its `info` attribute as "tolerated".
+<1> This causes marking each group that has the value of `temporary` in its `info` attribute as "unmanaged".
 
 ==== Tolerance, Deltas, and Reconciliation
 

@@ -28,51 +28,50 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <marking>
-                <protected>
-                    <pattern>
-                        <filter>
-                            <q:equal>
-                                <q:path>attributes/name</q:path>
-                                <q:value>root</q:value>
-                            </q:equal>
-                        </filter>
-                    </pattern>
-                    <pattern>
-                        <filter>
-                            <q:equal>
-                                <q:path>
-                                    declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                                    attributes/icfs:name
-                                </q:path>
-                                <q:value>daviejones</q:value>
-                            </q:equal>
-                        </filter>
-                    </pattern>
-                    <pattern>
-                        <filter>
-                            <q:substring>
-                                <q:path>
-                                    declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                                    attributes/icfs:name
-                                </q:path>
-                                <q:value>X</q:value>
-                                <q:anchorStart>true</q:anchorStart>
-                            </q:substring>
-                        </filter>
-                    </pattern>
-                    <pattern>
-                        <filter>
-                            <q:substring>
-                                <q:path>
-                                    declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                                    attributes/icfs:name
-                                </q:path>
-                                <q:value>-adm</q:value>
-                                <q:anchorEnd>true</q:anchorEnd>
-                            </q:substring>
-                        </filter>
-                    </pattern>
-                </protected>
+                <markRef oid="00000000-0000-0000-0000-000000000800"/>
+                <pattern>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/name</q:path>
+                            <q:value>root</q:value>
+                        </q:equal>
+                    </filter>
+                </pattern>
+                <pattern>
+                    <filter>
+                        <q:equal>
+                            <q:path>
+                                declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                                attributes/icfs:name
+                            </q:path>
+                            <q:value>daviejones</q:value>
+                        </q:equal>
+                    </filter>
+                </pattern>
+                <pattern>
+                    <filter>
+                        <q:substring>
+                            <q:path>
+                                declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                                attributes/icfs:name
+                            </q:path>
+                            <q:value>X</q:value>
+                            <q:anchorStart>true</q:anchorStart>
+                        </q:substring>
+                    </filter>
+                </pattern>
+                <pattern>
+                    <filter>
+                        <q:substring>
+                            <q:path>
+                                declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                                attributes/icfs:name
+                            </q:path>
+                            <q:value>-adm</q:value>
+                            <q:anchorEnd>true</q:anchorEnd>
+                        </q:substring>
+                    </filter>
+                </pattern>
             </marking>
         </objectType>
         <objectType>
@@ -85,10 +84,8 @@
                 <fetchStrategy>minimal</fetchStrategy>
             </attribute>
             <marking>
-                <other>
-                    <applicationTime>classification</applicationTime>
-                    <markRef oid="00000000-0000-0000-0000-000000000804"/>
-                </other>
+                <markRef oid="00000000-0000-0000-0000-000000000804"/>
+                <applicationTime>classification</applicationTime>
             </marking>
         </objectType>
     </schemaHandling>

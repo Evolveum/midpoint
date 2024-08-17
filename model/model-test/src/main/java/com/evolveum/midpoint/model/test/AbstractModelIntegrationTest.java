@@ -7718,6 +7718,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
     }
 
+    protected void markShadowExcluded(String oid, String markOid, Task task, OperationResult result) throws CommonException {
+        var statement = new PolicyStatementType()
+                .markRef(markOid, MarkType.COMPLEX_TYPE)
+                .type(PolicyStatementTypeType.EXCLUDE);
+        modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
+    }
+
     protected @NotNull CaseType getOpenCaseRequired(List<CaseType> cases) {
         var openCases = cases.stream()
                 .filter(c -> QNameUtil.matchUri(c.getState(), CASE_STATE_OPEN_URI))

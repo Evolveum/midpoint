@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.config.ConfigurationItem.DESC;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.MARK_PROTECTED_OID;
 
+import static java.util.Objects.*;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -22,7 +24,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -161,7 +162,6 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
         @NotNull private final AbstractResourceObjectDefinitionConfigItem<?> definitionCI;
         @NotNull private final AbstractResourceObjectDefinitionImpl definition;
 
-        @NotNull private final Map<String, ShadowMarkConfigurationType> configBeansMap = new HashMap<>();
         @NotNull private final Map<String, MarkingRule> parsedRulesMap = new HashMap<>();
 
         Parser(
@@ -172,17 +172,17 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
         }
 
         Map<String, MarkingRule> parse() throws ConfigurationException {
-
-            createConfigBeansMap();
-
-            for (var configBeanEntry : configBeansMap.entrySet()) {
-                var markOid = configBeanEntry.getKey();
-                var ruleBean = configBeanEntry.getValue();
+            for (var markingDefBean : definitionCI.value().getMarking()) {
+                var markOid = definitionCI.nonNull(getOid(markingDefBean.getMarkRef()), "marking ref OID");
+                definitionCI.configCheck(
+                        !parsedRulesMap.containsKey(markOid),
+                        "Marking rule for mark %s is defined multiple times in %s",
+                        markOid, DESC);
                 parsedRulesMap.put(
                         markOid,
                         parseMarkingRule(
-                                resolveDefaultApplicationTime(ruleBean.getApplicationTime(), markOid),
-                                ruleBean.getPattern()));
+                                requireNonNullElse(markingDefBean.getApplicationTime(), ShadowMarkApplicationTimeType.ALWAYS),
+                                markingDefBean.getPattern()));
             }
 
             var legacyProtectedPatternBean = definitionCI.value().getProtected();
@@ -192,21 +192,12 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
                         "Protected objects cannot be specified in both legacy and modern way in %s", DESC);
                 parsedRulesMap.put(
                         MARK_PROTECTED_OID,
-                        parseMarkingRule(ShadowMarkApplicationTimeType.ALWAYS, legacyProtectedPatternBean));
+                        parseMarkingRule(
+                                ShadowMarkApplicationTimeType.ALWAYS,
+                                legacyProtectedPatternBean));
             }
 
             return parsedRulesMap;
-        }
-
-        private @NotNull ShadowMarkApplicationTimeType resolveDefaultApplicationTime(
-                @Nullable ShadowMarkApplicationTimeType specified, @NotNull String markOid) {
-            if (specified != null) {
-                return specified;
-            } else if (SystemObjectsType.MARK_TOLERATED.value().equals(markOid)) {
-                return ShadowMarkApplicationTimeType.CLASSIFICATION;
-            } else {
-                return ShadowMarkApplicationTimeType.ALWAYS;
-            }
         }
 
         private MarkingRule parseMarkingRule(
@@ -218,31 +209,6 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
                 patterns.add(convertToPattern(patternBean, prismObjectDef));
             }
             return new MarkingRule(applicationTime, patterns);
-        }
-
-        private void createConfigBeansMap() throws ConfigurationException {
-            var markingDefBean = definitionCI.value().getMarking();
-            if (markingDefBean != null) {
-                addConfigBean(markingDefBean.getProtected(), SystemObjectsType.MARK_PROTECTED.value());
-                addConfigBean(markingDefBean.getIgnored(), SystemObjectsType.MARK_IGNORED.value());
-                addConfigBean(markingDefBean.getTolerated(), SystemObjectsType.MARK_TOLERATED.value());
-                for (var otherBean : markingDefBean.getOther()) {
-                    var markOid = definitionCI.nonNull(getOid(otherBean.getMarkRef()), "marking ref OID");
-                    addConfigBean(otherBean, markOid);
-                }
-            }
-        }
-
-        private void addConfigBean(
-                @Nullable ShadowMarkConfigurationType markConfigBean,
-                @NotNull String markOid) throws ConfigurationException {
-            if (markConfigBean != null) {
-                definitionCI.configCheck(
-                        !configBeansMap.containsKey(markOid),
-                        "Marking rule for mark %s is defined multiple times in %s",
-                        markOid, DESC);
-                configBeansMap.put(markOid, markConfigBean);
-            }
         }
 
         private ResourceObjectPattern convertToPattern(

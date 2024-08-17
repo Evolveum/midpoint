@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000806">
+    <name>Managed</name>
+    <documentation>
+        Marks an object that is managed by midPoint.
+        MidPoint executes outbound mappings on such objects.
+        MidPoint manages membership of these objects (if applicable; e.g., for groups).
+        MidPoint ignores changes on the resource for such objects, i.e. it does not execute inbound mappings,
+        neither for the object itself nor for the membership.
+    </documentation>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000705" type="ArchetypeType"/>
+    </assignment>
+    <objectOperationPolicy>
+        <add>
+            <enabled>true</enabled>
+        </add>
+        <modify>
+            <enabled>true</enabled>
+        </modify>
+        <delete>
+            <enabled>true</enabled>
+        </delete>
+        <synchronize>
+            <inbound>
+                <enabled>false</enabled>
+                <severity>info</severity>
+            </inbound>
+            <outbound>
+                <enabled>true</enabled>
+            </outbound>
+            <membership>
+                <inbound>
+                    <enabled>false</enabled>
+                    <severity>info</severity>
+                </inbound>
+                <outbound>
+                    <enabled>true</enabled>
+                </outbound>
+                <tolerant>false</tolerant>
+            </membership>
+        </synchronize>
+    </objectOperationPolicy>
+</mark>
