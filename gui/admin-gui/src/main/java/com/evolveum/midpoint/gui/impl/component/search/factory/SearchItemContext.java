@@ -50,6 +50,7 @@ public class SearchItemContext implements Serializable {
     private QName valueTypeName;
     private String lookupTableOid;
     @Nullable private ItemPath path;
+    private ModelServiceLocator modelServiceLocator;
 
     private Class<?> containerType;
 
@@ -76,6 +77,7 @@ public class SearchItemContext implements Serializable {
         LookupTableType lookupTable = getSearchItemLookupTable(itemDef, modelServiceLocator);
         this.lookupTableOid = lookupTable == null ? null : lookupTable.getOid();
         this.additionalSearchContext = additionalSearchContext;
+        this.modelServiceLocator = modelServiceLocator;
     }
 
     private List<DisplayableValue<?>> getSearchItemAvailableValues(SearchItemType searchItem, ItemDefinition<?> def,
@@ -237,5 +239,9 @@ public class SearchItemContext implements Serializable {
             return item.getParameter().getTargetType();
         }
         return null;
+    }
+
+    public ModelServiceLocator getModelServiceLocator() {
+        return modelServiceLocator;
     }
 }
