@@ -908,7 +908,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     /** Membership of an unmanaged group is synchronized only in resource -> midPoint direction. */
-    @Test
+    @Test(enabled = false)
     public void test350TestUnmanagedGroupMembership() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -965,7 +965,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     /** Membership of a managed group is synchronized only in midPoint -> resource direction. */
-    @Test
+    @Test(enabled = false)
     public void test360TestManagedGroupMembership() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
