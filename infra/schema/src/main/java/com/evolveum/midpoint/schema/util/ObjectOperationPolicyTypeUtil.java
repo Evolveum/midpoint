@@ -26,11 +26,19 @@ public class ObjectOperationPolicyTypeUtil {
     public static final ItemPath PATH_SYNC_INBOUND = ItemPath.create(
             ObjectOperationPolicyType.F_SYNCHRONIZE, SynchronizeOperationPolicyConfigurationType.F_INBOUND);
     public static final ItemPath PATH_SYNC_OUTBOUND = ItemPath.create(
-                    ObjectOperationPolicyType.F_SYNCHRONIZE, SynchronizeOperationPolicyConfigurationType.F_OUTBOUND);
+            ObjectOperationPolicyType.F_SYNCHRONIZE, SynchronizeOperationPolicyConfigurationType.F_OUTBOUND);
+    public static final ItemPath PATH_MEMBERSHIP_SYNC_INBOUND = ItemPath.create(
+            ObjectOperationPolicyType.F_SYNCHRONIZE,
+            SynchronizeOperationPolicyConfigurationType.F_MEMBERSHIP,
+            SynchronizeMembershipOperationPolicyConfigurationType.F_INBOUND);
+    public static final ItemPath PATH_MEMBERSHIP_SYNC_OUTBOUND = ItemPath.create(
+            ObjectOperationPolicyType.F_SYNCHRONIZE,
+            SynchronizeOperationPolicyConfigurationType.F_MEMBERSHIP,
+            SynchronizeMembershipOperationPolicyConfigurationType.F_OUTBOUND);
     public static final ItemPath PATH_MEMBERSHIP_TOLERANCE = ItemPath.create(
-                            ObjectOperationPolicyType.F_SYNCHRONIZE,
-                            SynchronizeOperationPolicyConfigurationType.F_MEMBERSHIP,
-                            SynchronizeMembershipOperationPolicyConfigurationType.F_TOLERANT);
+            ObjectOperationPolicyType.F_SYNCHRONIZE,
+            SynchronizeOperationPolicyConfigurationType.F_MEMBERSHIP,
+            SynchronizeMembershipOperationPolicyConfigurationType.F_TOLERANT);
 
     /** Returns the `delete` policy severity, or `null` if there are no restrictions. */
     public static @Nullable OperationPolicyViolationSeverityType getDeletionRestrictionSeverity(
@@ -61,6 +69,14 @@ public class ObjectOperationPolicyTypeUtil {
 
     public static boolean isSyncOutboundDisabled(@NotNull ObjectOperationPolicyType policy) {
         return isDisabled(policy, PATH_SYNC_OUTBOUND);
+    }
+
+    public static boolean isMembershipSyncInboundDisabled(@NotNull ObjectOperationPolicyType policy) {
+        return isDisabled(policy, PATH_MEMBERSHIP_SYNC_INBOUND);
+    }
+
+    public static boolean isMembershipSyncOutboundDisabled(@NotNull ObjectOperationPolicyType policy) {
+        return isDisabled(policy, PATH_MEMBERSHIP_SYNC_OUTBOUND);
     }
 
     private static boolean isDisabled(@NotNull ObjectOperationPolicyType policy, @NotNull ItemPath path) {

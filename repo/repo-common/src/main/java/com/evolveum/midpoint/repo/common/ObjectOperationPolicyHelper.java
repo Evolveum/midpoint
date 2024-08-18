@@ -100,7 +100,7 @@ public class ObjectOperationPolicyHelper {
      *
      * BEWARE: If we compute policy for a shadow, it must have the correct definition present!
      */
-    private @NotNull ObjectOperationPolicyType computeEffectivePolicy(ObjectType object, OperationResult parentResult)
+    public @NotNull ObjectOperationPolicyType computeEffectivePolicy(ObjectType object, OperationResult parentResult)
             throws ConfigurationException {
         var result = parentResult.createMinorSubresult(OP_COMPUTE_EFFECTIVE_POLICY);
         try {
@@ -384,6 +384,8 @@ public class ObjectOperationPolicyHelper {
                 disableOperationIfRequiredByMarks(ret, PATH_DELETE, marks, defaultPolicy);
                 disableOperationIfRequiredByMarks(ret, PATH_SYNC_INBOUND, marks, defaultPolicy);
                 disableOperationIfRequiredByMarks(ret, PATH_SYNC_OUTBOUND, marks, defaultPolicy);
+                disableOperationIfRequiredByMarks(ret, PATH_MEMBERSHIP_SYNC_INBOUND, marks, defaultPolicy);
+                disableOperationIfRequiredByMarks(ret, PATH_MEMBERSHIP_SYNC_OUTBOUND, marks, defaultPolicy);
 
                 var toleranceOverride = computeToleranceOverride(marks, defaultPolicy, context);
                 if (toleranceOverride != null) {

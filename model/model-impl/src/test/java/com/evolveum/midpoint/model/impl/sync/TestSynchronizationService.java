@@ -15,6 +15,8 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -105,8 +107,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
-        provisioningService.applyDefinition(accountShadowJack, task, result);
-        provisioningService.determineShadowState(accountShadowJack, task, result);
+        prepareShadow(accountShadowJack, task, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -427,8 +428,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> accountShadowCalypso = repoAddObjectFromFile(ACCOUNT_SHADOW_CALYPSO_DUMMY_FILE, result);
         accountShadowCalypsoDummyOid = accountShadowCalypso.getOid();
-        provisioningService.applyDefinition(accountShadowCalypso, task, result);
-        provisioningService.determineShadowState(accountShadowCalypso, task, result);
+        prepareShadow(accountShadowCalypso, task, result);
         assertNotNull("No oid in shadow", accountShadowCalypso.getOid());
         // Make sure that it is properly marked as protected. This is what provisioning would normally do
         accountShadowCalypso.asObjectable().setProtectedObject(true);
@@ -525,8 +525,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
-        provisioningService.applyDefinition(accountShadowJack, task, result);
-        provisioningService.determineShadowState(accountShadowJack, task, result);
+        prepareShadow(accountShadowJack, task, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -658,8 +657,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
-        provisioningService.applyDefinition(accountShadowJack, task, result);
-        provisioningService.determineShadowState(accountShadowJack, task, result);
+        prepareShadow(accountShadowJack, task, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
         DummyAccount dummyAccount = new DummyAccount();
         dummyAccount.setName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -994,8 +992,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         getDummyResource().resetBreakMode();
 
         PrismObject<ShadowType> shadowPirates = repoAddObjectFromFile(SHADOW_PIRATES_DUMMY_FILE, result);
-        provisioningService.applyDefinition(shadowPirates, task, result);
-        provisioningService.determineShadowState(shadowPirates, task, result);
+        prepareShadow(shadowPirates, task, result);
         assertNotNull("No oid in shadow", shadowPirates.getOid());
         DummyGroup dummyGroup = new DummyGroup();
         dummyGroup.setName(GROUP_PIRATES_DUMMY_NAME);
@@ -1040,6 +1037,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
 
+    }
+
+    private void prepareShadow(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws CommonException {
+        provisioningService.applyDefinition(shadow, task, result);
+        provisioningService.determineShadowState(shadow, task, result);
+        provisioningService.updateShadowMarksAndPolicies(shadow, false, task, result);
     }
 
     @Test

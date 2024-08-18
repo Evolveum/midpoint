@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.EqualsChecker;
@@ -447,6 +448,15 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
 
     public boolean hasAssociationObject() {
         return hasAssociationObject;
+    }
+
+    public boolean isInboundMembershipSynchronizationDisabled() {
+        if (hasAssociationObject) {
+            return false; // Not supported for complex associations
+        } else {
+            return ObjectOperationPolicyTypeUtil.isMembershipSyncInboundDisabled(
+                    getSingleObjectShadowRequired().getEffectiveOperationPolicyRequired());
+        }
     }
 
     @Override

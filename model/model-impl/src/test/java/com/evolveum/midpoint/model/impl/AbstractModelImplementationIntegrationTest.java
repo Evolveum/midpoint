@@ -136,6 +136,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
         provisioningService.applyDefinition(account, task, result);
         provisioningService.determineShadowState(account, task, result);
+        provisioningService.updateShadowMarksAndPolicies(account, true, task, result);
         return fillContextWithAccount(context, account, task, result);
     }
 
