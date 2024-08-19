@@ -85,10 +85,7 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
 
-        if (areMarksSupported()) {
-            CommonInitialObjects.ARCHETYPE_OBJECT_MARK.init(this, initTask, initResult);
-            CommonInitialObjects.MARK_PROTECTED.init(this, initTask, initResult);
-        }
+        CommonInitialObjects.addMarks(this, initTask, initResult);
 
         CommonInitialObjects.ARCHETYPE_RECONCILIATION_TASK.init(this, initTask, initResult);
         CommonInitialObjects.ARCHETYPE_IMPORT_TASK.init(this, initTask, initResult);

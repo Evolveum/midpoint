@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.component.search.factory;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.CertItemOutcomeSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
@@ -17,7 +19,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationR
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class CertItemOutcomeSearchItemWrapperFactory  extends
@@ -26,13 +27,13 @@ public class CertItemOutcomeSearchItemWrapperFactory  extends
     @Override
     protected CertItemOutcomeSearchItemWrapper createSearchWrapper(SearchItemContext ctx) {
         List<DisplayableValue<AccessCertificationResponseType>> availableValues = getAvailableValues(ctx);
-        CertItemOutcomeSearchItemWrapper wrapper = new CertItemOutcomeSearchItemWrapper(ctx .getPath(), availableValues);
+        CertItemOutcomeSearchItemWrapper wrapper = new CertItemOutcomeSearchItemWrapper(ctx.getPath(), availableValues);
         setDefaultValue(ctx, wrapper);
         return wrapper;
     }
 
     private List<DisplayableValue<AccessCertificationResponseType>> getAvailableValues(SearchItemContext ctx) {
-        List<AccessCertificationResponseType> values = Arrays.asList(AccessCertificationResponseType.values());
+        List<AccessCertificationResponseType> values = new AvailableResponses((PageBase) ctx.getModelServiceLocator()).getResponseValues();
         List<DisplayableValue<AccessCertificationResponseType>> availableValues = new ArrayList<>();
         values.forEach(value -> {
             if (!skipResponse(ctx, value)) {

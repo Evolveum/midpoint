@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.testing.story.associations;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAGED;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyObject;
@@ -94,10 +94,6 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     private static final TestObject<ObjectTemplateType> OBJECT_TEMPLATE_USER = TestObject.file(
             TEST_DIR, "object-template-user.xml", "d6f7dabf-60d6-4707-87ed-5d48483dd18c");
 
-    // Temporary, move to initial objects later
-    private static final TestObject<MarkType> MARK_TOLERATED = TestObject.file(
-            TEST_DIR, "mark-tolerated.xml", SystemObjectsType.MARK_TOLERATED.value());
-
     private static final DummyTestResource RESOURCE_AD_100 = createAdResource("resource-ad-100.xml");
     private static final DummyTestResource RESOURCE_AD_120 = createAdResource("resource-ad-120.xml");
     private static final DummyTestResource RESOURCE_AD_130 = createAdResource("resource-ad-130.xml");
@@ -140,8 +136,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         initTestObjects(initTask, initResult,
-                ARCHETYPE_GROUP, OBJECT_TEMPLATE_USER,
-                MARK_TOLERATED);
+                ARCHETYPE_GROUP, OBJECT_TEMPLATE_USER);
     }
 
     @Override
@@ -423,7 +418,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                 .singleLive()
                 .resolveTarget()
                 .display()
-                .assertEffectiveMark(MARK_TOLERATED.oid)
+                .assertEffectiveMark(MARK_UNMANAGED.oid)
                 .getOid();
 
         and("jack is added to 'operators' manually on the resource");

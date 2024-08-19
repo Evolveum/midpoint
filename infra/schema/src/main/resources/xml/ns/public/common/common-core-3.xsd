@@ -17021,6 +17021,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000705">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_SHADOW_POLICY_MARK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000710">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -17171,14 +17178,14 @@
             <xsd:enumeration value="00000000-0000-0000-0000-000000000805">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MARK_IGNORED"/> <!-- TODO better name -->
+                        <jaxb:typesafeEnumMember name="MARK_UNMANAGED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="00000000-0000-0000-0000-000000000806">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="MARK_TOLERATED"/> <!-- TODO better name -->
+                        <jaxb:typesafeEnumMember name="MARK_MANAGED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -21641,6 +21648,24 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="inbound" type="tns:OperationPolicyConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If disabled, then association values related to this entitlement (i.e., the subject membership
+                        data related to this entitlement) will not be synchronized from the resource to midPoint.
+                        For example, if assignments are to be created based on the group membership, this process is skipped
+                        for this value. (Note that range processing is not touched by this setting.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="outbound" type="tns:OperationPolicyConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If disabled, then association values related to this entitlement (i.e., the subject membership
+                        data related to this entitlement) will not be provisioned from midPoint to the resource.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -21651,14 +21676,8 @@
                         in computed association values. On the other hand, "true" means that the particular association value
                         will be kept even if not present in computed association values.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.9</a:since>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- TODO
-            <xsd:element name="inbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
-            <xsd:element name="outbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" /> -->
         </xsd:sequence>
     </xsd:complexType>
 

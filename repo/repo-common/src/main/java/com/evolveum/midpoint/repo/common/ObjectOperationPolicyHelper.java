@@ -3,9 +3,9 @@ package com.evolveum.midpoint.repo.common;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.MARK_PROTECTED_OID;
 import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyViolationSeverityType.ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType.APPLY;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType.EXCLUDE;
 
@@ -14,6 +14,9 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,7 +33,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -79,8 +81,13 @@ public class ObjectOperationPolicyHelper {
         return instance;
     }
 
-    /** Returns present effective policy, or computes it (from stored mark refs and statements) if not present. */
-    public @NotNull ObjectOperationPolicyType getEffectivePolicy(ObjectType object, OperationResult result) {
+    /**
+     * Returns present effective policy, or computes it (from stored mark refs and statements) if not present.
+     *
+     * For shadows, it assumes the shadow has the up-to-date definition present (because of the default policy).
+     */
+    public @NotNull ObjectOperationPolicyType getEffectivePolicy(ObjectType object, OperationResult result)
+            throws ConfigurationException {
         var policy = object.getEffectiveOperationPolicy();
         if (policy != null) {
             return policy;
@@ -88,12 +95,18 @@ public class ObjectOperationPolicyHelper {
         return computeEffectivePolicy(object, result);
     }
 
-    /** Computes effective operation policy from stored mark refs and policy statements. Uses marks from the native repository. */
-    public @NotNull ObjectOperationPolicyType computeEffectivePolicy(ObjectType object, OperationResult parentResult) {
+    /**
+     * Computes effective operation policy from stored mark refs and policy statements. Uses marks from the native repository.
+     *
+     * BEWARE: If we compute policy for a shadow, it must have the correct definition present!
+     */
+    public @NotNull ObjectOperationPolicyType computeEffectivePolicy(ObjectType object, OperationResult parentResult)
+            throws ConfigurationException {
         var result = parentResult.createMinorSubresult(OP_COMPUTE_EFFECTIVE_POLICY);
         try {
             var effectiveMarkRefs = behaviour.getEffectiveMarkRefsWithStatements(object);
-            return behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, object, result);
+            var defaultPolicy = behaviour.getDefaultPolicyForObject(object, result);
+            return behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, defaultPolicy, object, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -114,14 +127,17 @@ public class ObjectOperationPolicyHelper {
      * For legacy repository:
      *
      * 1. Just computes and updates the legacy protected object flag plus corresponding operation policy.
+     *
+     * BEWARE: If we compute policy for a shadow, it must have the correct definition present!
      */
     public EffectiveMarksAndPolicies computeEffectiveMarksAndPolicies(
             @NotNull ObjectType object,
             @NotNull ObjectMarksComputer objectMarksComputer,
-            @NotNull OperationResult result) throws SchemaException {
+            @NotNull OperationResult result) throws SchemaException, ConfigurationException {
 
         var effectiveMarkRefs = behaviour.computeEffectiveMarks(object, objectMarksComputer, result);
-        var effectiveOperationPolicy = behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, object, result);
+        var defaultPolicy = behaviour.getDefaultPolicyForObject(object, result);
+        var effectiveOperationPolicy = behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, defaultPolicy, object, result);
 
         return new EffectiveMarksAndPolicies(
                 behaviour.supportsMarks() ? List.copyOf(effectiveMarkRefs) : List.of(),
@@ -193,7 +209,16 @@ public class ObjectOperationPolicyHelper {
          * to deal with "protected" mark in a legacy way (everything is forbidden).
          */
         abstract @NotNull ObjectOperationPolicyType computeEffectiveOperationPolicy(
-                Collection<ObjectReferenceType> effectiveMarkRefs, Object context, OperationResult result);
+                @NotNull Collection<ObjectReferenceType> effectiveMarkRefs,
+                @Nullable ObjectOperationPolicyType defaultPolicy,
+                @NotNull Object context,
+                @NotNull OperationResult result);
+
+        @Nullable ObjectOperationPolicyType getDefaultPolicyForObject(
+                @NotNull ObjectType object,
+                @NotNull OperationResult result) throws ConfigurationException {
+            return null;
+        }
 
         /** Sets the effective marks references into the object bean. */
         void setEffectiveMarks(ObjectType object, Collection<ObjectReferenceType> effectiveMarkRefs) {
@@ -346,20 +371,23 @@ public class ObjectOperationPolicyHelper {
         /** We derive policies from actual object marks. */
         @Override
         @NotNull ObjectOperationPolicyType computeEffectiveOperationPolicy(
-                Collection<ObjectReferenceType> effectiveMarkRefs,
-                Object context,
-                OperationResult result) {
+                @NotNull Collection<ObjectReferenceType> effectiveMarkRefs,
+                @Nullable ObjectOperationPolicyType defaultPolicy,
+                @NotNull Object context,
+                @NotNull OperationResult result) {
             var ret = new ObjectOperationPolicyType();
-            Collection<MarkType> marks = getShadowMarks(effectiveMarkRefs, result);
+            Collection<MarkType> marks = resolveMarkRefs(effectiveMarkRefs, context, result);
 
             try {
-                disableOperationIfRequiredByMarks(ret, PATH_ADD, marks);
-                disableOperationIfRequiredByMarks(ret, PATH_MODIFY, marks);
-                disableOperationIfRequiredByMarks(ret, PATH_DELETE, marks);
-                disableOperationIfRequiredByMarks(ret, PATH_SYNC_INBOUND, marks);
-                disableOperationIfRequiredByMarks(ret, PATH_SYNC_OUTBOUND, marks);
+                disableOperationIfRequiredByMarks(ret, PATH_ADD, marks, defaultPolicy);
+                disableOperationIfRequiredByMarks(ret, PATH_MODIFY, marks, defaultPolicy);
+                disableOperationIfRequiredByMarks(ret, PATH_DELETE, marks, defaultPolicy);
+                disableOperationIfRequiredByMarks(ret, PATH_SYNC_INBOUND, marks, defaultPolicy);
+                disableOperationIfRequiredByMarks(ret, PATH_SYNC_OUTBOUND, marks, defaultPolicy);
+                disableOperationIfRequiredByMarks(ret, PATH_MEMBERSHIP_SYNC_INBOUND, marks, defaultPolicy);
+                disableOperationIfRequiredByMarks(ret, PATH_MEMBERSHIP_SYNC_OUTBOUND, marks, defaultPolicy);
 
-                var toleranceOverride = computeToleranceOverride(marks, context);
+                var toleranceOverride = computeToleranceOverride(marks, defaultPolicy, context);
                 if (toleranceOverride != null) {
                     //noinspection unchecked
                     ret.asPrismContainerValue()
@@ -379,37 +407,64 @@ public class ObjectOperationPolicyHelper {
         private void disableOperationIfRequiredByMarks(
                 @NotNull ObjectOperationPolicyType resultingPolicy,
                 @NotNull ItemPath path,
-                @NotNull Collection<MarkType> marks) throws SchemaException {
+                @NotNull Collection<MarkType> marks,
+                @Nullable ObjectOperationPolicyType defaultPolicy) throws SchemaException {
             OperationPolicyConfigurationType highestSeverityBlocker = null;
+            boolean isEnabled = false;
             for (MarkType mark : marks) {
-                var markPolicy = mark.getObjectOperationPolicy();
-                if (markPolicy == null) {
+                var markPolicyItemValue = getPolicyItemValue(mark.getObjectOperationPolicy(), path);
+                if (markPolicyItemValue == null) {
                     continue;
                 }
-                //noinspection unchecked
-                var markPolicyItem =
-                        (PrismContainer<OperationPolicyConfigurationType>)
-                                markPolicy.asPrismContainerValue().findItem(path);
-                if (markPolicyItem == null || markPolicyItem.hasNoValues()) {
-                    continue;
-                }
-                var markPolicyItemValue = markPolicyItem.getRealValue(OperationPolicyConfigurationType.class);
-                var severity = Objects.requireNonNullElse(markPolicyItemValue.getSeverity(), OperationPolicyViolationSeverityType.ERROR);
-                if (Boolean.FALSE.equals(markPolicyItemValue.getEnabled())) {
+                var enabledValue = markPolicyItemValue.getEnabled();
+                if (Boolean.FALSE.equals(enabledValue)) {
+                    var severity = Objects.requireNonNullElse(markPolicyItemValue.getSeverity(), ERROR);
                     if (highestSeverityBlocker == null || isHigher(severity, highestSeverityBlocker.getSeverity())) {
                         highestSeverityBlocker = markPolicyItemValue.clone();
                         highestSeverityBlocker.setSeverity(severity); // to treat null values
                     }
+                } else if (Boolean.TRUE.equals(enabledValue)) {
+                    isEnabled = true;
                 }
             }
             if (highestSeverityBlocker != null) {
-                //noinspection unchecked
-                resultingPolicy.asPrismContainerValue().findOrCreateItem(path, PrismContainer.class, null)
-                        .add(highestSeverityBlocker.asPrismContainerValue());
+                // Blocker takes precedence over enabler
+                setPolicyItemValue(resultingPolicy, path, highestSeverityBlocker);
+            } else if (isEnabled) {
+                // Enabler takes precedence over default
+                setPolicyItemValue(resultingPolicy, path, new OperationPolicyConfigurationType().enabled(true));
+            } else {
+                // Now applying the default, if there's any
+                var defaultPolicyItemValue = getPolicyItemValue(defaultPolicy, path);
+                if (defaultPolicyItemValue != null) {
+                    setPolicyItemValue(resultingPolicy, path, defaultPolicyItemValue.clone());
+                }
             }
         }
 
-        /** Returns {code true} if {code s1} is higher than {code s2}. */
+        private static @Nullable OperationPolicyConfigurationType getPolicyItemValue(
+                @Nullable ObjectOperationPolicyType policy, @NotNull ItemPath path) {
+            if (policy == null) {
+                return null;
+            }
+            //noinspection unchecked
+            var policyItem = (PrismContainer<OperationPolicyConfigurationType>) policy.asPrismContainerValue().findItem(path);
+            if (policyItem == null || policyItem.hasNoValues()) {
+                return null;
+            }
+            return policyItem.getRealValue(OperationPolicyConfigurationType.class);
+        }
+
+        private static void setPolicyItemValue(
+                @NotNull ObjectOperationPolicyType policy,
+                @NotNull ItemPath path,
+                @NotNull OperationPolicyConfigurationType value) throws SchemaException {
+            //noinspection unchecked
+            policy.asPrismContainerValue().findOrCreateItem(path, PrismContainer.class, null)
+                    .add(value.asPrismContainerValue());
+        }
+
+        /** Returns {@code true} if {@code s1} is higher than {@code s2}. */
         private boolean isHigher(
                 @NotNull OperationPolicyViolationSeverityType s1, @NotNull OperationPolicyViolationSeverityType s2) {
             return getValue(s1) > getValue(s2);
@@ -422,24 +477,15 @@ public class ObjectOperationPolicyHelper {
             };
         }
 
-        private Boolean computeToleranceOverride(Collection<MarkType> marks, Object context) {
+        private Boolean computeToleranceOverride(
+                @NotNull Collection<MarkType> marks,
+                @Nullable ObjectOperationPolicyType defaultPolicy,
+                @NotNull Object context) {
             var givingTrue = new ArrayList<>();
             var givingFalse = new ArrayList<>();
             marks.forEach(
                     m -> {
-                        var policy = m.getObjectOperationPolicy();
-                        if (policy == null) {
-                            return;
-                        }
-                        var synchronize = policy.getSynchronize();
-                        if (synchronize == null) {
-                            return;
-                        }
-                        var membership = synchronize.getMembership();
-                        if (membership == null) {
-                            return;
-                        }
-                        var toleranceOverride = membership.getTolerant();
+                        var toleranceOverride = getToleranceOverride(m.getObjectOperationPolicy());
                         if (Boolean.TRUE.equals(toleranceOverride)) {
                             givingTrue.add(m);
                         } else if (Boolean.FALSE.equals(toleranceOverride)) {
@@ -462,28 +508,83 @@ public class ObjectOperationPolicyHelper {
                 LOGGER.trace("Tolerance override = false because of {} (for {})", givingFalse, context);
                 return false;
             } else {
-                return null;
+                return getToleranceOverride(defaultPolicy);
             }
         }
 
-        private Collection<MarkType> getShadowMarks(Collection<ObjectReferenceType> tagRefs, @NotNull OperationResult result) {
-            // FIXME: Consider caching of all shadow marks and doing post-filter only
-            if (!cacheRepositoryService.supportsMarks() || tagRefs.isEmpty()) {
+        private static Boolean getToleranceOverride(ObjectOperationPolicyType policy) {
+            if (policy == null) {
+                return null;
+            }
+            var synchronize = policy.getSynchronize();
+            if (synchronize == null) {
+                return null;
+            }
+            var membership = synchronize.getMembership();
+            if (membership == null) {
+                return null;
+            }
+            return membership.getTolerant();
+        }
+
+        // TODO move MarkManager downwards (at least those part that can be moved) and provide this functionality there
+        private @NotNull Collection<MarkType> resolveMarkRefs(
+                @NotNull Collection<ObjectReferenceType> refsToResolve,
+                Object context,
+                @NotNull OperationResult result) {
+            var oidsToResolve = refsToResolve.stream()
+                    .map(ref -> ref.getOid())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            if (!cacheRepositoryService.supportsMarks() || oidsToResolve.isEmpty()) {
                 return List.of();
             }
-            String[] tagRefIds = tagRefs.stream().map(t -> t.getOid()).toArray(String[]::new);
-            ObjectQuery query = prismContext.queryFor(MarkType.class)
-                    //.item(TagType.F_ARCHETYPE_REF).ref(SystemObjectsType.ARCHETYPE_SHADOW_MARK.value())
-                    // Tag is Shadow Marks
-                    .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
-                    .and()
-                    // Tag is assigned to shadow
-                    .id(tagRefIds)
-                    .build();
             try {
-                return asObjectables(cacheRepositoryService.searchObjects(MarkType.class, query, null, result));
+                // This should be resolved from the cache; and the list should be quite short (for now)
+                var allMarks = cacheRepositoryService.searchObjects(MarkType.class, null, null, result);
+
+                // We don't need to filter by archetype, as the references should be OK in this regard
+                // Moreover, archetypes present slight problems in lower level tests, as they are not computed correctly
+                // in provisioning-impl tests.
+                var resolved = allMarks.stream()
+                        .filter(mark -> oidsToResolve.contains(mark.getOid()))
+                        .map(o -> o.asObjectable())
+                        .toList();
+
+                if (resolved.size() < oidsToResolve.size()) {
+                    // Look! Something is missing. Let's find out.
+                    var missing = new HashSet<>(oidsToResolve);
+                    resolved.forEach(r -> missing.remove(r.getOid()));
+                    LOGGER.warn("The following marks could not be resolved: {}; in {}", missing, context);
+                }
+
+                return resolved;
             } catch (SchemaException e) {
                 throw new SystemException(e);
+            }
+        }
+
+        @Override
+        @Nullable ObjectOperationPolicyType getDefaultPolicyForObject(
+                @NotNull ObjectType object, @NotNull OperationResult result) throws ConfigurationException {
+            if (!(object instanceof ShadowType shadow)) {
+                return null;
+            }
+            // We assume only well-formed shadows (with the definition) here.
+            var objectDef = ShadowUtil.getResourceObjectDefinition(shadow);
+            var markRef = objectDef.getDefinitionBean().getDefaultOperationPolicyRef();
+            if (markRef == null) {
+                return null;
+            }
+            var marks = resolveMarkRefs(List.of(markRef), "determining default policy for " + object, result);
+            if (!marks.isEmpty()) {
+                return marks.iterator().next().getObjectOperationPolicy();
+            } else {
+                var markOid = markRef.getOid(); // Hopefully not null
+                throw new ConfigurationException(
+                        "Mark %s for the default policy for %s (for %s) does not exist".formatted(
+                                markOid, objectDef, shadow),
+                        new ObjectNotFoundException(MarkType.class, markOid));
             }
         }
 
@@ -600,16 +701,20 @@ public class ObjectOperationPolicyHelper {
         /** We are limited to simple "protected or not" decision. */
         @Override
         @NotNull ObjectOperationPolicyType computeEffectiveOperationPolicy(
-                Collection<ObjectReferenceType> effectiveMarkRefs, Object context, OperationResult result) {
+                @NotNull Collection<ObjectReferenceType> effectiveMarkRefs,
+                @Nullable ObjectOperationPolicyType defaultPolicy,
+                @NotNull Object context,
+                @NotNull OperationResult result) {
             if (containsOid(effectiveMarkRefs, MARK_PROTECTED_OID)) {
                 return new ObjectOperationPolicyType()
                         .synchronize(new SynchronizeOperationPolicyConfigurationType()
                                 .inbound(disabled(OperationPolicyViolationSeverityType.INFO))
                                 .outbound(disabled(OperationPolicyViolationSeverityType.INFO)))
-                        .add(disabled(OperationPolicyViolationSeverityType.ERROR))
-                        .modify(disabled(OperationPolicyViolationSeverityType.ERROR))
-                        .delete(disabled(OperationPolicyViolationSeverityType.ERROR));
+                        .add(disabled(ERROR))
+                        .modify(disabled(ERROR))
+                        .delete(disabled(ERROR));
             } else {
+                // We can safely ignore the default policy here, as it always comes from the marks (which are not supported here)
                 return new ObjectOperationPolicyType();
             }
         }

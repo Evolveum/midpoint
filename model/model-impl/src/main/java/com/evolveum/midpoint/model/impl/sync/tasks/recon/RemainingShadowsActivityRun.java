@@ -251,7 +251,7 @@ final class RemainingShadowsActivityRun
 
     private PrismObject<ShadowType> reloadShadow(ShadowType originalShadow, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException {
+            ConfigurationException, ObjectNotFoundException {
         //noinspection CaughtExceptionImmediatelyRethrown
         try {
             // 1. not read-only because we modify the shadow afterwards
@@ -260,6 +260,7 @@ final class RemainingShadowsActivityRun
             PrismObject<ShadowType> shadow = getModelBeans().provisioningService.getObject(
                     ShadowType.class, originalShadow.getOid(), GetOperationOptions.createRawCollection(), task, result);
             getModelBeans().provisioningService.determineShadowState(shadow, task, result);
+            getModelBeans().provisioningService.updateShadowMarksAndPolicies(shadow, false, task, result);
             return shadow;
         } catch (ObjectNotFoundException e) {
             result.muteLastSubresultError();
@@ -274,6 +275,8 @@ final class RemainingShadowsActivityRun
             originalShadow.setDead(true);
             originalShadow.setExists(false);
             originalShadow.setShadowLifecycleState(ShadowLifecycleStateType.TOMBSTONE);
+            getModelBeans().provisioningService.updateShadowMarksAndPolicies(
+                    originalShadow.asPrismObject(), false, task, result);
             return originalShadow.asPrismObject();
         } catch (ExpressionEvaluationException | CommunicationException | SecurityViolationException | ConfigurationException e) {
             // These shouldn't occur, because we are going in NO FETCH mode. But they can; so let's just propagate them upwards.

@@ -976,7 +976,7 @@
                         Specification of a protected resource object: one that cannot be affected by IDM. It will be
                         ignored by operations, will not appear in lists, etc. A typical example is the administrator's account.
 
-                        DEPRECATED: Use shadowMarks instead.
+                        DEPRECATED: Use "marking" instead.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
@@ -984,13 +984,29 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="marking" type="tns:ShadowMarkingConfigurationType" minOccurs="0">
+            <xsd:element name="marking" type="tns:ShadowMarkingConfigurationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Drives automatic marking of shadows, e.g., as protected objects.
+                        Each mark should have at most one entry in this object, in order to avoid conflicting information.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultOperationPolicyRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default operation policy for those operations that do not have their behavior specified explicitly
+                        via object marks. I.e., if there is no mark for specific shadow, or if the mark(s) do not specify
+                        the policy explicitly, the policy is determined by the mark referenced here.
+
+                        The mark referenced here should have the archetype of "Shadow policy mark".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1106,8 +1122,7 @@
     <xsd:complexType name="ShadowMarkingConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Drives automatic marking of shadows, e.g., as protected objects.
-                Each mark should have at most one entry in this object, in order to avoid conflicting information.
+                How is given shadow mark automatically applied to shadows.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -1115,43 +1130,16 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="protected" type="tns:ShadowMarkConfigurationType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>How is the "protected" object mark assigned to shadows?</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="ignored" type="tns:ShadowMarkConfigurationType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>How is the "ignored" object mark assigned to shadows? (TODO rename eventually)</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="tolerated" type="tns:ShadowMarkConfigurationType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>How is the "tolerated" object mark assigned to shadows? (TODO rename eventually)</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="other" type="tns:IdentifiedShadowMarkConfigurationType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="markRef" type="tns:ObjectReferenceType">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How are the other object marks assigned to shadows?
+                        Reference to the mark to which this configuration applies.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="ShadowMarkConfigurationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                How is given shadow mark automatically applied to shadows.
-                Does not contain mark OID, so it is to be used in contexts where the mark is implicitly known.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
             <xsd:element name="applicationTime" type="tns:ShadowMarkApplicationTimeType" minOccurs="0" default="always">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1159,7 +1147,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="pattern" type="tns:ResourceObjectPatternType" maxOccurs="unbounded">
+            <xsd:element name="pattern" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         The pattern(s) used to describe the matching objects.
@@ -1202,31 +1190,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
-    <xsd:complexType name="IdentifiedShadowMarkConfigurationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                How is given shadow mark (identified by markRef) automatically applied to shadows.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-                <a:since>4.9</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ShadowMarkConfigurationType">
-                <xsd:sequence>
-                    <xsd:element name="markRef" type="tns:ObjectReferenceType" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
 
     <xsd:complexType name="AssociatedResourceObjectTypeDefinitionType">
         <xsd:annotation>

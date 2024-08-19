@@ -102,9 +102,8 @@
                 </inbound>
             </attribute>
             <marking>
-                <tolerated>
-                    <applicationTime>classification</applicationTime>
-                </tolerated>
+                <markRef oid="00000000-0000-0000-0000-000000000805"/>
+                <applicationTime>classification</applicationTime>
             </marking>
             <synchronization>
                 <reaction>

@@ -41,6 +41,8 @@ import com.evolveum.midpoint.test.DummyTestResource;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_MANAGED;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAGED;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
@@ -137,12 +139,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final TestObject<ArchetypeType> ARCHETYPE_AD_ROLE = TestObject.file(
             TEST_DIR, "archetype-ad-role.xml", "5200a309-554d-46c7-a551-b8a4fdc26a18");
 
-    // Temporary, move to initial objects later
-    private static final TestObject<MarkType> MARK_IGNORED = TestObject.file(
-            TEST_DIR, "mark-ignored.xml", SystemObjectsType.MARK_IGNORED.value());
-    private static final TestObject<MarkType> MARK_TOLERATED = TestObject.file(
-            TEST_DIR, "mark-tolerated.xml", SystemObjectsType.MARK_TOLERATED.value());
-
     private final ZonedDateTime sciencesContractFrom = ZonedDateTime.now();
 
     // HR objects
@@ -193,10 +189,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         initTestObjects(initTask, initResult,
                 ARCHETYPE_PERSON, ARCHETYPE_COST_CENTER, ARCHETYPE_DOCUMENT, ARCHETYPE_DOCUMENT_NON_TOLERANT,
                 ARCHETYPE_AD_ROLE);
-
-        // TODO move to CommonInitialObjects later
-        initTestObjects(initTask, initResult,
-                MARK_TOLERATED, MARK_IGNORED);
 
         // The subresult is created to avoid failing on benign warnings from the above objects' initialization
         var subResult = initResult.createSubresult("initializeResources");
@@ -328,7 +320,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         var testersAsserter = assertRoleByName(ROLE_TESTERS_NAME, "after").display();
         roleTesters = testersAsserter.getObjectable();
         shadowTestersOid = testersAsserter.singleLink().getOid();
-        markShadow(shadowTestersOid, MARK_TOLERATED.oid, getTestTask(), getTestOperationResult());
+        markShadow(shadowTestersOid, MARK_UNMANAGED.oid, getTestTask(), getTestOperationResult());
 
         var operatorsAsserter = assertRoleByName(ROLE_OPERATORS_NAME, "after").display();
         roleOperators = operatorsAsserter.getObjectable();
@@ -631,6 +623,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                         .asObjectDelta(userOid),
                 null, task, result);
 
+        assertSuccess(result);
+
         then("the account with read and write access to the document exists");
         // @formatter:off
         UserAsserter<?> userAsserter = assertUserAfter(userOid)
@@ -911,6 +905,122 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertRole(businessRole.getOid())
                 .assertNoRole(roleAdministrators.getOid())
                 .assertAssignments(1);
+    }
+
+    /** Membership of an unmanaged group is synchronized only in resource -> midPoint direction. */
+    @Test(enabled = false)
+    public void test350TestUnmanagedGroupMembership() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+        var secondUserName = "second-user-" + getTestNameShort();
+        var groupName = "group-" + getTestNameShort();
+
+        given("account and group on the resource");
+        var dummyAccount = adScenario.account.add(userName);
+        var dummyGroup = adScenario.group.add(groupName);
+        adScenario.accountGroup.add(dummyAccount, dummyGroup);
+
+        and("group is imported, with shadow marked as Unmanaged");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withWholeObjectClass(adScenario.group.getObjectClassName().xsd())
+                .withNameValue(groupName)
+                .executeOnForeground(result);
+        var roleAsserter = assertRoleByName(groupName, "after first import")
+                .display();
+        var groupShadowOid = roleAsserter
+                .singleLink()
+                .getOid();
+        markShadow(groupShadowOid, MARK_UNMANAGED.oid, task, result);
+        var roleOid = roleAsserter.getOid();
+
+        when("account (member of the group) is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withNameValue(userName)
+                .executeOnForeground(result);
+
+        then("the assignment to the role is created");
+        assertUserAfterByUsername(userName)
+                .assignments()
+                .assertRole(roleOid);
+
+        when("second user is given the newly imported role");
+        var secondUser = new UserType()
+                .name(secondUserName)
+                .assignment(new AssignmentType()
+                        .targetRef(roleOid, RoleType.COMPLEX_TYPE));
+        var secondUserOid = addObject(secondUser, task, result);
+
+        then("user account is created, but without membership");
+        assertUser(secondUserOid, "second user after creation")
+                .display()
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .assertValuesCount(0);
+    }
+
+    /** Membership of a managed group is synchronized only in midPoint -> resource direction. */
+    @Test(enabled = false)
+    public void test360TestManagedGroupMembership() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+        var secondUserName = "second-user-" + getTestNameShort();
+        var groupName = "group-" + getTestNameShort();
+
+        given("account and group on the resource");
+        var dummyAccount = adScenario.account.add(userName);
+        var dummyGroup = adScenario.group.add(groupName);
+        adScenario.accountGroup.add(dummyAccount, dummyGroup);
+
+        and("group is imported, with shadow marked as Managed");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withWholeObjectClass(adScenario.group.getObjectClassName().xsd())
+                .withNameValue(groupName)
+                .executeOnForeground(result);
+        var roleAsserter = assertRoleByName(groupName, "after first import")
+                .display();
+        var groupShadowOid = roleAsserter
+                .singleLink()
+                .getOid();
+        markShadow(groupShadowOid, MARK_MANAGED.oid, task, result);
+        var roleOid = roleAsserter.getOid();
+
+        when("account (member of the group) is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withNameValue(userName)
+                .executeOnForeground(result);
+
+        then("the assignment to the role is NOT created");
+        assertUserAfterByUsername(userName)
+                .assignments()
+                .assertNoRole(roleOid)
+                .assertAssignments(0);
+
+        when("second user is given the newly imported role");
+        var secondUser = new UserType()
+                .name(secondUserName)
+                .assignment(new AssignmentType()
+                        .targetRef(roleOid, RoleType.COMPLEX_TYPE));
+        var secondUserOid = addObject(secondUser, task, result);
+
+        then("user account is created, with the membership");
+        assertUser(secondUserOid, "second user after creation")
+                .display()
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .assertShadowOids(groupShadowOid);
     }
 
     private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {

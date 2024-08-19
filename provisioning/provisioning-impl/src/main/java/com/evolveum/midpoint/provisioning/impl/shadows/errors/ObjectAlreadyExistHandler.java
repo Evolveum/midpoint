@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 
@@ -130,10 +131,13 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
                     conflictingShadow == null ? "  null" : conflictingShadow.debugDumpLazily(1));
 
             if (conflictingShadow != null) {
+                var adoptedConflictingShadow = ctx.adoptRawRepoShadow(conflictingShadow);
                 ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
                 change.setResource(ctx.getResource().asPrismObject());
                 change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
-                change.setShadowedResourceObject(conflictingShadow.getPrismObject());
+                ctx.computeAndUpdateEffectiveMarksAndPolicies(
+                        adoptedConflictingShadow, RepoShadowWithState.ShadowState.EXISTING, result);
+                change.setShadowedResourceObject(adoptedConflictingShadow.getPrismObject());
                 change.setShadowExistsInRepo(true);
                 eventDispatcher.notifyChange(change, ctx.getTask(), result);
             }

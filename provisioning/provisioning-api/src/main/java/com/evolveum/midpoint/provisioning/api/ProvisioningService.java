@@ -1098,6 +1098,22 @@ public interface ProvisioningService {
         throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     /**
+     * Determines effective shadow marks and policies, updating the shadow object in memory.
+     *
+     * This is to be used for externally acquired shadows, to make them look like all other shadows returned from the provisioning
+     * module. Usually called along with {@link #determineShadowState(PrismObject, Task, OperationResult)}.
+     *
+     * TODO consider merging these methods
+     *
+     * The `isNew` parameter should be true if we believe the shadow does not exist yet (on the resource nor in the repo).
+     *
+     * TODO reconsider the `isNew` parameter
+     */
+    void updateShadowMarksAndPolicies(PrismObject<ShadowType> shadow, boolean isNew, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SecurityViolationException;
+
+    /**
      * Applies appropriate definition to the query.
      *
      * The query (for shadows) must comply with requirements similar to ones of {@link #searchObjects(Class, ObjectQuery,
