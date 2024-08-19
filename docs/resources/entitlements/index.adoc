@@ -232,7 +232,7 @@ Associations are defined in the xref:/midpoint/reference/resources/resource-conf
 Simulated references are defined in the xref:/midpoint/reference/resources/resource-configuration/capabilities/[Capabilities] section.
 
 Let's cover defining simulated references first.
-If you use connector having this capability, feel free to skip to xref:_association_participants_definition[] section.
+If you use connector having this capability, feel free to skip to xref:#_association_participants_definition[Association Participants Definition] section.
 
 === Simulated Reference Type Definition
 
@@ -333,7 +333,7 @@ The following example shows how to define `groupMembership` reference type that 
 [NOTE]
 ====
 When defining associations on top of simulated reference attributes, it is possible to re-use the delineation information from the associations themselves.
-See xref:_association_participants_definition[] below for an example.
+See xref:#_association_participants_definition[Association Participants Definition] below for an example.
 ====
 
 ==== Bindings
@@ -707,7 +707,7 @@ Instead of `associationFromLink`, we can use any other expression that returns `
 Another typical one is `associationTargetSearch`.
 
 The important question here is: how should midPoint treat association values that exist on the resource, but are not provided by outbound mapping(s)?
-We deal with it in xref:_tolerating_existing_association_values[] section below.
+We deal with it in xref:#_tolerating_existing_association_values[Tolerating Existing Association Values] section below.
 
 ==== Inbound Mappings
 
