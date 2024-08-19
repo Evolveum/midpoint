@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
@@ -22,6 +24,8 @@ import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The `ExtractPatternUtils` class provides utility methods for preparing and transforming detected patterns.
@@ -46,10 +50,16 @@ public class ExtractPatternUtils {
     }
 
     public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster) {
-        return transformDefaultPattern(cluster, null);
+        return transformDefaultPattern(cluster, null, null);
     }
 
-    public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster, Long selectedPatternId) {
+    public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster, RoleAnalysisSessionType session) {
+        return transformDefaultPattern(cluster, session, null);
+    }
+
+    public static @NotNull List<DetectedPattern> transformDefaultPattern(@NotNull RoleAnalysisClusterType cluster,
+            @Nullable RoleAnalysisSessionType session,
+            Long selectedPatternId) {
         List<RoleAnalysisDetectionPatternType> defaultDetection = cluster.getDetectedPattern();
         List<DetectedPattern> mergedIntersection = new ArrayList<>();
 
@@ -86,6 +96,13 @@ public class ExtractPatternUtils {
                     .type(RoleAnalysisClusterType.COMPLEX_TYPE)
                     .targetName(cluster.getName()));
 
+            if (session != null) {
+                detectedPattern.setSessionRef(new ObjectReferenceType()
+                        .oid(session.getOid())
+                        .type(RoleAnalysisSessionType.COMPLEX_TYPE)
+                        .targetName(session.getName()));
+            }
+
             mergedIntersection.add(detectedPattern);
             detectedPattern.setPatternType(BasePattern.PatternType.PATTERN);
             if (selectedPatternId != null) {
@@ -105,15 +122,15 @@ public class ExtractPatternUtils {
         return false;
     }
 
-    public static @NotNull DetectedPattern transformPattern(@NotNull RoleAnalysisDetectionPatternType pattern) {
-        List<ObjectReferenceType> rolesRef = pattern.getRolesOccupancy();
-        List<ObjectReferenceType> usersRef = pattern.getUserOccupancy();
-
-        Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
-        Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
-
-        return new DetectedPattern(roles, users, (users.size() * roles.size()) - users.size(), pattern.getId());
-    }
+//    public static @NotNull DetectedPattern transformPattern(@NotNull RoleAnalysisDetectionPatternType pattern) {
+//        List<ObjectReferenceType> rolesRef = pattern.getRolesOccupancy();
+//        List<ObjectReferenceType> usersRef = pattern.getUserOccupancy();
+//
+//        Set<String> roles = rolesRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+//        Set<String> users = usersRef.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
+//
+//        return new DetectedPattern(roles, users, (users.size() * roles.size()) - users.size(), pattern.getId());
+//    }
 
     public static @NotNull DetectedPattern transformPatternWithAttributes(@NotNull RoleAnalysisDetectionPatternType pattern) {
         List<ObjectReferenceType> rolesRef = pattern.getRolesOccupancy();

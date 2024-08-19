@@ -116,11 +116,12 @@ public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysi
 
         Task task = getPageBase().createSimpleTask("getTopPatterns");
         OperationResult result = task.getResult();
-        List<PrismObject<RoleAnalysisClusterType>> prismObjects = roleAnalysisService.searchSessionClusters(session, task, result);
+        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = roleAnalysisService.searchSessionClusters(
+                session, task, result);
 
         List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
-        for (PrismObject<RoleAnalysisClusterType> prismObject : prismObjects) {
-            List<DetectedPattern> detectedPatterns = transformDefaultPattern(prismObject.asObjectable());
+        for (PrismObject<RoleAnalysisClusterType> cluster : sessionClusters) {
+            List<DetectedPattern> detectedPatterns = transformDefaultPattern(cluster.asObjectable(), session);
 
             double maxOverallConfidence = 0;
             DetectedPattern topDetectedPattern = null;

@@ -91,6 +91,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
     private static final String ID_DATATABLE = "datatable";
     PageBase pageBase;
     IModel<List<Toggle<ViewToggle>>> items;
+    int totalRoleToUserAssignments;
 
     public RoleAnalysisDetectedPatternTileTable(
             @NotNull String id,
@@ -120,6 +121,10 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                 return list;
             }
         };
+
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        OperationResult result = new OperationResult("countUserOwnedRoleAssignment");
+        this.totalRoleToUserAssignments = roleAnalysisService.countUserOwnedRoleAssignment(result);
         add(initTable(detectedPatternList));
     }
 
@@ -252,8 +257,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                 Long id = pattern.getId();
                 StringResourceModel patternName = pageBase.createStringResource(
                         "RoleAnalysis.role.suggestion.title", (id));
-                IModel<String> processMode = extractProcessMode(pageBase, pattern);
-                return new RoleAnalysisPatternTileModel<>(pattern, patternName.getString(), processMode.getObject());
+                return new RoleAnalysisPatternTileModel<>(pattern, patternName.getString(), totalRoleToUserAssignments);
             }
 
             @Override
@@ -263,7 +267,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
 
             @Override
             protected String getTileCssClasses() {
-                return "col-3 p-2";
+                return "col-4 pb-3 pl-2 pr-2";
             }
 
             @Override

@@ -41,4 +41,14 @@ public class DetectedPattern extends BasePattern implements Serializable {
         this.clusterRef = clusterRef;
     }
 
+    public void setSessionRef(ObjectReferenceType sessionRef) {
+        this.sessionRef = sessionRef;
+    }
+
+    public ObjectReferenceType getSessionRef() {
+        return sessionRef;
+    }
+
+
+
 }

@@ -110,7 +110,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
     private List<DetectedPattern> getClusterPatterns() {
         RoleAnalysisClusterType clusterType = getObjectWrapperObject().asObjectable();
-        return transformDefaultPattern(clusterType, getDetectedPatternContainerId());
+        return transformDefaultPattern(clusterType, null, getDetectedPatternContainerId());
     }
 
     private List<DetectedPattern> getClusterCandidateRoles() {
@@ -145,8 +145,11 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
             Set<String> users = Collections.singleton(outlier.getTargetObjectRef().getOid());
             DetectedPattern detectedPattern = new DetectedPattern(roles, users, outlier.getOverallConfidence(), null) {
                 @Override
-                public String getOutlierOid() {
-                    return outlier.getOid();
+                public ObjectReferenceType getOutlierRef() {
+                    return new ObjectReferenceType()
+                            .oid(outlier.getOid())
+                            .type(RoleAnalysisOutlierType.COMPLEX_TYPE)
+                            .targetName(outlier.getName());
                 }
 
                 @Override
@@ -185,7 +188,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 && operationStatus.getOperationChannel().equals(RoleAnalysisOperation.MIGRATION);
     }
 
-    private DetectedPattern transformCandidateRole(RoleAnalysisCandidateRoleType candidateRole, RoleAnalysisClusterType cluster, Task task, OperationResult result) {
+    private DetectedPattern transformCandidateRole(RoleAnalysisCandidateRoleType candidateRole,
+            RoleAnalysisClusterType cluster,
+            Task task,
+            OperationResult result) {
         String roleOid = candidateRole.getCandidateRoleRef().getOid();
         PrismObject<RoleType> rolePrismObject = WebModelServiceUtils.loadObject(RoleType.class, roleOid, getPageBase(), task, result);
         if (rolePrismObject == null) {
@@ -203,13 +209,18 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 clusterMetric,
                 null,
                 roleOid,
-                BasePattern.PatternType.CANDIDATE);
+                BasePattern.PatternType.CANDIDATE) {
+            @Override
+            public ObjectReferenceType getClusterRef() {
+                return new ObjectReferenceType()
+                        .oid(cluster.getOid())
+                        .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                        .targetName(cluster.getName());
+            }
+        };
+
         pattern.setIdentifier(rolePrismObject.getName().getOrig());
         pattern.setId(candidateRole.getId());
-        pattern.setClusterRef(new ObjectReferenceType()
-                .oid(cluster.getOid())
-                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
-                .targetName(cluster.getName()));
         pattern.setPatternSelected(isCandidateRoleSelected(candidateRole));
         return pattern;
     }

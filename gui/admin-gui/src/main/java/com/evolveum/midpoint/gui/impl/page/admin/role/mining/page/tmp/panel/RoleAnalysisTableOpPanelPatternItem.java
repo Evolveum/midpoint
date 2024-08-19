@@ -23,7 +23,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
@@ -248,7 +247,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
             public void onClick(AjaxRequestTarget target) {
                 DetectedPattern pattern = RoleAnalysisTableOpPanelPatternItem.this.getModelObject();
                 if (pattern.getPatternType() == BasePattern.PatternType.OUTLIER) {
-                    String outlierOid = pattern.getOutlierOid();
+                    String outlierOid = pattern.getOutlierRef().getOid();
                     dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, outlierOid, getPageBase(), true);
                     return;
                 }

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
 import java.util.*;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -46,6 +48,7 @@ public class ProgressBarNew extends BasePanel<String> {
     private static final String ID_BAR_PERCENTAGE_INLINE = "progressBarPercentageInline";
     private static final String ID_BAR_TITLE = "progressBarTitle";
     private static final String ID_BAR_TITTLE_DATA = "progressBarDetails";
+    private static final String ID_TITLE_CONTAINER = "title-container";
 
     double minValue = 0;
     double maxValue = 100;
@@ -62,21 +65,31 @@ public class ProgressBarNew extends BasePanel<String> {
 
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
+        container.add(AttributeModifier.replace("style", getProgressBarContainerCssStyle()));
         add(container);
 
-        resolveTitleLabel();
+        WebMarkupContainer titleContainer = new WebMarkupContainer(ID_TITLE_CONTAINER);
+        titleContainer.setOutputMarkupId(true);
+        titleContainer.add(new VisibleBehaviour(this::isTitleContainerVisible));
+        add(titleContainer);
 
-        resolveTitleDataLabel();
+        resolveTitleLabel(titleContainer);
+
+        resolveTitleDataLabel(titleContainer);
 
         WebMarkupContainer progressBar = new WebMarkupContainer(ID_BAR);
         container.add(progressBar);
 
         setProgressBarParameters(progressBar);
 
-        initProgressValueLabel();
+        initProgressValueLabel(titleContainer);
     }
 
-    private void initProgressValueLabel() {
+    protected boolean isTitleContainerVisible() {
+        return true;
+    }
+
+    private void initProgressValueLabel(WebMarkupContainer container) {
         if (isInline()) {
             Label progressBarText = new Label(ID_BAR_PERCENTAGE_INLINE, () -> String.format("%.2f%%", getActualValue()));
             progressBarText.setOutputMarkupId(true);
@@ -88,7 +101,7 @@ public class ProgressBarNew extends BasePanel<String> {
         } else {
             Label progressBarText = new Label(ID_BAR_PERCENTAGE, () -> String.format("%.2f%%", getActualValue()));
             progressBarText.setOutputMarkupId(true);
-            add(progressBarText);
+            container.add(progressBarText);
 
             WebMarkupContainer progressBarInline = new WebMarkupContainer(ID_BAR_PERCENTAGE_INLINE);
             progressBarInline.setOutputMarkupId(true);
@@ -96,7 +109,7 @@ public class ProgressBarNew extends BasePanel<String> {
         }
     }
 
-    private void resolveTitleDataLabel() {
+    private void resolveTitleDataLabel(WebMarkupContainer container) {
         String value;
         if (getInClusterCount() == null || getInRepoCount() == null) {
             value = "";
@@ -106,7 +119,7 @@ public class ProgressBarNew extends BasePanel<String> {
         }
         Label label = new Label(ID_BAR_TITTLE_DATA, value);
         label.setOutputMarkupId(true);
-        add(label);
+        container.add(label);
     }
 
     private void setProgressBarParameters(@NotNull WebMarkupContainer progressBar) {
@@ -123,7 +136,7 @@ public class ProgressBarNew extends BasePanel<String> {
                 getProgressBarColor()));
     }
 
-    private void resolveTitleLabel() {
+    private void resolveTitleLabel(WebMarkupContainer titleContainer) {
         List<RoleAnalysisAttributeStatistics> roleAnalysisAttributeResult = getRoleAnalysisAttributeResult();
         barTitle = getBarTitle();
         Task task = getPageBase().createSimpleTask("resolveTitleLabel");
@@ -146,14 +159,14 @@ public class ProgressBarNew extends BasePanel<String> {
                 PolyString name = objects.get(0).getName();
                 barTitle = name != null && name.getOrig() != null ? name.getOrig() : barTitle;
             }
-            addAjaxLinkPanel(barTitle, objects, objectsMap);
+            addAjaxLinkPanel(barTitle, titleContainer, objects, objectsMap);
         } else {
             PrismObject<FocusType> focusTypeObject = resolveFocusTypeObject(barTitle, task, result);
             if (focusTypeObject != null) {
                 barTitle = focusTypeObject.getName() != null ? focusTypeObject.getName().getOrig() : barTitle;
-                addAjaxLinkPanel(barTitle, Collections.singletonList(focusTypeObject), null);
+                addAjaxLinkPanel(barTitle, titleContainer, Collections.singletonList(focusTypeObject), null);
             } else {
-                addProgressBarTitleLabel(barTitle);
+                addProgressBarTitleLabel(barTitle, titleContainer);
             }
         }
     }
@@ -168,14 +181,14 @@ public class ProgressBarNew extends BasePanel<String> {
         return focusTypeObject;
     }
 
-    private void addProgressBarTitleLabel(String barTitle) {
+    private void addProgressBarTitleLabel(String barTitle, WebMarkupContainer container) {
         Label progressBarTitle = new Label(ID_BAR_TITLE, barTitle);
         progressBarTitle.setOutputMarkupId(true);
         progressBarTitle.add(AttributeModifier.append("style", getProgressBarColor()));
-        add(progressBarTitle);
+        container.add(progressBarTitle);
     }
 
-    private void addAjaxLinkPanel(@NotNull String barTitle, @NotNull List<PrismObject<FocusType>> objects,
+    private void addAjaxLinkPanel(@NotNull String barTitle, WebMarkupContainer container, @NotNull List<PrismObject<FocusType>> objects,
             @Nullable Map<String, RoleAnalysisAttributeStatistics> objectsMap) {
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(ID_BAR_TITLE, Model.of(barTitle)) {
             @Override
@@ -193,7 +206,7 @@ public class ProgressBarNew extends BasePanel<String> {
             }
         };
         ajaxLinkPanel.setOutputMarkupId(true);
-        add(ajaxLinkPanel);
+        container.add(ajaxLinkPanel);
     }
 
     private double getMinValue() {
@@ -238,5 +251,9 @@ public class ProgressBarNew extends BasePanel<String> {
 
     public boolean isInline() {
         return false;
+    }
+
+    protected String getProgressBarContainerCssStyle() {
+        return null;
     }
 }

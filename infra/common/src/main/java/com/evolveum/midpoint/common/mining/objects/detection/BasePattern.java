@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
@@ -33,10 +34,13 @@ public abstract class BasePattern implements Serializable {
     private PatternType patternType;
 
     private boolean patternSelected;
-    String outlierOid;
+    ObjectReferenceType outlierRef;
 
-    public String getOutlierOid() {
-        return outlierOid;
+    ObjectReferenceType clusterRef;
+    ObjectReferenceType sessionRef;
+
+    public ObjectReferenceType getOutlierRef() {
+        return outlierRef;
     }
     public BasePattern(Set<String> roles,
             Set<String> users,
