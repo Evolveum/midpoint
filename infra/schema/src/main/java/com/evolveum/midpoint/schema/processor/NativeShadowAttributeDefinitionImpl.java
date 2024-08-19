@@ -460,6 +460,14 @@ public class NativeShadowAttributeDefinitionImpl<T>
         return clone;
     }
 
+    @Override
+    public NativeShadowAttributeDefinition cloneWithNewCardinality(int newMinOccurs, int newMaxOccurs) {
+        var clone = clone();
+        clone.setMinOccurs(newMinOccurs);
+        clone.setMaxOccurs(newMaxOccurs);
+        return clone;
+    }
+
     private void copyFrom(NativeShadowAttributeDefinitionImpl<T> source) {
         prismItemBasicData.copyFrom(source.prismItemBasicData);
         prismItemAccessData.copyFrom(source.prismItemAccessData);

@@ -793,11 +793,16 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 //                .as("weapon type name in the raw definition")
 //                .isEqualTo(DOMUtil.XSD_STRING);
 
+        assertCompleteSchema(completeSchema);
+
         rememberRefinedResourceSchema(completeSchema);
 
         assertSteadyResource();
         dummyResource.assertConnections(4);
         assertDummyConnectorInstances(1);
+    }
+
+    protected void assertCompleteSchema(CompleteResourceSchema completeSchema) throws CommonException {
     }
 
     /**

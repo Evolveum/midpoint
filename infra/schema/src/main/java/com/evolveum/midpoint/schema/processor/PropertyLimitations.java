@@ -114,6 +114,15 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
                 || Boolean.TRUE.equals(access.isRead());
     }
 
+    PropertyLimitations cloneWithNewCardinality(int newMinOccurs, int newMaxOccurs) {
+        var clone = new PropertyLimitations();
+        clone.setProcessing(processing);
+        clone.setMinOccurs(newMinOccurs);
+        clone.setMaxOccurs(newMaxOccurs);
+        clone.setAccess(access.clone());
+        return clone;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
