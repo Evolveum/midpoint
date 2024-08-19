@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
@@ -41,5 +42,10 @@ public class ShadowAssociationValueWrapperFactoryImpl extends PrismContainerWrap
             PrismContainer<ShadowAssociationValueType> childContainer,
             ItemStatus status) {
         return new ShadowAssociationValueWrapper(parent, childContainer, status);
+    }
+
+    @Override
+    protected boolean shouldCreateEmptyValue(PrismContainer<ShadowAssociationValueType> item, WrapperContext context) {
+        return false;
     }
 }
