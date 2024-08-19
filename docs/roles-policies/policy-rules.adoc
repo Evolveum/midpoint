@@ -1,6 +1,10 @@
 ---
 midpoint-feature: policy-rule
 doc-type: intro
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Use of policy rules to set up rules and constraints for access control model.'
 ---
 = Policy Rules
 :page-wiki-name: Policy Rules
