@@ -112,7 +112,8 @@ public class RoleAnalysisPagingColumns extends Fragment {
         colPerPage.setOutputMarkupId(true);
         form.add(colPerPage);
 
-        Label colPerPageLabel = new Label("label_dropdown", Model.of("Cols per page"));
+        Label colPerPageLabel = new Label("label_dropdown",
+                createStringResource("RoleAnalysisPagingColumns.cols.per.page.title"));
         colPerPageLabel.setOutputMarkupId(true);
         footerContainer.add(colPerPageLabel);
 

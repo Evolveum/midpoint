@@ -206,7 +206,10 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
                 BasePattern.PatternType.CANDIDATE);
         pattern.setIdentifier(rolePrismObject.getName().getOrig());
         pattern.setId(candidateRole.getId());
-        pattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
+        pattern.setClusterRef(new ObjectReferenceType()
+                .oid(cluster.getOid())
+                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                .targetName(cluster.getName()));
         pattern.setPatternSelected(isCandidateRoleSelected(candidateRole));
         return pattern;
     }

@@ -386,11 +386,13 @@ public class ClusteringOutlierDetectionStrategy implements OutlierDetectionStrat
 
         ObjectReferenceType clusterRef = new ObjectReferenceType()
                 .oid(cluster.getOid())
-                .type(RoleAnalysisClusterType.COMPLEX_TYPE);
+                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                .targetName(cluster.getName());
 
         ObjectReferenceType sessionRef = new ObjectReferenceType()
                 .oid(session.getOid())
-                .type(RoleAnalysisSessionType.COMPLEX_TYPE);
+                .type(RoleAnalysisSessionType.COMPLEX_TYPE)
+                .targetName(session.getName());
 
         int userCountInRepo = roleAnalysisService.countObjects(UserType.class, null, null, task, result);
 

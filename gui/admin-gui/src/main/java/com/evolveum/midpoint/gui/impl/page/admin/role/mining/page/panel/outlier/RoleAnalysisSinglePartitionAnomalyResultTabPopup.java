@@ -176,7 +176,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                     @Override
                     protected @NotNull Component getPanelComponent(String id1) {
                         RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(id1,
-                                Model.of("Role analysis attribute panel"),
+                                createStringResource("RoleAnalysis.analysis.attribute.panel"),
                                 null, roleAttributeAnalysisResult,
                                 null, userRoleMembersCompare) {
                             @Override

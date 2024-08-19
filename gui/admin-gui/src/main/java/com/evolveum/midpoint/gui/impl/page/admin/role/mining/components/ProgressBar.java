@@ -189,7 +189,8 @@ public class ProgressBar extends BasePanel<String> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of("Analyzed members details panel"), objects, RoleAnalysisProcessModeType.USER) {
+                        createStringResource("RoleAnalysis.analyzed.members.details.panel"),
+                        objects, RoleAnalysisProcessModeType.USER) {
                     @Override
                     public void onClose(AjaxRequestTarget ajaxRequestTarget) {
                         super.onClose(ajaxRequestTarget);

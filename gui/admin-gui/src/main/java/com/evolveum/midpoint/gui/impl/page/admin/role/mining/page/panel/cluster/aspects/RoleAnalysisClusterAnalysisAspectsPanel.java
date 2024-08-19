@@ -121,7 +121,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
             RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_PANEL,
-                    Model.of("Cluster attributes analysis"), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+                    createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis"),
+                    roleAttributeAnalysisResult, userAttributeAnalysisResult) {
                 @Override
                 protected @NotNull String getChartContainerStyle() {
                     return "height:25vh;";
@@ -130,7 +131,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             roleAnalysisAttributePanel.setOutputMarkupId(true);
             container.add(roleAnalysisAttributePanel);
         } else {
-            Label label = new Label(ID_PANEL, "No data available");
+            Label label = new Label(ID_PANEL, createStringResource("RoleAnalysis.aspect.overview.page.title.no.data.available"));
             label.setOutputMarkupId(true);
             container.add(label);
         }
@@ -239,7 +240,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id, Model.of("Candidate roles")) {
+                        return new IconWithLabel(id, createStringResource("RoleAnalysis.aspect.overview.page.title.candidate.roles")) {
                             @Override
                             protected String getIconCssClass() {
                                 return "fas fa-sync text-muted";
@@ -273,7 +274,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id, Model.of("Resolved suggestions")) {
+                        return new IconWithLabel(id, createStringResource(
+                                "RoleAnalysis.aspect.overview.page.title.resolved.suggestions")) {
                             @Override
                             protected String getIconCssClass() {
                                 return "fas fa-trophy text-muted";
@@ -366,7 +368,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Contract("_ -> new")
                             @Override
                             protected @NotNull Component getTitleComponent(String id) {
-                                return new IconWithLabel(id, Model.of("Cluster roles")) {
+                                return new IconWithLabel(id,
+                                        createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.roles")) {
                                     @Override
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-success fa-2xs";
@@ -400,7 +403,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Contract("_ -> new")
                             @Override
                             protected @NotNull Component getTitleComponent(String id) {
-                                return new IconWithLabel(id, Model.of("Cluster users")) {
+                                return new IconWithLabel(id,
+                                        createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.users")) {
                                     @Override
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-danger fa-2xs";
@@ -609,7 +613,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id, Model.of("Pending recertifications")) {
+                        return new IconWithLabel(id,
+                                createStringResource("RoleAnalysis.aspect.overview.page.title.pending.recertifications")) {
                             @Override
                             protected String getIconCssClass() {
                                 return "fas fa-sync text-muted";
@@ -643,7 +648,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id, Model.of("Solved recertifications")) {
+                        return new IconWithLabel(id,
+                                createStringResource("RoleAnalysis.aspect.overview.page.title.solved.recertifications")) {
                             @Override
                             protected String getIconCssClass() {
                                 return "fas fa-trophy text-muted";
@@ -736,7 +742,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Contract("_ -> new")
                             @Override
                             protected @NotNull Component getTitleComponent(String id) {
-                                return new IconWithLabel(id, Model.of("Cluster roles")) {
+                                return new IconWithLabel(id,
+                                        createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.roles")) {
                                     @Override
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-success fa-2xs";
@@ -770,7 +777,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Contract("_ -> new")
                             @Override
                             protected @NotNull Component getTitleComponent(String id) {
-                                return new IconWithLabel(id, Model.of("Cluster users")) {
+                                return new IconWithLabel(id,
+                                        createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.users")) {
                                     @Override
                                     protected String getIconCssClass() {
                                         return "fa fa-circle text-danger fa-2xs";
@@ -1008,7 +1016,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
 
     private void initInfoOutlierPanelOld(WebMarkupContainer container) {
         RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERNS,
-                Model.of("Discovered cluster outliers")) {
+                createStringResource("RoleAnalysis.aspect.overview.page.title.discovered.cluster.outliers")) {
             @Override
             protected void addItem(RepeatingView repeatingView) {
                 RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
@@ -1185,7 +1193,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                                 OutlierObjectModel finalOutlierObjectModel = outlierObjectModel;
                                 OutlierResultPanel detailsPanel = new OutlierResultPanel(
                                         ((PageBase) getPage()).getMainPopupBodyId(),
-                                        Model.of("Outlier details")) {
+                                        createStringResource("RoleAnalysis.aspect.overview.page.title.outlier.details")) {
 
                                     @Override
                                     public String getCardCssClass() {

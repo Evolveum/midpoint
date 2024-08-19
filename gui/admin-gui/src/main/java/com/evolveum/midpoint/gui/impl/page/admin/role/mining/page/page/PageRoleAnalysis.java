@@ -22,6 +22,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
@@ -518,7 +519,7 @@ public class PageRoleAnalysis extends PageAdmin {
                     if (relationsMetric != 0 && allUserOwnedRoleAssignments != 0) {
                         percentagePart = (relationsMetric / allUserOwnedRoleAssignments) * 100;
                     }
-                    String formattedReductionFactorConfidence = String.format("%.0f", percentagePart);
+                    String formattedReductionFactorConfidence = String.format("%.2f", percentagePart);
                     double itemsConfidence = pattern.getItemsConfidence();
                     String formattedItemConfidence = String.format("%.1f", itemsConfidence);
                     String description =
@@ -526,7 +527,8 @@ public class PageRoleAnalysis extends PageAdmin {
                                     "x relationships with a confidence of  " +
                                     formattedItemConfidence + "%";
 
-                    String name = "Role suggestion #" + (i + 1);
+                    String patternName = pageBase.createStringResource(
+                            "RoleAnalysis.role.suggestion.title", (i + 1)).getString();
                     IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(
                             IdentifyWidgetItem.ComponentType.PATTERN,
                             Model.of(GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON),
@@ -553,7 +555,7 @@ public class PageRoleAnalysis extends PageAdmin {
 
                         @Override
                         public Component createTitleComponent(String id) {
-                            AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, Model.of(name)) {
+                                AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, Model.of(patternName)) {
                                 @Override
                                 public void onClick(AjaxRequestTarget target) {
                                     PageParameters parameters = new PageParameters();

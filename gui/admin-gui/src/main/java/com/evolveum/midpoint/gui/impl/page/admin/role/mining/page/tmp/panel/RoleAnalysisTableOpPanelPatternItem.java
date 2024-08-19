@@ -23,6 +23,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
@@ -59,7 +60,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
 
     private void initLayout() {
 
-        add(AttributeAppender.replace("class","d-flex align-items-center rounded"));
+        add(AttributeAppender.replace("class", "d-flex align-items-center rounded"));
         add(new Behavior() {
             @Override
             public void onConfigure(Component component) {
@@ -223,18 +224,22 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
             protected @NotNull String load() {
                 DetectedPattern pattern = getModelObject();
                 String identifier = pattern.getIdentifier();
+                PageBase pageBase = getPageBase();
                 switch (pattern.getPatternType()) {
                     case PATTERN -> {
-                        return "Role suggestion #" + (identifier);
+                        return pageBase.createStringResource("RoleAnalysis.role.suggestion.title", (identifier))
+                                .getString();
                     }
                     case CANDIDATE -> {
-                        return "Candidate role " + (identifier);
+                        return pageBase.createStringResource("RoleAnalysis.role.candidate.title", (identifier))
+                                .getString();
                     }
                     case OUTLIER -> {
                         return identifier;
                     }
                 }
-                return "pattern type not found";
+                return pageBase.createStringResource("RoleAnalysis.pattern.not.found.title")
+                        .getString();
             }
         };
 
@@ -298,7 +303,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
             @Override
             protected String load() {
                 String associatedColor = getModelObject().getAssociatedColor();
-                if(associatedColor == null) {
+                if (associatedColor == null) {
                     return null;
                 }
 

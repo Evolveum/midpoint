@@ -124,7 +124,7 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
 //                            } else {
                 MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(
                         getPageBase().getMainPopupBodyId(),
-                        Model.of("Analyzed members details panel"),
+                        createStringResource("RoleAnalysis.analyzed.members.details.panel"),
                         objects, RoleAnalysisProcessModeType.USER) {
                     @Override
                     public void onClose(AjaxRequestTarget ajaxRequestTarget) {

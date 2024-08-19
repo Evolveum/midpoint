@@ -250,9 +250,10 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
             @Override
             protected RoleAnalysisPatternTileModel createTileObject(DetectedPattern pattern) {
                 Long id = pattern.getId();
-                String name = "Role suggestion #" + id;
+                StringResourceModel patternName = pageBase.createStringResource(
+                        "RoleAnalysis.role.suggestion.title", (id));
                 IModel<String> processMode = extractProcessMode(pageBase, pattern);
-                return new RoleAnalysisPatternTileModel<>(pattern, name, processMode.getObject());
+                return new RoleAnalysisPatternTileModel<>(pattern, patternName.getString(), processMode.getObject());
             }
 
             @Override

@@ -183,7 +183,7 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
                     @Override
                     protected @NotNull Component getPanelComponent(String id1) {
                         RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(id1,
-                                Model.of("Role analysis attribute panel"),
+                                createStringResource("RoleAnalysis.analysis.attribute.panel"),
                                 null, roleAnalysisAttributeAnalysisResult,
                                 null, compareAttributeResult) {
                             @Override
@@ -292,7 +292,7 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
                 },
 
                 new WidgetItemModel(createStringResource(""),
-                        Model.of("Sort")) {
+                        createStringResource("RoleAnalysis.sort")) {
                     @Override
                     public Component createValueComponent(String id) {
                         Label label = new Label(id, "0 (todo)");
@@ -312,7 +312,7 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
                 },
 
                 new WidgetItemModel(createStringResource(""),
-                        Model.of("Chart")) {
+                        createStringResource("RoleAnalysis.chart")) {
                     @Override
                     public Component createValueComponent(String id) {
                         Label label = new Label(id, "0 (todo)");

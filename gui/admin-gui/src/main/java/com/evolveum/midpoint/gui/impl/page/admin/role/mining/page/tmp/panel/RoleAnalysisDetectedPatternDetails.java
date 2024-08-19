@@ -223,7 +223,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
     }
 
     protected IModel<String> getCardTitleModel() {
-        return Model.of("Role suggestion attributes analysis result");
+        return createStringResource("RoleAnalysisDetectedPatternDetails.panel.title");
     }
 
     protected String getCssClassForStatisticsPanel() {

@@ -379,7 +379,8 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                             if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
                                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_COLLAPSABLE_CONTENT,
-                                        Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult);
+                                        createStringResource("RoleAnalysis.analysis.attribute.panel"),
+                                        roleAttributeAnalysisResult, userAttributeAnalysisResult);
                                 roleAnalysisAttributePanel.setOutputMarkupId(true);
                                 webMarkupContainerUser.add(roleAnalysisAttributePanel);
                             } else {

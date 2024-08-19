@@ -1257,7 +1257,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         try {
             ObjectReferenceType objectReferenceType = new ObjectReferenceType()
                     .oid(session.getOid())
-                    .type(RoleAnalysisSessionType.COMPLEX_TYPE);
+                    .type(RoleAnalysisSessionType.COMPLEX_TYPE)
+                    .targetName(String.valueOf(session.getName()));
 
             RoleAnalysisClusteringWorkDefinitionType rdw = new RoleAnalysisClusteringWorkDefinitionType();
             rdw.setSessionRef(objectReferenceType);

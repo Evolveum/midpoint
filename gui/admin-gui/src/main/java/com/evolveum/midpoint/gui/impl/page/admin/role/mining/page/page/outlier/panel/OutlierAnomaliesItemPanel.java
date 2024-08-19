@@ -191,7 +191,7 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
                 },
 
                 new WidgetItemModel(createStringResource(""),
-                        Model.of("Sort")) {
+                        createStringResource("RoleAnalysis.sort")) {
                     @Override
                     public Component createValueComponent(String id) {
                         Label label = new Label(id, "0 (todo)");
@@ -201,7 +201,8 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("Pending cert.")) {
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("OutlierAnomaliesItemPanel.pending.cert")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
@@ -211,7 +212,7 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
                 },
 
                 new WidgetItemModel(createStringResource(""),
-                        Model.of("Chart")) {
+                        createStringResource("RoleAnalysis.chart")) {
                     @Override
                     public Component createValueComponent(String id) {
                         Label label = new Label(id, "0 (todo)");
@@ -221,7 +222,8 @@ public class OutlierAnomaliesItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("Closed cert.")) {
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("OutlierAnomaliesItemPanel.closed.cert")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");

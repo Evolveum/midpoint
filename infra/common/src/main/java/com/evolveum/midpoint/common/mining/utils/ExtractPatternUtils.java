@@ -81,7 +81,11 @@ public class ExtractPatternUtils {
                 detectedPattern.setReductionFactorConfidence(reductionConfidence);
             }
 
-            detectedPattern.setClusterRef(new ObjectReferenceType().oid(cluster.getOid()).type(RoleAnalysisClusterType.COMPLEX_TYPE));
+            detectedPattern.setClusterRef(new ObjectReferenceType()
+                    .oid(cluster.getOid())
+                    .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                    .targetName(cluster.getName()));
+
             mergedIntersection.add(detectedPattern);
             detectedPattern.setPatternType(BasePattern.PatternType.PATTERN);
             if (selectedPatternId != null) {

@@ -198,7 +198,11 @@ public class OutlierClusterItemPanel<T extends Serializable>
             roleAnalysisService.resolveOutliersZScore(roles, frequencyRange, sensitivity);
         }
 
-        cluster.setRoleAnalysisSessionRef(new ObjectReferenceType().type(RoleAnalysisSessionType.COMPLEX_TYPE).oid(sessionOid));
+        cluster.setRoleAnalysisSessionRef(
+                new ObjectReferenceType()
+                        .type(RoleAnalysisSessionType.COMPLEX_TYPE)
+                        .oid(sessionOid)
+                        .targetName(session.getName()));
         cluster.setClusterStatistics(new AnalysisClusterStatisticType()
                 .rolesCount(roles.size())
                 .usersCount(similarObjectOids.size()));

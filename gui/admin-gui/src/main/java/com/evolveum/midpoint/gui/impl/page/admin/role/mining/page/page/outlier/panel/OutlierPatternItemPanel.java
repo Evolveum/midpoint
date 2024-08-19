@@ -234,7 +234,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
                     @Override
                     public Component createDescriptionComponent(String id) {
                         return new LabelWithHelpPanel(id,
-                                createStringResource("Attribute confidence")) {
+                                createStringResource("OutlierPatternItemPanel.attributes.confidence")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
@@ -244,7 +244,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
                 },
 
                 new WidgetItemModel(createStringResource(""),
-                        Model.of("Sort")) {
+                        createStringResource("RoleAnalysis.sort")) {
                     @Override
                     public Component createValueComponent(String id) {
                         int roleCount = topDetectedPattern.getRolesOccupancy().size();
@@ -255,7 +255,8 @@ public class OutlierPatternItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("Role count")) {
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("OutlierPatternItemPanel.roles.count")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
@@ -265,7 +266,7 @@ public class OutlierPatternItemPanel<T extends Serializable>
                 },
 
                 new WidgetItemModel(createStringResource(""),
-                        Model.of("Chart")) {
+                        createStringResource("RoleAnalysis.chart")) {
                     @Override
                     public Component createValueComponent(String id) {
                         int userCount = topDetectedPattern.getUserOccupancy().size();
@@ -276,7 +277,8 @@ public class OutlierPatternItemPanel<T extends Serializable>
 
                     @Override
                     public Component createDescriptionComponent(String id) {
-                        return new LabelWithHelpPanel(id, Model.of("User count")) {
+                        return new LabelWithHelpPanel(id,
+                                createStringResource("OutlierPatternItemPanel.users.count")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");

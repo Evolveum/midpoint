@@ -106,7 +106,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
 
         ObjectDetailsModels<RoleAnalysisOutlierType> objectDetailsModels = getObjectDetailsModels();
 
-        RoleAnalysisViewAllPanel accessPanel = new RoleAnalysisViewAllPanel(ID_ACCESS_PANEL, Model.of("Access anomalies")) {
+        RoleAnalysisViewAllPanel accessPanel = new RoleAnalysisViewAllPanel(ID_ACCESS_PANEL,
+                createStringResource("RoleAnalysis.aspect.overview.page.title.access.anomalies")) {
             @Contract(pure = true)
             @Override
             protected @NotNull String getIconCssClass() {
@@ -116,7 +117,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             @Contract(" -> new")
             @Override
             protected @NotNull IModel<String> getLinkModel() {
-                return Model.of("View all access anomalies");
+                return createStringResource(
+                        "RoleAnalysis.aspect.overview.page.title.view.all.access.anomalies");
             }
 
             @Override
@@ -156,7 +158,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
             @Contract(" -> new")
             @Override
             protected @NotNull IModel<String> getLinkModel() {
-                return Model.of("View all outlier partitions");
+                return createStringResource("RoleAnalysis.aspect.overview.page.title.view.all.partitions");
             }
 
             @Override
@@ -275,7 +277,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id, Model.of("Pending recertifications")) {
+                        return new IconWithLabel(id,
+                                createStringResource("RoleAnalysis.aspect.overview.page.title.pending.recertifications")) {
                             @Override
                             protected String getIconCssClass() {
                                 return "fas fa-sync text-muted";
@@ -309,7 +312,8 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull Component getTitleComponent(String id) {
-                        return new IconWithLabel(id, Model.of("Solved recertifications")) {
+                        return new IconWithLabel(id,
+                                createStringResource("RoleAnalysis.aspect.overview.page.title.solved.recertifications")) {
                             @Override
                             protected String getIconCssClass() {
                                 return "fas fa-trophy text-muted";

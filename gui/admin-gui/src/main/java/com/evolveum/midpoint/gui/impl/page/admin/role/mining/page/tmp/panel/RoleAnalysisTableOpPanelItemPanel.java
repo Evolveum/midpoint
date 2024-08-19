@@ -188,7 +188,8 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             public @NotNull Component getDescriptionTitleComponent(String id) {
-                Label label = new Label(id, Model.of("Explore"));
+                Label label = new Label(id,
+                        createStringResource("RoleAnalysisTableOpPanelItemPanel.explore"));
                 label.setOutputMarkupId(true);
                 return label;
             }
@@ -209,7 +210,9 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
         IModel<String> operationDescription = new LoadableDetachableModel<>() {
             @Override
             protected @NotNull String load() {
-                return getModelObject().isCandidateRoleView() ? "Candidate role view" : "Object view";
+                return getModelObject().isCandidateRoleView()
+                        ? createStringResource("RoleAnalysisTableOpPanelItemPanel.candidate.role.view").getString()
+                        : createStringResource("RoleAnalysisTableOpPanelItemPanel.pattern.view").getString();
             }
         };
 
@@ -235,7 +238,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             public @NotNull Component getDescriptionTitleComponent(String id) {
-                Label label = new Label(id, "Object view");
+                Label label = new Label(id, createStringResource("RoleAnalysisTableOpPanelItemPanel.object.view"));
                 label.setOutputMarkupId(true);
                 return label;
             }
@@ -256,7 +259,9 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
         IModel<String> operationDescription = new LoadableDetachableModel<>() {
             @Override
             protected @NotNull String load() {
-                return getModelObject().isPanelExpanded() ? "Expanded" : "Collapsed";
+                return getModelObject().isPanelExpanded()
+                        ? createStringResource("RoleAnalysisTableOpPanelItemPanel.expanded").getString()
+                        : createStringResource("RoleAnalysisTableOpPanelItemPanel.collapsed").getString();
             }
         };
 
@@ -273,7 +278,8 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
             @Override
             public Component getDescriptionTitleComponent(String id) {
-                Label label = new Label(id, "Panel view"); //TODO localization
+                Label label = new Label(id,
+                        createStringResource("RoleAnalysisTableOpPanelItemPanel.panel.view"));
                 label.setOutputMarkupId(true);
                 return label;
             }
