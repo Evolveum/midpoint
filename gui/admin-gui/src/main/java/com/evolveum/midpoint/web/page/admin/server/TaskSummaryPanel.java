@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.model.IModel;
@@ -55,7 +57,11 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     private NonEmptyLoadableModel<TaskInformation> createTaskInformationModel(@NotNull IModel<TaskType> taskModel,
             @NotNull IModel<TaskType> rootTaskModel) {
         return NonEmptyLoadableModel.create(
-                () -> TaskInformation.createForTask(taskModel.getObject(), rootTaskModel.getObject()), false);
+                () -> {
+                    TaskType task = taskModel.getObject().clone();
+                    WebPrismUtil.cleanupEmptyContainers(task.asPrismContainer());
+                    return TaskInformation.createForTask(task, rootTaskModel.getObject());
+                    }, false);
     }
 
     private NonEmptyLoadableModel<TaskInformation> createFallbackTaskInformationModel(@NotNull IModel<TaskType> model) {

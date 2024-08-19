@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.certification;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -23,6 +27,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+
+import java.io.Serial;
 
 @PageDescriptor(
         urls = {
@@ -82,6 +88,19 @@ public class PageCertCampaigns extends PageAdminCertification {
     }
 
     protected CampaignsPanel createCampaignsPanel() {
-        return new CampaignsPanel(PageCertCampaigns.ID_CAMPAIGNS_TABLE);
+        return new CampaignsPanel(ID_CAMPAIGNS_TABLE) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected ObjectQuery getCustomCampaignsQuery() {
+                String certDefinitionOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER) != null ?
+                        getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString() : null;
+                return getPrismContext()
+                        .queryFor(AccessCertificationCampaignType.class)
+                        .item(AccessCertificationCampaignType.F_DEFINITION_REF)
+                        .ref(certDefinitionOid)
+                        .build();
+            }
+        };
     }
 }
