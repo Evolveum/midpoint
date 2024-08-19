@@ -1,0 +1,53 @@
+= Managed and Unmanaged Shadows (TODO)
+:page-toc: top
+:page-upkeep-status: green
+
+== Introduction
+
+#TODO please provide some methodological background here#
+
+#TODO review the whole document#
+
+== Marking
+
+We need a mechanism to set the mark on selected entitlement shadows.
+One option is to do that manually via GUI.
+A better one is to use automatic marking facility in midPoint, potentially with overriding these marks manually via GUI.
+
+Two typical options of setting up the mark are:
+
+.Setting the "unmanaged" mark for all new shadows
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>group</intent>
+    <!-- delineation, attributes, etc -->
+    <marking>
+        <markRef oid="00000000-0000-0000-0000-000000000806"/>
+        <applicationTime>classification</applicationTime> <!--1-->
+    </marking>
+    <!-- ... -->
+</objectType>
+----
+<1> This causes marking each newly classified or reclassified shadow as "unmanaged".
+
+.Setting the "unmanaged" mark for selected shadows
+[source,xml]
+----
+<objectType>
+    <kind>entitlement</kind>
+    <intent>group</intent>
+    <!-- delineation, attributes, etc -->
+    <marking>
+        <markRef oid="00000000-0000-0000-0000-000000000806"/>
+        <pattern>
+            <filter>
+                <q:text>attributes/info = "temporary"</q:text> <!--1-->
+            </filter>
+        </pattern>
+    </marking>
+    <!-- ... -->
+</objectType>
+----
+<1> This causes marking each group that has the value of `temporary` in its `info` attribute as "unmanaged".

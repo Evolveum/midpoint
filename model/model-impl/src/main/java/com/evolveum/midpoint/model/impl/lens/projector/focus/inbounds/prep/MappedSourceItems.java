@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.InboundMappingConfigItem;
 import com.evolveum.midpoint.schema.config.MappingConfigItem;
@@ -254,21 +253,9 @@ class MappedSourceItems<T extends Containerable> {
 
         MappedSourceItem.ItemProvider<ShadowAssociationValue, ShadowAssociationDefinition>
                 associationProvider = () -> {
-                    var association = CloneUtil.cloneCloneable(
-                            MappedSourceItems.this.inboundsSource.sourceData.getAssociation(assocName));
-                    if (association != null) {
-                        for (ShadowAssociationValue associationValue : List.copyOf(association.getAssociationValues())) {
-                            if (associationValue.isInboundMembershipSynchronizationDisabled()) {
-                                LOGGER.trace(
-                                        "Removing association value from inbounds processing, because of membership sync "
-                                                + "being disabled: {}", associationValue);
-                                association.remove(associationValue);
-                            }
-                        }
-                    }
-                    //noinspection unchecked,rawtypes
-                    return (Item) association;
-                };
+            //noinspection unchecked,rawtypes
+            return (Item) MappedSourceItems.this.inboundsSource.sourceData.getAssociation(assocName);
+        };
 
         if (inboundsSource.isItemNotProcessable(
                 itemPath,
