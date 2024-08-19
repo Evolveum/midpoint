@@ -245,7 +245,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     }
 
     private void initSecondCountPanel() {
-        Label processedObjectCount = new Label(ID_ROLES_COUNT, () -> getModelObject().getRoleCount() + " Roles") {
+        Label processedObjectCount = new Label(ID_ROLES_COUNT, () -> getModelObject().getRoleCount() + " "
+                + createStringResource("RoleAnalysis.tile.panel.roles").getString()) {
         };
         processedObjectCount.setOutputMarkupId(true);
         processedObjectCount.add(AttributeAppender.replace(
@@ -255,7 +256,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     }
 
     private void initFirstCountPanel() {
-        Label clusterCount = new Label(ID_USERS_COUNT, () -> getModelObject().getUserCount() + " Users") {
+        Label clusterCount = new Label(ID_USERS_COUNT, () -> getModelObject().getUserCount() + " "
+                + createStringResource("RoleAnalysis.tile.panel.users").getString()) {
         };
 
         clusterCount.setOutputMarkupId(true);
@@ -355,97 +357,6 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
-//    public void initStatusBar() {
-//        RoleAnalysisPatternTileModel<T> modelObject = getModelObject();
-//        String confidence;
-//        DetectedPattern pattern;
-//        if (modelObject != null && modelObject.getPattern() != null) {
-//            pattern = modelObject.getPattern();
-//            confidence = String.format("%.2f", pattern.getItemsConfidence()) + "%";
-//        } else {
-//            EmptyPanel emptyPanel = new EmptyPanel(ID_STATUS_BAR);
-//            emptyPanel.setOutputMarkupId(true);
-//            add(emptyPanel);
-//            return;
-//        }
-//
-//        CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
-//                .setBasicIcon("fas fa-chart-bar", LayeredIconCssStyle.IN_ROW_STYLE);
-//
-//        DetectedPattern finalPattern = pattern;
-//        AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(ID_STATUS_BAR, iconBuilder.build(),
-//                Model.of(confidence)) {
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-//                RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
-//                        ((PageBase) getPage()).getMainPopupBodyId(),
-//                        Model.of(finalPattern));
-//                ((PageBase) getPage()).showMainPopup(component, ajaxRequestTarget);
-//            }
-//        };
-//
-//        objectButton.titleAsLabel(true);
-//        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm "));
-//        objectButton.add(AttributeAppender.append("style", "width:100px"));
-//        objectButton.setOutputMarkupId(true);
-//        add(objectButton);
-//    }
-//
-//    private void buildExploreButton() {
-//        DetectedPattern pattern = getModelObject().getPattern();
-//        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-//                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
-//        AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(
-//                RoleAnalysisPatternTilePanel.ID_EXPLORE_PATTERN_BUTTON,
-//                iconBuilder.build(),
-//                createStringResource("RoleAnalysis.explore.button.title")) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onSubmit(AjaxRequestTarget target) {
-//                explorePatternPerform(pattern);
-//            }
-//
-//            @Override
-//            protected void onError(@NotNull AjaxRequestTarget target) {
-//                target.add(((PageBase) getPage()).getFeedbackPanel());
-//            }
-//        };
-//        migrationButton.titleAsLabel(true);
-//        migrationButton.setOutputMarkupId(true);
-//        migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
-//        migrationButton.setOutputMarkupId(true);
-//        add(migrationButton);
-//    }
-//
-//    private void buildCandidateButton() {
-//        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-//                GuiStyleConstants.CLASS_PLUS_CIRCLE, LayeredIconCssStyle.IN_ROW_STYLE);
-//        AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(
-//                RoleAnalysisPatternTilePanel.ID_CREATE_CANDIDATE_BUTTON,
-//                iconBuilder.build(),
-//                createStringResource("RoleMining.button.title.candidate")) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onSubmit(AjaxRequestTarget target) {
-//                createCandidatePerform(target);
-//            }
-//
-//            @Override
-//            protected void onError(@NotNull AjaxRequestTarget target) {
-//                target.add(((PageBase) getPage()).getFeedbackPanel());
-//            }
-//        };
-//        migrationButton.titleAsLabel(true);
-//        migrationButton.setOutputMarkupId(true);
-//        migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
-//        migrationButton.setOutputMarkupId(true);
-//        migrationButton.add(new VisibleBehaviour(() -> false));
-//        add(migrationButton);
-//    }
-
     private void createCandidatePerform(@NotNull AjaxRequestTarget target) {
         Task task = getPageBase().createSimpleTask("Process detected pattern");
         OperationResult result = task.getResult();
@@ -508,7 +419,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
     public List<InlineMenuItem> createMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new InlineMenuItem(createStringResource("Explore suggested role")) {
+        items.add(new InlineMenuItem(createStringResource("RoleAnalysis.tile.panel.explore.suggested.role")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -526,7 +437,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
         });
 
-        items.add(new InlineMenuItem(createStringResource("Create candidate")) {
+        items.add(new InlineMenuItem(createStringResource("RoleAnalysis.tile.panel.create.candidate")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -543,7 +454,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
         });
 
-        items.add(new InlineMenuItem(createStringResource("Details view")) {
+        items.add(new InlineMenuItem(createStringResource("RoleAnalysis.tile.panel.details.view")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
