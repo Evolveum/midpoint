@@ -109,6 +109,8 @@ public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysi
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
+    //TODO reduction vs attribute confidence
+    // not correct way how to load top patterns
     private @NotNull List<DetectedPattern> getTopPatterns(RoleAnalysisSessionType session) {
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
@@ -136,6 +138,8 @@ public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysi
             }
 
         }
+
+        topDetectedPatterns.sort((o1, o2) -> Double.compare(o2.getMetric(), o1.getMetric()));
         return topDetectedPatterns;
     }
 
