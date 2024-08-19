@@ -29,6 +29,7 @@ import java.util.stream.IntStream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
@@ -1033,6 +1034,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         List<String> candidateRolesIds = new ArrayList<>();
 
         for (DetectedPattern detectedPattern : detectedPatterns) {
+            boolean isOutlierPattern = detectedPattern.getPatternType() == BasePattern.PatternType.OUTLIER;
+            if (isOutlierPattern) {
+                return;
+            }
+
             detectedPatternsRoles.add(new ArrayList<>(detectedPattern.getRoles()));
             detectedPatternsUsers.add(new ArrayList<>(detectedPattern.getUsers()));
             candidateRolesIds.add(detectedPattern.getIdentifier());
@@ -2866,40 +2872,40 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull String sessionOid,
             @NotNull Task task,
             @NotNull OperationResult result) {
-            Map<RoleAnalysisOutlierType,Double> outlierMap = new HashMap<>();
-            ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
+        Map<RoleAnalysisOutlierType, Double> outlierMap = new HashMap<>();
+        ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
 
-                RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-                List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
-                for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                    ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
-                    String oid = targetSessionRef.getOid();
-                    if (sessionOid.equals(oid)) {
-                        Double overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
-                        outlierMap.put(outlier.asObjectable(),overallConfidence);
-                        break;
-                    }
+            RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
+            List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+            for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+                ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
+                String oid = targetSessionRef.getOid();
+                if (sessionOid.equals(oid)) {
+                    Double overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
+                    outlierMap.put(outlier.asObjectable(), overallConfidence);
+                    break;
                 }
-
-                return true;
-            };
-
-            try {
-                modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
-                        null, task, result);
-            } catch (Exception ex) {
-                throw new RuntimeException("Couldn't search outliers", ex);
             }
 
-            List<Map.Entry<RoleAnalysisOutlierType, Double>> sortedEntries = new ArrayList<>(outlierMap.entrySet());
-            sortedEntries.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+            return true;
+        };
 
-            List<RoleAnalysisOutlierType> topOutliers = new ArrayList<>();
-            for (Map.Entry<RoleAnalysisOutlierType, Double> entry : sortedEntries) {
-                topOutliers.add(entry.getKey());
-            }
+        try {
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+                    null, task, result);
+        } catch (Exception ex) {
+            throw new RuntimeException("Couldn't search outliers", ex);
+        }
 
-            return topOutliers;
+        List<Map.Entry<RoleAnalysisOutlierType, Double>> sortedEntries = new ArrayList<>(outlierMap.entrySet());
+        sortedEntries.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+
+        List<RoleAnalysisOutlierType> topOutliers = new ArrayList<>();
+        for (Map.Entry<RoleAnalysisOutlierType, Double> entry : sortedEntries) {
+            topOutliers.add(entry.getKey());
+        }
+
+        return topOutliers;
     }
 
     @Nullable

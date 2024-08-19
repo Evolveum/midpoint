@@ -78,7 +78,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             setRelationSelected(true);
         }
 
-        markChunkIfRequested(cellItem, isInclude);
+        boolean marked = markChunkIfRequested(cellItem, isInclude);
 
         RoleAnalysisChunkAction chunkAction = getChunkAction();
         if (!chunkAction.equals(RoleAnalysisChunkAction.SELECTION)) {
@@ -90,7 +90,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     }
 
     //think about this
-    private void markChunkIfRequested(Item<ICellPopulator<A>> cellItem, RoleAnalysisTableCellFillResolver.Status isInclude) {
+    private boolean markChunkIfRequested(Item<ICellPopulator<A>> cellItem, RoleAnalysisTableCellFillResolver.Status isInclude) {
         RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
         Set<String> markedUsers = getModel().getObject().getMarkedUsers();
         if (roleAnalysis.isOutlierDetection()
@@ -107,7 +107,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                 for (String member : baseMiningChunk.getMembers()) {
                     if (usersInPatterns.contains(member)) {
                         isMarked = true;
-                        cellItem.add(AttributeAppender.append("style", "border: 5px solid #28a745;"));
+                        cellItem.add(AttributeAppender.append("style", " border: 5px solid #28a745;"));
                         break;
                     }
                 }
@@ -119,18 +119,21 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                     && !markedUsers.isEmpty()) {
                 for (String member : baseMiningChunk.getMembers()) {
                     if (markedUsers.contains(member)) {
-                        cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
+                        cellItem.add(AttributeAppender.append("style", " border: 5px solid #206f9d;"));
                         break;
                     }
                 }
             }
 
+            return isMarked;
 //            if (RoleAnalysisOperationMode.INCLUDE == baseMiningChunk.getObjectStatus().getRoleAnalysisOperationMode()
 //                    && RoleAnalysisOperationMode.NEGATIVE_EXCLUDE == rowChunk.getObjectStatus().getRoleAnalysisOperationMode()) {
 //                cellItem.add(AttributeAppender.append("style", "border: 5px solid #206f9d;"));
 //            }
 
         }
+
+        return false;
     }
 
     @Override

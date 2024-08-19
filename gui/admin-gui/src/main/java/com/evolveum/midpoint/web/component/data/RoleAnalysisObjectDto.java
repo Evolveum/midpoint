@@ -215,7 +215,6 @@ public class RoleAnalysisObjectDto implements Serializable {
         if (CollectionUtils.isNotEmpty(selectedPatterns)) {
             Task task = pageBase.createSimpleTask("InitPattern"); //TODO task name
             OperationResult result = task.getResult();
-
             pageBase.getRoleAnalysisService().updateChunkWithPatterns(miningOperationChunk, selectedPatterns, task, result);
         }
     }
