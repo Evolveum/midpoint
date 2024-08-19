@@ -43,20 +43,20 @@ The {release-version} release brings security, stability and miscellaneous bugfi
 * Added better validation for OID format for object and object references. See bug:MID-9852[].
 * Saving filter now doesn't trigger reconciliation, raw flag is used. See bug:MID-9744[].
 * Fixed initial-midpoint-home setup. See bug:MID-9885[].
-* Checking for conflicts for single-valued items was fixed (strengthened).
-See bug:MID-9621[] and xref:_behavior_changes_since_4_8_3[].
-* Fix for getting current login users on another node. See bug:MID-9746[].
-* Fix for redirecting from the Preview Changes panel to the Details panel when the panel configuration doesn't contain panelType.
+* When evaluating mappings, checking for conflicts for single-valued items was fixed (strengthened).
+See bug:MID-9621[] and xref:#_behavior_changes_since_4_8_3[behavior changes since 4.8.3].
+* Fixed getting currently logged users on another node. See bug:MID-9746[].
+* Fixed redirecting from the Preview Changes panel to the Details panel when the panel configuration doesn't contain panelType.
 See bug:MID-9699[].
-* Fix for missing value in lookup table for lifecycle state displayed in LifecycleStatePanel. See bug:MID-9637[].
-* Disable full-text search for the Construction Step panel of the Role Wizard. See bug:MID-9693[].
-* Fix for saved search state of assignment panel on pages of different assignment holder type. See bug:MID-9457[].
-* Fix for memory leak in MidpointAutowiredBeanFactoryObjectPostProcessor caused by undestroyed unused authentication filters.
+* Fixed missing value in lookup table for lifecycle state displayed in `LifecycleStatePanel`. See bug:MID-9637[].
+* Disabled full-text search for the Construction Step panel of the Role Wizard. See bug:MID-9693[].
+* Fixed saved search state of assignment panel on pages of different assignment holder type. See bug:MID-9457[].
+* Fixed memory leak in `MidpointAutowiredBeanFactoryObjectPostProcessor` caused by un-destroyed unused authentication filters.
 See bug:MID-9580[] and bug:MID-9834[].
-* Fix for full-text search panel for assignments panels that used a custom collection filter. See bug:MID-9692[].
+* Fixed full-text search panel for assignments panels that used a custom collection filter. See bug:MID-9692[].
 * Fixed updating of model before form validation by expression validator with dependency on another attribute. See bug:MID-9688[].
-* Fix for resolving container value id when adding two new assignments generated from scripts. See bug:MID-9743[].
-* Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
+* Fixed resolving container value id when adding two new assignments generated from scripts. See bug:MID-9743[].
+* Added a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
 * Fixed configuration of the date/time parameters during report running. See bug:MID-9828[].
 * Fixed search filter saving on the tasks list page. See bug:MID-9751[].
 * Fixed Enter key behavior during the search in the popup window. See bug:MID-9831[].
@@ -66,13 +66,13 @@ See bug:MID-9580[] and bug:MID-9834[].
 * Fixed "Rows per page" setting in the table view. See bug:MID-9766[].
 * Fixed "Out of memory" problem while producing a bulk action on the work items page. See bug:MID-9671[].
 * Added `verify-audit` action to Ninja which reports audits records with incorrect oids. See bug:MID-9450[].
-* Widgets which use filters supported only in native repository now displays warning with reason instead of empty state. See bug:MID-9854[].
+* Widgets which use filters supported only in native repository now display warning with reason instead of an empty state. See bug:MID-9854[].
 * Fixed import object issue, when previous version of role had only inducements and new version also has assignments. See bug:MID-9876[].
 * Fixed shopping cart details panel to show all the necessary properties. See bug:MID-9858[].
 * Fixed org. structure search in members. See bug:MID-9905[].
-* Fixed showing Save button when #modify execution-phase item-limited authorization is present. See bug:MID-9898[].
+* Fixed showing Save button when `#modify` execution-phase item-limited authorization is present. See bug:MID-9898[].
 * Improved the optimizing triggers creator, so that it works also throughout the cluster. See bug:MID-9368[].
-* Fixed incorrect displaying owner/approver relations in All direct/indirect assignments panel. See bug:MID-9467[].
+* Fixed incorrect displaying owner/approver relations in "All direct/indirect assignments" panel. See bug:MID-9467[].
 * Added `midpoint.isFocusDeleted()` method to allow keeping projections' data when focus is being deleted. See bug:MID-9669[].
 * Fixed `filter` option support in `ninja` command. See bug:MID-9881[].
 * Fixed `NullPointerException` in Midpoint Java Client. See bug:MID-9772[].
@@ -81,9 +81,9 @@ See bug:MID-9580[] and bug:MID-9834[].
 * Fixed the behavior when manual resource operation `CaseType` object gets accidentally deleted. See bug:MID-9286[].
 * Fixed handling of null or blank values for mail recipients. See bug:MID-9791[].
 * Fixed unwanted deletion of historical `midpoint.log` files at startup. See bug:MID-9833[].
-* Upgrade DatabaseTable Connector to 1.5.2.0 version.
-* Upgrade DatabaseTable Connector to 2.8 version.
-* Upgrade LDAP and AD Connector to 3.7.2 version.
+* Upgraded DatabaseTable Connector to 1.5.2.0 version.
+* Upgraded CSV Connector to 2.8 version.
+* Upgraded LDAP and AD Connector to 3.7.2 version.
 
 == Changes with Respect To Version 4.8.2
 
@@ -636,6 +636,8 @@ The guide describes the steps applicable for upgrades of all midPoint releases.
 Following sections provide details regarding release {release-version}.
 
 === Upgrade From MidPoint 4.8.x
+
+When having multiple mappings targeting a single item, please check if there are any additional errors stemming from the strengthened (fixed) checks mentioned in xref:#_behavior_changes_since_4_8_3[behavior changes since 4.8.3].
 
 Please check if there is a need to add authorizations to specific users due to xref:#_behavior_changes_since_4_8_1[behavior changes since 4.8.1].
 
