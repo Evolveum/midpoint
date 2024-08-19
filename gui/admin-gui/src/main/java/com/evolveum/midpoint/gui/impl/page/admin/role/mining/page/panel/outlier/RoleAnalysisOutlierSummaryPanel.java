@@ -60,14 +60,14 @@ public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<
         String formattedConfidence = String.format("%.2f", modelObject.getOverallConfidence());
 
         List<DetailsTableItem> detailsModel = List.of(
-                new DetailsTableItem(createStringResource("Mode"),
+                new DetailsTableItem(createStringResource("RoleAnalysisOutlierSummaryPanel.details.table.mode.title"),
                         Model.of(mode)) {
                     @Override
                     public Component createValueComponent(String id) {
                         return new Label(id, getValue());
                     }
                 },
-                new DetailsTableItem(createStringResource("Outlier properties"),
+                new DetailsTableItem(createStringResource("RoleAnalysisOutlierSummaryPanel.details.table.access.anomalies.title"),
                         Model.of(String.valueOf(numberOfAnomalies))) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -84,7 +84,7 @@ public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<
                         };
                     }
                 },
-                new DetailsTableItem(createStringResource("Partitions"),
+                new DetailsTableItem(createStringResource("RoleAnalysisOutlierSummaryPanel.details.table.session.partition.title"),
                         Model.of(String.valueOf(numberOfPartitions))) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -101,7 +101,7 @@ public class RoleAnalysisOutlierSummaryPanel extends ObjectVerticalSummaryPanel<
                         };
                     }
                 },
-                new DetailsTableItem(createStringResource("Confidence"),
+                new DetailsTableItem(createStringResource("RoleAnalysisOutlierSummaryPanel.details.table.outlier.confidence.title"),
                         Model.of(formattedConfidence)) {
 
                     @Override

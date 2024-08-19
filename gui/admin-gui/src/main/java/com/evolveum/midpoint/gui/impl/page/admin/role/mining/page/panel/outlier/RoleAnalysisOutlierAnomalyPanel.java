@@ -125,7 +125,7 @@ public class RoleAnalysisOutlierAnomalyPanel extends AbstractObjectMainPanel<Rol
     protected List<ITab> createPartitionTabs(RoleAnalysisOutlierType outlier) {
         List<ITab> tabs = new ArrayList<>();
 
-        tabs.add(new PanelTab(getPageBase().createStringResource("All anomalies"), new VisibleEnableBehaviour()) {
+        tabs.add(new PanelTab(getPageBase().createStringResource("RoleAnalysisOutlierAnomalyPanel.all.access.anomaly..tab.title"), new VisibleEnableBehaviour()) {
 
             @Serial private static final long serialVersionUID = 1L;
 
