@@ -1,7 +1,6 @@
 ---
 layout: release
 release-version: '4.8.4'
-visibility: hidden
 ---
 = MidPoint 4.8 "Curie" - Update 4
 :release-version: 4.8.4
