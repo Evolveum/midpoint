@@ -496,11 +496,11 @@ public class ObjectOperationPolicyHelper {
             boolean shouldBeTrue = !givingTrue.isEmpty();
             boolean shouldBeFalse = !givingFalse.isEmpty();
             if (shouldBeTrue && shouldBeFalse) {
-                // TODO what should we do here? What is the default? Or should we throw an exception?
+                // We may consider throwing an exception here.
                 LOGGER.warn("Conflicting tolerance override setting in {}: marks giving TRUE: {}, FALSE: {} - "
-                                + "continuing as non-tolerant",
+                                + "continuing as tolerant (because it's safer)",
                         context, givingTrue, givingFalse);
-                return false;
+                return true;
             } else if (shouldBeTrue) {
                 LOGGER.trace("Tolerance override = true because of {} (for {})", givingTrue, context);
                 return true;

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.construction;
 
 import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forProjectionContext;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isMembershipSyncOutboundDisabled;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -194,6 +195,12 @@ public class AssociationValuesTripleComputation {
                             env.task, result));
             if (shadow.isDead()) {
                 LOGGER.trace("Ignoring dead shadow {}", shadow);
+                continue;
+            }
+            if (isMembershipSyncOutboundDisabled(shadow.getEffectiveOperationPolicyRequired())) {
+                // This check is supported for simple associations right now. But it does not hurt to evaluate it
+                // for complex ones as well.
+                LOGGER.trace("Ignoring shadow {} because of membership sync outbound policy", shadow);
                 continue;
             }
             // TODO we should distinguish between types of objects in this associations
