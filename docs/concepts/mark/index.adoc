@@ -85,7 +85,7 @@ Any such attempt results in an error.
 | The membership information regarding entitlement shadows having this operation disabled is not propagated from focus objects to the resource.
 | `tolerant`
 | This is actually not an operation, but a boolean (`true`/`false`) flag that overrides whether the membership information regarding this entitlement is tolerated on the resource, if it's not provided by any mappings.
-Please see xref:/midpoint/reference/resources/entitlements/#__tolerating_existing_association_values[Tolerating Existing Association Values].
+Please see xref:/midpoint/reference/resources/entitlements/#_tolerating_existing_association_values[Tolerating Existing Association Values].
 |===
 
 *Default object operation policy* for objects without marks specifying policy is to have *all operations enabled*.
