@@ -174,6 +174,17 @@ public enum EndPointsUrlMapping {
                     "PageAdminCertification.auth.certificationCampaigns.label",
                     "PageAdminCertification.auth.certificationCampaigns.description")),
 
+    CAMPAIGNS("/admin/certification/campaigns/**",
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
+                    "PageAdminCertification.auth.certificationAll.label",
+                    "PageAdminCertification.auth.certificationAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL,
+                    "PageAdminCertification.auth.certificationCampaigns.label",
+                    "PageAdminCertification.auth.certificationCampaigns.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminCertification.auth.certificationCampaigns.label",
+                    "PageAdminCertification.auth.certificationCampaigns.description")),
+
     //TODO better names for authorizations
     CAMPAIGN_DECISIONS_DETAILS("/admin/certification/decisionsAll/**",
             new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
