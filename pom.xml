@@ -159,12 +159,12 @@
         <repository>
             <id>evolveum-nexus</id>
             <name>Internal Releases</name>
-            <url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+            <url>https://nexus.evolveum.com/nexus/repository/releases/</url>
         </repository>
         <snapshotRepository>
             <id>evolveum-nexus</id>
             <name>Internal Snapshots</name>
-            <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+            <url>https://nexus.evolveum.com/nexus/repository/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
@@ -1603,7 +1603,7 @@
         <repository>
             <id>evolveum</id>
             <name>Evolveum Public Releases</name>
-            <url>https://nexus.evolveum.com/nexus/content/groups/public/</url>
+            <url>https://nexus.evolveum.com/nexus/repository/public/</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -1611,7 +1611,7 @@
         <repository>
             <id>evolveum-snapshots</id>
             <name>Evolveum Snapshots</name>
-            <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+            <url>https://nexus.evolveum.com/nexus/repository/snapshots/</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -1648,12 +1648,12 @@
         <pluginRepository>
             <id>evolveum-nexus</id>
             <name>Plugin Snapshots</name>
-            <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+            <url>https://nexus.evolveum.com/nexus/repository/snapshots/</url>
         </pluginRepository>
         <pluginRepository>
             <id>evolveum</id>
             <name>Evolveum</name>
-            <url>https://nexus.evolveum.com/nexus/content/groups/public/</url>
+            <url>https://nexus.evolveum.com/nexus/repository/public/</url>
         </pluginRepository>
     </pluginRepositories>
 
