@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.menu;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -475,9 +476,16 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
 
 //        if (isFullyAuthorized()) {  // workaround for MID-5917
-        //TODO think about better names, how to differentiate between cert items per campaign vs. tile view for all active campaigns
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationActiveCampaigns", PageActiveCampaigns.class) {
 
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationActiveCampaigns", PageActiveCampaigns.class));
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                boolean isMenuActive = super.isMenuActive(page);
+                return isMenuActive || classMatches(PageCertItems.class);
+            }
+        });
 
         boolean certItemsViewEnabled = WebComponentUtil.isCertItemsViewEnabled(getPageBase());
         if (certItemsViewEnabled) {
@@ -485,7 +493,16 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
 
 //        }
-        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationActiveCampaigns", PageMyActiveCampaigns.class));
+        certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationActiveCampaigns", PageMyActiveCampaigns.class) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                boolean isMenuActive = super.isMenuActive(page);
+                return isMenuActive || classMatches(PageMyCertItems.class);
+            }
+        });
 
         if (certItemsViewEnabled) {
             certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationItems", PageMyCertItems.class));

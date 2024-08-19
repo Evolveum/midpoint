@@ -10,6 +10,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
 
@@ -35,6 +39,12 @@ public class PageMyActiveCampaigns extends PageActiveCampaigns {
     @Override
     boolean isDisplayingAllItems() {
         return true;
+    }
+
+    protected void showCertItems(String campaignOid, AjaxRequestTarget target) {
+        PageParameters params = new PageParameters();
+        params.add(OnePageParameterEncoder.PARAMETER, campaignOid);
+        navigateToNext(PageMyCertItems.class, params);
     }
 
 }

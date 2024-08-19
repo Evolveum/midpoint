@@ -61,10 +61,7 @@ public class PageActiveCampaigns extends PageAdminCertification {
 
             @Override
             protected void showCertItems(String campaignOid, AjaxRequestTarget target) {
-                PageParameters params = new PageParameters();
-                params.add(OnePageParameterEncoder.PARAMETER, campaignOid);
-                navigateToNext(PageCertItems.class, params);
-                target.add(PageActiveCampaigns.this);
+                PageActiveCampaigns.this.showCertItems(campaignOid, target);
             }
 
             @Override
@@ -120,4 +117,9 @@ public class PageActiveCampaigns extends PageAdminCertification {
         return false;
     }
 
+    protected void showCertItems(String campaignOid, AjaxRequestTarget target) {
+        PageParameters params = new PageParameters();
+        params.add(OnePageParameterEncoder.PARAMETER, campaignOid);
+        navigateToNext(PageCertItems.class, params);
+    }
 }

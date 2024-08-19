@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -95,6 +96,9 @@ public class PageCertCampaigns extends PageAdminCertification {
             protected ObjectQuery getCustomCampaignsQuery() {
                 String certDefinitionOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER) != null ?
                         getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString() : null;
+                if (StringUtils.isEmpty(certDefinitionOid)) {
+                    return super.getCustomCampaignsQuery();
+                }
                 return getPrismContext()
                         .queryFor(AccessCertificationCampaignType.class)
                         .item(AccessCertificationCampaignType.F_DEFINITION_REF)
