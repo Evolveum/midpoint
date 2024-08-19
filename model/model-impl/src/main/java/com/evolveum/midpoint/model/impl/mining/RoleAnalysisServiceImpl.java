@@ -3027,7 +3027,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return 0.0;
         }
 
-        return 1 - (sensitivity * 0.01);
+        return sensitivity * 0.01;
     }
 
     //TODO

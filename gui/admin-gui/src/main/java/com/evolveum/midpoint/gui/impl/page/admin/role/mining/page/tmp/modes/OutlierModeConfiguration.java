@@ -58,7 +58,7 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
 
         updateDetectionOptions(2,
                 2,
-                20.0,
+                80.0,
                 new RangeType()
                         .min(2.0)
                         .max(2.0),
