@@ -1,6 +1,10 @@
 ---
 midpoint-feature: [ 'entitlement', 'entitlement-association' ]
 doc-type: intro
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Use of entitlements for access control.'
 ---
 = Entitlements and Associations
 :page-wiki-name: Entitlements
