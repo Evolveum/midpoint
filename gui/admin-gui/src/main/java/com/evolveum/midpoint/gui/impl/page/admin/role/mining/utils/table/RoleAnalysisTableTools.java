@@ -50,6 +50,14 @@ public class RoleAnalysisTableTools {
 
     }
 
+    public static @NotNull String confidenceBasedTwoColor(double density) {
+        if (density >= 50) {
+            return "#528BB8";
+        } else {
+            return "#CA444B";
+        }
+    }
+
     public static @NotNull String densityBasedColorOposite(double density) {
 
         if (density >= 90) {

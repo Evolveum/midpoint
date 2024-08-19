@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.tile.mining.pattern;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.confidenceBasedTwoColor;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
@@ -114,7 +114,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         double finalItemsConfidence = bd.doubleValue();
 
-        String colorClass = densityBasedColor(finalItemsConfidence);
+        String colorClass = confidenceBasedTwoColor(finalItemsConfidence);
 
         ProgressBarNew progressBar = new ProgressBarNew(ID_PROGRESS_BAR) {
 
