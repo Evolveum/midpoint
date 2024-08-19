@@ -38,7 +38,6 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
         onLoadComponent();
     }
 
-
     protected void onLoadComponent() {
 
     }
@@ -53,7 +52,7 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "d-flex align-items-center gap-2 "));
+        add(AttributeAppender.append("class", getAdditionalCssClass()));
 
         Label image = new Label(ID_ICON);
         image.add(AttributeModifier.replace("class", getIconCssClass()));
@@ -64,16 +63,17 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
         label.add(AttributeAppender.append("title", getModel()));
         label.add(new TooltipBehavior());
         label.setOutputMarkupId(true);
+        label.add(AttributeAppender.replace("class", getLabelCssClass()));
         add(label);
 
         Label badge = new Label(ID_BADGE, Model.of(getBadgeValue()));
-        badge.add(AttributeAppender.append("class", "badge bg-danger "));
+        badge.add(AttributeAppender.replace("class", getBadgeCssClass()));
         badge.setOutputMarkupId(true);
         add(badge);
     }
 
-    public Integer getBadgeValue() {
-        return 0;
+    public String getBadgeValue() {
+        return "0";
     }
 
     public String getIconCssClass() {
@@ -90,4 +90,17 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
 
     protected void onClick(AjaxRequestTarget target) {
     }
+
+    protected String getBadgeCssClass() {
+        return null;
+    }
+
+    protected String getLabelCssClass() {
+        return null;
+    }
+
+    protected String getAdditionalCssClass() {
+        return "d-flex align-items-center gap-2 ";
+    }
+
 }

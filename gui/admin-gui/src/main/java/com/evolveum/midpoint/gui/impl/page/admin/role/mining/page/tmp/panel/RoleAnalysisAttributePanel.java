@@ -294,8 +294,14 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             }
 
             @Override
-            public Integer getBadgeValue() {
-                return badge;
+            public String getBadgeValue() {
+                return "(" + badge + ")";
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getBadgeCssClass() {
+                return "ml-auto";
             }
 
             @Override
@@ -358,8 +364,15 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             }
 
             @Override
-            public Integer getBadgeValue() {
-                return userPath.size() + rolePath.size();
+            public @NotNull String getBadgeValue() {
+                int count = userPath.size() + rolePath.size();
+                return "(" + count + ")";
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getBadgeCssClass() {
+                return "ml-auto";
             }
 
             @Override
