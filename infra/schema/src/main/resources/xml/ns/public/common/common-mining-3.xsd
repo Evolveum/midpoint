@@ -1216,7 +1216,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Specifies whether the clustering runs in overal mode
+                            Specifies whether the outlier detection process run over clustering noise group.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
