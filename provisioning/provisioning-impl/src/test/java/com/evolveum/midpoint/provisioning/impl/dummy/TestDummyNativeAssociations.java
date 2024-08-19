@@ -6,32 +6,33 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
+import static com.evolveum.midpoint.test.DummyDefaultScenario.Group.LinkNames.MEMBER_REF;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyGroup;
-
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-
-import com.evolveum.midpoint.schema.processor.BareResourceSchema;
-import com.evolveum.midpoint.test.DummyDefaultScenario;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
 import org.testng.annotations.Test;
 
-import static com.evolveum.midpoint.test.DummyDefaultScenario.Group.LinkNames.MEMBER_REF;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.test.DummyDefaultScenario;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * The same as {@link TestDummy} but with the dummy resource providing the associations natively.
@@ -63,6 +64,21 @@ public class TestDummyNativeAssociations extends TestDummy {
         // schema is extended (account has +2 associations), displayOrders are changed
         dummyResourceCtl.assertDummyResourceSchemaSanityExtended(
                 resourceSchema, resourceType, false, 21);
+    }
+
+    @Override
+    protected void assertCompleteSchema(CompleteResourceSchema completeSchema) throws CommonException {
+        ItemName groupName = DummyDefaultScenario.Account.LinkNames.GROUP.q();
+        var objectRefDef = completeSchema.getObjectTypeDefinitionRequired(ACCOUNT_DEFAULT)
+                .findAssociationDefinitionRequired(groupName)
+                .findReferenceDefinition(ShadowAssociationValueType.F_OBJECTS.append(groupName));
+        displayDumpable("objectRefDef", objectRefDef);
+        assertThat(objectRefDef.getMinOccurs())
+                .as("minOccurs for " + groupName + " in the association")
+                .isEqualTo(1);
+        assertThat(objectRefDef.getMaxOccurs())
+                .as("maxOccurs for " + groupName + " in the association")
+                .isEqualTo(1);
     }
 
     /**
