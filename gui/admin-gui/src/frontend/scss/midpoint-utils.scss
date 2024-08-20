@@ -117,19 +117,29 @@ div[role="button"].btn, .btn {
     border-radius: 50rem !important;
     color: $text-toned-color;
 
-      & > .pill-label {
-        color:$text-color;
-      }
+    & > .pill-label {
+      color:$text-color;
+    }
 
-      &:hover {
-        border: 1px solid $primary;
-        background-color: mix($primary, #fff, 15%);
-        color: $primary;
-      }
-      &.active {
-        border: 1px solid $primary;
-        background-color: $primary;
-        color: #fff;
+    &:hover {
+      border: 1px solid $primary;
+      background-color: mix($primary, $white, 10%);
+
+      & > * {
+        color:$primary;
       }
     }
+    &.active {
+      border: 1px solid $primary;
+      background-color: $primary;
+
+      & > * {
+        color:$white;
+      }
+
+      & > .fa::before {
+        content:"\f00c";
+      }
+    }
+  }
 }

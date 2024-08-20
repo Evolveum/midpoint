@@ -301,12 +301,12 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             @Contract(pure = true)
             @Override
             protected @NotNull String getBadgeCssClass() {
-                return "ml-auto";
+                return "ml-auto mr-1";
             }
 
             @Override
             public String getIconCssClass() {
-                return classObjectIcon;
+                return classObjectIcon + " ml-1";
             }
 
             @Override
@@ -415,7 +415,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     public String getButtonCssClass() {
-        return "d-flex align-items-center gap-2 btn btn-sm btn-pill rounded-pill";
+        return "d-flex align-items-center gap-1 btn btn-sm btn-pill rounded-pill";
     }
 
     @Contract(pure = true)
