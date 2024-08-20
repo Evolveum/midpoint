@@ -1356,6 +1356,8 @@ public class ShadowUtil {
     /**
      * Assuming that the shadow was obtained from the repository (cache), and has the correct definition,
      * this method tells the client if the cached data can be considered fresh enough regarding the caching TTL.
+     *
+     * Requires non-raw shadow.
      */
     public static boolean isShadowFresh(
             @NotNull PrismObject<ShadowType> shadow, @NotNull XMLGregorianCalendar now) {
@@ -1365,8 +1367,8 @@ public class ShadowUtil {
                 now);
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private static boolean isShadowFresh(
+    /** The shadow can be raw here. The definition is provided separately. */
+    public static boolean isShadowFresh(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
