@@ -80,13 +80,18 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
         container.setOutputMarkupId(true);
         add(container);
 
+        ObjectReferenceType clusterRef = new ObjectReferenceType()
+                .oid(cluster.getOid())
+                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                .targetName(cluster.getName());
+
         RoleAnalysisMigrationRoleTileTable roleAnalysisMigrationRoleTileTable = new RoleAnalysisMigrationRoleTileTable(ID_PANEL,
                 getPageBase(), new LoadableDetachableModel<>() {
             @Override
             protected List<RoleType> load() {
                 return roles;
             }
-        }, cluster.getOid()) {
+        }, clusterRef, cluster.getRoleAnalysisSessionRef()) {
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
                 performOnRefresh();

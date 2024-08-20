@@ -42,13 +42,14 @@ public class RoleAnalysisPatternTileModel<T extends Serializable> extends Tile<T
         this.roleCount = String.valueOf(pattern.getRoles().size());
         this.systemReductionPercentage = calculateSystemReductionPercentage(totalRoleToUserAssignments);
     }
+
     private double calculateSystemReductionPercentage(int totalRoleToUserAssignments) {
         Double metric = pattern.getMetric();
         if (metric == null) {
             return 0;
         }
 
-        if(metric == 0 || totalRoleToUserAssignments == 0) {
+        if (metric == 0 || totalRoleToUserAssignments == 0) {
             return 0;
         }
 

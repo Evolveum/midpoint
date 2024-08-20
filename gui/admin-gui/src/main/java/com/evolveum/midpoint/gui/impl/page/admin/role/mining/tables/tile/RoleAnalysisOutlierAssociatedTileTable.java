@@ -15,6 +15,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -63,15 +69,31 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
     private static final String ID_DATATABLE = "datatable";
     IModel<List<Toggle<ViewToggle>>> items;
 
-    @Nullable String sessionOid;
-    @Nullable String clusterOid;
+    IModel<ObjectReferenceType> clusterRef;
+    IModel<ObjectReferenceType> sessionRef;
 
     public RoleAnalysisOutlierAssociatedTileTable(
             @NotNull String id,
             @NotNull IModel<List<RoleAnalysisOutlierType>> outliers,
             @NotNull RoleAnalysisClusterType cluster) {
         super(id, outliers);
-        this.clusterOid = cluster.getOid();
+        this.clusterRef = new LoadableModel<>() {
+            @Override
+            protected ObjectReferenceType load() {
+                return new ObjectReferenceType()
+                        .oid(cluster.getOid())
+                        .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                        .targetName(cluster.getName());
+            }
+        };
+
+        this.sessionRef = new LoadableModel<>() {
+            @Override
+            protected ObjectReferenceType load() {
+                return cluster.getRoleAnalysisSessionRef();
+            }
+        };
+
         initItems();
     }
 
@@ -80,7 +102,15 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
             @NotNull IModel<List<RoleAnalysisOutlierType>> outliers,
             @NotNull RoleAnalysisSessionType session) {
         super(id, outliers);
-        this.sessionOid = session.getOid();
+        this.sessionRef = new LoadableModel<>() {
+            @Override
+            protected ObjectReferenceType load() {
+                return new ObjectReferenceType()
+                        .oid(session.getOid())
+                        .type(RoleAnalysisSessionType.COMPLEX_TYPE)
+                        .targetName(session.getName());
+            }
+        };
         initItems();
     }
 
@@ -117,7 +147,8 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
 
     private @Nullable RoleAnalysisOutlierPartitionType getOutlierPartition(@NotNull RoleAnalysisOutlierType outlier) {
         List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
-        if (clusterOid != null) {
+        if (getClusterRef() != null) {
+            String clusterOid = getClusterRef().getOid();
             for (RoleAnalysisOutlierPartitionType partition : outlierPartitions) {
                 ObjectReferenceType targetClusterRef = partition.getTargetClusterRef();
                 if (targetClusterRef != null
@@ -126,7 +157,8 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
                     return partition;
                 }
             }
-        } else if (sessionOid != null) {
+        } else if (getSessionRef() != null) {
+            String sessionOid = getSessionRef().getOid();
             for (RoleAnalysisOutlierPartitionType partition : outlierPartitions) {
                 ObjectReferenceType targetSessionRef = partition.getTargetSessionRef();
                 if (targetSessionRef != null
@@ -256,9 +288,11 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
             @SuppressWarnings({ "rawtypes", "unchecked" })
             @Override
             protected RoleAnalysisOutlierTileModel createTileObject(RoleAnalysisOutlierType object) {
-                ObjectReferenceType ref = object.getTargetObjectRef();
-                return new RoleAnalysisOutlierTileModel<>(getOutlierPartition(object), object,
-                        "user/outliers");
+                RoleAnalysisOutlierPartitionType outlierPartition = getOutlierPartition(object);
+                ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
+                ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
+
+                return new RoleAnalysisOutlierTileModel<>(getOutlierPartition(object), object, targetClusterRef, targetSessionRef);
             }
 
             @Override
@@ -266,9 +300,8 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
                 return " min-height:170px ";
             }
 
-            @Override
             protected String getTileCssClasses() {
-                return "col-3 p-2";
+                return "col-4 pb-3 pl-2 pr-2";
             }
 
             @Override
@@ -475,6 +508,28 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
 
     protected void onRefresh(AjaxRequestTarget target) {
 
+    }
+
+    private @Nullable ObjectReferenceType getClusterRef() {
+        if (clusterRef == null) {
+            return null;
+        }
+        return clusterRef.getObject();
+    }
+
+    private @Nullable ObjectReferenceType getSessionRef() {
+        if (sessionRef == null) {
+            return null;
+        }
+        return sessionRef.getObject();
+    }
+
+    private IModel<ObjectReferenceType> getClusterRefModel() {
+        return clusterRef;
+    }
+
+    private IModel<ObjectReferenceType> getSessionRefModel() {
+        return sessionRef;
     }
 
 }

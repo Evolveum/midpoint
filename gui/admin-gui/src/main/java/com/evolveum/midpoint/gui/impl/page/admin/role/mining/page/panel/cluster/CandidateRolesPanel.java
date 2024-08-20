@@ -69,18 +69,23 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
         Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS);
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
         List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
+        ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
         HashMap<String, RoleAnalysisCandidateRoleType> cacheCandidate = new HashMap<>();
         List<RoleType> roles = new ArrayList<>();
         for (RoleAnalysisCandidateRoleType candidateRoleType : candidateRoles) {
             ObjectReferenceType candidateRoleRef = candidateRoleType.getCandidateRoleRef();
-            PrismObject<RoleType> role = getPageBase().getRoleAnalysisService()
-                    .getRoleTypeObject(candidateRoleRef.getOid(), task, result);
+            PrismObject<RoleType> role = roleAnalysisService.getRoleTypeObject(candidateRoleRef.getOid(), task, result);
             if (Objects.nonNull(role)) {
                 cacheCandidate.put(candidateRoleRef.getOid(), candidateRoleType);
                 roles.add(role.asObjectable());
             }
         }
+
+        ObjectReferenceType clusterRef = new ObjectReferenceType().oid(cluster.getOid())
+                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                .targetName(cluster.getName());
 
         RoleAnalysisCandidateRoleTileTable components = new RoleAnalysisCandidateRoleTileTable(ID_PANEL, getPageBase(),
                 new LoadableDetachableModel<>() {
@@ -88,7 +93,7 @@ public class CandidateRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClu
                     protected List<RoleType> load() {
                         return roles;
                     }
-                }, cacheCandidate, cluster.getOid()) {
+                }, cacheCandidate, clusterRef, roleAnalysisSessionRef) {
 
             @Override
             protected void onRefresh(AjaxRequestTarget target) {

@@ -7,20 +7,22 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.confidenceBasedTwoColor;
+import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
-
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -32,37 +34,38 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarNew;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisOutlier;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisPartitionOverviewPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisPartitionAnalysisType;
 
 public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisOutlierTileModel<T>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_OBJECT_TITLE = "objectTitle";
-    private static final String ID_ICON = "icon";
-    private static final String ID_TITLE = "title";
-    private static final String ID_DESCRIPTION = "description";
-    private static final String ID_CLUSTER = "cluster-info";
-    private static final String ID_SESSION = "session-info";
+    private static final String ID_TITLE = "objectTitle";
     private static final String ID_STATUS_BAR = "status";
     private static final String ID_BUTTON_BAR = "buttonBar";
+    private static final String ID_PROGRESS_BAR = "progress-bar";
+    private static final String ID_ANOMALY_COUNT = "anomaly-count";
+    private static final String ID_ANOMALY_CONFIDENCE = "anomaly-confidence";
+    private static final String ID_LOCATION = "location";
+    private static final String ID_ACTION_BUTTON = "action-button";
 
     public RoleAnalysisOutlierTilePanel(String id, IModel<RoleAnalysisOutlierTileModel<T>> model) {
         super(id, model);
@@ -70,98 +73,266 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
     }
 
     protected void initLayout() {
-        initDefaultCssStyle();
+        initDefaultStyle();
 
         initStatusBar();
+
+        buildExploreButton();
 
         initToolBarPanel();
 
         initNamePanel();
 
-        initDescriptionPanel();
+        initProgressBar();
+
+        initLocationButtons();
 
         initFirstCountPanel();
-
-        initSecondCountPanel();
     }
 
-    private void initSecondCountPanel() {
-        RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
-        IconWithLabel clusterCount = new IconWithLabel(ID_CLUSTER, () -> String.valueOf(partition.getTargetClusterRef().getTargetName())) {
+    public void initStatusBar() {
+        RoleAnalysisOutlierTileModel<T> modelObject = getModelObject();
+        String status = modelObject.getStatus();
+
+        Label statusBar = new Label(ID_STATUS_BAR, Model.of(status));
+        statusBar.add(AttributeAppender.append("class", "badge badge-pill badge-info"));
+        statusBar.add(AttributeAppender.append("style", "width: 80px"));
+        statusBar.setOutputMarkupId(true);
+        add(statusBar);
+    }
+
+    private void initLocationButtons() {
+        ObjectReferenceType clusterRef = getModelObject().getClusterRef();
+        ObjectReferenceType sessionRef = getModelObject().getSessionRef();
+
+        String clusterName = "unknown";
+        String sessionName = "unknown";
+        String clusterOid = null;
+        String sessionOid = null;
+        if (clusterRef != null) {
+            clusterOid = clusterRef.getOid();
+            if (clusterRef.getTargetName() != null) {
+                clusterName = clusterRef.getTargetName().getOrig();
+            }
+        }
+
+        if (sessionRef != null) {
+            sessionOid = sessionRef.getOid();
+            if (sessionRef.getTargetName() != null) {
+                sessionName = sessionRef.getTargetName().getOrig();
+            }
+        }
+
+        String finalSessionName = sessionName;
+        String finalClusterName = clusterName;
+
+        String finalClusterOid = clusterOid;
+        String finalSessionOid = sessionOid;
+        MetricValuePanel panel = new MetricValuePanel(ID_LOCATION) {
             @Override
-            public String getIconCssClass() {
-                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
+            protected @NotNull Component getTitleComponent(String id) {
+                Label label = new Label(id, createStringResource("RoleAnalysis.title.panel.location"));
+                label.setOutputMarkupId(true);
+                label.add(AttributeAppender.append("class", "text-muted"));
+                return label;
             }
 
             @Override
-            protected boolean isLink() {
-                return true;
-            }
+            protected Component getValueComponent(String id) {
+                RepeatingView view = new RepeatingView(id);
+                view.setOutputMarkupId(true);
+                AjaxLinkPanel sessionLink = new AjaxLinkPanel(view.newChildId(), Model.of(finalSessionName)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, finalSessionOid);
+                        getPageBase().navigateToNext(PageRoleAnalysisSession.class, parameters);
+                    }
+                };
 
-            @Override
-            protected void onClickPerform(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, partition.getTargetClusterRef().getOid());
-                parameters.add("panelId", "clusterDetails");
-                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                        .getObjectDetailsPage(RoleAnalysisClusterType.class);
-                getPageBase().navigateToNext(detailsPageClass, parameters);
+                sessionLink.setOutputMarkupId(true);
+                view.add(sessionLink);
+
+                Label separator = new Label(view.newChildId(), "/");
+                separator.setOutputMarkupId(true);
+                view.add(separator);
+
+                AjaxLinkPanel clusterLink = new AjaxLinkPanel(view.newChildId(), Model.of(finalClusterName)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, finalClusterOid);
+                        getPageBase().navigateToNext(PageRoleAnalysisCluster.class, parameters);
+                    }
+                };
+                clusterLink.setOutputMarkupId(true);
+                view.add(clusterLink);
+                return view;
             }
         };
 
-        clusterCount.setOutputMarkupId(true);
-        clusterCount.add(new TooltipBehavior());
-        add(clusterCount);
+        panel.setOutputMarkupId(true);
+        add(panel);
+
+    }
+
+    private void initProgressBar() {
+        RoleAnalysisOutlierTileModel<T> modelObject = getModelObject();
+        RoleAnalysisOutlierPartitionType partition = modelObject.getPartition();
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+        Double overallConfidence = partitionAnalysis.getOverallConfidence();
+        if (overallConfidence == null) {
+            overallConfidence = 0.0;
+        }
+
+        BigDecimal confidence = BigDecimal.valueOf(overallConfidence);
+        confidence = confidence.setScale(2, RoundingMode.HALF_UP);
+        double finalProgress = confidence.doubleValue();
+
+        String colorClass = confidenceBasedTwoColor(finalProgress);
+
+        ProgressBarNew progressBar = new ProgressBarNew(ID_PROGRESS_BAR) {
+
+            @Override
+            public double getActualValue() {
+                return finalProgress;
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getProgressBarContainerCssStyle() {
+                return "border-radius: 3px; height:13px;";
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getProgressBarContainerCssClass() {
+                return "col-12 pl-0 pr-0";
+            }
+
+            @Override
+            public String getProgressBarColor() {
+                return colorClass;
+            }
+
+            @Contract(pure = true)
+            @Override
+            public @NotNull String getBarTitle() {
+                return createStringResource("RoleAnalysis.tile.panel.partition.confidence").getString();
+            }
+        };
+        progressBar.setOutputMarkupId(true);
+        progressBar.add(AttributeModifier.replace("title", () -> "Partition confidence: " + finalProgress + "%"));
+        progressBar.add(new TooltipBehavior());
+        add(progressBar);
+    }
+
+    private void buildExploreButton() {
+        RoleAnalysisOutlierTileModel<T> modelObject = getModelObject();
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(
+                RoleAnalysisOutlierTilePanel.ID_ACTION_BUTTON,
+                iconBuilder.build(),
+                createStringResource("RoleAnalysis.title.panel.explore.partition.details")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                RoleAnalysisPartitionOverviewPanel detailsPanel = new RoleAnalysisPartitionOverviewPanel(
+                        ((PageBase) getPage()).getMainPopupBodyId(),
+                        Model.of(modelObject.getPartition()),
+                        Model.of(modelObject.getOutlier()));
+                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        migrationButton.titleAsLabel(true);
+        migrationButton.setOutputMarkupId(true);
+        migrationButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        migrationButton.setOutputMarkupId(true);
+        add(migrationButton);
     }
 
     private void initFirstCountPanel() {
+
         RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
-        IconWithLabel clusterCount = new IconWithLabel(ID_SESSION, () -> String.valueOf(partition.getTargetSessionRef().getTargetName())) {
+        int anomaliesCount = partition.getDetectedAnomalyResult().size();
+        Double anomalyObjectsConfidence = partition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+        if (anomalyObjectsConfidence == null) {
+            anomalyObjectsConfidence = 0.0;
+        }
+
+        BigDecimal confidence = BigDecimal.valueOf(anomalyObjectsConfidence);
+        confidence = confidence.setScale(2, RoundingMode.HALF_UP);
+        anomalyObjectsConfidence = confidence.doubleValue();
+        MetricValuePanel anomaliesCountPanel = new MetricValuePanel(ID_ANOMALY_COUNT) {
             @Override
-            public String getIconCssClass() {
-                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
+            protected @NotNull Component getTitleComponent(String id) {
+                Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.anomaly.count"));
+                label.setOutputMarkupId(true);
+                label.add(AttributeAppender.append("class", "text-muted"));
+                label.add(AttributeAppender.append("style", "font-size: 16px"));
+
+                return label;
             }
 
             @Override
-            protected boolean isLink() {
-                return true;
-            }
+            protected @NotNull Component getValueComponent(String id) {
+                Label memberPanel = new Label(id, () -> anomaliesCount) {
+                };
 
-            @Override
-            protected void onClickPerform(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, partition.getTargetSessionRef().getOid());
-                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                        .getObjectDetailsPage(RoleAnalysisSessionType.class);
-                getPageBase().navigateToNext(detailsPageClass, parameters);
+                memberPanel.setOutputMarkupId(true);
+                memberPanel.add(AttributeAppender.replace("title", () -> "Anomalies count: " + anomaliesCount));
+                memberPanel.add(new TooltipBehavior());
+                return memberPanel;
             }
         };
+        anomaliesCountPanel.setOutputMarkupId(true);
+        add(anomaliesCountPanel);
 
-        clusterCount.setOutputMarkupId(true);
-        clusterCount.add(new TooltipBehavior());
-        add(clusterCount);
+        Double finalAnomalyObjectsConfidence = anomalyObjectsConfidence;
+        MetricValuePanel anomaliesConfidencePanel = new MetricValuePanel(ID_ANOMALY_CONFIDENCE) {
+            @Override
+            protected @NotNull Component getTitleComponent(String id) {
+                Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.anomaly.confidence"));
+                label.setOutputMarkupId(true);
+                label.add(AttributeAppender.append("class", "text-muted"));
+                label.add(AttributeAppender.append("style", "font-size: 16px"));
+
+                return label;
+            }
+
+            @Override
+            protected @NotNull Component getValueComponent(String id) {
+                Label memberPanel = new Label(id, () -> finalAnomalyObjectsConfidence + "%");
+                memberPanel.setOutputMarkupId(true);
+                memberPanel.add(AttributeAppender.replace("title", () -> "Anomalies confidence: "
+                        + finalAnomalyObjectsConfidence));
+                memberPanel.add(new TooltipBehavior());
+                return memberPanel;
+            }
+        };
+        anomaliesConfidencePanel.setOutputMarkupId(true);
+        add(anomaliesConfidencePanel);
+
     }
 
     private void initNamePanel() {
-        IconWithLabel objectTitle = new IconWithLabel(ID_OBJECT_TITLE, () -> getModelObject().getName()) {
+        AjaxLinkPanel objectTitle = new AjaxLinkPanel(ID_TITLE, () -> getModelObject().getName()) {
             @Override
-            public String getIconCssClass() {
-                return RoleAnalysisOutlierTilePanel.this.getModelObject().getIcon();
+            public void onClick(AjaxRequestTarget target) {
+                RoleAnalysisOutlierTileModel<T> modelObject = RoleAnalysisOutlierTilePanel.this.getModelObject();
+                String oid = modelObject.getOutlier().getOid();
+                dispatchToObjectDetailsPage(RoleAnalysisOutlierType.class, oid, getPageBase(), true);
             }
-
-            @Override
-            protected boolean isLink() {
-                return true;
-            }
-
-            @Override
-            protected void onClickPerform(AjaxRequestTarget target) {
-                navigateToOutlierDetails();
-            }
-
         };
         objectTitle.setOutputMarkupId(true);
-        objectTitle.add(AttributeAppender.replace("style", "font-size:20px"));
+        objectTitle.add(AttributeAppender.replace("style", "font-size:18px"));
         objectTitle.add(AttributeAppender.replace("title", () -> getModelObject().getName()));
         objectTitle.add(new TooltipBehavior());
         add(objectTitle);
@@ -189,79 +360,15 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
         add(barMenu);
     }
 
-    private void initDefaultCssStyle() {
+    private void initDefaultStyle() {
         setOutputMarkupId(true);
-
         add(AttributeAppender.append("class",
-                "bg-white d-flex flex-column align-items-center border w-100 h-100 p-3"));
-
-        add(AttributeAppender.append("style", "width:25%"));
-    }
-
-    protected Label getTitle() {
-        return (Label) get(ID_TITLE);
-    }
-
-    protected WebMarkupContainer getIcon() {
-        return (WebMarkupContainer) get(ID_ICON);
-    }
-
-    public void initStatusBar() {
-
-        RoleAnalysisOutlierType outlier = getModelObject().getOutlier();
-        RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
-        if (outlier == null || partition == null) {
-            add(new EmptyPanel(ID_STATUS_BAR));
-            return;
-        }
-
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
-                .setBasicIcon("fas fa-chart-bar", LayeredIconCssStyle.IN_ROW_STYLE);
-
-        Double overallConfidence = partition.getPartitionAnalysis().getOverallConfidence();
-        if (overallConfidence == null) {
-            overallConfidence = 0.0;
-        }
-        String formattedConfidence = String.format("%.2f%%", overallConfidence);
-        AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(ID_STATUS_BAR, iconBuilder.build(),
-                Model.of(formattedConfidence)) {
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                RoleAnalysisPartitionOverviewPanel detailsPanel = new RoleAnalysisPartitionOverviewPanel(
-                        ((PageBase) getPage()).getMainPopupBodyId(),
-                        Model.of(partition),
-                        Model.of(outlier));
-                ((PageBase) getPage()).showMainPopup(detailsPanel, ajaxRequestTarget);
-            }
-        };
-
-        objectButton.titleAsLabel(true);
-        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        objectButton.add(AttributeAppender.append("style", "width:100px"));
-        objectButton.setOutputMarkupId(true);
-        add(objectButton);
-    }
-
-    private void initDescriptionPanel() {
-        RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
-        int anomaliesCount = partition.getDetectedAnomalyResult().size();
-        Double anomalyObjectsConfidence = partition.getPartitionAnalysis().getAnomalyObjectsConfidence();
-        if (anomalyObjectsConfidence == null) {
-            anomalyObjectsConfidence = 0.0;
-        }
-
-        BigDecimal confidence = BigDecimal.valueOf(anomalyObjectsConfidence);
-        confidence = confidence.setScale(2, BigDecimal.ROUND_HALF_UP);
-        anomalyObjectsConfidence = confidence.doubleValue();
-
-        ProgressBar components = buildDensityProgressPanel(anomalyObjectsConfidence, "Anomalies (" + anomaliesCount + ")");
-        add(components);
+                "bg-white d-flex flex-column align-items-center elevation-1 rounded w-100 h-100 p-0"));
     }
 
     public List<InlineMenuItem> createMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new InlineMenuItem(createStringResource("Details view")) {
+        items.add(new InlineMenuItem(createStringResource("RoleAnalysis.tile.panel.details.view")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -289,37 +396,6 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
         parameters.add(OnePageParameterEncoder.PARAMETER, outlier.getOid());
         getPageBase().navigateToNext(PageRoleAnalysisOutlier.class, parameters);
 
-    }
-
-    private static @NotNull ProgressBar buildDensityProgressPanel(
-            double meanDensity,
-            @NotNull String title) {
-        String colorClass = densityBasedColor(meanDensity);
-
-        ProgressBar progressBar = new ProgressBar(RoleAnalysisOutlierTilePanel.ID_DESCRIPTION) {
-
-            @Override
-            public boolean isInline() {
-                return false;
-            }
-
-            @Override
-            public double getActualValue() {
-                return meanDensity;
-            }
-
-            @Override
-            public String getProgressBarColor() {
-                return colorClass;
-            }
-
-            @Override
-            public String getBarTitle() {
-                return title;
-            }
-        };
-        progressBar.setOutputMarkupId(true);
-        return progressBar;
     }
 
 }

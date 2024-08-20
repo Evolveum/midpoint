@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,9 +23,11 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
 
     String icon;
     String name;
-    String processMode;
     RoleAnalysisOutlierType outlier;
     RoleAnalysisOutlierPartitionType partition;
+    ObjectReferenceType clusterRef;
+    ObjectReferenceType sessionRef;
+    String status = "TBD";
 
     public RoleAnalysisOutlierTileModel(String icon, String title) {
         super(icon, title);
@@ -32,10 +36,12 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
     public RoleAnalysisOutlierTileModel(
             @Nullable RoleAnalysisOutlierPartitionType partition,
             @NotNull RoleAnalysisOutlierType outlier,
-            @NotNull String processMode) {
+            @NotNull ObjectReferenceType clusterRef,
+            @NotNull ObjectReferenceType sessionRef) {
+        this.clusterRef = clusterRef;
+        this.sessionRef = sessionRef;
         this.partition = partition;
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
-        this.processMode = processMode;
         this.outlier = outlier;
         this.name = outlier.getName().getOrig();
     }
@@ -58,14 +64,13 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         this.name = name;
     }
 
-    public String getProcessMode() {
-        return processMode;
+    public ObjectReferenceType getClusterRef() {
+        return clusterRef;
     }
 
-    public void setProcessMode(String processMode) {
-        this.processMode = processMode;
+    public ObjectReferenceType getSessionRef() {
+        return sessionRef;
     }
-
     public RoleAnalysisOutlierType getOutlier() {
         return outlier;
     }
@@ -76,5 +81,9 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
 
     public RoleAnalysisOutlierPartitionType getPartition() {
         return partition;
+    }
+
+    public String getStatus() {
+        return status;
     }
 }

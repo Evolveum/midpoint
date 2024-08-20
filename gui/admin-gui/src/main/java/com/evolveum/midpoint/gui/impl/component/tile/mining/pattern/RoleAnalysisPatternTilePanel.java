@@ -134,6 +134,12 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
                 return "border-radius: 3px; height:13px;";
             }
 
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getProgressBarContainerCssClass() {
+                return "col-12 pl-0 pr-0";
+            }
+
             @Override
             public String getProgressBarColor() {
                 return colorClass;
@@ -186,7 +192,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getComponentCssClass() {
-                        return "d-flex align-items-center h3";
+                        return "d-flex align-items-center h4";
                     }
                 };
 
@@ -231,7 +237,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getComponentCssClass() {
-                        return "d-flex align-items-center h3";
+                        return "d-flex align-items-center h4";
                     }
                 };
 
@@ -304,7 +310,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             }
         };
         objectTitle.setOutputMarkupId(true);
-        objectTitle.add(AttributeAppender.replace("style", "font-size:20px"));
+        objectTitle.add(AttributeAppender.replace("style", "font-size:18px"));
         objectTitle.add(AttributeAppender.replace("title", () -> getModelObject().getName()));
         objectTitle.add(new TooltipBehavior());
         add(objectTitle);
@@ -337,8 +343,6 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
         add(AttributeAppender.append("class",
                 "bg-white d-flex flex-column align-items-center elevation-1 rounded w-100 h-100 p-0"));
-
-        add(AttributeAppender.append("style", "width:25%"));
     }
 
     private void explorePatternPerform(@NotNull DetectedPattern pattern) {

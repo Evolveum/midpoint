@@ -72,18 +72,32 @@ public class RoleAnalysisMigrationRoleTileTable extends BasePanel<String> {
     private static final String ID_DATATABLE = "datatable";
     PageBase pageBase;
     IModel<List<Toggle<ViewToggle>>> items;
-    String processMode;
-    String clusterOid;
+    IModel<ObjectReferenceType> clusterRef;
+    IModel<ObjectReferenceType> sessionRef;
 
     public RoleAnalysisMigrationRoleTileTable(
             @NotNull String id,
             @NotNull PageBase pageBase,
             @NotNull LoadableDetachableModel<List<RoleType>> roles,
-            @NotNull String clusterOid) {
+            @NotNull ObjectReferenceType clusterRef,
+            @NotNull ObjectReferenceType sessionRef) {
         super(id);
         this.pageBase = pageBase;
-        this.clusterOid = clusterOid;
-        this.processMode = extractProcessMode().getObject();
+
+        this.clusterRef = new LoadableModel<>() {
+            @Override
+            protected ObjectReferenceType load() {
+                return clusterRef;
+            }
+        };
+
+        this.sessionRef = new LoadableModel<>() {
+            @Override
+            protected ObjectReferenceType load() {
+                return sessionRef;
+            }
+        };
+
         this.items = new LoadableModel<>(false) {
 
             @Override
@@ -239,7 +253,7 @@ public class RoleAnalysisMigrationRoleTileTable extends BasePanel<String> {
             @SuppressWarnings({ "rawtypes", "unchecked" })
             @Override
             protected RoleAnalysisMigratedRoleTileModel createTileObject(RoleType role) {
-                return new RoleAnalysisMigratedRoleTileModel<>(role, getPageBase(), processMode, clusterOid);
+                return new RoleAnalysisMigratedRoleTileModel<>(role, getPageBase(), getClusterRefModel(), getSessionRefModel());
             }
 
             @Override
@@ -249,7 +263,7 @@ public class RoleAnalysisMigrationRoleTileTable extends BasePanel<String> {
 
             @Override
             protected String getTileCssClasses() {
-                return "col-3 p-2";
+                return "col-4 pb-3 pl-2 pr-2";
             }
 
             @Override
@@ -458,7 +472,7 @@ public class RoleAnalysisMigrationRoleTileTable extends BasePanel<String> {
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+                parameters.add(OnePageParameterEncoder.PARAMETER, getClusterRef().getOid());
                 parameters.add("panelId", "clusterDetails");
 
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
@@ -486,23 +500,24 @@ public class RoleAnalysisMigrationRoleTileTable extends BasePanel<String> {
         return pageBase;
     }
 
-    private @NotNull IModel<String> extractProcessMode() {
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask("getClusterOptionType");
-        OperationResult result = task.getResult();
-        PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService
-                .getClusterTypeObject(clusterOid, task, result);
-        if (clusterPrism == null) {
-            return Model.of("");
-        } else {
-            RoleAnalysisOptionType analysisOptionType = roleAnalysisService.resolveClusterOptionType(clusterPrism, task, result);
-            RoleAnalysisProcessModeType processMode = analysisOptionType.getProcessMode();
-            RoleAnalysisCategoryType analysisCategory = analysisOptionType.getAnalysisCategory();
-            return Model.of(processMode.value() + "/" + analysisCategory.value());
-        }
-    }
 
     protected void onRefresh(AjaxRequestTarget target) {
 
+    }
+
+    private ObjectReferenceType getClusterRef() {
+        return clusterRef.getObject();
+    }
+
+    private ObjectReferenceType getSessionRef() {
+        return sessionRef.getObject();
+    }
+
+    private IModel<ObjectReferenceType> getClusterRefModel() {
+        return clusterRef;
+    }
+
+    private IModel<ObjectReferenceType> getSessionRefModel() {
+        return sessionRef;
     }
 }
