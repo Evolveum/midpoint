@@ -220,7 +220,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
         CompleteResourceSchema resourceSchema = getResourceSchema(result);
         ResourceObjectDefinition resourceObjectDef = resourceSchema.findDefinitionForObjectClassRequired(objectClassName);
-        ShadowDefinitionApplicator definitionApplicator = new ShadowDefinitionApplicator(resourceObjectDef);
+        ShadowDefinitionApplicator definitionApplicator = ShadowDefinitionApplicator.strict(resourceObjectDef);
         ObjectDelta<ShadowType> delta;
         ObjectDeltaType deltaBean = changeBean.getObjectDelta();
         if (deltaBean != null) {

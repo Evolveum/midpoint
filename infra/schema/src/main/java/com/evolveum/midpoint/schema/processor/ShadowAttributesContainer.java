@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.Collection;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -15,35 +20,11 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-
 /**
  * TODO
  */
 @SuppressWarnings("rawtypes")
 public interface ShadowAttributesContainer extends ShadowItemsContainer, PrismContainer<ShadowAttributesType> {
-
-    static ShadowAttributesContainer convertFromPrismContainer(
-            @NotNull PrismContainer<?> origPrismContainer, @NotNull ResourceObjectDefinition resourceObjectDefinition) throws SchemaException {
-        QName elementName = origPrismContainer.getElementName();
-        ShadowAttributesContainer attributesContainer = createEmptyContainer(elementName, resourceObjectDefinition);
-        for (Item item : origPrismContainer.getValue().getItems()) {
-            if (item instanceof PrismProperty<?> property) {
-                attributesContainer.add(
-                        resourceObjectDefinition
-                                .findAttributeDefinitionRequired(property.getElementName())
-                                .instantiateFrom(property));
-            } else {
-                throw new SchemaException(
-                        "Cannot use item of type %s as an attribute: attributes can only be properties".formatted(
-                                item.getClass().getSimpleName()));
-            }
-        }
-        return attributesContainer;
-    }
 
     static ShadowAttributesContainerImpl createEmptyContainer(
             QName elementName, ResourceObjectDefinition resourceObjectDefinition) {
