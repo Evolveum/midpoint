@@ -397,21 +397,39 @@ Archetype can be used as a criterion in xref:/midpoint/reference/security/author
 
 == Multiple Archetypes
 
-++++
-{% include since.html since="4.2" %}
-++++
-
-
 MidPoint archetypes are strongly inspired by how LDAP objectClasses can be defined and used.
 Therefore, midPoint is designed to support three kinds of archetype:
 
-* abstract (not yet supported) - cannot be assigned directly to object, can be extended, can extend another abstract archetype
+* Structural
+** Represent the main class/type of the object (e.g. Person, Service account, Application) and defines its properties (including visuals), behavior, birthrights and so on.
+** It's expected to be practically static during the lifetime of the object. Typically, the object is created with the archetype and keeps it forever.
+** Only one can be assigned to the object directly.
+** Can be extended, can extend other structural or abstract archetypes.
 
-* structural - only one can be assigned to the object directly, can be extended, can extend other structural or abstract archetypes
+* Auxiliary
+** Can be assigned to the object with structural archetype assigned, object can have more than one auxiliary archetypes assigned
+** Allows you model more dynamic situations and complement the main (structural) archetype.
+   For example, if the structural archetype is Person, auxiliary archetypes can be Employee, Customer, Student, Volunteer, and so on.
 
-* auxiliary - can be assigned to the object with structural archetype assigned, object can have more than one auxiliary archetypes assigned
+* Abstract _(not yet supported)_
+** Cannot be assigned directly to object, can be extended, can extend another abstract archetype.
 
-Since version 4.2 it is possible to define hierarchy between structural archetypes, so there can be one parent which is extended by its child.
+Configuration is done using _archetypeType_ property that should not be changed if the archetype is already used.
+Default value is `structural`.
+
+.Archetype type configuration example
+[source,xml]
+----
+<archetype>
+    ...
+    <archetypeType>auxiliary</archetypeType>
+    ....
+</archetype>
+----
+
+=== Archetype Inheritance
+
+It is possible to define hierarchy between structural archetypes, so there can be one parent which is extended by its child.
 To define archetype inheritance, it is needed to point in the child archetype to its parent using _superArchetypeRef_ element, such as in the example below:
 
 .Archetype inheritance
@@ -424,13 +442,9 @@ To define archetype inheritance, it is needed to point in the child archetype to
 </archetype>
 ----
 
-
-=== Archetype Inheritance
-
 Using archetype inheritance, following practices apply:
 
 * basic archetype attributes, such as name, displayName, ... - those defined in archetype which is assigned directly to the object are used.
-
 
 * archetypePolicy - all archetype policies defined either in directly assigned archetype, or super archetypes are merged together.
 
