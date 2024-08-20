@@ -1367,6 +1367,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
+        // TODO beware, the clock was overridden, so we may need something more aggressive here
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+
         // WHEN
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -1697,6 +1700,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
         dummyGroup.removeMember(USER_GUYBRUSH_USERNAME);
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
 
         // WHEN
         when();
