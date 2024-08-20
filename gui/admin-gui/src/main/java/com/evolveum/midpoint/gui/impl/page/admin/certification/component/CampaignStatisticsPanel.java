@@ -67,6 +67,7 @@ public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCerti
 
     //todo?
     private static final int MAX_REVIEWERS = 5;
+    private int realreviewersCount;
 
     public CampaignStatisticsPanel(String id, CertificationDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -86,7 +87,7 @@ public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCerti
 
             @Override
             protected boolean isViewAllAllowed() {
-                return reviewersCountExceedsLimit(reviewersModel.getObject()) && allowViewAll;
+                return reviewersCountExceedsLimit() && allowViewAll;
             }
 
             @Override
@@ -126,7 +127,7 @@ public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCerti
                 Collections.singletonList(campaign.getOid()), principal, getPageBase());
     }
 
-    private LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> getReviewersModel(boolean allowViewAll) {
+    private LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> getReviewersModel(boolean restricted) {
         return new LoadableDetachableModel<>() {
 
             @Serial private static final long serialVersionUID = 1L;
@@ -135,18 +136,19 @@ public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCerti
             protected List<StatisticBoxDto<ObjectReferenceType>> load() {
                 List<StatisticBoxDto<ObjectReferenceType>> list = new ArrayList<>();
                 List<ObjectReferenceType> reviewers = loadReviewers();
-                if (allowViewAll) {
-                    reviewers.forEach(r -> list.add(createReviewerStatisticBoxDto(r)));
-                } else {
+                if (restricted) {
+                    realreviewersCount = reviewers.size();
                     reviewers.stream().limit(MAX_REVIEWERS).forEach(r -> list.add(createReviewerStatisticBoxDto(r)));
+                } else {
+                    reviewers.forEach(r -> list.add(createReviewerStatisticBoxDto(r)));
                 }
                 return list;
             }
         };
     }
 
-    private boolean reviewersCountExceedsLimit(List<StatisticBoxDto<ObjectReferenceType>> reviewers) {
-        return reviewers.size() > MAX_REVIEWERS;
+    private boolean reviewersCountExceedsLimit() {
+        return realreviewersCount > MAX_REVIEWERS;
     }
 
     private List<ObjectReferenceType> loadReviewers() {

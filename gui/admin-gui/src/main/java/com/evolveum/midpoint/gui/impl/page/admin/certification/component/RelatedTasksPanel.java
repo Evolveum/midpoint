@@ -57,6 +57,7 @@ public class RelatedTasksPanel extends BasePanel {
     private CertificationDetailsModel model;
 
     private static final int MAX_RELATED_TASKS = 5;
+    private int realTasksCount = 0;
 
     public RelatedTasksPanel(String id, CertificationDetailsModel model) {
         super(id);
@@ -70,7 +71,7 @@ public class RelatedTasksPanel extends BasePanel {
     }
 
     private StatisticListBoxPanel<TaskType> initRelatedTasksPanel(String id, boolean allowViewAll) {
-        IModel<List<StatisticBoxDto<TaskType>>> tasksModel = getRelatedTasksModel();
+        IModel<List<StatisticBoxDto<TaskType>>> tasksModel = getRelatedTasksModel(allowViewAll);
         DisplayType relatedTasksDisplay = new DisplayType()
                 .label("RelatedTasksPanel.title");
         return new StatisticListBoxPanel<>(id, Model.of(relatedTasksDisplay),
@@ -79,7 +80,7 @@ public class RelatedTasksPanel extends BasePanel {
 
             @Override
             protected boolean isViewAllAllowed() {
-                return tasksCountExceedsLimit(tasksModel.getObject()) && allowViewAll;
+                return tasksCountExceedsLimit() && allowViewAll;
             }
 
             @Override
@@ -100,8 +101,8 @@ public class RelatedTasksPanel extends BasePanel {
     }
 
 
-    private boolean tasksCountExceedsLimit(List<StatisticBoxDto<TaskType>> tasks) {
-        return tasks.size() > MAX_RELATED_TASKS;
+    private boolean tasksCountExceedsLimit() {
+        return realTasksCount > MAX_RELATED_TASKS;
     }
 
     private Component createRightSideTaskComponent(String id, TaskType task) {
@@ -175,21 +176,26 @@ public class RelatedTasksPanel extends BasePanel {
         return reports.get(0).asObjectable();
     }
 
-    private IModel<List<StatisticBoxDto<TaskType>>> getRelatedTasksModel() {
+    private IModel<List<StatisticBoxDto<TaskType>>> getRelatedTasksModel(boolean restricted) {
         return () -> {
             List<StatisticBoxDto<TaskType>> list = new ArrayList<>();
             List<TaskType> tasks = loadTasks();
             if (tasks == null) {
                 return list;
             }
-            tasks.forEach(t -> list.add(createTaskStatisticBoxDto(t)));
+            if (restricted) {
+                realTasksCount = tasks.size();
+                tasks.stream().limit(MAX_RELATED_TASKS).forEach(t -> list.add(createTaskStatisticBoxDto(t)));
+            } else {
+                tasks.forEach(t -> list.add(createTaskStatisticBoxDto(t)));
+            }
             return list;
         };
     }
 
     private List<TaskType> loadTasks() {
         String campaignOid = model.getObjectType().getOid();
-        ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+        ObjectQuery query = PrismContext.get().queryFor(TaskType.class)
                 .item(ItemPath.create(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY,
                         ActivityAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_OBJECT_REF))
                 .ref(campaignOid)

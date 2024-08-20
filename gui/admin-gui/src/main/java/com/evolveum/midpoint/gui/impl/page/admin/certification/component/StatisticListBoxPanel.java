@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -95,6 +96,12 @@ public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>
         AjaxLink<Void> viewAllLink = new AjaxLink<>(ID_VIEW_ALL_LINK) {
 
             @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
+            }
 
             @Override
             public void onClick(AjaxRequestTarget target) {
