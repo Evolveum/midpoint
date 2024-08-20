@@ -219,7 +219,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
     }
 
     protected String getInfoBoxClass() {
-        return "col-12 col-sm-12 col-md-12 col-lg-6 col-xl-3 p-2"; /* col-md-3 m-0 */
+        return "col-12 col-sm-12 col-md-12 col-lg-6 col-xl-3 p-2";
     }
 
     protected IModel<String> getCardTitleModel() {

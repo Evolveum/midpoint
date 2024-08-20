@@ -237,7 +237,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         save.add(new VisibleBehaviour(this::isSaveButtonVisible));
         save.titleAsLabel(true);
         save.setOutputMarkupId(true);
-        save.add(AttributeAppender.append("class", "btn btn-success")); /* btn-sm */
+        save.add(AttributeAppender.append("class", "btn btn-success"));
         repeatingView.add(save);
 
         Form<?> form = save.findParent(Form.class);

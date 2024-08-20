@@ -104,7 +104,7 @@ public class RoleAnalysisSessionOperationButtonPanel extends InlineOperationalBu
         };
         editConfigurationButton.titleAsLabel(true);
         editConfigurationButton.setOutputMarkupId(true);
-        editConfigurationButton.add(AttributeAppender.append("class", "btn btn-default")); /* btn-sm */
+        editConfigurationButton.add(AttributeAppender.append("class", "btn btn-default"));
         repeatingView.add(editConfigurationButton);
     }
 
@@ -128,7 +128,7 @@ public class RoleAnalysisSessionOperationButtonPanel extends InlineOperationalBu
         };
         rebuildButton.titleAsLabel(true);
         rebuildButton.setOutputMarkupId(true);
-        rebuildButton.add(AttributeAppender.append("class", "btn btn-primary")); /* btn-sm */
+        rebuildButton.add(AttributeAppender.append("class", "btn btn-primary"));
         repeatingView.add(rebuildButton);
 
         Form<?> form = rebuildButton.findParent(Form.class);

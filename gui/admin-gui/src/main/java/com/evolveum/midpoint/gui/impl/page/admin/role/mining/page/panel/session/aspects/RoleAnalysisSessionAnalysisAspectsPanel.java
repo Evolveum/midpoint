@@ -158,7 +158,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             @Override
             protected String initDefaultCssClass() {
                 return "p-0";
-            } /* col-12 pl-0 */
+            }
         };
         panel.setOutputMarkupId(true);
         container.add(panel);
@@ -277,7 +277,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             @Override
             protected String initDefaultCssClass() {
                 return "flex-shrink-1 flex-grow-1 p-0";
-            } /* col-12 pl-0 */
+            }
         };
         panel.setOutputMarkupId(true);
         container.add(panel);
@@ -682,7 +682,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
 
-        distributionHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0")); /* col-6 pr-0 */
+        distributionHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0"));
 
         distributionHeader.setOutputMarkupId(true);
         cardBodyComponent.add(distributionHeader);
@@ -1044,7 +1044,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
 
-        distributionHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0")); /* col-6 pr-0 */
+        distributionHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0"));
 
         distributionHeader.setOutputMarkupId(true);
         cardBodyComponent.add(distributionHeader);
