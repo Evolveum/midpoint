@@ -1255,6 +1255,10 @@
                             <path>schemaHandling/objectType/default</path>
                             <visibility>visible</visibility>
                         </item>
+                        <item id="268">
+                            <path>schemaHandling/objectType/lifecycleState</path>
+                            <visibility>visible</visibility>
+                        </item>
                     </container>
                     <container id="131">
                         <identifier>objectType</identifier>
