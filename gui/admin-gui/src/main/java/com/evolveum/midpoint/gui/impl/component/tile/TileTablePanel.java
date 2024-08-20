@@ -44,6 +44,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     private static final long serialVersionUID = 1L;
 
+    static final String ID_TILE_VIEW = "tileView";
     static final String ID_TILES_CONTAINER = "tilesContainer";
     protected static final String ID_TILES_FRAGMENT = "tilesFragment";
     protected static final String ID_TILES = "tiles";
@@ -98,20 +99,25 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private void initLayout() {
         setOutputMarkupId(true);
 
-        initHeaderFragment();
+        WebMarkupContainer tilesView = new WebMarkupContainer(ID_TILE_VIEW);
+        tilesView.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
+        tilesView.setOutputMarkupId(true);
+        add(tilesView);
+
+        initHeaderFragment(tilesView);
 
         ISortableDataProvider<O, String> provider = createProvider();
         WebMarkupContainer tilesContainer = createTilesContainer(ID_TILES_CONTAINER, provider, tableId);
         tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
         tilesContainer.add(AttributeModifier.append("class", getTilesContainerAdditionalClass()));
         tilesContainer.setOutputMarkupId(true);
-        add(tilesContainer);
+        tilesView.add(tilesContainer);
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
         footerContainer.add(new VisibleBehaviour(this::showFooter));
         footerContainer.setOutputMarkupId(true);
         footerContainer.add(AttributeAppender.append("class", getTilesFooterCssClasses()));
-        add(footerContainer);
+        tilesView.add(footerContainer);
 
         NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, getTiles(), true) {
 
@@ -130,8 +136,8 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         add(table);
     }
 
-    public void initHeaderFragment() {
-        addOrReplace(createHeaderFragment(ID_HEADER));
+    public void initHeaderFragment(WebMarkupContainer tilesView) {
+        tilesView.addOrReplace(createHeaderFragment(ID_HEADER));
     }
 
     protected boolean showFooter() {
@@ -275,7 +281,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     private PageableListView getTiles() {
-        return (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
+        return (PageableListView) get(ID_TILE_VIEW).get(ID_TILES_CONTAINER).get(ID_TILES);
     }
 
     protected String getTileCssClasses() {
@@ -300,7 +306,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
             target.add(get(ID_TABLE));
         } else {
-            target.add(get(ID_TILES_CONTAINER), getTilesNavigation(), get(ID_FOOTER_CONTAINER));
+            target.add(get(ID_TILE_VIEW));
         }
     }
 
@@ -309,7 +315,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     }
 
     protected NavigatorPanel getTilesNavigation() {
-        return (NavigatorPanel) get(createComponentPath(ID_FOOTER_CONTAINER, ID_TILES_PAGING));
+        return (NavigatorPanel) get(createComponentPath(ID_TILE_VIEW, ID_FOOTER_CONTAINER, ID_TILES_PAGING));
     }
 
     protected IModel<Search> createSearchModel() {
