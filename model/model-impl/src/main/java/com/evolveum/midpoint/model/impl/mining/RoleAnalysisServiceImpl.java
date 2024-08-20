@@ -315,10 +315,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         //TODO exception handling
         try {
             repositoryService.addObject(clusterPrismObject, null, result);
-        } catch (ObjectAlreadyExistsException e) {
-            throw new RuntimeException(e);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
+        } catch (ObjectAlreadyExistsException | SchemaException e) {
+            LOGGER.error("Couldn't import RoleAnalysisClusterType object {}", clusterPrismObject, e);
         }
 //        modelService.importObject(clusterPrismObject, null, task, result);
     }
