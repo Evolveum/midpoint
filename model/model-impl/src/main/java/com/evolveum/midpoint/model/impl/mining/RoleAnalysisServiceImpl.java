@@ -1639,6 +1639,52 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return stateString == null || stateString.isEmpty() ? RoleAnalysisObjectState.STABLE.getDisplayString() : stateString;
     }
 
+    @Override
+    public int[] getTaskProgressIfExist(
+            @Nullable RoleAnalysisOperationStatus operationStatus,
+            @NotNull OperationResult result) {
+        if (operationStatus == null) {
+            return null;
+        }
+
+        ObjectReferenceType taskRef = operationStatus.getTaskRef();
+
+        if (taskRef == null || taskRef.getOid() == null) {
+            return new int[] { 0, 0 };
+        }
+
+        PrismObject<TaskType> object;
+        try {
+            object = repositoryService.getObject(TaskType.class, taskRef.getOid(), null, result);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            return new int[] { 0, 0 };
+        }
+
+        TaskType taskObject = object.asObjectable();
+
+        TaskExecutionStateType executionState = taskObject.getExecutionState();
+
+        TaskActivityStateType activityState = taskObject.getActivityState();
+        Integer expectedTotal = 0;
+        if (activityState != null
+                && activityState.getActivity() != null
+                && activityState.getActivity().getProgress() != null) {
+            expectedTotal = activityState.getActivity().getProgress().getExpectedTotal();
+            if (expectedTotal == null) {
+                expectedTotal = 0;
+            }
+        }
+        Long actual = 0L;
+        if (taskObject.getProgress() != null) {
+            actual = taskObject.getProgress();
+            if (executionState == null) {
+                actual = 0L;
+            }
+        }
+
+        return new int[] { expectedTotal, actual.intValue() };
+    }
+
     public void setCandidateRoleOpStatus(
             @NotNull PrismObject<RoleAnalysisClusterType> clusterPrism,
             @NotNull RoleAnalysisCandidateRoleType candidateRoleContainer,

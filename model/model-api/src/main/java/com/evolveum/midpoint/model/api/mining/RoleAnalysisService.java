@@ -576,6 +576,10 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisCandidateRoleType candidateRole,
             @NotNull OperationResult result, Task task);
 
+    int[] getTaskProgressIfExist(
+            @Nullable RoleAnalysisOperationStatus operationStatus,
+            @NotNull OperationResult result);
+
     /**
      * Deletes a single candidate role from the specified role analysis cluster.
      *
