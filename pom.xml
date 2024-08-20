@@ -257,7 +257,7 @@
         <xerces.version>2.12.2</xerces.version>
         <commons.csv.version>1.10.0</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
-        <bouncycastle.version>1.70</bouncycastle.version>
+        <bouncycastle.version>1.78</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
         <keycloak.version>22.0.3</keycloak.version>
 
@@ -1403,12 +1403,12 @@
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
-                <artifactId>bcpkix-jdk15on</artifactId>
+                <artifactId>bcpkix-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
-                <artifactId>bcprov-jdk15on</artifactId>
+                <artifactId>bcprov-jdk18on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
 
