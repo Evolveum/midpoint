@@ -216,7 +216,7 @@
         <cache2k.version>2.0.0.Final</cache2k.version>
         <testng.version>7.8.0</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
-        <xmlunit.version>2.9.1</xmlunit.version>
+        <xmlunit.version>2.10.0</xmlunit.version>
         <!-- hibernate.version>5.5.3.Final</hibernate.version -->
         <!--
         Default Spring Boot 2.7.3 uses H2 2.1.x, which is a big step from our current.
