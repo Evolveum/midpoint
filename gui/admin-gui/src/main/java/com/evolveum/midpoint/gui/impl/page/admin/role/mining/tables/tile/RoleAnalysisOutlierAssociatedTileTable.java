@@ -289,10 +289,7 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
             @Override
             protected RoleAnalysisOutlierTileModel createTileObject(RoleAnalysisOutlierType object) {
                 RoleAnalysisOutlierPartitionType outlierPartition = getOutlierPartition(object);
-                ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
-                ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
-
-                return new RoleAnalysisOutlierTileModel<>(getOutlierPartition(object), object, targetClusterRef, targetSessionRef);
+                return new RoleAnalysisOutlierTileModel<>(getOutlierPartition(object), object, getPageBase());
             }
 
             @Override

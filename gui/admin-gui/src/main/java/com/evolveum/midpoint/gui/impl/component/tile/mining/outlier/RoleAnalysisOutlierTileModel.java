@@ -9,15 +9,22 @@ package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierPartitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 
 public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T> {
 
@@ -28,22 +35,54 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
     ObjectReferenceType clusterRef;
     ObjectReferenceType sessionRef;
     String status = "TBD";
+    PageBase pageBase;
 
     public RoleAnalysisOutlierTileModel(String icon, String title) {
         super(icon, title);
     }
 
     public RoleAnalysisOutlierTileModel(
-            @Nullable RoleAnalysisOutlierPartitionType partition,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
             @NotNull RoleAnalysisOutlierType outlier,
-            @NotNull ObjectReferenceType clusterRef,
-            @NotNull ObjectReferenceType sessionRef) {
-        this.clusterRef = clusterRef;
-        this.sessionRef = sessionRef;
+            @NotNull PageBase pageBase) {
         this.partition = partition;
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
         this.outlier = outlier;
         this.name = outlier.getName().getOrig();
+        this.pageBase = pageBase;
+        this.clusterRef = partition.getTargetClusterRef();
+        this.sessionRef = partition.getTargetSessionRef();
+
+        tmpNameRefResolver(clusterRef, sessionRef, pageBase);
+
+    }
+
+    //TODO Temporary solution (remove later) but why is targetName null? it is stored in fullObject.
+    private static void tmpNameRefResolver(
+            @NotNull ObjectReferenceType clusterRef,
+            @NotNull ObjectReferenceType sessionRef,
+            @NotNull PageBase pageBase) {
+
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask("Load target name");
+        OperationResult result = task.getResult();
+        if (clusterRef.getTargetName() == null) {
+            PrismObject<RoleAnalysisClusterType> prismCluster = roleAnalysisService.getClusterTypeObject(
+                    clusterRef.getOid(), task, result);
+            if (prismCluster != null) {
+                PolyStringType name = prismCluster.asObjectable().getName();
+                clusterRef.setTargetName(name);
+            }
+        }
+
+        if (sessionRef.getTargetName() == null) {
+            PrismObject<RoleAnalysisSessionType> prismSession = roleAnalysisService.getSessionTypeObject(
+                    sessionRef.getOid(), task, result);
+            if (prismSession != null) {
+                PolyStringType name = prismSession.asObjectable().getName();
+                sessionRef.setTargetName(name);
+            }
+        }
     }
 
     @Override
@@ -71,6 +110,7 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
     public ObjectReferenceType getSessionRef() {
         return sessionRef;
     }
+
     public RoleAnalysisOutlierType getOutlier() {
         return outlier;
     }
