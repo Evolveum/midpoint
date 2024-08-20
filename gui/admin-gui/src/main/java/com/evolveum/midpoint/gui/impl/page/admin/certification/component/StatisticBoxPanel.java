@@ -40,36 +40,38 @@ public class StatisticBoxPanel<T> extends BasePanel<StatisticBoxDto<T>> {
     }
 
     private void initLayout() {
-        Component image = WebComponentUtil.createPhotoOrDefaultImagePanel(ID_IMAGE, getModelObject().getMessageImageResource(),
-                getDefaultImageIcon());
+        StatisticBoxDto<T> statisticObject = getModelObject();
+
+        Component image = WebComponentUtil.createPhotoOrDefaultImagePanel(ID_IMAGE, statisticObject.getMessageImageResource(),
+                getDefaultImageIcon(statisticObject));
         image.add(AttributeAppender.append("style", "font-size: 40px;"));
         add(image);
 
-        Label label = new Label(ID_LABEL, getLabelModel());
+        Label label = new Label(ID_LABEL, getLabelModel(statisticObject));
         add(label);
 
-        Label description = new Label(ID_DESCRIPTION_ID, getDescriptionModel());
+        Label description = new Label(ID_DESCRIPTION_ID, getDescriptionModel(statisticObject));
         description.setEnabled(false);
         add(description);
 
-        Component rightSideComponent = createRightSideComponent(ID_RIGHT_SIDE_COMPONENT);
+        Component rightSideComponent = createRightSideComponent(ID_RIGHT_SIDE_COMPONENT, statisticObject);
         add(rightSideComponent);
     }
 
-    private IconType getDefaultImageIcon() {
+    private IconType getDefaultImageIcon(StatisticBoxDto<T> statisticObject) {
         return new IconType()
-                .cssClass(getModelObject().getBoxImageCss());
+                .cssClass(statisticObject.getBoxImageCss());
     }
 
-    private IModel<String> getLabelModel() {
-        return () -> getModelObject().getBoxTitle();
+    private IModel<String> getLabelModel(StatisticBoxDto<T> statisticObject) {
+        return statisticObject::getBoxTitle;
     }
 
-    private IModel<String> getDescriptionModel() {
-        return () -> getModelObject().getBoxDescription();
+    private IModel<String> getDescriptionModel(StatisticBoxDto<T> statisticObject) {
+        return statisticObject::getBoxDescription;
     }
 
-    protected Component createRightSideComponent(String id) {
+    protected Component createRightSideComponent(String id, StatisticBoxDto<T> statisticObject) {
         return new WebMarkupContainer(id);
     }
 }
