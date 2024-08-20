@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -1016,6 +1018,8 @@ public class TestMapping extends AbstractMappingTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Wrongland");
         displayDumpable("Account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
+
         when();
         recomputeUser(USER_JACK_OID, task, result);
 
@@ -1047,6 +1051,8 @@ public class TestMapping extends AbstractMappingTest {
                 "Wrongland");
         displayDumpable("Account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
+
         when();
         reconcileUser(USER_JACK_OID, task, result);
 
@@ -1077,6 +1083,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME
                 /* no value */);
         displayDumpable("Account before", dummyAccountBefore);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
 
         when();
         recomputeUser(USER_JACK_OID, task, result);
@@ -1231,6 +1239,8 @@ public class TestMapping extends AbstractMappingTest {
                 "Wrongland");
         displayDumpable("Account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
+
         when();
         recomputeUser(USER_JACK_OID, task, result);
 
@@ -1261,6 +1271,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME
                 /* no value */);
         displayDumpable("Account before", dummyAccountBefore);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_COBALT_OID);
 
         when();
         recomputeUser(USER_JACK_OID, task, result);
@@ -2124,6 +2136,8 @@ public class TestMapping extends AbstractMappingTest {
 
         displayDumpable("Dummy account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
+
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
@@ -2159,6 +2173,8 @@ public class TestMapping extends AbstractMappingTest {
 
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         displayDumpable("Dummy account before", dummyAccountBefore);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
 
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -2204,6 +2220,8 @@ public class TestMapping extends AbstractMappingTest {
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
 
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
@@ -2377,6 +2395,8 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         displayDumpable("Dummy account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
+
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
@@ -2427,8 +2447,9 @@ public class TestMapping extends AbstractMappingTest {
                 DRINK_BRANDY, DRINK_GRAPPA);
         displayDumpable("Dummy account before", dummyAccountBefore);
 
-        // Make sure that only get is broken and not modify. We want to give the test
-        // a chance to destroy data.
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_CRIMSON_OID);
+
+        // Make sure that only get is broken and not modify. We want to give the test a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         when();
@@ -2534,6 +2555,8 @@ public class TestMapping extends AbstractMappingTest {
 
         displayDumpable("Dummy account before", dummyAccountBefore);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_LIGHT_CRIMSON_OID);
+
         when();
         reconcileUser(USER_GUYBRUSH_OID, task, result);
 
@@ -2554,7 +2577,6 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_BOOTY_ISLAND));
-
     }
 
     /**
@@ -2595,7 +2617,6 @@ public class TestMapping extends AbstractMappingTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_BOOTY_ISLAND));
-
     }
 
     /**
@@ -2612,8 +2633,7 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         displayDumpable("Dummy account before", dummyAccountBefore);
 
-        // Make sure that only get is broken and not modify. We want to give the test
-        // a chance to destroy data.
+        // Make sure that only get is broken and not modify. We want to give the test a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         when();
@@ -2621,7 +2641,11 @@ public class TestMapping extends AbstractMappingTest {
 
         then();
         result.computeStatus();
-        TestUtil.assertPartialError(result);
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            assertSuccess(result);
+        } else {
+            TestUtil.assertPartialError(result);
+        }
 
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 
@@ -2788,15 +2812,18 @@ public class TestMapping extends AbstractMappingTest {
         DummyAccount dummyAccountBefore = getDummyAccount(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         displayDumpable("Dummy account before", dummyAccountBefore);
 
-        // Make sure that only get is broken and not modify. We want to give the test
-        // a chance to destroy data.
+        // Make sure that only get is broken and not modify. We want to give the test a chance to destroy data.
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).setGetBreakMode(BreakMode.IO);
 
         when();
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_LOCALITY, task, result, PolyString.fromOrig(LOCALITY_BOOTY_ISLAND));
 
         then();
-        assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            assertSuccess(result);
+        } else {
+            assertSuccess(result, 1); // there's hidden PARTIAL_ERROR deep inside
+        }
 
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 
@@ -2819,7 +2846,10 @@ public class TestMapping extends AbstractMappingTest {
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, LOCALITY_BOOTY_ISLAND);
         assertDummyAccountAttribute(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
-                DRINK_GIN, DRINK_MEZCAL, rumFrom(LOCALITY_SCABB_ISLAND));
+                DRINK_GIN, DRINK_MEZCAL,
+                InternalsConfig.isShadowCachingOnByDefault() ?
+                        rumFrom(LOCALITY_BOOTY_ISLAND) : // the read operation was not needed
+                        rumFrom(LOCALITY_SCABB_ISLAND));
     }
 
     /**
@@ -2837,6 +2867,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAccountBefore.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
                 DRINK_BRANDY, DRINK_GRAPPA);
         displayDumpable("Dummy account before", dummyAccountBefore);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_LIGHT_CRIMSON_OID);
 
         // Make sure that only get is broken and not modify. We want to give the test
         // a chance to destroy data.

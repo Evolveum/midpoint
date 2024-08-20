@@ -237,6 +237,12 @@ public interface AttributeDefinitionStore
                 .instantiateFromRealValues(List.of(realValues));
     }
 
+    default @NotNull Collection<ItemName> getAttributeNames() {
+        return getAttributeDefinitions().stream()
+                .map(def -> def.getItemName())
+                .toList();
+    }
+
     default @NotNull Collection<ItemName> getAllSimpleAttributesNames() {
         return getAttributeDefinitions(ShadowSimpleAttributeDefinition.class).stream()
                 .map(ItemDefinition::getItemName)
