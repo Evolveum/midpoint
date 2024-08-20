@@ -196,7 +196,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                     itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
                     userPath.add(itemDescription.toLowerCase());
                 }
-                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " object-user-color";
+                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON;
 
                 int badge = analysis.getAttributeStatistics().size();
                 initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge);
@@ -210,7 +210,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                     itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
                     rolePath.add(itemDescription.toLowerCase());
                 }
-                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " object-role-color";
+                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
 
                 int badge = analysis.getAttributeStatistics().size();
                 initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge);
@@ -307,6 +307,11 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             @Override
             public String getIconCssClass() {
                 return classObjectIcon;
+            }
+
+            @Override
+            protected String getLabelCssClass() {
+                return " pill-label";
             }
 
         };
@@ -410,7 +415,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     public String getButtonCssClass() {
-        return "d-flex align-items-center gap-2 btn btn-sm btn-outline-primary rounded-pill";
+        return "d-flex align-items-center gap-2 btn btn-sm btn-pill rounded-pill";
     }
 
     @Contract(pure = true)
@@ -447,4 +452,5 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     public Component getContent() {
         return this;
     }
+
 }

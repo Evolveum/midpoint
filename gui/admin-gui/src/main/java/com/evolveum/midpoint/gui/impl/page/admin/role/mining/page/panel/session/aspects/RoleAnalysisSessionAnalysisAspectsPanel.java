@@ -157,7 +157,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected String initDefaultCssClass() {
-                return "col-12 pl-0";
+                return "p-0";
             }
         };
         panel.setOutputMarkupId(true);
@@ -198,7 +198,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 @Contract(pure = true)
                 @Override
                 protected @NotNull String getCssClassForHeaderItemsContainer() {
-                    return "d-flex flex-row p-2 align-items-center";
+                    return "row m-0 p-1 d-flex"; /* row m-0 p-1 */
                 }
 
                 @Contract(pure = true)
@@ -276,7 +276,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected String initDefaultCssClass() {
-                return "col-12 pl-0";
+                return "flex-shrink-1 flex-grow-1 p-0";
             }
         };
         panel.setOutputMarkupId(true);
@@ -468,7 +468,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
         statusHeader.setOutputMarkupId(true);
-        statusHeader.add(AttributeAppender.append("class", "col-6 pl-0"));
+        statusHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0")); /* col-6 pl-0 */
         cardBodyComponent.add(statusHeader);
 
         int clusterInliers = processedObjectCount - clusterOtliers;
@@ -682,7 +682,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
 
-        distributionHeader.add(AttributeAppender.append("class", "col-6 pr-0"));
+        distributionHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0"));
 
         distributionHeader.setOutputMarkupId(true);
         cardBodyComponent.add(distributionHeader);
@@ -817,7 +817,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
         statusHeader.setOutputMarkupId(true);
-        statusHeader.add(AttributeAppender.append("class", "col-6 pl-0"));
+        statusHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0")); /* col-6 pl-0 */
         cardBodyComponent.add(statusHeader);
 
         List<PrismObject<RoleAnalysisClusterType>> sessionClusters = roleAnalysisService.searchSessionClusters(
@@ -894,7 +894,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                         createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.inliers")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-info fa-2xs";
+                                        return " fa fa-circle text-info fa-2xs";
                                     }
 
                                     @Override
@@ -1044,7 +1044,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
 
-        distributionHeader.add(AttributeAppender.append("class", "col-6 pr-0"));
+        distributionHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0"));
 
         distributionHeader.setOutputMarkupId(true);
         cardBodyComponent.add(distributionHeader);

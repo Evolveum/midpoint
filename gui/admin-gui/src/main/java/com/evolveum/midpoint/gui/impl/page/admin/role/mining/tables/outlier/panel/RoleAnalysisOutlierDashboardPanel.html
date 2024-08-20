@@ -8,16 +8,16 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="bg-white rounded elevation-1 h-100" wicket:id="container">
-        <div class="p-2">
+    <div class="flex-fill bg-white rounded card-shadow h-100" wicket:id="container">
+        <div class="p-2 w-100">
             <div wicket:id="title"></div>
         </div>
 
-        <div class="p-0 border-top">
+        <div class="p-0 border-top w-100">
             <div wicket:id="panel"></div>
         </div>
 
-        <div class="d-flex flex-wrap p-3 border-top col-12" wicket:id="footer-container">
+        <div class="d-flex flex-column flex-fill flex-wrap p-3 border-top col-12" wicket:id="footer-container">
             <div class="col-12 p-1" wicket:id="footer"></div>
         </div>
     </div>
