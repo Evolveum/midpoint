@@ -49,6 +49,7 @@ public class ProgressBarNew extends BasePanel<String> {
     private static final String ID_BAR_TITLE = "progressBarTitle";
     private static final String ID_BAR_TITTLE_DATA = "progressBarDetails";
     private static final String ID_TITLE_CONTAINER = "title-container";
+    private static final String ID_PROGRESS_CONTAINER = "progress-container";
 
     double minValue = 0;
     double maxValue = 100;
@@ -63,10 +64,15 @@ public class ProgressBarNew extends BasePanel<String> {
     protected void onInitialize() {
         super.onInitialize();
 
+        WebMarkupContainer progressContainer = new WebMarkupContainer(ID_PROGRESS_CONTAINER);
+        progressContainer.setOutputMarkupId(true);
+        progressContainer.add(AttributeModifier.replace("class", getProgressBarContainerCssClass()));
+        add(progressContainer);
+
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         container.add(AttributeModifier.replace("style", getProgressBarContainerCssStyle()));
-        add(container);
+        progressContainer.add(container);
 
         WebMarkupContainer titleContainer = new WebMarkupContainer(ID_TITLE_CONTAINER);
         titleContainer.setOutputMarkupId(true);
@@ -97,7 +103,7 @@ public class ProgressBarNew extends BasePanel<String> {
 
             WebMarkupContainer progressBarInline = new WebMarkupContainer(ID_BAR_PERCENTAGE);
             progressBarInline.setOutputMarkupId(true);
-            add(progressBarInline);
+            container.add(progressBarInline);
         } else {
             Label progressBarText = new Label(ID_BAR_PERCENTAGE, () -> String.format("%.2f%%", getActualValue()));
             progressBarText.setOutputMarkupId(true);
@@ -254,6 +260,10 @@ public class ProgressBarNew extends BasePanel<String> {
     }
 
     protected String getProgressBarContainerCssStyle() {
+        return null;
+    }
+
+    protected String getProgressBarContainerCssClass() {
         return null;
     }
 }
