@@ -16,6 +16,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -70,7 +71,6 @@ public class ValueBasedDefinitionLookupsImpl {
         @Override
         public ComplexTypeDefinition findComplexTypeDefinition(QName typeName, Map<ItemPath, PrismValue> hintValues) {
             var resourceValue = hintValues.get(ShadowType.F_RESOURCE_REF);
-            var result = lookupTask.getResult().createSubresult("ValueBasedDefinitionLookupsImpl.findComplexTypeDefinition");
             if (resourceValue instanceof PrismReferenceValue resourceRef) {
                 var oid = resourceRef.getOid();
                 try {
@@ -83,10 +83,7 @@ public class ValueBasedDefinitionLookupsImpl {
                             fakeShadow.findOrCreateReference(hint.getKey()).add(refValue.clone());
                         }
                     }
-
-                    var resource = provisioning.getObject(ResourceType.class, oid, null, lookupTask, result);
-                    ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-                    ResourceObjectDefinition rocd = resourceSchema.findDefinitionForShadow(fakeShadow.asObjectable());
+                    ResourceObjectDefinition rocd = provisioning.getDefinitionForShadow(fakeShadow.asObjectable());
                     if (rocd != null) {
                         return rocd.getPrismObjectDefinition().getComplexTypeDefinition();
                     }
@@ -103,17 +100,11 @@ public class ValueBasedDefinitionLookupsImpl {
     };
 
 
-    @Autowired ProvisioningService provisioning;
-
-    @Autowired TaskManager taskManager;
-
-    // FIXME: This is antipattern, but prism does not have tasks associated and parsing APIs do not have OperationResults
-    private Task lookupTask;
+    @Autowired ResourceSchemaRegistry provisioning;
 
     @PostConstruct
     public void init() {
         PrismContext.get().registerValueBasedDefinitionLookup(shadowLookupByKindAndIntent);
-        this.lookupTask = taskManager.createTaskInstance("system-resource-lookup-for-queries");
         SchemaContextResolverRegistry.register(Algorithm.RESOURCE_OBJECT_CONTEXT_RESOLVER, ResourceObjectContextResolver::new);
         SchemaContextResolverRegistry.register(Algorithm.SHADOW_CONSTRUCTION_CONTEXT_RESOLVER, ShadowConstructionContextResolver::new);
     }
@@ -138,10 +129,7 @@ public class ValueBasedDefinitionLookupsImpl {
                 shadowType.setIntent(resourceObjectDefinitionType.getIntent());
 
                 try {
-                    var result = lookupTask.getResult().createSubresult("ValueBasedDefinitionLookupsImpl.findComplexTypeDefinition");
-                    var resourceObj = provisioning.getObject(ResourceType.class, resource.getOid(), null, lookupTask, result);
-                    ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resourceObj);
-                    ResourceObjectDefinition resourceObjectDefinition = resourceSchema.findDefinitionForShadow(shadowType);
+                    ResourceObjectDefinition resourceObjectDefinition = provisioning.getDefinitionForShadow(shadowType);
                     if (resourceObjectDefinition != null) {
                         return new SchemaContextImpl(resourceObjectDefinition.toPrismObjectDefinition());
                     }
@@ -178,10 +166,7 @@ public class ValueBasedDefinitionLookupsImpl {
                 }
 
                 try {
-                    var result = lookupTask.getResult().createSubresult("ValueBasedDefinitionLookupsImpl.findComplexTypeDefinition");
-                    var resourceObj = provisioning.getObject(ResourceType.class, construction.getResourceRef().getOid(), null, lookupTask, result);
-                    ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchema(resourceObj);
-                    ResourceObjectDefinition resourceObjectDefinition = resourceSchema.findDefinitionForShadow(shadowType);
+                    ResourceObjectDefinition resourceObjectDefinition = provisioning.getDefinitionForShadow(shadowType);
                     if (resourceObjectDefinition != null) {
                         return new SchemaContextImpl(resourceObjectDefinition.toPrismObjectDefinition());
                     }
