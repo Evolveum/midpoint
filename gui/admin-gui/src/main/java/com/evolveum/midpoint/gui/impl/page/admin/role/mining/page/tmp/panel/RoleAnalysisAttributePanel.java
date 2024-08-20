@@ -311,7 +311,6 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
         };
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.replace("class", getButtonCssClass()));
         repeatingView.add(button);
     }
 
