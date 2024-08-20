@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.validator;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -85,9 +86,9 @@ public class AssociationRefAttributeValidator implements IValidator<String> {
 
                 if (refItemName != null && path.equivalent(refItemName.getItemPath())) {
                     ValidationError error = new ValidationError();
-                    error.addKey("AssociationRefAttributeValidator.refAttributeExists");
-                    error.setVariable("0", value);
-                    error.setMessage("Configuration for reference attribute '" + value + "' already exists.");
+                    error.setMessage(LocalizationUtil.translate(
+                            "AssociationRefAttributeValidator.refAttributeExists",
+                            new Object[]{value}));
                     validatable.error(error);
                     return;
                 }

@@ -17,7 +17,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
 
-//TODO better name
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/certification/myActiveCampaigns", matchUrlForSecurity = "/admin/certification/myActiveCampaigns")
@@ -38,13 +37,11 @@ public class PageMyActiveCampaigns extends PageActiveCampaigns {
 
     @Override
     boolean isDisplayingAllItems() {
-        return true;
+        return false;
     }
 
-    protected void showCertItems(String campaignOid, AjaxRequestTarget target) {
-        PageParameters params = new PageParameters();
-        params.add(OnePageParameterEncoder.PARAMETER, campaignOid);
-        navigateToNext(PageMyCertItems.class, params);
+    protected Class<? extends PageCertItems> getCertItemsPage() {
+        return PageMyCertItems.class;
     }
 
 }
