@@ -56,6 +56,8 @@ public class RelatedTasksPanel extends BasePanel {
     private static final String ID_RELATED_TASKS = "relatedTasks";
     private CertificationDetailsModel model;
 
+    private static final int MAX_RELATED_TASKS = 5;
+
     public RelatedTasksPanel(String id, CertificationDetailsModel model) {
         super(id);
         this.model = model;
@@ -64,28 +66,42 @@ public class RelatedTasksPanel extends BasePanel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initRelatedTasksPanel();
+        add(initRelatedTasksPanel(ID_RELATED_TASKS, true));
     }
 
-    private void initRelatedTasksPanel() {
+    private StatisticListBoxPanel<TaskType> initRelatedTasksPanel(String id, boolean allowViewAll) {
         IModel<List<StatisticBoxDto<TaskType>>> tasksModel = getRelatedTasksModel();
         DisplayType relatedTasksDisplay = new DisplayType()
                 .label("RelatedTasksPanel.title");
-        StatisticListBoxPanel<TaskType> relatedTasks = new StatisticListBoxPanel<>(ID_RELATED_TASKS, Model.of(relatedTasksDisplay),
+        return new StatisticListBoxPanel<>(id, Model.of(relatedTasksDisplay),
                 tasksModel) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected void viewAllActionPerformed(AjaxRequestTarget target) {
-                //todo show in the popup? redirect to the report page?
+            protected boolean isViewAllAllowed() {
+                return tasksCountExceedsLimit(tasksModel.getObject()) && allowViewAll;
             }
 
             @Override
-            protected Component createRightSideBoxComponent(String id, IModel<StatisticBoxDto<TaskType>> model) {
-                return createRightSideTaskComponent(id, model.getObject().getStatisticObject());
+            protected void viewAllActionPerformed(AjaxRequestTarget target) {
+                showAllRelatedTasksPerformed(target);
+            }
+
+
+            @Override
+            protected Component createRightSideBoxComponent(String id, StatisticBoxDto<TaskType> statisticObject) {
+                return createRightSideTaskComponent(id, statisticObject.getStatisticObject());
             }
         };
-        add(relatedTasks);
+    }
+
+    private void showAllRelatedTasksPerformed(AjaxRequestTarget target) {
+        getPageBase().showMainPopup(initRelatedTasksPanel(getPageBase().getMainPopupBodyId(), false), target);
+    }
+
+
+    private boolean tasksCountExceedsLimit(List<StatisticBoxDto<TaskType>> tasks) {
+        return tasks.size() > MAX_RELATED_TASKS;
     }
 
     private Component createRightSideTaskComponent(String id, TaskType task) {

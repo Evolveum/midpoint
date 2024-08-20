@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
@@ -22,6 +23,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.io.Serial;
 import java.util.List;
@@ -32,7 +34,7 @@ import java.util.List;
  * The panel consists of a vertical list of info panels
  * @param <T>
  */
-public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>> {
+public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -77,12 +79,12 @@ public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>
 
             @Override
             protected void populateItem(ListItem<StatisticBoxDto<T>> listItem) {
-                listItem.add(new StatisticBoxPanel(ID_STATISTIC_BOX, listItem.getModel()) {
+                listItem.add(new StatisticBoxPanel<>(ID_STATISTIC_BOX, listItem.getModel()) {
                     @Serial private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected Component createRightSideComponent(String id) {
-                        return StatisticListBoxPanel.this.createRightSideBoxComponent(id, listItem.getModel());
+                    protected Component createRightSideComponent(String id, StatisticBoxDto<T> statisticObject) {
+                        return StatisticListBoxPanel.this.createRightSideBoxComponent(id, statisticObject);
                     }
 
                 });
@@ -99,9 +101,14 @@ public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>
                 viewAllActionPerformed(target);
             }
         };
+        viewAllLink.add(new VisibleBehaviour(this::isViewAllAllowed));
         add(viewAllLink);
 
         viewAllLink.add(new Label(ID_VIEW_ALL_LABEL, createStringResource("AjaxIconButton.viewAll")));
+    }
+
+    protected boolean isViewAllAllowed() {
+        return true;
     }
 
     protected Component createRightSideHeaderComponent(String id) {
@@ -114,7 +121,37 @@ public class StatisticListBoxPanel<T> extends BasePanel<List<StatisticBoxDto<T>>
     protected void viewAllActionPerformed(AjaxRequestTarget target) {
     }
 
-    protected Component createRightSideBoxComponent(String id, IModel<StatisticBoxDto<T>> model) {
+    protected Component createRightSideBoxComponent(String id, StatisticBoxDto<T> statisticObject) {
         return new WebMarkupContainer(id);
+    }
+
+    @Override
+    public int getWidth() {
+        return 800;
+    }
+
+    @Override
+    public int getHeight() {
+        return 600;
+    }
+
+    @Override
+    public String getWidthUnit() {
+        return "px";
+    }
+
+    @Override
+    public String getHeightUnit() {
+        return "px";
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return createStringResource("CampaignStatisticsPanel.label");
+    }
+
+    @Override
+    public Component getContent() {
+        return this;
     }
 }
