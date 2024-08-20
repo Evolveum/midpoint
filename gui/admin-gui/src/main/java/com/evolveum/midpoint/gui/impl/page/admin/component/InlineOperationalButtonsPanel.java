@@ -66,19 +66,19 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
         buildInitialRepeatingView(rightButtonsView);
         applyWcagRules(rightButtonsView);
 
-        if (rightButtonsView.size() > 1) {
+       /* if (rightButtonsView.size() > 1) {
             deleteButtonContainer.add(AttributeAppender.append("class", "objectButtons"));
-        }
+        } */
     }
 
     @Override
     protected String getDeleteButtonCssClass() {
-        return "btn btn-link text-danger";
+        return "btn btn-link link-danger"; /* btn btn-link text-danger */
     }
 
     @Override
     protected String getBackCssClass() {
-        return "btn btn-link";
+        return "btn btn-link"; /* btn btn-link */
     }
 
     private void applyWcagRules(RepeatingView repeatingView) {

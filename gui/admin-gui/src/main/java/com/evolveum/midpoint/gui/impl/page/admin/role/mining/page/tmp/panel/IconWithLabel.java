@@ -46,7 +46,7 @@ public class IconWithLabel extends BasePanel<String> {
         add(iconContainer);
 
         Label image = new Label(ID_ICON);
-        image.add(AttributeModifier.replace("class", getIconCssClass()));
+        image.add(AttributeModifier.replace("class", getIconCssClass() + " fa-sm"));
         image.add(AttributeModifier.replace("style", getIconComponentCssStyle()));
         image.setOutputMarkupId(true);
         iconContainer.add(image);
