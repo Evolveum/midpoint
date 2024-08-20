@@ -1506,7 +1506,7 @@
             <dependency>
                 <groupId>dnsjava</groupId>
                 <artifactId>dnsjava</artifactId>
-                <version>3.4.0</version>
+                <version>3.6.0</version>
             </dependency>
 
             <!-- Test support dependencies -->
