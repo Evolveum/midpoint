@@ -7,12 +7,10 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import java.io.Serial;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import com.evolveum.midpoint.repo.sqlbase.NativeOnlySupportedException;
-
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -23,9 +21,10 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -42,12 +41,14 @@ import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.repo.sqlbase.NativeOnlySupportedException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.SelectorQualifiedGetOptionsUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,8 +65,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author skublik
@@ -163,7 +162,20 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private void initInfoBoxes() {
-        add(new ListView<DashboardWidgetType>(ID_WIDGETS, new PropertyModel<>(dashboardModel, "widget")) {
+        IModel<List<DashboardWidgetType>> model = new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<DashboardWidgetType> load() {
+                List<DashboardWidgetType> widgets = dashboardModel.getObject().getWidget();
+                return widgets.stream()
+                        .sorted(
+                                Comparator.comparing(
+                                        DashboardWidgetType::getDisplayOrder, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .toList();
+            }
+        };
+
+        add(new ListView<>(ID_WIDGETS, model) {
 
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
@@ -237,8 +249,7 @@ public class PageDashboardConfigurable extends PageDashboard {
                                 model.getObject().getIdentifier(), nativeOnlySupport.getMessage());
                         result.recordHandledError(nativeOnlySupport.getLocalizedUserFriendlyMessage(), e);
                         result.setUserFriendlyMessage(new SingleLocalizableMessage(
-                                NATIVE_ONLY_SUPPORTED_KEY, new Object[]{model.getObject().getIdentifier()}));
-
+                                NATIVE_ONLY_SUPPORTED_KEY, new Object[] { model.getObject().getIdentifier() }));
 
                         return createUnsupportedWidget(model);
                     } else {
@@ -263,10 +274,10 @@ public class PageDashboardConfigurable extends PageDashboard {
         display.setColor("var(--warning)");
         display.setCssStyle("color: var(--navy) !important;");
         display.setIcon(new IconType().cssClass("fa fa-exclamation-triangle"));
-        var unsupportedShort = getLocalizationService().translate(UNSUPPORTED_KEY, new Object[]{}, getLocale());
+        var unsupportedShort = getLocalizationService().translate(UNSUPPORTED_KEY, new Object[] {}, getLocale());
         data.setNumberMessage(unsupportedShort);
         var ret = new DashboardWidgetDto(data, PageDashboardConfigurable.this);
-        var unsupportedLong = getLocalizationService().translate(NATIVE_ONLY_SUPPORTED_KEY, new Object[]{ret.getMessage()},getLocale());
+        var unsupportedLong = getLocalizationService().translate(NATIVE_ONLY_SUPPORTED_KEY, new Object[] { ret.getMessage() }, getLocale());
         ret.setMessage(unsupportedLong);
         return ret;
 

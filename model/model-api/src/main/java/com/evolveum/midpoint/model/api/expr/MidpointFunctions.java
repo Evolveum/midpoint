@@ -60,6 +60,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_RI;
+
 /**
  *
  */
@@ -1131,6 +1133,19 @@ public interface MidpointFunctions {
     Map<String, String> parseXmlToMap(String xml);
 
     boolean isFullShadow();
+
+    /**
+     * Returns {@code true} if the attribute is available for processing. It must either be freshly loaded
+     * (in the {@link #isFullShadow()} sense) or it must be cached *and* the use of cache for computations
+     * must be allowed.
+     */
+    @Experimental
+    boolean isAttributeLoaded(QName attrName) throws SchemaException, ConfigurationException;
+
+    @Experimental
+    default boolean isAttributeLoaded(String attrName) throws SchemaException, ConfigurationException {
+        return isAttributeLoaded(new QName(NS_RI, attrName));
+    }
 
     boolean isProjectionExists();
 

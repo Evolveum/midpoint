@@ -614,6 +614,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         dmsScenario.accountAccess.add(dmsScenario.account.getByNameRequired(userName), dummyAdminAccess);
         dmsScenario.accessDocument.add(dummyAdminAccess, dmsScenario.document.getByNameRequired(documentName));
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_DMS.oid);
+
         and("provisioning the user with write access to the document");
         executeChanges(
                 deltaFor(UserType.class)
@@ -837,6 +839,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 adScenario.account.getByNameRequired(userName),
                 adScenario.group.getByNameRequired(ROLE_TESTERS_NAME));
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AD.oid);
+
         and("provisioning the user with 'operators' membership");
         executeChanges(
                 deltaFor(UserType.class)
@@ -908,7 +912,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     /** Membership of an unmanaged group is synchronized only in resource -> midPoint direction. */
-    @Test(enabled = false)
+    @Test
     public void test350TestUnmanagedGroupMembership() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
@@ -965,7 +969,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     }
 
     /** Membership of a managed group is synchronized only in midPoint -> resource direction. */
-    @Test(enabled = false)
+    @Test
     public void test360TestManagedGroupMembership() throws Exception {
         var task = getTestTask();
         var result = task.getResult();

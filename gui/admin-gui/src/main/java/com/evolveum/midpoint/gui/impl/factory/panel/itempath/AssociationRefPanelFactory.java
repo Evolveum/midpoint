@@ -11,9 +11,11 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.gui.impl.validator.AssociationRefAttributeValidator;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -68,6 +70,14 @@ public class AssociationRefPanelFactory extends ItemPathPanelFactory {
         TextPanel<String> panel = new TextPanel<>(panelCtx.getComponentId(), model, String.class, false);
         panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         return panel;
+    }
+
+    @Override
+    public void configure(PrismPropertyPanelContext<ItemPathType> panelCtx, org.apache.wicket.Component component) {
+        super.configure(panelCtx, component);
+
+        InputPanel panel = (InputPanel) component;
+        panel.getValidatableComponent().add(new AssociationRefAttributeValidator(panelCtx.getItemWrapperModel()));
     }
 
     @Override

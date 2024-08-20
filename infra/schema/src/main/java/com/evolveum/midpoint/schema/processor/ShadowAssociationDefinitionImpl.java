@@ -309,12 +309,14 @@ public class ShadowAssociationDefinitionImpl
         } else {
             def.mutator().delete(ShadowAssociationValueType.F_ATTRIBUTES); // ...or replace with empty PCD/CTD
             def.mutator().delete(ShadowAssociationValueType.F_ACTIVATION); // ...or leave it as it is
+
+            var objectRefDef = getReferenceAttributeDefinition().cloneWithNewCardinality(1, 1);
+            objectRefDef.freeze();
             def.mutator().replaceDefinition(
                     ShadowAssociationValueType.F_OBJECTS,
                     new ShadowAttributesContainerDefinitionImpl(
                             ShadowAssociationValueType.F_OBJECTS,
-                            new ShadowSingleReferenceAttributeComplexTypeDefinitionImpl(
-                                    getReferenceAttributeDefinition().clone())));
+                            new ShadowSingleReferenceAttributeComplexTypeDefinitionImpl(objectRefDef)));
         }
 
 //        // We apply the prism shadow definition for (representative) target object to the shadowRef definition.

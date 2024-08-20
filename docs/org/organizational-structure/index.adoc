@@ -1,3 +1,11 @@
+---
+midpoint-feature: org
+doc-type: intro
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Use of organizational structure as access control mechanism.'
+---
 = MidPoint Organizational Structure Introduction
 :page-nav-title: Introduction
 :page-wiki-name: Organizational Structure
@@ -6,7 +14,8 @@
 :page-wiki-metadata-create-date: 2013-07-24T10:01:15.792+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2016-09-16T11:33:44.628+02:00
-:page-upkeep-status: yellow
+:page-upkeep-status: orange
+:page-upkeep-note: Need to re-structure the pages, empty stub page (one level up) does not make sense.
 
 == Introduction
 

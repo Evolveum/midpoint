@@ -91,7 +91,8 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
             @NotNull ResourceType resource,
             @NotNull ResourceObjectDefinition definition,
             @NotNull ShadowLifecycleStateType state,
-            boolean keepTheRawShadow) throws SchemaException {
+            boolean keepTheRawShadow,
+            boolean lax) throws SchemaException {
 
         RawRepoShadow rawShadowToStore;
         ShadowType shadowToAdapt;
@@ -105,7 +106,7 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
 
         // We hope this will not touch reference attributes. We need to execute this first to get
         // the properly defined attributes container in the "shadowToAdapt".
-        new ShadowDefinitionApplicator(definition)
+        ShadowDefinitionApplicator.create(definition, lax)
                 .applyToShadow(shadowToAdapt);
 
         var refAttributes = shadowToAdapt.getReferenceAttributes();

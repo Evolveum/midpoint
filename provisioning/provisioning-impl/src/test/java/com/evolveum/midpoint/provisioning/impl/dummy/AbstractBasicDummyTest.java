@@ -29,6 +29,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.test.DummyDefaultScenario;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -793,11 +794,16 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 //                .as("weapon type name in the raw definition")
 //                .isEqualTo(DOMUtil.XSD_STRING);
 
+        assertCompleteSchema(completeSchema);
+
         rememberRefinedResourceSchema(completeSchema);
 
         assertSteadyResource();
         dummyResource.assertConnections(4);
         assertDummyConnectorInstances(1);
+    }
+
+    protected void assertCompleteSchema(CompleteResourceSchema completeSchema) throws CommonException {
     }
 
     /**
@@ -1502,7 +1508,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
             RawRepoShadow repoAccount, XMLGregorianCalendar start, XMLGregorianCalendar end,
             boolean rightAfterCreate) throws CommonException {
         checkRepoAccountShadowWillBasic(repoAccount, start, end, rightAfterCreate, 2);
-        assertRepoShadowCacheActivation(repoAccount, null);
+        assertRepoShadowCacheActivation(repoAccount, ActivationStatusType.ENABLED);
     }
 
     // test101 in the subclasses
@@ -1661,7 +1667,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     }
 
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
-        return getAccountDefaultDefinition().getAllIdentifiersNames();
+        return InternalsConfig.isShadowCachingOnByDefault() ?
+                getAccountDefaultDefinition().getAttributeNames() :
+                getAccountDefaultDefinition().getAllIdentifiersNames();
     }
 
     @Test
@@ -1689,15 +1697,42 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
                 .assertAttributes(6);
     }
 
-    /**
-     * We do not know what the timestamp should be
-     */
     protected void assertRepoCachingMetadata(PrismObject<ShadowType> shadowRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        assertNull("Unexpected caching metadata in " + shadowRepo, shadowRepo.asObjectable().getCachingMetadata());
+        assertRepoCachingMetadata(shadowRepo, start, end, InternalsConfig.isShadowCachingOnByDefault());
+    }
+
+    void assertRepoCachingMetadata(
+            PrismObject<ShadowType> shadowFromRepo,
+            XMLGregorianCalendar start,
+            XMLGregorianCalendar end,
+            boolean shouldBePresent) {
+        if (shouldBePresent) {
+            CachingMetadataType cachingMetadata = shadowFromRepo.asObjectable().getCachingMetadata();
+            assertNotNull("No caching metadata in " + shadowFromRepo, cachingMetadata);
+
+            TestUtil.assertBetween("retrieval timestamp in caching metadata in " + shadowFromRepo,
+                    start, end, cachingMetadata.getRetrievalTimestamp());
+        } else {
+            assertNull("Unexpected caching metadata in " + shadowFromRepo, shadowFromRepo.asObjectable().getCachingMetadata());
+        }
     }
 
     protected void assertCachingMetadata(ShadowType shadow, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
-        assertNull("Unexpected caching metadata in " + shadow, shadow.getCachingMetadata());
+        assertCachingMetadata(shadow, startTs, endTs, InternalsConfig.isShadowCachingOnByDefault());
+    }
+
+    void assertCachingMetadata(
+            ShadowType shadow,
+            XMLGregorianCalendar startTs,
+            XMLGregorianCalendar endTs,
+            boolean shouldBePresent) {
+        if (shouldBePresent) {
+            CachingMetadataType cachingMetadata = shadow.getCachingMetadata();
+            assertNotNull("No caching metadata in " + shadow, cachingMetadata);
+            TestUtil.assertBetween("retrievalTimestamp in caching metadata in " + shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
+        } else {
+            assertNull("Unexpected caching metadata in " + shadow, shadow.getCachingMetadata());
+        }
     }
 
     void checkAccountShadow(
@@ -1742,20 +1777,37 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
     /** TODO better name! */
     protected void assertOptionalAttrValue(AbstractShadow shadow, String attrName, Object... attrValues) {
-        PrismAsserts.assertNoItem(shadow.getPrismObject(), ItemPath.create(ShadowType.F_ATTRIBUTES, getAttrQName(attrName)));
+        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            PrismAsserts.assertNoItem(shadow.getPrismObject(), ItemPath.create(ShadowType.F_ATTRIBUTES, getAttrQName(attrName)));
+        }
     }
 
     protected void assertCachedAttributeValue(AbstractShadow shadow, String attrName, Object... attrValues) {
-        PrismAsserts.assertNoItem(shadow.getPrismObject(), ItemPath.create(ShadowType.F_ATTRIBUTES, getAttrQName(attrName)));
+        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            PrismAsserts.assertNoItem(shadow.getPrismObject(), ItemPath.create(ShadowType.F_ATTRIBUTES, getAttrQName(attrName)));
+        }
     }
 
     protected void assertRepoShadowCacheActivation(RawRepoShadow shadowRepo, ActivationStatusType expectedAdministrativeStatus) {
-        ActivationType activation = shadowRepo.getBean().getActivation();
-        if (activation == null) {
-            return;
+        assertRepoShadowCacheActivation(shadowRepo, expectedAdministrativeStatus, InternalsConfig.isShadowCachingOnByDefault());
+    }
+
+    void assertRepoShadowCacheActivation(
+            RawRepoShadow repoShadow, ActivationStatusType expectedAdministrativeStatus, boolean shouldBePresent) {
+        if (shouldBePresent) {
+            var activationType = repoShadow.getBean().getActivation();
+            assertNotNull("No activation in repo shadow " + repoShadow, activationType);
+            var administrativeStatus = activationType.getAdministrativeStatus();
+            assertEquals("Wrong activation administrativeStatus in repo shadow " + repoShadow, expectedAdministrativeStatus, administrativeStatus);
+        } else {
+            var activation = repoShadow.getBean().getActivation();
+            if (activation != null) {
+                var administrativeStatus = activation.getAdministrativeStatus();
+                assertNull(
+                        "Unexpected activation administrativeStatus in repo shadow " + repoShadow + ": " + administrativeStatus,
+                        administrativeStatus);
+            }
         }
-        ActivationStatusType administrativeStatus = activation.getAdministrativeStatus();
-        assertNull("Unexpected activation administrativeStatus in repo shadow " + shadowRepo + ": " + administrativeStatus, administrativeStatus);
     }
 
     void assertRepoShadowCredentials(RawRepoShadow shadowRepo, String expectedPassword)

@@ -659,7 +659,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     /** Does not create a new context. The current context should be derived from the shadow. TODO reconsider */
     public void applyCurrentDefinition(@NotNull ShadowType shadow) throws SchemaException {
-        new ShadowDefinitionApplicator(getObjectDefinitionRequired())
+        ShadowDefinitionApplicator.strict(getObjectDefinitionRequired())
                 .applyToShadow(shadow);
     }
 
@@ -721,7 +721,16 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
                                 + "Please fix the shadow or the resource configuration",
                         rawShadowBean, resource);
         var state = ShadowLifecycleStateDeterminer.determineShadowState(this, rawShadowBean);
-        return RepoShadow.fromRaw(rawRepoShadow, resource, definition, state, keepTheRawShadow);
+        var fresh = ShadowUtil.isShadowFresh(
+                rawRepoShadow.getPrismObject(),
+                definition,
+                CommonBeans.get().clock.currentTimeXMLGregorianCalendar());
+        // The following drives how strict we are when reading the shadow. On one hand, we want to work with the correct data.
+        // On the other, we do not want to fail hard when the resource schema changes. Hence, we are strict for fresh shadows,
+        // but lax for the others, because the data will not be used anyway (except for the identifiers - but they do not
+        // change as frequently). The general recommendation will be: after you change the schema, please invalidate the cache.
+        var lax = !fresh;
+        return RepoShadow.fromRaw(rawRepoShadow, resource, definition, state, keepTheRawShadow, lax);
     }
 
     /** The shadow should be a bean usable as a {@link ResourceObjectShadow} (except for the attribute definitions). */
@@ -732,12 +741,12 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     }
 
     public void applyCurrentDefinition(@NotNull ObjectDelta<ShadowType> delta) throws SchemaException {
-        new ShadowDefinitionApplicator(getObjectDefinitionRequired())
+        ShadowDefinitionApplicator.strict(getObjectDefinitionRequired())
                 .applyToDelta(delta);
     }
 
     public void applyCurrentDefinition(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) throws SchemaException {
-        new ShadowDefinitionApplicator(getObjectDefinitionRequired())
+        ShadowDefinitionApplicator.strict(getObjectDefinitionRequired())
                 .applyToItemDeltas(modifications);
     }
 

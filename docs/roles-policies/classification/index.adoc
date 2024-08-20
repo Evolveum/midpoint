@@ -9,6 +9,8 @@ compliance:
             description: 'Example demonstrating use of policy rules to enforce classification requirements'
         '5.14':
             description: 'Description of an idea for limiting access to internal information using classification scheme'
+        '5.15':
+            description: 'Setting up additional policies for access control, based on classifications.'
         '5.16':
             description: 'Management of user clearances'
         '6.1':

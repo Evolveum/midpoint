@@ -114,7 +114,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
 
         var newValue = empty(definition);
         if (definition.isComplex()) {
-            var applicator = new ShadowDefinitionApplicator(definition.getAssociationDataObjectDefinition());
+            var applicator = ShadowDefinitionApplicator.strict(definition.getAssociationDataObjectDefinition());
 
             var rawAttributes = bean.getAttributes();
             if (rawAttributes != null) {

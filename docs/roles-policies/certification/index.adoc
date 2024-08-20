@@ -365,7 +365,7 @@ The widget can be configured in the _systemConfiguration -> adminGuiConfiguratio
                         </icon>
                     </display>
                     <target>
-                        <targetUrl>/admin/certification/activeCampaigns</targetUrl>
+                        <targetUrl>/admin/certification/myActiveCampaigns</targetUrl>
                     </target>
                 </action>
             </widget>

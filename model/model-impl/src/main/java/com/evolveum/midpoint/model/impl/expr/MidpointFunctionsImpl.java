@@ -696,6 +696,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public boolean isAttributeLoaded(QName name) throws SchemaException, ConfigurationException {
+        ModelProjectionContext projectionContext = getProjectionContext();
+        if (projectionContext == null) {
+            LOGGER.warn("Call to isAttributeLoaded while there is no projection context");
+            return false;
+        }
+        return ((LensProjectionContext) projectionContext).isAttributeLoaded(name);
+    }
+
+    @Override
     public boolean isProjectionExists() {
         ModelProjectionContext projectionContext = getProjectionContext();
         if (projectionContext == null) {

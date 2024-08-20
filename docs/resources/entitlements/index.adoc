@@ -1,6 +1,10 @@
 ---
 midpoint-feature: [ 'entitlement', 'entitlement-association' ]
 doc-type: intro
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Use of entitlements for access control.'
 ---
 = Entitlements and Associations
 :page-wiki-name: Entitlements
@@ -865,9 +869,9 @@ The above example sets the tolerance to `false`, so that any extra association v
 The tolerance can be, however, overridden for each individual association value.
 This is currently supported for simple associations, and is driven by the object mark(s) present on the association _object_, e.g., a group.
 
-For example, let us assume a group `guests` shadow has the following mark.
+For example, let us assume a group `guests` shadow has mark `Unmanaged`, as it is currently being managed from the resource itself.
 
-.Mark for tolerated association objects
+.Mark for "unmanaged" shadows
 [source,xml]
 ----
 <mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -895,49 +899,9 @@ For example, let us assume a group `guests` shadow has the following mark.
 
 Also assume that the tolerance for the association is set to `false`.
 
-When an association value pointing to the `guests` group is present on the resource, but not provided by any outbound mapping, it is tolerated because the value of `true` in the object mark overrides the value of `false` set in the association.
+When an association value pointing to the `guests` group is present on the resource, but not provided by any outbound mapping (which are turned off by the `Unmanaged` mark anyway), it is tolerated because the value of `true` in the object mark overrides the value of `false` set in the association.
 
-We need a mechanism to set the mark on selected entitlement shadows.
-One option is to do that manually via GUI.
-A better one is to use automatic marking facility in midPoint, potentially with overriding these marks manually via GUI.
-
-Two typical options of setting up the mark are:
-
-.Setting the "unmanaged" mark for all new shadows
-[source,xml]
-----
-<objectType>
-    <kind>entitlement</kind>
-    <intent>group</intent>
-    <!-- delineation, attributes, etc -->
-    <marking>
-        <markRef oid="00000000-0000-0000-0000-000000000806"/>
-        <applicationTime>classification</applicationTime> <!--1-->
-    </marking>
-    <!-- ... -->
-</objectType>
-----
-<1> This causes marking each newly classified or reclassified shadow as "unmanaged".
-
-.Setting the "unmanaged" mark for selected shadows
-[source,xml]
-----
-<objectType>
-    <kind>entitlement</kind>
-    <intent>group</intent>
-    <!-- delineation, attributes, etc -->
-    <marking>
-        <markRef oid="00000000-0000-0000-0000-000000000806"/>
-        <pattern>
-            <filter>
-                <q:text>attributes/info = "temporary"</q:text> <!--1-->
-            </filter>
-        </pattern>
-    </marking>
-    <!-- ... -->
-</objectType>
-----
-<1> This causes marking each group that has the value of `temporary` in its `info` attribute as "unmanaged".
+Please see xref:/midpoint/reference/concepts/mark/managed-and-unmanaged/shadows[] for more information.
 
 ==== Tolerance, Deltas, and Reconciliation
 

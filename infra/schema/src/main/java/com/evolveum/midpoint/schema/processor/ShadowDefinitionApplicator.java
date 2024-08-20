@@ -6,12 +6,11 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.processor.ShadowAttributesContainer.createEmptyContainer;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -19,8 +18,12 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Applies attributes and/or associations definitions to a shadow, delta, or query.
@@ -34,17 +37,40 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
  * {@link #requiresAssociationDefinitionApplication(ItemDefinition)}.
  *
  * NOTE: Originally, this functionality was in `ShadowCaretaker` in the `provisioning-impl` module.
- * In the future, maybe it should be part of standard `applyDefinition` mechanism.
+ * In the future, maybe it should be part of standard `applyDefinition` mechanism. (But, we need some flexibility
+ * about lax mode and error handling.)
  *
  * @author Radovan Semancik
  */
 public class ShadowDefinitionApplicator {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowDefinitionApplicator.class);
+
     /** The definition to be applied to a shadow, delta, or query. */
     @NotNull private final ResourceObjectDefinition definition;
 
-    public ShadowDefinitionApplicator(@NotNull ResourceObjectDefinition definition) {
+    /**
+     * If {@code true}, less serious attribute-level errors are logged as errors; otherwise, exceptions are thrown.
+     * This is to be used when reading raw shadows from the repository, as the schema could be changed in the meanwhile.
+     */
+    private final boolean lax;
+
+    private ShadowDefinitionApplicator(
+            @NotNull ResourceObjectDefinition definition, boolean lax) {
         this.definition = definition;
+        this.lax = lax;
+    }
+
+    public static ShadowDefinitionApplicator create(@NotNull ResourceObjectDefinition definition, boolean lax) {
+        return new ShadowDefinitionApplicator(definition, lax);
+    }
+
+    public static ShadowDefinitionApplicator strict(@NotNull ResourceObjectDefinition definition) {
+        return new ShadowDefinitionApplicator(definition, false);
+    }
+
+    public static ShadowDefinitionApplicator lax(@NotNull ResourceObjectDefinition definition) {
+        return new ShadowDefinitionApplicator(definition, true);
     }
 
     public void applyToDelta(@NotNull ObjectDelta<ShadowType> delta) throws SchemaException {
@@ -88,7 +114,7 @@ public class ShadowDefinitionApplicator {
     }
 
     /** Unlike other "applyTo..." methods, this one returns the "new" item. */
-    public @NotNull ShadowAttribute<?, ?, ?, ?> applyToItem(Item<?, ?> item) throws SchemaException {
+    @NotNull ShadowAttribute<?, ?, ?, ?> applyToItem(Item<?, ?> item) throws SchemaException {
         return definition
                 .findAttributeDefinitionRequired(item.getElementName())
                 .instantiateFrom(item);
@@ -131,7 +157,7 @@ public class ShadowDefinitionApplicator {
 
         var attributesContainer = shadowObject.<ShadowAttributesType>findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer != null) {
-            applyAttributesDefinitionToContainer(definition, attributesContainer, shadowObject.getValue(), bean);
+            applyAttributesDefinitionToContainer(definition, attributesContainer, shadowObject.getValue(), lax, bean);
         }
 
         var associationsContainer = shadowObject.<ShadowAssociationsType>findContainer(ShadowType.F_ASSOCIATIONS);
@@ -193,6 +219,7 @@ public class ShadowDefinitionApplicator {
             @NotNull ResourceObjectDefinition objectDefinition,
             @NotNull PrismContainer<ShadowAttributesType> attributesContainer,
             @NotNull PrismContainerValue<?> parentPcv,
+            boolean lax,
             Object context) throws SchemaException {
         try {
             if (attributesContainer instanceof ShadowAttributesContainer) {
@@ -202,11 +229,45 @@ public class ShadowDefinitionApplicator {
                 // We need to convert <attributes> to ResourceAttributeContainer
                 parentPcv.replace(
                         attributesContainer,
-                        ShadowAttributesContainer.convertFromPrismContainer(attributesContainer, objectDefinition));
+                        convertFromPrismContainer(
+                                attributesContainer, objectDefinition, lax, context));
             }
         } catch (SchemaException e) {
             throw e.wrap("Couldn't apply attributes definitions in " + context);
         }
+    }
+
+    /** Converts raw {@link PrismContainer} to {@link ShadowAttributesContainer}. */
+    private static ShadowAttributesContainer convertFromPrismContainer(
+            @NotNull PrismContainer<?> prismContainer,
+            @NotNull ResourceObjectDefinition resourceObjectDefinition,
+            boolean lax,
+            Object context) throws SchemaException {
+        var attributesContainer = createEmptyContainer(prismContainer.getElementName(), resourceObjectDefinition);
+        for (var item : prismContainer.getValue().getItems()) {
+            var itemName = item.getElementName();
+            try {
+                if (item instanceof PrismProperty<?> property) {
+                    attributesContainer.add(
+                            resourceObjectDefinition
+                                    .findAttributeDefinitionRequired(itemName)
+                                    .instantiateFrom(property));
+                } else {
+                    throw new SchemaException(
+                            "Cannot use item of type %s as an attribute: attributes can only be properties".formatted(
+                                    item.getClass().getSimpleName()));
+                }
+            } catch (SchemaException e) {
+                if (lax) {
+                    LoggingUtils.logException(LOGGER, "Couldn't convert attribute {} in {}", e, item.getElementName(), context);
+                } else {
+                    throw new SchemaException(
+                            "Couldn't convert attribute %s in %s: %s".formatted(item.getElementName(), context, e.getMessage()),
+                            e);
+                }
+            }
+        }
+        return attributesContainer;
     }
 
     private static void applyAssociationsDefinitionToContainer(

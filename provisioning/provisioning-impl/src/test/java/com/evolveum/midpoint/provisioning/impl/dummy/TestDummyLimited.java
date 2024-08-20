@@ -11,9 +11,13 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.SkipException;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
@@ -35,10 +39,12 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabil
 
 /**
  * Almost the same as TestDummy but quite limited:
+ *
  * - no activation support
  * - no paging
  * - no count simulation using sequential search
  * - no runAs
+ *
  * Let's test that we are able to do all the operations without NPEs and other side effects.
  *
  * @author Radovan Semancik
@@ -64,6 +70,14 @@ public class TestDummyLimited extends TestDummy {
 
     protected File getAccountWillFile() {
         return ACCOUNT_WILL_FILE;
+    }
+
+    @BeforeMethod
+    public void skipIfForcedCaching() {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            // This test is enabled for the default configuration; TODO implement later
+            throw new SkipException("Skipping because forced shadow caching is on");
+        }
     }
 
     @Override

@@ -278,6 +278,8 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.removeAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
         account.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "beer");
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_TEA_GREEN.oid);
+
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
 
@@ -695,6 +697,8 @@ public class TestMappingInbound extends AbstractMappingTest {
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByName(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_TEA_GREEN.oid);
+
         dummyAuditService.clear();
 
         when();
@@ -800,6 +804,8 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN.name).getAccountByName(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, ACCOUNT_LEELOO_PROOF_STRANGE);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_TEA_GREEN.oid);
 
         dummyAuditService.clear();
 

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.mergeCorrelationDefinition;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isMembershipSyncInboundDisabled;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
@@ -285,6 +286,12 @@ class AssociationSynchronizationExpressionEvaluator
                 } else {
                     situation = situationFromCorrelation;
                 }
+
+                if (isInboundMembershipSyncDisabled()) {
+                    LOGGER.trace("Inbound membership synchronization is disabled, ignoring the situation: {}", situation);
+                    return null;
+                }
+
                 for (var abstractReaction : inboundDefinition.getSynchronizationReactions()) {
                     var reaction = (ItemSynchronizationReactionDefinition) abstractReaction;
                     if (reaction.matchesSituation(situation)) {
@@ -295,6 +302,16 @@ class AssociationSynchronizationExpressionEvaluator
                 }
                 LOGGER.trace("No synchronization reaction matches");
                 return null;
+            }
+
+            private boolean isInboundMembershipSyncDisabled() {
+                if (associationDefinition.isComplex()) {
+                    return false; // not supported for complex associations yet
+                }
+                return isMembershipSyncInboundDisabled(
+                        associationValue
+                                .getSingleObjectShadowRequired()
+                                .getEffectiveOperationPolicyRequired());
             }
 
             private boolean isMatchedIndirectly(AssignmentType assignmentForCorrelation) {
