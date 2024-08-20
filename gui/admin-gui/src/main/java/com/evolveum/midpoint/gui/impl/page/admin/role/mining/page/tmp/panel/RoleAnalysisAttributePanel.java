@@ -407,7 +407,12 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
-        Label label = new Label(ID_CARD_HEADER_TITLE, getModel());
+        IconWithLabel label = new IconWithLabel(ID_CARD_HEADER_TITLE, getModel()){
+            @Override
+            protected String getIconCssClass() {
+                return "fa fa-area-chart";
+            }
+        };
         label.add(new VisibleBehaviour(this::isCardTitleVisible));
         label.setOutputMarkupId(true);
         cardContainer.add(label);

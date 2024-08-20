@@ -616,7 +616,7 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                                 return progressBars;
                             }
                         });
-                        components1.add(AttributeAppender.append("class", "p-0 ml-4 mr-4 mt-3 mb-3 justify-content-center"));
+                        components1.add(AttributeAppender.append("class", "p-0 m-3 justify-content-center"));
                         return components1;
                     }
                 };

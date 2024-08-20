@@ -351,14 +351,14 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             }
                         });
                         components.setOutputMarkupId(true);
-                        components.add(AttributeAppender.append("class", "pt-3 pl-2 pr-2"));
+                        components.add(AttributeAppender.append("class", "pt-3 pl-3 pr-3"));
                         return components;
                     }
 
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getContainerLegendCssClass() {
-                        return "d-flex flex-wrap justify-content-between pt-2 pb-2";
+                        return "d-flex flex-wrap justify-content-between p-2 pl-3 pr-3";
                     }
 
                     @Override
@@ -725,14 +725,14 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             }
                         });
                         components.setOutputMarkupId(true);
-                        components.add(AttributeAppender.append("class", "pt-3 pl-2 pr-2"));
+                        components.add(AttributeAppender.append("class", "pt-3 pl-3 pr-3"));
                         return components;
                     }
 
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getContainerLegendCssClass() {
-                        return "d-flex flex-wrap justify-content-between pt-2 pb-2";
+                        return "d-flex flex-wrap justify-content-between p-2 pl-3 pr-3";
                     }
 
                     @Override

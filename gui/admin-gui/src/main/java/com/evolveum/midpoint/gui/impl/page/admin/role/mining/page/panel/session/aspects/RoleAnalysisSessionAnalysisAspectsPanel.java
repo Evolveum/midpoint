@@ -80,6 +80,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_CARD_TITLE = "card-title";
     private static final String ID_EXPLORE_PATTERN_BUTTON = "explore-pattern-button";
     private static final String ID_PATTERNS = "patterns";
+    private static final String ID_PANEL_CONTAINER = "panel-container";
 
     int userOutlierCount = 0;
     int assignmentAnomalyCount = 0;
@@ -172,6 +173,10 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             WebMarkupContainer container) {
         List<DetectedPattern> topSessionPattern = roleAnalysisService.getTopSessionPattern(session, task, result, true);
 
+        WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
+        panelContainer.setOutputMarkupId(true);
+        container.add(panelContainer);
+
         if (topSessionPattern != null && sessionStatistic != null && !topSessionPattern.isEmpty()) {
             DetectedPattern pattern = topSessionPattern.get(0);
             initMiningPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
@@ -230,16 +235,16 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 }
             };
             statisticsPanel.setOutputMarkupId(true);
-            container.add(statisticsPanel);
+            panelContainer.add(statisticsPanel);
 
         } else {
-            emptyPanel(ID_PANEL, "No data available", container);
+            emptyPanel(ID_PANEL, panelContainer);
 
             WebMarkupContainer headerItems = new WebMarkupContainer(ID_HEADER_ITEMS);
             headerItems.setOutputMarkupId(true);
             container.add(headerItems);
 
-            emptyPanel(ID_CARD_TITLE, "No data available", container);
+            emptyPanel(ID_CARD_TITLE, container);
 
             WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
             exploreButton.setOutputMarkupId(true);
@@ -529,7 +534,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getContainerLegendCssClass() {
-                        return "d-flex flex-wrap justify-content-between pt-2 pb-2";
+                        return "d-flex flex-wrap justify-content-between p-2";
                     }
 
                     @Override
@@ -891,7 +896,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getContainerLegendCssClass() {
-                        return "d-flex flex-wrap justify-content-between pt-2 pb-2";
+                        return "d-flex flex-wrap justify-content-between p-2";
                     }
 
                     @Override
@@ -1090,13 +1095,18 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             initOutlierPanel(container, session, topSessionOutliers.get(0));
 
         } else {
-            emptyPanel(ID_PANEL, "No data available", container);
+
+            WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
+            panelContainer.setOutputMarkupId(true);
+            container.add(panelContainer);
+
+            emptyPanel(ID_PANEL, panelContainer);
 
             WebMarkupContainer headerItems = new WebMarkupContainer(ID_HEADER_ITEMS);
             headerItems.setOutputMarkupId(true);
             container.add(headerItems);
 
-            emptyPanel(ID_CARD_TITLE, "No data available", container);
+            emptyPanel(ID_CARD_TITLE, container);
 
             WebMarkupContainer exploreButton = new WebMarkupContainer(ID_EXPLORE_PATTERN_BUTTON);
             exploreButton.setOutputMarkupId(true);
@@ -1183,8 +1193,13 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
     public void initOutlierPanel(WebMarkupContainer container, RoleAnalysisSessionType session, RoleAnalysisOutlierType topSessionOutlier) {
 
+        WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
+        panelContainer.setOutputMarkupId(true);
+        panelContainer.add(AttributeAppender.replace("class", "card-body p-2 pt-3"));
+        container.add(panelContainer);
+
         if (topSessionOutlier == null) {
-            emptyPanel(ID_PANEL, "No data available", container);
+            emptyPanel(ID_PANEL, panelContainer);
             return;
         }
 
@@ -1207,11 +1222,11 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
         panel.setOutputMarkupId(true);
-        container.add(panel);
+        panelContainer.add(panel);
     }
 
-    private static void emptyPanel(String idPanel, String No_data_available, @NotNull WebMarkupContainer container) {
-        Label label = new Label(idPanel, No_data_available);
+    private static void emptyPanel(String idPanel, @NotNull WebMarkupContainer container) {
+        Label label = new Label(idPanel, "No data available");
         label.setOutputMarkupId(true);
         container.add(label);
     }
