@@ -54,7 +54,7 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
             @Contract(pure = true)
             @Override
             protected @NotNull String getComponentCssClass() {
-                return "d-flex align-items-center gap-2 p-1";
+                return "d-flex align-items-center";
             }
 
             @Override

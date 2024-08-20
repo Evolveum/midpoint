@@ -200,6 +200,11 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 }
 
                 @Override
+                protected boolean isCardTitleVisible() {
+                    return RoleAnalysisDetectedPatternDetails.this.isCardTitleVisible();
+                }
+
+                @Override
                 protected @NotNull String getChartContainerStyle() {
                     return "height:30vh;";
                 }
@@ -232,6 +237,10 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
     protected String getIconBoxContainerCssStyle() {
         return null;
+    }
+
+    protected boolean isCardTitleVisible() {
+        return true;
     }
 
 }

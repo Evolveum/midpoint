@@ -175,14 +175,25 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         if (topSessionPattern != null && sessionStatistic != null && !topSessionPattern.isEmpty()) {
             DetectedPattern pattern = topSessionPattern.get(0);
             initMiningPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
-
-            emptyPanel(ID_CARD_TITLE, "Top suggested role", container);
+            IconWithLabel titlePanel = new IconWithLabel(ID_CARD_TITLE, Model.of("Best role suggestion analysis")) {
+                @Override
+                protected String getIconCssClass() {
+                    return "fa fa-cube fa-sm";
+                }
+            };
+            titlePanel.setOutputMarkupId(true);
+            container.add(titlePanel);
 
             AjaxCompositedIconSubmitButton components = buildExplorePatternButton(pattern);
             container.add(components);
 
             RoleAnalysisDetectedPatternDetails statisticsPanel = new RoleAnalysisDetectedPatternDetails(ID_PANEL,
                     Model.of(pattern)) {
+
+                @Override
+                protected boolean isCardTitleVisible() {
+                    return false;
+                }
 
                 @Contract(pure = true)
                 @Override
@@ -1063,7 +1074,15 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         if (topSessionOutliers != null && sessionStatistic != null && !topSessionOutliers.isEmpty()) {
             initOutlierPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
 
-            emptyPanel(ID_CARD_TITLE, "Top session outlier", container);
+            IconWithLabel titlePanel = new IconWithLabel(ID_CARD_TITLE, Model.of("Best session outlier")) {
+                @Contract(pure = true)
+                @Override
+                protected @NotNull String getIconCssClass() {
+                    return GuiStyleConstants.CLASS_ICON_OUTLIER + " fa-sm";
+                }
+            };
+            titlePanel.setOutputMarkupId(true);
+            container.add(titlePanel);
 
             AjaxCompositedIconSubmitButton components = buildExplorePatternOutlier(topSessionOutliers.get(0));
             container.add(components);

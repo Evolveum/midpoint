@@ -13,6 +13,8 @@ import java.util.Set;
 
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -404,8 +406,9 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         target.add(RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_CONTAINER, ID_CARD_BODY, ID_CARD_BODY_COMPONENT)).getParent());
     }
 
-    private void initCardHeaderTitle(WebMarkupContainer cardContainer) {
+    private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
         Label label = new Label(ID_CARD_HEADER_TITLE, getModel());
+        label.add(new VisibleBehaviour(this::isCardTitleVisible));
         label.setOutputMarkupId(true);
         cardContainer.add(label);
     }
@@ -451,6 +454,10 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     @Override
     public Component getContent() {
         return this;
+    }
+
+    protected boolean isCardTitleVisible() {
+        return true;
     }
 
 }

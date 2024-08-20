@@ -11,9 +11,9 @@
 <body>
 <wicket:panel>
     <div wicket:id="container" class="d-flex flex-column gap-3 flex-wrap flex-fill p-0">
-            <div class="d-flex gap-3 flex-xxl-nowrap flex-wrap flex-grow-1 flex-shrink-1 m-0">
-                <div wicket:id="header-items"></div>
-            </div>
+        <div class="d-flex gap-3 flex-xxl-nowrap flex-wrap flex-grow-1 flex-shrink-1 m-0">
+            <div wicket:id="header-items"></div>
+        </div>
 
         <div class="d-flex gap-3 flex-xxl-nowrap flex-wrap flex-grow-1 flex-shrink-1 m-0">
             <div class="flex-fill p-0">
@@ -22,9 +22,11 @@
 
             <div class="flex-fill p-0 col-12 col-xxl-7">
                 <div class="card flex-shrink-1 flex-grow-1">
-                    <div class="card-header d-flex p-2 align-items-center">
-                        <div class="card-title" wicket:id="card-title"></div>
-                        <div wicket:id="explore-pattern-button"></div>
+                    <div class="card-header pt-2 pb-2">
+                        <div class="m-0 gap-1 d-flex align-items-center">
+                            <h5 wicket:id="card-title" class="p-0 m-0"></h5>
+                            <div wicket:id="explore-pattern-button"></div>
+                        </div>
                     </div>
                     <div class="card-body p-0 pt-0">
                         <div wicket:id="panelId" class="flex-shrink-1 flex-grow-1 d-flex"></div>
