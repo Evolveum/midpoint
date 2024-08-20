@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.test.DummyDefaultScenario;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -225,6 +226,9 @@ public class TestDummy extends AbstractBasicDummyTest {
         accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
         accountWill.setEnabled(true);
 
+        // We will not repeat the test code from the subclass, at least not now.
+        skipTestIf(InternalsConfig.isShadowCachingOnByDefault(), "caching case is tested in the subclass");
+
         var options = SelectorOptions.createCollection(GetOperationOptions.createMaxStaleness());
 
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
@@ -273,6 +277,10 @@ public class TestDummy extends AbstractBasicDummyTest {
         DummyAccount accountWill = getDummyAccountAssert(getWillNameOnResource(), willIcfUid);
         accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
         accountWill.setEnabled(true);
+
+        // We will not repeat the test code from the subclass, at least not now. But the above change is necessary because
+        // of downstream test method.
+        skipTestIf(InternalsConfig.isShadowCachingOnByDefault(), "caching case is tested in the subclass");
 
         var options = SelectorOptions.createCollection(GetOperationOptions.createStaleness(1000000L));
 
@@ -794,6 +802,10 @@ public class TestDummy extends AbstractBasicDummyTest {
      */
     @Test
     public void test119SearchAllAccountsMaxStaleness() throws Exception {
+
+        // We will not repeat the test code from the subclass, at least not now.
+        skipTestIf(InternalsConfig.isShadowCachingOnByDefault(), "caching case is tested in the subclass");
+
         given();
         Task task = getTestTask();
         OperationResult result = createOperationResult();
@@ -4308,7 +4320,7 @@ public class TestDummy extends AbstractBasicDummyTest {
                         .assertOid(corsairsShadowOid)
                         .assertTombstone()
                         .attributes()
-                            .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
+                            .assertAttributesExactly(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
                             .assertValue(SchemaConstants.ICFS_NAME, GROUP_CORSAIRS_NAME)
                             .end()
                         .end();

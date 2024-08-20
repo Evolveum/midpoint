@@ -212,7 +212,11 @@ public class RepoShadowAsserter<RA> extends ShadowAsserter<RA> {
 
     @Override
     public RepoShadowAsserter<RA> assertAttributes(int expectedNumber) {
-        return (RepoShadowAsserter<RA>) super.assertAttributes(expectedNumber);
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            return (RepoShadowAsserter<RA>) super.assertAttributesAtLeast(expectedNumber);
+        } else {
+            return (RepoShadowAsserter<RA>) super.assertAttributes(expectedNumber);
+        }
     }
 
     public RawRepoShadow getRawRepoShadow() {
