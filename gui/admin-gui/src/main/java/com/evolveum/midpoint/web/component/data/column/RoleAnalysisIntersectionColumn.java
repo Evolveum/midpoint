@@ -99,19 +99,25 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
 
             boolean isMarked = false;
             if (getSelectedPatterns() != null && !getSelectedPatterns().isEmpty()) {
-                Set<String> usersInPatterns = new HashSet<>();
                 for (DetectedPattern pattern : getSelectedPatterns()) {
-                    usersInPatterns.addAll(pattern.getUsers());
-                }
-
-                for (String member : baseMiningChunk.getMembers()) {
-                    if (usersInPatterns.contains(member)) {
-                        isMarked = true;
-                        cellItem.add(AttributeAppender.append("style", " border: 5px solid #28a745;"));
+                    if (isMarked) {
                         break;
                     }
-                }
 
+                    String associatedColor = pattern.getAssociatedColor();
+                    if (associatedColor == null || associatedColor.isEmpty()) {
+                        associatedColor = "#28a745";
+                    }
+                    Set<String> usersInPatterns = pattern.getUsers();
+                    for (String member : baseMiningChunk.getMembers()) {
+                        if (usersInPatterns.contains(member)) {
+                            isMarked = true;
+                            cellItem.add(AttributeAppender.append("style",
+                                    " border: 5px solid " + associatedColor + ";"));
+                            break;
+                        }
+                    }
+                }
             }
 
             if (!isMarked
