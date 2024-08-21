@@ -240,7 +240,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                         : getButtonCssClass()));
 
                 if (this.isClicked()) {
-                    if (this.getIconCssClass().contains("user")) {
+                    if (classObjectIcon.contains("user")) {
                         userPath.add(this.getModelObject().toLowerCase());
                     } else {
                         rolePath.add(this.getModelObject().toLowerCase());
@@ -254,13 +254,13 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                 isClicked = !tmp;
 
                 if (this.isClicked()) {
-                    if (this.getIconCssClass().contains("user")) {
+                    if (classObjectIcon.contains("user")) {
                         userPath.add(this.getModelObject().toLowerCase());
                     } else {
                         rolePath.add(this.getModelObject().toLowerCase());
                     }
                 } else {
-                    if (this.getIconCssClass().contains("user")) {
+                    if (classObjectIcon.contains("user")) {
                         userPath.remove(this.getModelObject().toLowerCase());
                     } else {
                         rolePath.remove(this.getModelObject().toLowerCase());
@@ -307,17 +307,17 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             }
 
             @Override
-            public String getIconCssClass() {
-                if (this.isClicked())
-                {
+            public @NotNull String getIconCssClass() {
+                if (this.isClicked()) {
                     return "fa fa-check ml-1";
                 } else {
                     return classObjectIcon + " ml-1";
                 }
             }
 
+            @Contract(pure = true)
             @Override
-            protected String getLabelCssClass() {
+            protected @NotNull String getLabelCssClass() {
                 return " pill-label";
             }
 
@@ -326,7 +326,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         repeatingView.add(button);
     }
 
-    private void initOveralResultButton(RepeatingView repeatingView,
+    private void initOveralResultButton(@NotNull RepeatingView repeatingView,
             List<String> userPath,
             List<String> rolePath) {
 
@@ -388,8 +388,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
             @Override
             public String getIconCssClass() {
-                if (this.isClicked())
-                {
+                if (this.isClicked()) {
                     return "fa fa-check ml-1";
                 } else {
                     return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON + " ml-1";
@@ -417,7 +416,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
-        IconWithLabel label = new IconWithLabel(ID_CARD_HEADER_TITLE, getModel()){
+        IconWithLabel label = new IconWithLabel(ID_CARD_HEADER_TITLE, getModel()) {
             @Override
             protected String getIconCssClass() {
                 return "fa fa-area-chart";
