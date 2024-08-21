@@ -141,26 +141,23 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
             ObjectDetailsModels<? extends ObjectType> newObjectModel, ModelServiceLocator serviceLocator) {
         super.processBeforeCreatingPreconditionDelta(newObjectModel, serviceLocator);
 
-        PrismContainerValueWrapper resourceFocusValue = getParentContainerValue(ResourceObjectFocusSpecificationType.class);
-        if (resourceFocusValue != null) {
-            try {
-                PrismContainerWrapper<AssignmentType> assignmentContainer =
-                        newObjectModel.getObjectWrapper().findContainer(ArchetypeType.F_ASSIGNMENT);
+        try {
+            PrismContainerWrapper<AssignmentType> assignmentContainer =
+                    newObjectModel.getObjectWrapper().findContainer(ArchetypeType.F_ASSIGNMENT);
 
-                PrismContainerValue<AssignmentType> newAssignment = new AssignmentType().asPrismContainerValue();
-                newAssignment.asContainerable()
-                        .targetRef(
-                                SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value(),
-                                ArchetypeType.COMPLEX_TYPE,
-                                SchemaConstants.ORG_DEFAULT);
+            PrismContainerValue<AssignmentType> newAssignment = new AssignmentType().asPrismContainerValue();
+            newAssignment.asContainerable()
+                    .targetRef(
+                            SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value(),
+                            ArchetypeType.COMPLEX_TYPE,
+                            SchemaConstants.ORG_DEFAULT);
 
-                PrismValueWrapper<AssignmentType> newWrapper =
-                        WebPrismUtil.createNewValueWrapper(assignmentContainer, newAssignment, serviceLocator);
+            PrismValueWrapper<AssignmentType> newWrapper =
+                    WebPrismUtil.createNewValueWrapper(assignmentContainer, newAssignment, serviceLocator);
 
-                assignmentContainer.getValues().add((PrismContainerValueWrapper<AssignmentType>) newWrapper);
-            } catch (SchemaException e) {
-                LOGGER.debug("Couldn't find type in " + resourceFocusValue);
-            }
+            assignmentContainer.getValues().add((PrismContainerValueWrapper<AssignmentType>) newWrapper);
+        } catch (SchemaException e) {
+            LOGGER.debug("Couldn't find assignment container in " + newObjectModel.getObjectWrapper());
         }
     }
 
