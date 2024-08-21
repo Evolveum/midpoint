@@ -371,7 +371,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     private boolean isFooterVisible() {
         SubscriptionState subscription = getSubscriptionState();
-        return subscription.isInactiveOrDemo() || subscription.isInGracePeriod();
+        return subscription.isFooterVisible();
     }
 
     /**
