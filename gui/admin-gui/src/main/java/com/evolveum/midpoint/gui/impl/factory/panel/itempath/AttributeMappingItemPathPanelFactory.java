@@ -147,6 +147,11 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
                         };
                     }
                 };
+
+                if (values.getObject().size() == 1) {
+                    panelCtx.getRealValueModel().setObject(values.getObject().get(0).getValue());
+                }
+
                 panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 return panel;
             }
@@ -282,6 +287,10 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         return new AttributeDisplayableValue(attr);
     }
 
+    protected DisplayableValue<ItemPathType> createDisplayValue(QName attr) {
+        return new AttributeDisplayableValue(attr);
+    }
+
     private ResourceObjectTypeDefinitionType getResourceObjectType(PrismValueWrapper<ItemPathType> propertyWrapper) {
         PrismContainerWrapper<ResourceAttributeDefinitionType> mapping = getAttributeMapping(propertyWrapper);
         if (mapping != null
@@ -325,6 +334,12 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
             this.displayName = attributeDefinition.getItemName().getLocalPart();
             this.help = attributeDefinition.getHelp();
             this.value = new ItemPathType(ItemPath.create(attributeDefinition.getItemName()));
+        }
+
+        public AttributeDisplayableValue(QName attr) {
+            this.displayName = attr.getLocalPart();
+            this.help = null;
+            this.value = new ItemPathType(ItemPath.create(attr));
         }
 
         @Override

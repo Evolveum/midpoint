@@ -142,7 +142,7 @@
                     </expression>
                     <condition>
                         <script>
-                            <code>midpoint.isFullShadow()</code>
+                            <code>midpoint.isAttributeLoaded('drink')</code>
                         </script>
                     </condition>
                 </outbound>

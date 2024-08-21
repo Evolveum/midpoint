@@ -62,10 +62,6 @@
                     </source>
                 </outbound>
             </attribute>
-            <attribute> <!-- probably temporary -->
-                <ref>ri:access</ref>
-                <tolerant>false</tolerant>
-            </attribute>
             <synchronization>
                 <reaction>
                     <situation>unmatched</situation>
@@ -162,7 +158,6 @@
                                     </mapping>
                                 </attribute>
                                 <objectRef>
-                                    <ref>ri:document</ref> <!-- TODO make optional if there's only one object -->
                                     <mapping>
                                         <name>document</name>
                                         <expression>
@@ -178,7 +173,6 @@
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
-                                    <ref>ri:document</ref> <!-- TODO make optional if there's only one object -->
                                     <mapping> <!-- not strictly necessary, just for illustration -->
                                         <name>documentName-and-level-into-assignment-identifier</name>
                                         <source>
@@ -240,6 +234,7 @@
                             </associationSynchronization>
                         </expression>
                     </inbound>
+                    <tolerant>false</tolerant>
                 </association>
             </subject>
         </associationType>

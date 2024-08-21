@@ -1054,6 +1054,8 @@ public class TestProjector extends AbstractLensTest {
         dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Fuycrush Greepdood");
         dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANNEL_RECON);
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);

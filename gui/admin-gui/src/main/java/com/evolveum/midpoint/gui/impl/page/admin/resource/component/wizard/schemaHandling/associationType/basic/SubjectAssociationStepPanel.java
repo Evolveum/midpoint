@@ -92,19 +92,11 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
 
         ItemPath containerPath = ItemPath.create(ShadowAssociationTypeDefinitionType.F_SUBJECT, ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE);
 
-        PrismContainerWrapper<ShadowAssociationTypeParticipantDefinitionType> participant;
-        try {
-            participant = getValueModel().getObject().findContainer(containerPath);
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't find object type subcontainer " + containerPath + " container in " + getValueModel().getObject());
-            return;
-        }
-
         PrismContainerWrapper<ResourceObjectTypeIdentificationType> container;
         try {
-            container = participant.findContainer(ShadowAssociationTypeParticipantDefinitionType.F_OBJECT_TYPE);
+            container = getValueModel().getObject().findContainer(containerPath);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't find object type subcontainer " + ShadowAssociationTypeParticipantDefinitionType.F_OBJECT_TYPE + " container in " + participant);
+            LOGGER.error("Couldn't find object type subcontainer " + containerPath + " container in " + getValueModel().getObject());
             return;
         }
 

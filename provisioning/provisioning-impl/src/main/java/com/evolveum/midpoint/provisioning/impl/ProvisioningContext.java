@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isDiscoveryAllowed;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
@@ -17,6 +18,14 @@ import java.util.function.Supplier;
 import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
+
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.ObjectMarksComputer;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,22 +34,17 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.provisioning.util.ShadowItemsToReturnProvider;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
@@ -132,9 +136,9 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     private CompleteResourceSchema resourceSchema;
 
     /**
-     * Cached patterns for protected objects in given object type with their filter expressions evaluated.
+     * TODO update docs: Cached patterns for protected objects in given object type with their filter expressions evaluated.
      */
-    private Collection<ResourceObjectPattern> evaluatedProtectedObjectPatterns;
+    private ShadowMarksComputerConfiguration shadowMarksComputerConfiguration;
 
     /** TODO document */
     private ObjectReferenceType associationShadowRef;
@@ -252,33 +256,13 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     /**
      * Returns evaluated protected object patterns.
      */
-    public Collection<ResourceObjectPattern> getProtectedAccountPatterns(OperationResult result)
+    private @NotNull ShadowMarksComputerConfiguration getShadowMarksComputerConfiguration(OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
-        if (evaluatedProtectedObjectPatterns != null) {
-            return evaluatedProtectedObjectPatterns;
+        if (shadowMarksComputerConfiguration == null) {
+            shadowMarksComputerConfiguration = ShadowMarksComputerConfiguration.create(this, result);
         }
-
-        evaluatedProtectedObjectPatterns = new ArrayList<>();
-
-        ResourceObjectDefinition objectDefinition = getObjectDefinitionRequired();
-        Collection<ResourceObjectPattern> rawPatterns = objectDefinition.getProtectedObjectPatterns();
-        for (ResourceObjectPattern rawPattern : rawPatterns) {
-            ObjectFilter filter = rawPattern.getFilter();
-            VariablesMap variables = new VariablesMap();
-            variables.put(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
-            variables.put(ExpressionConstants.VAR_CONFIGURATION,
-                    getResourceManager().getSystemConfiguration(), SystemConfigurationType.class);
-            ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(
-                    filter, variables, MiscSchemaUtil.getExpressionProfile(), contextFactory.getCommonBeans().expressionFactory,
-                     "protected filter", getTask(), result);
-            evaluatedProtectedObjectPatterns.add(
-                    new ResourceObjectPattern(
-                            rawPattern.getObjectDefinition(),
-                            evaluatedFilter));
-        }
-
-        return evaluatedProtectedObjectPatterns;
+        return shadowMarksComputerConfiguration;
     }
 
     // Uses only the resource information from the context; TODO make that more explicit
@@ -675,7 +659,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     /** Does not create a new context. The current context should be derived from the shadow. TODO reconsider */
     public void applyCurrentDefinition(@NotNull ShadowType shadow) throws SchemaException {
-        new ShadowDefinitionApplicator(getObjectDefinitionRequired())
+        ShadowDefinitionApplicator.strict(getObjectDefinitionRequired())
                 .applyToShadow(shadow);
     }
 
@@ -737,7 +721,16 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
                                 + "Please fix the shadow or the resource configuration",
                         rawShadowBean, resource);
         var state = ShadowLifecycleStateDeterminer.determineShadowState(this, rawShadowBean);
-        return RepoShadow.fromRaw(rawRepoShadow, resource, definition, state, keepTheRawShadow);
+        var fresh = ShadowUtil.isShadowFresh(
+                rawRepoShadow.getPrismObject(),
+                definition,
+                CommonBeans.get().clock.currentTimeXMLGregorianCalendar());
+        // The following drives how strict we are when reading the shadow. On one hand, we want to work with the correct data.
+        // On the other, we do not want to fail hard when the resource schema changes. Hence, we are strict for fresh shadows,
+        // but lax for the others, because the data will not be used anyway (except for the identifiers - but they do not
+        // change as frequently). The general recommendation will be: after you change the schema, please invalidate the cache.
+        var lax = !fresh;
+        return RepoShadow.fromRaw(rawRepoShadow, resource, definition, state, keepTheRawShadow, lax);
     }
 
     /** The shadow should be a bean usable as a {@link ResourceObjectShadow} (except for the attribute definitions). */
@@ -748,12 +741,12 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
     }
 
     public void applyCurrentDefinition(@NotNull ObjectDelta<ShadowType> delta) throws SchemaException {
-        new ShadowDefinitionApplicator(getObjectDefinitionRequired())
+        ShadowDefinitionApplicator.strict(getObjectDefinitionRequired())
                 .applyToDelta(delta);
     }
 
     public void applyCurrentDefinition(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) throws SchemaException {
-        new ShadowDefinitionApplicator(getObjectDefinitionRequired())
+        ShadowDefinitionApplicator.strict(getObjectDefinitionRequired())
                 .applyToItemDeltas(modifications);
     }
 
@@ -875,41 +868,62 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return ResourceTypeUtil.isAvoidDuplicateValues(resource);
     }
 
-    // The object should correspond to the raw schema to avoid comparison issues related to polystrings
-    public void checkProtectedObjectAddition(ResourceObjectShadow object, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-        if (!ProvisioningUtil.isAddShadowEnabled(
-                getProtectedAccountPatterns(result),
-                object,
-                result)) {
+    public void checkProtectedObjectAddition(ResourceObjectShadow object)
+            throws SecurityViolationException {
+        if (isAddDisabled(object.getEffectiveOperationPolicyRequired())) { // TODO treat the severity as well
             throw new SecurityViolationException(
-                    String.format("Cannot add protected resource object %s (%s)", object, getExceptionDescription()));
+                    String.format("Cannot add protected resource object (%s): %s", object, getExceptionDescription()));
         }
     }
 
-    public void checkProtectedObjectModification(RepoShadow repoShadow, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-        if (!ProvisioningUtil.isModifyShadowEnabled(
-                getProtectedAccountPatterns(result),
-                repoShadow,
-                result)) {
+    public void checkProtectedObjectModification(RepoShadow repoShadow)
+            throws SecurityViolationException {
+        if (isModifyDisabled(repoShadow.getEffectiveOperationPolicyRequired())) { // TODO treat the severity as well
             throw new SecurityViolationException(
                     String.format("Cannot modify protected resource object (%s): %s", repoShadow, getExceptionDescription()));
         }
     }
 
-    public void checkProtectedObjectDeletion(RepoShadow repoShadow, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-        if (!ProvisioningUtil.isDeleteShadowEnabled(
-                getProtectedAccountPatterns(result),
-                repoShadow,
-                result)) {
+    public void checkProtectedObjectDeletion(RepoShadow repoShadow) throws SecurityViolationException {
+        if (isDeleteDisabled(repoShadow.getEffectiveOperationPolicyRequired())) { // TODO treat the severity as well
             throw new SecurityViolationException(
                     String.format("Cannot delete protected resource object (%s): %s", repoShadow, getExceptionDescription()));
         }
+    }
+
+    /** Calculates effective object marks and policies for the shadow, and updates the shadow accordingly. */
+    public EffectiveMarksAndPolicies computeAndUpdateEffectiveMarksAndPolicies(
+            @NotNull AbstractShadow shadow, @NotNull ShadowState shadowState, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var computer = createShadowMarksComputer(shadow, shadowState, result);
+        var marksAndPolicies =
+                ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(shadow.getBean(), computer, result);
+        marksAndPolicies.applyTo(shadow.getBean());
+        return marksAndPolicies;
+    }
+
+    /** Does NOT update the provided shadow. We need the old state to correctly compute the delta. */
+    public EffectiveMarksAndPolicies computeEffectiveMarksAndPolicies(
+            @NotNull RepoShadowWithState repoShadowWithState,
+            @NotNull ExistingResourceObjectShadow resourceObject,
+            @NotNull OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException, SecurityViolationException {
+        return ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
+                repoShadowWithState.getBean(),
+                createShadowMarksComputer(resourceObject, repoShadowWithState.state(), result),
+                result);
+    }
+
+    private ObjectMarksComputer createShadowMarksComputer(
+            @NotNull AbstractShadow shadow,
+            @Nullable ShadowState shadowState,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        return getShadowMarksComputerConfiguration(result)
+                .computerFor(shadow, shadowState);
     }
 
     public @NotNull ResourceObjectDefinition getAnyDefinition() throws SchemaException, ConfigurationException {

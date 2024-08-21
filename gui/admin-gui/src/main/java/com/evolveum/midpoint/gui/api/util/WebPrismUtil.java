@@ -470,7 +470,9 @@ public class WebPrismUtil {
             displayName = name.getLocalPart();
 
             PrismContainerValue<?> val = item.getParent();
-            if (val != null && val.getDefinition() != null
+            if (!(item instanceof ShadowAttributesContainer)
+                    && val != null
+                    && val.getDefinition() != null
                     && val.getDefinition().isRuntimeSchema()) {
                 return localizeName(displayName, displayName);
             }

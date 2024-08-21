@@ -1010,7 +1010,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
@@ -1925,7 +1925,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -3319,7 +3319,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check audit
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertRecords(2);
+        // If activation is cached, the weak inbound mapping is applied.
+        // This depends on the default cache use, which is currently USE_CACHED_OR_FRESH.
+        // It this changes, we will need to adapt this test.
+        dummyAuditService.assertRecords(isCached() ? 3 : 2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0, 3);
         dummyAuditService.assertHasDelta(0, ChangeType.ADD, UserType.class);

@@ -163,7 +163,8 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             // Changes made here will go to the pending operation, should the operation fail.
             associationsHelper.provideObjectsIdentifiersToSubject(ctx, objectToAdd, result);
 
-            accessChecker.checkAddAccess(ctx, objectToAdd, result);
+            determineEffectiveMarksAndPolicies(objectToAdd, result);
+            accessChecker.checkAttributesAddAccess(ctx, objectToAdd, result);
 
             executeShadowConstraintsCheck(result); // To avoid shadow duplication (if configured so)
             shadowCreator.addNewProposedShadow(ctx, objectToAdd, opState, result); // If configured & if not existing yet

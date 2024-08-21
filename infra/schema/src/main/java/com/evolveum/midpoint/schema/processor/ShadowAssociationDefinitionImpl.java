@@ -18,6 +18,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemMerger;
 import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+import com.evolveum.midpoint.schema.config.ShadowAssociationDefinitionConfigItem;
+import com.evolveum.midpoint.schema.config.ShadowAssociationTypeDefinitionConfigItem;
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -64,6 +66,9 @@ public class ShadowAssociationDefinitionImpl
     /** The definition of the attribute this association is based on. It exists even for legacy simulated associations. */
     @NotNull private final ShadowReferenceAttributeDefinition referenceAttributeDefinition;
 
+    /** The definition of the association data object. Null for simple associations, non-null for complex associations. */
+    @Nullable private final ResourceObjectDefinition associationDataObjectDefinition;
+
     /** This is the relevant part (specific to given subject association) of the "modern" association type definition. */
     @Nullable private final ShadowAssociationDefinitionType modernAssociationDefinitionBean;
 
@@ -72,6 +77,15 @@ public class ShadowAssociationDefinitionImpl
 
     /** Extracts from the legacy configuration bean. */
     @Nullable private final LegacyAssociationTypeInformation legacyInformation;
+
+    /**
+     * Provides information on acceptable types of shadows participating in this association type as objects.
+     * These come from the underlying reference attribute definition, but can be further restricted
+     * by the association type definition.
+     *
+     * Immutable.
+     */
+    @NotNull private final Multimap<QName, ShadowRelationParticipantType> objectParticipantMap;
 
     /** TEMPORARY: Mutable because of GUI! */
     private Integer maxOccurs;
@@ -85,17 +99,21 @@ public class ShadowAssociationDefinitionImpl
     private ShadowAssociationDefinitionImpl(
             @NotNull ItemName itemName,
             @NotNull ShadowReferenceAttributeDefinition referenceAttributeDefinition,
+            @Nullable ResourceObjectDefinition associationDataObjectDefinition,
             @Nullable ShadowAssociationDefinitionType modernAssociationDefinitionBean,
             @Nullable ShadowAssociationTypeDefinitionType modernAssociationTypeDefinitionBean,
             @Nullable LegacyAssociationTypeInformation legacyInformation,
-            @Nullable Integer maxOccurs) {
+            @Nullable Integer maxOccurs,
+            @NotNull Multimap<QName, ShadowRelationParticipantType> objectParticipantMap) {
         this.itemName = itemName;
         this.referenceAttributeDefinition = referenceAttributeDefinition;
+        this.associationDataObjectDefinition = associationDataObjectDefinition;
         this.modernAssociationDefinitionBean = modernAssociationDefinitionBean;
         this.modernAssociationTypeDefinitionBean = modernAssociationTypeDefinitionBean;
         this.legacyInformation = legacyInformation;
         this.maxOccurs = maxOccurs;
         this.complexTypeDefinition = createComplexTypeDefinition();
+        this.objectParticipantMap = ImmutableSetMultimap.copyOf(objectParticipantMap);
     }
 
     static ShadowAssociationDefinitionImpl parseLegacy(
@@ -124,18 +142,56 @@ public class ShadowAssociationDefinitionImpl
                 simulatedReferenceAttrDefinition,
                 null,
                 null,
+                null,
                 legacyInformation,
-                null);
+                null,
+                getObjectParticipantsFromRefAttrDef(simulatedReferenceAttrDefinition, null));
     }
 
     static ShadowAssociationDefinitionImpl modern(
             @NotNull ItemName associationName,
             @NotNull ShadowReferenceAttributeDefinition referenceAttributeDefinition,
-            @NotNull ShadowAssociationDefinitionType associationDefinitionBean,
-            @NotNull ShadowAssociationTypeDefinitionType associationTypeDefinitionBean) {
+            @NotNull ShadowAssociationDefinitionConfigItem associationDefinitionCI,
+            @NotNull ShadowAssociationTypeDefinitionConfigItem associationTypeDefinitionCI,
+            @NotNull ResourceSchemaImpl resourceSchema) throws ConfigurationException {
+
+        ResourceObjectDefinition associationDataObjectDefinition;
+        if (referenceAttributeDefinition.isTargetingSingleEmbeddedObjectClass()) {
+            var immediateTargets = referenceAttributeDefinition.getTargetParticipantTypes();
+            associationDataObjectDefinition = MiscUtil.extractSingletonRequired(
+                            immediateTargets,
+                            () -> new IllegalStateException(
+                                    "Multiple immediate targets in " + referenceAttributeDefinition + ": " + immediateTargets),
+                            () -> new IllegalStateException(
+                                    "No immediate target in " + referenceAttributeDefinition))
+                    .getObjectDefinition();
+        } else {
+            associationDataObjectDefinition = null;
+        }
+
         return new ShadowAssociationDefinitionImpl(
-                associationName, referenceAttributeDefinition,
-                associationDefinitionBean, associationTypeDefinitionBean, null, null);
+                associationName,
+                referenceAttributeDefinition,
+                associationDataObjectDefinition,
+                associationDefinitionCI.value(),
+                associationTypeDefinitionCI.value(),
+                null,
+                null,
+                computeObjectParticipantsMap(
+                        referenceAttributeDefinition,
+                        associationDataObjectDefinition,
+                        associationTypeDefinitionCI,
+                        resourceSchema));
+    }
+
+    @Override
+    public boolean isComplex() {
+        return associationDataObjectDefinition != null;
+    }
+
+    @Override
+    public @NotNull ResourceObjectDefinition getAssociationDataObjectDefinition() {
+        return MiscUtil.stateNonNull(associationDataObjectDefinition, "No association data object in " + this);
     }
 
     @Override
@@ -238,7 +294,7 @@ public class ShadowAssociationDefinitionImpl
 
         ComplexTypeDefinition def = genericDefinition.clone();
 
-        if (hasAssociationObject()) {
+        if (isComplex()) {
             ResourceObjectDefinition resourceObjectDefinition = getReferenceAttributeDefinition().getTargetObjectClass();
             def.mutator().replaceDefinition(
                     ShadowAssociationValueType.F_ATTRIBUTES,
@@ -253,12 +309,14 @@ public class ShadowAssociationDefinitionImpl
         } else {
             def.mutator().delete(ShadowAssociationValueType.F_ATTRIBUTES); // ...or replace with empty PCD/CTD
             def.mutator().delete(ShadowAssociationValueType.F_ACTIVATION); // ...or leave it as it is
+
+            var objectRefDef = getReferenceAttributeDefinition().cloneWithNewCardinality(1, 1);
+            objectRefDef.freeze();
             def.mutator().replaceDefinition(
                     ShadowAssociationValueType.F_OBJECTS,
                     new ShadowAttributesContainerDefinitionImpl(
                             ShadowAssociationValueType.F_OBJECTS,
-                            new ShadowSingleReferenceAttributeComplexTypeDefinitionImpl(
-                                    getReferenceAttributeDefinition().clone())));
+                            new ShadowSingleReferenceAttributeComplexTypeDefinitionImpl(objectRefDef)));
         }
 
 //        // We apply the prism shadow definition for (representative) target object to the shadowRef definition.
@@ -402,7 +460,9 @@ public class ShadowAssociationDefinitionImpl
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public @NotNull ShadowAssociationDefinitionImpl clone() {
         return new ShadowAssociationDefinitionImpl(
-                itemName, referenceAttributeDefinition, modernAssociationDefinitionBean, modernAssociationTypeDefinitionBean, null, maxOccurs);
+                itemName, referenceAttributeDefinition, associationDataObjectDefinition,
+                modernAssociationDefinitionBean, modernAssociationTypeDefinitionBean, null,
+                maxOccurs, objectParticipantMap);
     }
 
     @Override
@@ -900,48 +960,71 @@ public class ShadowAssociationDefinitionImpl
         return null;
     }
 
-    public @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants(
-            @NotNull CompleteResourceSchema resourceSchema) {
-        var fromRefAttrDef = getObjectParticipantsFromRefAttrDef();
-        if (modernAssociationTypeDefinitionBean == null || modernAssociationTypeDefinitionBean.getObject().isEmpty()) {
+    @Override
+    public @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants() {
+        return objectParticipantMap;
+    }
+
+    private static @NotNull Multimap<QName, ShadowRelationParticipantType> computeObjectParticipantsMap(
+            @NotNull ShadowReferenceAttributeDefinition refAttrDef,
+            @Nullable ResourceObjectDefinition assocDataObjectDef,
+            @Nullable ShadowAssociationTypeDefinitionConfigItem associationTypeConfigItem,
+            @NotNull ResourceSchemaImpl resourceSchema)
+            throws ConfigurationException {
+        var fromRefAttrDef = getObjectParticipantsFromRefAttrDef(refAttrDef, assocDataObjectDef);
+        var explicitObjectDefBeans = associationTypeConfigItem != null ? associationTypeConfigItem.getObjects() : List.of();
+        if (explicitObjectDefBeans.isEmpty()) {
             return fromRefAttrDef;
         }
         var mapCopy = MultimapBuilder.hashKeys().hashSetValues().build(fromRefAttrDef);
-        for (ShadowAssociationTypeObjectDefinitionType objectDefBean : modernAssociationTypeDefinitionBean.getObject()) {
-            if (!objectDefBean.getObjectType().isEmpty()) {
+        for (var objectDefCI : associationTypeConfigItem.getObjects()) {
+            var typeIdentifiers = objectDefCI.getTypeIdentifiers();
+            if (!typeIdentifiers.isEmpty()) {
                 mapCopy.replaceValues(
-                        Objects.requireNonNull(objectDefBean.getRef()),
-                        parseParticipants(objectDefBean.getObjectType(), resourceSchema));
+                        objectDefCI.getRefOrDefault(refAttrDef, assocDataObjectDef),
+                        parseParticipants(typeIdentifiers, resourceSchema));
             }
         }
         return mapCopy;
     }
 
-    private Collection<ShadowRelationParticipantType> parseParticipants(
-            List<ResourceObjectTypeIdentificationType> objectTypes,
-            CompleteResourceSchema resourceSchema) {
-        // TODO move to the parser + treat errors as ConfigurationExceptions
-        return objectTypes.stream()
-                .map(type -> resourceSchema.getObjectTypeDefinitionRequired(ResourceObjectTypeIdentification.of(type)))
+    private static Collection<ShadowRelationParticipantType> parseParticipants(
+            Collection<? extends ResourceObjectTypeIdentification> typeIdentifiers,
+            ResourceSchemaImpl resourceSchema) {
+        return typeIdentifiers.stream()
+                .map(typeIdentifier -> resourceSchema.getObjectTypeDefinitionRequired(typeIdentifier))
                 .map(typeDef -> ShadowRelationParticipantType.forObjectType(typeDef))
                 .collect(Collectors.toSet());
     }
 
-    private Multimap<QName, ShadowRelationParticipantType> getObjectParticipantsFromRefAttrDef() {
-        if (hasAssociationObject()) {
+    private static Multimap<QName, ShadowRelationParticipantType> getObjectParticipantsFromRefAttrDef(
+            @NotNull ShadowReferenceAttributeDefinition referenceAttributeDefinition,
+            @Nullable ResourceObjectDefinition associationDataObjectDefinition) {
+        if (associationDataObjectDefinition != null) {
             // Objects are reference attributes from the association objects
-            return getAssociationObjectDefinition().getReferenceAttributeDefinitions().stream()
+            return associationDataObjectDefinition.getReferenceAttributeDefinitions().stream()
                     .collect(flatteningToImmutableSetMultimap(
                             objectRefDef -> objectRefDef.getItemName(),
                             objectRefDef -> objectRefDef.getTargetParticipantTypes().stream()));
         } else {
-            // "empty" association - just target objects, nothing inside, so immediate targets are the objects
+            // simple association - just target objects, nothing inside, so immediate targets are the objects
             return ImmutableSetMultimap.<QName, ShadowRelationParticipantType>builder()
                     .putAll(
                             referenceAttributeDefinition.getItemName(),
                             referenceAttributeDefinition.getTargetParticipantTypes())
                     .build();
         }
+    }
+
+    @Override
+    public boolean isTolerant() {
+        if (modernAssociationDefinitionBean != null) {
+            var maybe = modernAssociationDefinitionBean.isTolerant();
+            if (maybe != null) {
+                return maybe;
+            }
+        }
+        return getReferenceAttributeDefinition().isTolerant();
     }
 
     private record LegacyAssociationTypeInformation(

@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
@@ -31,6 +33,15 @@ public class ShadowAssociationValueAsserter<R> extends AbstractAsserter<R> {
         super(returnAsserter, details);
         assertThat(value).as("association value").isNotNull();
         this.value = value;
+    }
+
+    public ShadowAssociationValueAsserter<R> assertSingleObjectRef(@NotNull String expectedOid) {
+        assertThat(value.getSingleObjectRefRelaxed())
+                .as("object reference in " + desc())
+                .isNotNull()
+                .extracting(ObjectReferenceType::getOid)
+                .isEqualTo(expectedOid);
+        return this;
     }
 
     public ShadowAssociationValueAsserter<R> assertIdentifierValueMatching(ItemName identifierName, String expectedValue)
@@ -66,7 +77,7 @@ public class ShadowAssociationValueAsserter<R> extends AbstractAsserter<R> {
     public ShadowAsserter<ShadowAssociationValueAsserter<R>> associationObject() {
         var asserter =
                 new ShadowAsserter<>(
-                        value.getAssociationObject().getPrismObject(),
+                        value.getAssociationDataObject().getPrismObject(),
                         this,
                         "association object in "+desc());
         copySetupTo(asserter);

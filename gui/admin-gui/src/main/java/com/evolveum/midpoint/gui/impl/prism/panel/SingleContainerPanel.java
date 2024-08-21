@@ -82,7 +82,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
                     if (virtualContainerModel == null) {
                         continue;
                     }
-                    Panel virtualPanel = createVirtualPanel(view.newChildId(), virtualContainerModel, builder);
+                    Panel virtualPanel = createVirtualPanel(view.newChildId(), virtualContainerModel, builder, virtualContainer);
                     view.add(virtualPanel);
                 }
 
@@ -101,7 +101,7 @@ public class SingleContainerPanel<C extends Containerable> extends BasePanel<Pri
         }
     }
 
-    protected Panel createVirtualPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) {
+    protected Panel createVirtualPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder, VirtualContainersSpecificationType virtualContainer) {
         return new PrismContainerPanel<>(id, model, builder.build());
     }
 

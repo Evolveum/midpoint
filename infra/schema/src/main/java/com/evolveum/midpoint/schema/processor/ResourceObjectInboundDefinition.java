@@ -17,11 +17,12 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.schema.config.AbstractAttributeMappingsDefinitionConfigItem;
+import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -45,9 +46,10 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
     }
 
     static ResourceObjectInboundDefinition forAssociationSynchronization(
+            @NotNull ShadowAssociationDefinition associationDefinition,
             @NotNull AssociationSynchronizationExpressionEvaluatorType bean,
-            @Nullable VariableBindingDefinitionType targetBean) {
-        return new AssociationSynchronizationImplementation(bean, targetBean);
+            @Nullable VariableBindingDefinitionType targetBean) throws ConfigurationException {
+        return new AssociationSynchronizationImplementation(associationDefinition, bean, targetBean);
     }
 
     Collection<? extends ItemInboundDefinition> getAttributeDefinitions();
@@ -144,31 +146,25 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
         @NotNull private final Collection<ItemSynchronizationReactionDefinition> synchronizationReactionDefinitions;
 
-        /** This is the inbound provided by unnamed `objectRef` definition. */
-        @Nullable private final ItemInboundDefinition defaultObjectRefDefinition;
-
         AssociationSynchronizationImplementation(
+                @NotNull ShadowAssociationDefinition associationDefinition,
                 @NotNull AssociationSynchronizationExpressionEvaluatorType definitionBean,
-                @Nullable VariableBindingDefinitionType targetBean) {
+                @Nullable VariableBindingDefinitionType targetBean) throws ConfigurationException {
             this.definitionBean = definitionBean;
             this.targetBean = targetBean;
 
+            var origin = ConfigurationItemOrigin.undeterminedSafe(); // TODO connect to the resource
             for (var attrDefBean : definitionBean.getAttribute()) {
-                var itemName = ItemPathTypeUtil.asSingleNameOrFail(attrDefBean.getRef()); // TODO error handling
+                var attrDefCI = AbstractAttributeMappingsDefinitionConfigItem.of(attrDefBean, origin);
+                var itemName = attrDefCI.getRef();
                 itemDefinitionsMap.put(itemName, new AssociationBasedItemImplementation(attrDefBean));
             }
             Collection<ItemInboundDefinition> defaultObjectRefDefinitions = new ArrayList<>();
-            for (var objectRefBean : definitionBean.getObjectRef()) {
-                // TODO error handling
-                var value = new AssociationBasedItemImplementation(objectRefBean);
-                var refBean = objectRefBean.getRef();
-                if (refBean == null) {
-                    defaultObjectRefDefinitions.add(value);
-                } else {
-                    itemDefinitionsMap.put(refBean.getItemPath().asSingleNameOrFail(), value);
-                }
+            for (var objectRefDefBean : definitionBean.getObjectRef()) {
+                var objectRefDefCI = AbstractAttributeMappingsDefinitionConfigItem.of(objectRefDefBean, origin);
+                var itemName = objectRefDefCI.getObjectRefOrDefault(associationDefinition);
+                itemDefinitionsMap.put(itemName, new AssociationBasedItemImplementation(objectRefDefBean));
             }
-            defaultObjectRefDefinition = MiscUtil.extractSingleton(defaultObjectRefDefinitions);
             synchronizationReactionDefinitions =
                     SynchronizationReactionDefinition.itemLevel(
                             definitionBean.getSynchronization());
@@ -176,13 +172,7 @@ public interface ResourceObjectInboundDefinition extends Serializable, DebugDump
 
         @Override
         public Collection<? extends ItemInboundDefinition> getAttributeDefinitions() {
-            if (defaultObjectRefDefinition == null) {
-                return itemDefinitionsMap.values();
-            } else {
-                var rv = new ArrayList<>(itemDefinitionsMap.values());
-                rv.add(defaultObjectRefDefinition);
-                return rv;
-            }
+            return itemDefinitionsMap.values();
         }
 
         @Override

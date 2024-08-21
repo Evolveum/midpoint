@@ -46,6 +46,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,7 +70,7 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
         })
 public class PageCertDefinitions extends PageAdminWorkItems {
 
-    private static final long serialVersionUID = 1L;
+    @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";

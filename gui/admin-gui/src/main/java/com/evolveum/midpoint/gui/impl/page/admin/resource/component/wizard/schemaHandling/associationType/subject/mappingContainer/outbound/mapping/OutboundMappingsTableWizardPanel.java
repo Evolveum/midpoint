@@ -10,6 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -47,6 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         display = @PanelDisplay(label = "OutboundMappingsTableWizardPanel.objectsTable", icon = "fa-regular fa-cube"))
 public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceWizardBasicPanel<AssociationConstructionExpressionEvaluatorType> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(OutboundMappingsTableWizardPanel.class);
+
     private static final String ATTRIBUTE_PANEL_TYPE = "rw-association-outbound-attribute-mappings";
     private static final String OBJECT_PANEL_TYPE = "rw-association-outbound-object-mappings";
 
@@ -71,17 +82,17 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
     private void initLayout() {
 
         List<ITab> tabs = new ArrayList<>();
-        tabs.add(createAttributeTableTab());
         tabs.add(createObjectTableTab());
+        tabs.add(createAttributeTableTab());
 
         TabCenterTabbedPanel<ITab> tabPanel = new TabCenterTabbedPanel<>(ID_TAB_TABLE, tabs) {
             @Override
             protected void onClickTabPerformed(int index, Optional<AjaxRequestTarget> target) {
                 if (getTable().isValidFormComponents(target.orElse(null))) {
                     if (index == 0) {
-                        initialTab = MappingDirection.ATTRIBUTE;
-                    } else if (index == 1) {
                         initialTab = MappingDirection.OBJECTS;
+                    } else if (index == 1) {
+                        initialTab = MappingDirection.ATTRIBUTE;
                     }
                     super.onClickTabPerformed(index, target);
                 }
@@ -89,10 +100,10 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
         };
         tabPanel.setOutputMarkupId(true);
         switch (initialTab) {
-            case ATTRIBUTE:
+            case OBJECTS:
                 tabPanel.setSelectedTab(0);
                 break;
-            case OBJECTS:
+            case ATTRIBUTE:
                 tabPanel.setSelectedTab(1);
                 break;
         }
@@ -101,7 +112,8 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
 
     private ITab createAttributeTableTab() {
         return new IconPanelTab(
-                getPageBase().createStringResource("OutboundMappingsTableWizardPanel.attributeMappingsTable")) {
+                getPageBase().createStringResource("OutboundMappingsTableWizardPanel.attributeMappingsTable"),
+                new VisibleBehaviour(() -> isAttributeVisible())) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
@@ -133,6 +145,20 @@ public abstract class OutboundMappingsTableWizardPanel extends AbstractResourceW
                 return Model.of("fa fa-arrow-right-from-bracket");
             }
         };
+    }
+
+    private boolean isAttributeVisible() {
+        try {
+            ShadowAssociationDefinition assocDef = AssociationChildWrapperUtil.getShadowAssociationDefinition(
+                    getAssignmentHolderDetailsModel().getRefinedSchema(), getValueModel().getObject());
+            if (assocDef == null) {
+                return false;
+            }
+            return assocDef.isComplex();
+        } catch (SchemaException | ConfigurationException e) {
+            LOGGER.error("Cannot load resource schema", e);
+            return false;
+        }
     }
 
     private ITab createObjectTableTab() {

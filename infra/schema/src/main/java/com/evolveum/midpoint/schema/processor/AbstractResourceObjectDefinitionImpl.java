@@ -165,14 +165,15 @@ public abstract class AbstractResourceObjectDefinitionImpl
     @NotNull final ResourceObjectTypeDefinitionType definitionBean;
 
     /**
-     * Compiled patterns denoting protected objects.
+     * Compiled instructions for marking shadows (e.g., as protected objects).
      *
      * Frozen after parsing.
      *
      * @see ResourceObjectTypeDefinitionType#getProtected()
+     * @see ResourceObjectTypeDefinitionType#getMarking()
      * @see ResourceObjectPatternType
      */
-    @NotNull private final FreezableList<ResourceObjectPattern> protectedObjectPatterns = new FreezableList<>();
+    @NotNull private final FreezableReference<ShadowMarkingRules> shadowMarkingRules = new FreezableReference<>();
 
     /**
      * "Compiled" object set delineation.
@@ -374,12 +375,14 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
-    public @NotNull Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
-        return protectedObjectPatterns;
+    public @NotNull ShadowMarkingRules getShadowMarkingRules() {
+        return MiscUtil.stateNonNull(
+                shadowMarkingRules.getValue(),
+                "Unparsed definition? %s", this);
     }
 
-    void addProtectedObjectPattern(ResourceObjectPattern pattern) {
-        protectedObjectPatterns.add(pattern);
+    void setShadowMarkingRules(ShadowMarkingRules rules) {
+        shadowMarkingRules.setValue(rules);
     }
 
     @Override
@@ -442,7 +445,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         primaryIdentifiersNames.addAll(source.getPrimaryIdentifiersNames());
         secondaryIdentifiersNames.addAll(source.getSecondaryIdentifiersNames());
         auxiliaryObjectClassDefinitions.addAll(source.getAuxiliaryDefinitions());
-        protectedObjectPatterns.addAll(source.getProtectedObjectPatterns());
+        shadowMarkingRules.setValue(source.getShadowMarkingRules());
         displayNameAttributeName = source.getDisplayNameAttributeName();
         // prism object definition need not be copied
     }
@@ -466,6 +469,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         primaryIdentifiersNames.freeze();
         secondaryIdentifiersNames.freeze();
         auxiliaryObjectClassDefinitions.freeze();
+        shadowMarkingRules.freeze();
     }
 
     private void createAttributeDefinitionMap() {
@@ -820,13 +824,17 @@ public abstract class AbstractResourceObjectDefinitionImpl
         boolean readCachedCapabilityPresent = isReadCachedCapabilityPresent();
 
         boolean enabledBecauseOfReadCachedCapability = false;
+        boolean defaultIsMaxCaching = false;
         if (workingCopy.getCachingStrategy() == null) {
             if (readCachedCapabilityPresent) {
                 workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
                 enabledBecauseOfReadCachedCapability = true;
+                defaultIsMaxCaching = true;
+            } else if (InternalsConfig.isShadowCachingOnByDefault()) {
+                workingCopy.setCachingStrategy(CachingStrategyType.PASSIVE);
+                defaultIsMaxCaching = InternalsConfig.isShadowCachingFullByDefault();
             } else {
-                workingCopy.setCachingStrategy(
-                        InternalsConfig.shadowCachingOnByDefault ? CachingStrategyType.PASSIVE : CachingStrategyType.NONE);
+                workingCopy.setCachingStrategy(CachingStrategyType.NONE);
             }
         }
 
@@ -836,7 +844,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         var scope = workingCopy.getScope();
         if (scope.getAttributes() == null) {
             scope.setAttributes(
-                    enabledBecauseOfReadCachedCapability ?
+                    defaultIsMaxCaching ?
                             ShadowSimpleAttributesCachingScopeType.ALL : ShadowSimpleAttributesCachingScopeType.DEFINED);
         }
         if (scope.getAssociations() == null) {
@@ -862,7 +870,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
         }
         if (workingCopy.getTimeToLive() == null) {
             workingCopy.setTimeToLive(
-                    XmlTypeConverter.createDuration(enabledBecauseOfReadCachedCapability ? "P1000Y" : "P1D"));
+                    XmlTypeConverter.createDuration(defaultIsMaxCaching ? "P1000Y" : "P1D"));
         }
         return workingCopy;
     }

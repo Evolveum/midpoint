@@ -720,12 +720,7 @@ li.dropdown.user.user-menu {
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
-}
-
-@media (min-width: 1200px) {
-  .navbar-title {
-    min-width: fit-content;
-  }
+  max-width: fit-content;
 }
 
 .navbar-right {
@@ -763,6 +758,9 @@ li.dropdown.user.user-menu {
   white-space: nowrap;
 
   > li {
+
+    overflow: hidden;
+    max-width: fit-content;
 
     > a {
       color: inherit;

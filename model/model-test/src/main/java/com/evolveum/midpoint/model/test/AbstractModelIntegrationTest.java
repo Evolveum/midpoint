@@ -7718,6 +7718,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
     }
 
+    protected void markShadowExcluded(String oid, String markOid, Task task, OperationResult result) throws CommonException {
+        var statement = new PolicyStatementType()
+                .markRef(markOid, MarkType.COMPLEX_TYPE)
+                .type(PolicyStatementTypeType.EXCLUDE);
+        modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
+    }
+
     protected @NotNull CaseType getOpenCaseRequired(List<CaseType> cases) {
         var openCases = cases.stream()
                 .filter(c -> QNameUtil.matchUri(c.getState(), CASE_STATE_OPEN_URI))
@@ -7752,5 +7759,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .item(ShadowType.F_ASSOCIATIONS.append(assocName), assocDef)
                 .add(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
+    }
+
+    protected void refreshShadowIfNeeded(@NotNull String shadowOid) throws CommonException {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            provisioningService.getShadow(shadowOid, null, getTestTask(), getTestOperationResult());
+        }
+    }
+
+    protected void refreshAllShadowsIfNeeded(@NotNull String resourceOid, @NotNull ResourceObjectTypeIdentification type)
+            throws CommonException {
+        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            return;
+        }
+        provisioningService.searchShadows(
+                prismContext.queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+                        .and().item(ShadowType.F_KIND).eq(type.getKind())
+                        .and().item(ShadowType.F_INTENT).eq(type.getIntent())
+                        .build(),
+                null, getTestTask(), getTestOperationResult());
     }
 }

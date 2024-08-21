@@ -20,6 +20,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +30,46 @@ import javax.xml.namespace.QName;
 /**
  * Wrapper for ResourceType/schemaHandling/objectType/focus/archetypeRef.
  */
-public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable> extends PrismReferenceValueWrapperImpl<T> {
+public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable> extends CreateObjectForReferenceValueWrapper<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectTypeArchetypeValueWrapperImpl.class);
 
     public ResourceObjectTypeArchetypeValueWrapperImpl(PrismReferenceWrapper<T> parent, PrismReferenceValue value, ValueStatus status) {
         super(parent, value, status);
+    }
+
+    @Override
+    public ContainerPanelConfigurationType createContainerConfiguration() {
+        return new ContainerPanelConfigurationType()
+                .applicableForOperation(OperationTypeType.WIZARD)
+                .container(new VirtualContainersSpecificationType()
+                        .identifier("new-archetype")
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(ArchetypeType.F_SUPER_ARCHETYPE_REF))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(ArchetypeType.F_NAME))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(ArchetypeType.F_DESCRIPTION))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(
+                                        ItemPath.create(
+                                                ArchetypeType.F_ARCHETYPE_POLICY,
+                                                ArchetypePolicyType.F_DISPLAY,
+                                                DisplayType.F_ICON,
+                                                IconType.F_CSS_CLASS)))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(
+                                        ItemPath.create(
+                                                ArchetypeType.F_ARCHETYPE_POLICY,
+                                                ArchetypePolicyType.F_DISPLAY,
+                                                DisplayType.F_ICON,
+                                                IconType.F_COLOR)))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                );
     }
 
     @Override

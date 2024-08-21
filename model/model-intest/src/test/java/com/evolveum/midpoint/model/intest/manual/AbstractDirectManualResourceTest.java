@@ -521,6 +521,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         recomputeUser(userWillOid, task, result);
 
         // THEN
@@ -1139,6 +1140,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
@@ -1595,6 +1597,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
@@ -1923,6 +1926,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
@@ -2016,6 +2020,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
@@ -2230,7 +2235,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
                 .end()
             .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
-                .assertNoSimpleAttribute(ATTR_DESCRIPTION_QNAME)
+                .assertNoSimpleAttributeIfNotCached(ATTR_DESCRIPTION_QNAME)
             .end()
             .assertNoPassword()
             .getObject();

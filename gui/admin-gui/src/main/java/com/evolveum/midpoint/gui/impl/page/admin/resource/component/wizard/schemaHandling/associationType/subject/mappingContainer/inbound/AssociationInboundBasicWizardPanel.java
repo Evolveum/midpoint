@@ -54,8 +54,6 @@ public class AssociationInboundBasicWizardPanel extends AbstractWizardPanel<Mapp
                 if (result == null || result.isError()) {
                     target.add(getFeedback());
                     refresh(target);
-                } else {
-                    onExitPerformed(target);
                 }
             }
 

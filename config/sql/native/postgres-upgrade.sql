@@ -939,27 +939,13 @@ ALTER TYPE ShadowKindType RENAME VALUE 'ASSOCIATED' TO 'ASSOCIATION';
 $aa$);
 
 call apply_change(45, $aa$
-CREATE TABLE m_role_analysis_outlier (
-    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
-    objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_OUTLIER') STORED
-        CHECK (objectType = 'ROLE_ANALYSIS_OUTLIER'),
-        targetObjectRefTargetOid UUID,
-        targetObjectRefTargetType ObjectType,
-        targetObjectRefRelationId INTEGER REFERENCES m_uri(id)
-)
-    INHERITS (m_assignment_holder);
-
-CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetOid_idx ON m_role_analysis_outlier (targetObjectRefTargetOid);
-CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetType_idx ON m_role_analysis_outlier (targetObjectRefTargetType);
-CREATE INDEX m_role_analysis_outlier_targetObjectRefRelationId_idx ON m_role_analysis_outlier (targetObjectRefRelationId);
-
-CREATE TRIGGER m_role_analysis_outlier_oid_insert_tr BEFORE INSERT ON m_role_analysis_outlier
-    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
-CREATE TRIGGER m_role_analysis_outlier_update_tr BEFORE UPDATE ON m_role_analysis_outlier
-    FOR EACH ROW EXECUTE FUNCTION before_update_object();
-CREATE TRIGGER m_role_analysis_outlier_oid_delete_tr AFTER DELETE ON m_role_analysis_outlier
-    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+    ALTER TABLE m_shadow
+       ADD COLUMN disableReasonId INTEGER REFERENCES m_uri(id),
+       ADD COLUMN  enableTimestamp TIMESTAMPTZ,
+       ADD COLUMN   disableTimestamp TIMESTAMPTZ;
 $aa$);
+
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

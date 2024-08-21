@@ -199,11 +199,6 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected PageStorage getPageStorage() {
-                return getCampaignsStorage();
-            }
-
-            @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return getCustomCampaignsQuery();
             }

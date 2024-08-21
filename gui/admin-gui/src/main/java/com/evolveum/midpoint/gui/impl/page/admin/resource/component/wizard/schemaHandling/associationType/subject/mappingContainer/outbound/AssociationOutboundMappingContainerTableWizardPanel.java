@@ -43,6 +43,11 @@ public class AssociationOutboundMappingContainerTableWizardPanel extends Abstrac
         return ShadowAssociationDefinitionType.F_OUTBOUND;
     }
 
+    @Override
+    protected String getTitleIconClass() {
+        return "fa fa-arrow-right-from-bracket";
+    }
+
     protected UserProfileStorage.TableId getTableId(){
         return UserProfileStorage.TableId.PANEL_ASSOCIATION_OUTBOUND;
     }

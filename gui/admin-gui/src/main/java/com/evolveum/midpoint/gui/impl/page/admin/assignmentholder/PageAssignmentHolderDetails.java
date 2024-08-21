@@ -520,7 +520,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             }
 
             @Override
-            public IModel<PrismContainerValueWrapper<AH>> getValueModel() {
+            public IModel<PrismContainerValueWrapper<AH>> getDefaultValueModel() {
                 return PrismContainerValueWrapperModel.fromContainerWrapper(
                         getDetailsModel().getObjectWrapperModel(), ItemPath.EMPTY_PATH);
             }

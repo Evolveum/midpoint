@@ -119,7 +119,7 @@ public abstract class ListItemWithPanelForItemPanel<IT extends SelectableRow> ex
         AjaxIconButton newValueButton = new AjaxIconButton(
                 ID_NEW_VALUE_BUTTON,
                 Model.of(GuiStyleConstants.CLASS_PLUS_CIRCLE),
-                createStringResource("ComplexTypeDefinitionPanel.createNewValue")) {
+                getLabelForNewItem()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onClickNewDefinitionType(target);
@@ -131,6 +131,10 @@ public abstract class ListItemWithPanelForItemPanel<IT extends SelectableRow> ex
 
         createValueList();
         addPanelForItem();
+    }
+
+    protected IModel<String> getLabelForNewItem() {
+        return createStringResource("ComplexTypeDefinitionPanel.createNewValue");
     }
 
     protected boolean isSearchForItemVisible() {

@@ -10,12 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.impl.component.data.provider.ListDataProvider;
 import com.evolveum.midpoint.gui.impl.component.tile.AssociationTilePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.AssociationsListView;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 
+import com.evolveum.midpoint.schema.processor.ShadowReferenceParticipantRole;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -67,7 +70,7 @@ public abstract class AssociationChoicePanel
                     resourceSchema.getObjectTypeDefinitions().forEach(objectTypeDef ->
                             objectTypeDef.getReferenceAttributeDefinitions().forEach(
                                     associationDef -> {
-                                        if (!associationDef.canRead()) {
+                                        if (!associationDef.canRead() || ShadowReferenceParticipantRole.SUBJECT != associationDef.getParticipantRole()) {
                                             return;
                                         }
 
@@ -96,24 +99,22 @@ public abstract class AssociationChoicePanel
     }
 
     private void initLayout() {
-        ListView<Tile<AssociationDefinitionWrapper>> list = new ListView<>(ID_LIST, tilesModel) {
+        AssociationsListView list = new AssociationsListView(
+                ID_LIST,
+                new ListDataProvider<>(AssociationChoicePanel.this, tilesModel),
+                getAssignmentHolderDetailsModel()) {
 
             @Override
-            protected void populateItem(ListItem<Tile<AssociationDefinitionWrapper>> item) {
-                item.add(createTilePanel(ID_TILE, item.getModel()));
+            protected String getTitlePanelId() {
+                return ID_TILE;
+            }
+
+            @Override
+            protected void onTileClickPerformed(AssociationDefinitionWrapper value, AjaxRequestTarget target) {
+                AssociationChoicePanel.this.onTileClickPerformed(value, target);
             }
         };
         add(list);
-    }
-
-    private Component createTilePanel(String id, IModel<Tile<AssociationDefinitionWrapper>> tileModel) {
-        return new AssociationTilePanel(id, tileModel, getAssignmentHolderDetailsModel()) {
-
-            @Override
-            protected void onClick(AssociationDefinitionWrapper value, AjaxRequestTarget target) {
-                onTileClickPerformed(value, target);
-            }
-        };
     }
 
     @Override

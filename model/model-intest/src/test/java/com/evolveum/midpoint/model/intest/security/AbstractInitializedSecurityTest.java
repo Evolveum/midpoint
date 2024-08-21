@@ -668,6 +668,51 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         assertModifyDenyRaw();
     }
 
+    /**
+     * Checks whether the principal is able to modify the object with empty delta in execution phase.
+     * It is the same check as is used in GUI when deciding whether to show the Save button.
+     *
+     * Unlike other assertions, here we do not try to execute the operation. We just ask if we're authorized to do so.
+     */
+    protected <O extends ObjectType> void assertEmptyDeltaExecutionAuthorized(Class<O> objectType, String objectOid)
+            throws CommonException {
+        logAttempt("modify (just asking about)", objectType, objectOid, null);
+        if (isEmptyDeltaExecutionAuthorized(objectType, objectOid)) {
+            logAllow("modify (just asking about)", objectType, objectOid, null);
+        } else {
+            failAllow("modify (just asking about)", objectType, objectOid, null);
+        }
+    }
+
+    /** The opposite of {@link #assertEmptyDeltaExecutionAuthorized(Class, String)}. */
+    protected <O extends ObjectType> void assertEmptyDeltaExecutionNotAuthorized(Class<O> objectType, String objectOid)
+            throws CommonException {
+        logAttempt("modify (just asking about)", objectType, objectOid, null);
+        if (!isEmptyDeltaExecutionAuthorized(objectType, objectOid)) {
+            logDeny("modify (just asking about)", objectType, objectOid, null);
+        } else {
+            failDeny("modify (just asking about)", objectType, objectOid, null);
+        }
+    }
+
+    private <O extends ObjectType> boolean isEmptyDeltaExecutionAuthorized(Class<O> objectType, String objectOid)
+            throws CommonException {
+        var task = taskManager.createTaskInstance(
+                AbstractInitializedSecurityTest.class.getName() + ".getEmptyDeltaExecutionAuthorization");
+        var result = task.getResult();
+        var object = repositoryService.getObject(objectType, objectOid, null, result);
+        var delta = prismContext.deltaFactory().object().createEmptyModifyDelta(objectType, objectOid);
+        var params = new AuthorizationParameters.Builder<O, ObjectType>()
+                .oldObject(object)
+                .delta(delta)
+                .target(null)
+                .build();
+        SecurityEnforcer.Options options = SecurityEnforcer.Options.create();
+        return securityEnforcer.isAuthorized(
+                ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.EXECUTION, params, options,
+                task, task.getResult());
+    }
+
     protected void assertModifyDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         assertModifyDenyOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, executeOptions().raw(), PolyString.fromOrig("CSc"));
     }

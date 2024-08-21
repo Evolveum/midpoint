@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.capabilities.CapabilitiesWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.correlation.CorrelationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.credentials.CredentialsWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.synchronization.SynchronizationWizardPanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -62,14 +63,14 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                     case CREDENTIALS:
                         showCredentialsWizardPanel(target);
                         break;
-                    case ASSOCIATIONS:
-                        showAssociationsWizard(target);
-                        break;
                     case ACTIVATION:
                         showActivationsWizard(target);
                         break;
                     case CAPABILITIES:
                         showCapabilitiesConfigWizard(target);
+                        break;
+                    case POLICIES:
+                        showPoliciesWizard(target);
                         break;
                 }
             }
@@ -85,6 +86,13 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
                 showTableForDataOfCurrentlyObjectType(target);
             }
         };
+    }
+
+    private void showPoliciesWizard(AjaxRequestTarget target) {
+        showChoiceFragment(
+                target,
+                new PoliciesObjectTypeWizardPanel(getIdOfChoicePanel(), createHelper(false))
+        );
     }
 
     private void showResourceObjectTypeBasic(AjaxRequestTarget target) {
@@ -130,13 +138,6 @@ public class ResourceObjectTypeWizardPanel extends AbstractWizardChoicePanelWith
         showWizardFragment(
                 target,
                 new ActivationsWizardPanel(getIdOfWizardPanel(), createHelper(ResourceObjectTypeDefinitionType.F_ACTIVATION, false))
-        );
-    }
-
-    private void showAssociationsWizard(AjaxRequestTarget target) {
-        showChoiceFragment(
-                target,
-                new AssociationsWizardPanel(getIdOfChoicePanel(), createHelper(false))
         );
     }
 

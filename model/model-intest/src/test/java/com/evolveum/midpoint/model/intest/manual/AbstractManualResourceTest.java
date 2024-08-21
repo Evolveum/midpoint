@@ -1130,6 +1130,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         recomputeUser(userWillOid, task, result);
 
         // THEN

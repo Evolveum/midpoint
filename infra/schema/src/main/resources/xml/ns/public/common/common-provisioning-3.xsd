@@ -975,7 +975,39 @@
                     <xsd:documentation>
                         Specification of a protected resource object: one that cannot be affected by IDM. It will be
                         ignored by operations, will not appear in lists, etc. A typical example is the administrator's account.
+
+                        DEPRECATED: Use "marking" instead.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.9</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="marking" type="tns:ShadowMarkingConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Drives automatic marking of shadows, e.g., as protected objects.
+                        Each mark should have at most one entry in this object, in order to avoid conflicting information.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultOperationPolicyRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default operation policy for those operations that do not have their behavior specified explicitly
+                        via object marks. I.e., if there is no mark for specific shadow, or if the mark(s) do not specify
+                        the policy explicitly, the policy is determined by the mark referenced here.
+
+                        The mark referenced here should have the archetype of "Shadow policy mark".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
@@ -1086,6 +1118,79 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="ShadowMarkingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How is given shadow mark automatically applied to shadows.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+                <a:naturalKey>markRef</a:naturalKey>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="markRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the mark to which this configuration applies.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="applicationTime" type="tns:ShadowMarkApplicationTimeType" minOccurs="0" default="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        On what occasion(s) is the marking done? E.g., always or for newly discovered shadows only.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="pattern" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The pattern(s) used to describe the matching objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ShadowMarkApplicationTimeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                On what occasion(s) is the marking done?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Marking is done always when the shadow is seen. This includes also when it's being added by midPoint.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="classification">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Marking is done when the shadow is being classified (this implies that it's being discovered by midPoint).
+                        Either at the first classification time, or when its classification changes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLASSIFICATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="AssociatedResourceObjectTypeDefinitionType">
         <xsd:annotation>
@@ -2761,18 +2866,16 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:container/>
+                <a:naturalKey>filter</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
+            <xsd:element name="filter" type="q:SearchFilterType">
                 <xsd:annotation>
                     <xsd:documentation>
                         The filter used to match the object. If the object matches then it is regarded to be
                         protected.
-
-                        Although this is minOccurs=0 it is a mandatory attribute for all current practical uses.
-                        The minOccurs=0 is here only for compatibility and it will be changed to minOccurs=1
-                        when the deprecated syntax is removed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3222,6 +3325,19 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         NO INBOUND/OUTBOUND MAPPINGS HERE!
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tolerant" minOccurs="0" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When set to true, allows association values that are set outside midPoint.
+                        When true, midPoint will only remove values that are computed as being deleted by the mappings,
+                        but will tolerate extra native values.
+                        When set to false, extra values are not tolerated. When midPoint detects
+                        such value (e.g. during reconciliation) it will remove it.
+
+                        May be overridden by shadow marks.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4273,17 +4389,6 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="deleted">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The value existed on the resource, but it has been deleted.
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DELETED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="matched">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4291,6 +4396,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MATCHED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="matchedIndirectly">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The target reference exists among references to indirectly assigned abstract roles.
+                        (I.e., it is present in current roleMembershipRef values.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MATCHED_INDIRECTLY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

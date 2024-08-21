@@ -70,7 +70,8 @@ public class BasicAssociationOutboundStepPanel
                     || wrapper.getItemName().equals(MappingType.F_TARGET)
                     || wrapper.getItemName().equals(MappingType.F_EXPRESSION)
                     || wrapper.getItemName().equals(MappingType.F_CONDITION)
-                    || wrapper.getItemName().equals(MappingType.F_ENABLED)) {
+                    || wrapper.getItemName().equals(MappingType.F_ENABLED)
+                    || wrapper.getItemName().equals(MappingType.F_AUTHORITATIVE)) {
                 return ItemVisibility.HIDDEN;
             }
             return ItemVisibility.AUTO;

@@ -1,3 +1,11 @@
+---
+midpoint-feature: meta-role
+doc-type: intro
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Use of meta-roles for access control.'
+---
 = Roles, Metaroles and Generic Synchronization
 :page-wiki-name: Roles, Metaroles and Generic Synchronization
 :page-wiki-id: 15859878

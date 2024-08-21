@@ -66,7 +66,7 @@ public class AssociationOutboundMappingContainerWizardPanel extends AbstractWiza
             }
 
             @Override
-            public IModel<PrismContainerValueWrapper<MappingType>> getValueModel() {
+            public IModel<PrismContainerValueWrapper<MappingType>> getDefaultValueModel() {
                 return new LoadableDetachableModel<>() {
                     @Override
                     protected PrismContainerValueWrapper<MappingType> load() {

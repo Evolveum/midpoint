@@ -3229,6 +3229,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         addResourceFromFile(
                 RESOURCE_OPENDJ_NO_READ_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
+        // The cached shadow contains some extra attributes. Invalidation makes that less serious.
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
+
         try {
             provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
             AssertJUnit.fail("Expected unsupported operation exception, but haven't got one.");
@@ -3260,6 +3263,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         addResourceFromFile(RESOURCE_OPENDJ_NO_DELETE_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
+        // The cached shadow contains some extra attributes. Invalidation makes that less serious.
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
+
         try {
             provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
             AssertJUnit.fail("Expected unsupported operation exception, but haven't got one.");
@@ -3274,6 +3280,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         addResourceFromFile(RESOURCE_OPENDJ_NO_UPDATE_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
+
+        // The cached shadow contains some extra attributes. Invalidation makes that less serious.
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
 
         try {
             PropertyDelta<String> delta =

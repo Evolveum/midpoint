@@ -253,6 +253,8 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         DummyGroup validGroup = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(VALID_GROUP);
         validGroup.addMember(MAGNUS);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RANGES_DIRECT.oid);
+
         when();
         recomputeUser(USER_MAGNUS.oid, task, result);
 
@@ -292,6 +294,8 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
         DummyGroup testers = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(MP_TESTERS);
         testers.addMember(MAGNUS);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RANGES_DIRECT.oid);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
@@ -369,6 +373,8 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         DummyGroup validGroup = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(VALID_GROUP);
         validGroup.addMember(VLADIMIR);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RANGES_ROLE.oid);
+
         when();
         recomputeUser(USER_VLADIMIR.oid, task, result);
 
@@ -407,6 +413,8 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
         DummyGroup testers = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(MP_TESTERS);
         testers.addMember(VLADIMIR);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RANGES_ROLE.oid);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)

@@ -71,6 +71,9 @@ public class SourceOrTargetOfAssociationMappingPanelFactory extends SourceOrTarg
                 return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
             }
         };
-        return provider.collectAvailableDefinitions(input).iterator();
+        List<String> values = new ArrayList<>(provider.collectAvailableDefinitions(input));
+        values.removeIf(path -> path.startsWith(AssignmentType.F_METADATA.getLocalPart() + "/")
+                || path.startsWith(AssignmentType.F_CONDITION.getLocalPart() + "/"));
+        return values.iterator();
     }
 }

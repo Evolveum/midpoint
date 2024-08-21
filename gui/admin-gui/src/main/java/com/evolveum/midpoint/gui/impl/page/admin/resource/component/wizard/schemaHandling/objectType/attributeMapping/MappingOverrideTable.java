@@ -92,11 +92,6 @@ public abstract class MappingOverrideTable<C extends Containerable> extends Abst
         return new MultivalueContainerListDataProvider<>(MappingOverrideTable.this, getSearchModel(), new PropertyModel<>(getContainerModel(), "values")) {
 
             @Override
-            protected PageStorage getPageStorage() {
-                return MappingOverrideTable.this.getPageStorage();
-            }
-
-            @Override
             protected List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> searchThroughList() {
                 List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> list = super.searchThroughList();
                 return list.stream().filter(value -> {

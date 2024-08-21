@@ -189,11 +189,6 @@ public abstract class AssociationInboundAttributeMappingsTable extends Attribute
                 new PropertyModel<>(getContainerModel(), "values")) {
 
             @Override
-            protected PageStorage getPageStorage() {
-                return AssociationInboundAttributeMappingsTable.this.getPageStorage();
-            }
-
-            @Override
             protected List<PrismContainerValueWrapper<MappingType>> searchThroughList() {
                 List<PrismContainerValueWrapper<MappingType>> list = super.searchThroughList();
 

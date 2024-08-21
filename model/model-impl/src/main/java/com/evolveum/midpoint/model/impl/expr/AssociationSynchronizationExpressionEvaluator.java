@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.mergeCorrelationDefinition;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isMembershipSyncInboundDisabled;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
@@ -15,6 +16,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSingleShadowInboundsProcessingContextImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
+
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,13 +115,16 @@ class AssociationSynchronizationExpressionEvaluator
         Evaluation(
                 @NotNull PrismValueDeltaSetTriple<?> inputTriple,
                 @NotNull ShadowAssociationDefinition associationDefinition,
-                @NotNull ExpressionEvaluationContext context) {
+                @NotNull ExpressionEvaluationContext context)
+                throws ConfigurationException {
             this.inputTriple = inputTriple;
             this.associationDefinition = associationDefinition;
             this.context = context;
             this.inboundDefinition =
                     ResourceObjectInboundDefinition.forAssociationSynchronization(
-                            expressionEvaluatorBean, context.getTargetDefinitionBean());
+                            associationDefinition,
+                            expressionEvaluatorBean,
+                            context.getTargetDefinitionBean());
             this.candidateAssignments = getCandidateAssignments();
         }
 
@@ -183,8 +189,9 @@ class AssociationSynchronizationExpressionEvaluator
                         .build();
                 try {
 
-                    var correlationResult = executeCorrelation(result);
-                    var synchronizationReaction = determineReaction(correlationResult);
+                    var assignmentForCorrelation = computeAssignmentForCorrelation(result);
+                    var correlationResult = executeCorrelation(assignmentForCorrelation, result);
+                    var synchronizationReaction = determineReaction(assignmentForCorrelation, correlationResult);
                     executeReaction(correlationResult, synchronizationReaction, result);
 
                     registerAssignmentsSeen(correlationResult);
@@ -197,7 +204,8 @@ class AssociationSynchronizationExpressionEvaluator
                 }
             }
 
-            private @NotNull SimplifiedCorrelationResult executeCorrelation(OperationResult result)
+            private @NotNull SimplifiedCorrelationResult executeCorrelation(
+                    AssignmentType assignmentForCorrelation, OperationResult result)
                     throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
                     SecurityViolationException, ObjectNotFoundException {
 
@@ -208,7 +216,6 @@ class AssociationSynchronizationExpressionEvaluator
                     return SimplifiedCorrelationResult.noOwner();
                 }
 
-                var assignmentForCorrelation = computeAssignmentForCorrelation(result);
                 var correlationDefinitionBean = mergeCorrelationDefinition(inboundDefinition, null, resource);
                 var systemConfiguration = beans.systemObjectCache.getSystemConfigurationBean(result);
                 var correlationResult = beans.correlationServiceImpl.correlateLimited(
@@ -236,7 +243,7 @@ class AssociationSynchronizationExpressionEvaluator
                 PreMappingsEvaluator.computePreFocusForAssociationValue(
                         associationValue,
                         associationValue.hasAssociationObject() ?
-                                associationValue.getAssociationObject().getObjectDefinition() :
+                                associationValue.getAssociationDataObject().getObjectDefinition() :
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,
                         projectionContext.getResourceRequired(),
@@ -269,9 +276,22 @@ class AssociationSynchronizationExpressionEvaluator
 
             // FIXME temporary
             private ItemSynchronizationReactionDefinition determineReaction(
-                    SimplifiedCorrelationResult correlationResult) {
+                    AssignmentType assignmentForCorrelation, SimplifiedCorrelationResult correlationResult) {
                 var synchronizationState = ItemSynchronizationState.fromCorrelationResult(correlationResult);
-                ItemSynchronizationSituationType situation = synchronizationState.situation();
+                var situationFromCorrelation = synchronizationState.situation();
+                ItemSynchronizationSituationType situation;
+                if (situationFromCorrelation == ItemSynchronizationSituationType.UNMATCHED
+                        && isMatchedIndirectly(assignmentForCorrelation)) {
+                    situation = ItemSynchronizationSituationType.MATCHED_INDIRECTLY;
+                } else {
+                    situation = situationFromCorrelation;
+                }
+
+                if (isInboundMembershipSyncDisabled()) {
+                    LOGGER.trace("Inbound membership synchronization is disabled, ignoring the situation: {}", situation);
+                    return null;
+                }
+
                 for (var abstractReaction : inboundDefinition.getSynchronizationReactions()) {
                     var reaction = (ItemSynchronizationReactionDefinition) abstractReaction;
                     if (reaction.matchesSituation(situation)) {
@@ -282,6 +302,38 @@ class AssociationSynchronizationExpressionEvaluator
                 }
                 LOGGER.trace("No synchronization reaction matches");
                 return null;
+            }
+
+            private boolean isInboundMembershipSyncDisabled() {
+                if (associationDefinition.isComplex()) {
+                    return false; // not supported for complex associations yet
+                }
+                return isMembershipSyncInboundDisabled(
+                        associationValue
+                                .getSingleObjectShadowRequired()
+                                .getEffectiveOperationPolicyRequired());
+            }
+
+            private boolean isMatchedIndirectly(AssignmentType assignmentForCorrelation) {
+                var targetRef = assignmentForCorrelation.getTargetRef();
+                if (targetRef == null) {
+                    LOGGER.trace("No targetRef, assignment is not matched indirectly");
+                    return false;
+                }
+                var focusContext = ModelExpressionThreadLocalHolder.getLensContextRequired().getFocusContextRequired();
+                var current = focusContext.getObjectCurrent();
+                if (current == null) {
+                    LOGGER.trace("No current focus, assignment is not matched indirectly");
+                    return false;
+                }
+                List<ObjectReferenceType> roleMembershipRef =
+                        current.asObjectable() instanceof AssignmentHolderType assignmentHolder ?
+                                assignmentHolder.getRoleMembershipRef() : List.of();
+                var matches = roleMembershipRef.stream()
+                        .anyMatch(ref ->
+                                targetRef.asReferenceValue().equals(ref.asReferenceValue(), EquivalenceStrategy.REAL_VALUE));
+                LOGGER.trace("Assignment is matched indirectly: {}", matches);
+                return matches;
             }
 
             private void executeReaction(
@@ -357,7 +409,7 @@ class AssociationSynchronizationExpressionEvaluator
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         context.getTask(),
                         associationValue.hasAssociationObject() ?
-                                associationValue.getAssociationObject().getObjectDefinition() :
+                                associationValue.getAssociationDataObject().getObjectDefinition() :
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,
                         false);

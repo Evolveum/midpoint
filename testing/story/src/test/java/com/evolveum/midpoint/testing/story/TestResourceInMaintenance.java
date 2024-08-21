@@ -282,7 +282,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertNotDead()
                 .assertNoLegacyConsistency()
                 .attributes()
-                    .assertAttributes(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
+                    .assertAttributesCachingAware(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
                 .end()
                 .pendingOperations()
                     .singleOperation()
@@ -550,7 +550,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertNotDead()
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertAttributes(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
+                .assertAttributesCachingAware(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
                 .end()
                 .pendingOperations()
                 .singleOperation()
@@ -660,7 +660,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertNotDead()
                 .assertNoLegacyConsistency()
                 .attributes()
-                .assertAttributes(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
+                .assertAttributesCachingAware(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
                 .end()
                 .pendingOperations()
                 .singleOperation()

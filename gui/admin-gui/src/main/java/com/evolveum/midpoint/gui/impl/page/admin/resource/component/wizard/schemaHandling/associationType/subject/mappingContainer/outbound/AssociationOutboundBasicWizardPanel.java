@@ -50,8 +50,6 @@ public class AssociationOutboundBasicWizardPanel extends AbstractWizardPanel<Map
                 if (result == null || result.isError()) {
                     target.add(getFeedback());
                     refresh(target);
-                } else {
-                    onExitPerformed(target);
                 }
             }
 

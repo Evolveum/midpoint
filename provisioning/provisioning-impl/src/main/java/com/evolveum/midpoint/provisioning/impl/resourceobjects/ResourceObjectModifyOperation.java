@@ -115,7 +115,7 @@ public class ResourceObjectModifyOperation extends ResourceObjectProvisioningOpe
             return ResourceObjectModifyReturnValue.of(result);
         }
 
-        ctx.checkProtectedObjectModification(repoShadow, result);
+        ctx.checkProtectedObjectModification(repoShadow);
         // Other checks (execution mode, capability) are executed inside ResourceObjectUcfModifyOperation
 
         Collection<Operation> ucfOperations = convertToUcfOperations(result);

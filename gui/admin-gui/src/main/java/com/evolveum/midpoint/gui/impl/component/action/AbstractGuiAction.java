@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.component.ActionC
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -82,8 +83,7 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
             try {
                 ItemDeltaCollectionsUtil.applyTo(deltas, objectToProcess.asPrismContainerValue());
             } catch (SchemaException e) {
-                throw new RuntimeException(e);
-                //TODO error handling
+                LOGGER.error("Cannot apply deltas to object {}", objectToProcess, e);
             }
         }
 
@@ -99,20 +99,24 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
     }
 
     public DisplayType getActionDisplayType() {
-        //TODO probably there should be merging of those two
-        DisplayType displayType = guiActionType == null ? null : guiActionType.getDisplay();
-        if (displayType != null) {
-            return displayType;
-        }
+        DisplayType configuredDisplay = guiActionType == null ? null : guiActionType.getDisplay();
         ActionType actionType = AbstractGuiAction.this.getClass().getAnnotation(ActionType.class);
         PanelDisplay display = actionType != null ? actionType.display() : null;
-        if (display == null) {
-            return null;
+        DisplayType pageDisplay = null;
+        if (display != null) {
+            pageDisplay = new DisplayType()
+                    .label(display.label())
+                    .icon(new IconType()
+                            .cssClass(display.icon()));
         }
-        return new DisplayType()
-                .label(display.label())
-                .icon(new IconType()
-                        .cssClass(display.icon()));
+        if (configuredDisplay == null) {
+            return pageDisplay;
+        }
+        if (pageDisplay == null) {
+            return configuredDisplay;
+        }
+        MiscSchemaUtil.mergeDisplay(configuredDisplay, pageDisplay);
+        return configuredDisplay;
     }
 
     public boolean isVisible(C rowObject) {

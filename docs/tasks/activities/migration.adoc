@@ -1,6 +1,5 @@
-= Migration of Tasks from 4.0/4.3 to 4.4
+= Migration of Tasks from 4.0/4.3
 :toc:
-:page-since: "4.4"
 :page-upkeep-status: green
 
 TIP: *TL;DR* See xref:#_doing_the_migration[Doing the migration] section.

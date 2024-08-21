@@ -32,7 +32,6 @@ import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.provisioning.impl.shadows.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
@@ -153,7 +152,8 @@ public class OperationResultRecorder {
         // We use the same mechanism (shadow delta computer) as is used for shadows coming from the resource.
         shadowModifications.addAll(
                 ShadowDeltaComputerAbsolute.computeShadowModifications(
-                        ctx, repoShadow, resourceObject, null, false));
+                        ctx, repoShadow, resourceObject, null,
+                        addOperation.getEffectiveMarksAndPoliciesRequired(), false));
 
         addModificationMetadataDeltas(shadowModifications, repoShadow);
 

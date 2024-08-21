@@ -23,6 +23,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,6 +42,7 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
     private static final String ID_TITLE = "title";
     private static final String ID_SUBJECT = "subject";
     private static final String ID_OBJECT = "object";
+    private static final String ID_ASSOCIATION_DATA = "associationData";
 
     private final ResourceDetailsModel resourceDetailsModel;
 
@@ -54,7 +57,7 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
     private void initLayout() {
         add(AttributeAppender.append(
                 "class",
-                "tile-panel d-flex flex-column vertical align-items-center rounded justify-content-left p-3"));
+                "d-flex flex-column vertical align-items-center rounded justify-content-left p-2 h-100"));
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         setOutputMarkupId(true);
 
@@ -62,7 +65,7 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
         title.setEscapeModelStrings(false);
         add(title);
 
-        String subject = defineParticipant(getModelObject().getValue().getSubject(), "subject");
+        String subject = defineObject(getModelObject().getValue().getSubjects());
 
         Label subjectTitle = new Label(ID_SUBJECT, subject);
         subjectTitle.setEscapeModelStrings(false);
@@ -73,6 +76,14 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
         Label objectTitle = new Label(ID_OBJECT, object);
         objectTitle.setEscapeModelStrings(false);
         add(objectTitle);
+
+        String associationData = defineParticipant(getModelObject().getValue().getAssociationData());
+
+
+        Label associationDataTitle = new Label(ID_ASSOCIATION_DATA, associationData);
+        associationDataTitle.setEscapeModelStrings(false);
+        add(associationDataTitle);
+        associationDataTitle.add(new VisibleBehaviour(() -> getModelObject().getValue().getAssociationData() != null));
 
         add(new AjaxEventBehavior("click") {
             @Override
@@ -87,16 +98,11 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
             return "";
         }
 
-        if (objects.size() == 1) {
-            return defineParticipant(objects.get(0), "object");
-        }
-
-        StringBuilder ret = new StringBuilder(LocalizationUtil.translate("AssociationTilePanel.objects.title"))
-                .append(" ");
+        StringBuilder ret = new StringBuilder();
         Iterator<AssociationDefinitionWrapper.ParticipantWrapper> iterator = objects.iterator();
         while(iterator.hasNext()) {
             AssociationDefinitionWrapper.ParticipantWrapper object = iterator.next();
-            ret.append(defineParticipant(object, "objects"));
+            ret.append(defineParticipant(object));
             if (iterator.hasNext()) {
                 ret.append(", ");
             }
@@ -104,11 +110,15 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
         return ret.toString();
     }
 
-    private String defineParticipant(AssociationDefinitionWrapper.ParticipantWrapper participant, String key) {
+    private String defineParticipant(AssociationDefinitionWrapper.ParticipantWrapper participant) {
+        if (participant == null) {
+            return null;
+        }
+
         try {
             if (participant.getKind() == null) {
                 return LocalizationUtil.translate(
-                        "AssociationTilePanel." + key + ".objectClass",
+                        "AssociationTilePanel.objectClass",
                         new Object[]{participant.getObjectClass().getLocalPart()});
             }
 
@@ -121,7 +131,7 @@ public abstract class AssociationTilePanel<T extends Tile<AssociationDefinitionW
             }
             if (def != null) {
                 return LocalizationUtil.translate(
-                        "AssociationTilePanel." + key + ".objectType",
+                        "AssociationTilePanel.objectType",
                         new Object[]{GuiDisplayNameUtil.getDisplayName(def.getDefinitionBean())});
             }
         } catch (SchemaException | ConfigurationException e) {

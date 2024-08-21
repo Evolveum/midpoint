@@ -55,6 +55,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestInboundOutboundAssociation"/>
             <class name="com.evolveum.midpoint.testing.story.TestFirstSteps"/>
             <class name="com.evolveum.midpoint.testing.story.associations.TestAssociationsFirstSteps"/>
+            <class name="com.evolveum.midpoint.testing.story.associations.TestAssociationsFirstStepsActiveDirectory"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsStoryReconSimulate"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsStoryReconSimulateMultithreaded"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsStoryReconExecute"/>

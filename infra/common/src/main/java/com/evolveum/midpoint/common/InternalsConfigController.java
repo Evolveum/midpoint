@@ -31,7 +31,7 @@ public class InternalsConfigController {
 
     @PostConstruct
     public void init() {
-        Configuration internalsConfig = midpointConfiguration.getConfiguration(MidpointConfiguration.INTERNALS_CONFIGURATION);
-        InternalsConfig.set(internalsConfig);
+        InternalsConfig.set(
+                midpointConfiguration.getConfiguration(MidpointConfiguration.INTERNALS_CONFIGURATION));
     }
 }

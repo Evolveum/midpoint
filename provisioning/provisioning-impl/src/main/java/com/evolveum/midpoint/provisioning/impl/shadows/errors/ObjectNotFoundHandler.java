@@ -11,6 +11,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorRep
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.LIVE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.REAPING;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -160,8 +166,12 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             // Current shadow is a tombstone. This means that the object was deleted. But we need current shadow here.
             // Otherwise the synchronization situation won't be updated because SynchronizationService could think that
             // there is not shadow at all.
+            ctx.computeAndUpdateEffectiveMarksAndPolicies(repoShadow, RepoShadowWithState.ShadowState.EXISTING, result);
             change.setShadowedResourceObject(repoShadow.getPrismObject());
             eventDispatcher.notifyChange(change, ctx.getTask(), result);
+        } catch (CommonException e) {
+            result.recordException(e);
+            throw SystemException.unexpected(e); // TODO reconsider
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

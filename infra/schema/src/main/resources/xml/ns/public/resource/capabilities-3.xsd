@@ -1053,6 +1053,9 @@
                         E.g. this is used to specify LDAP organizationalUnit that contains users or groups
                         of particular type.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="searchHierarchyScope" type="c:SearchHierarchyScopeType" minOccurs="0">
@@ -1062,6 +1065,9 @@
                         into the object hierarchy. It is only applicable to resources that support hierarchical
                         organization of objects (e.g. LDAP resources).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!--<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">-->
@@ -1080,6 +1086,9 @@
 
                         Currently supported only for the subjects.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

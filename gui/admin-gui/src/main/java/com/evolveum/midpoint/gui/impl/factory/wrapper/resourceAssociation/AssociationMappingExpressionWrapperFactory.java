@@ -79,7 +79,7 @@ public abstract class AssociationMappingExpressionWrapperFactory<C extends Conta
         ItemStatus status = getStatus(expression);
         PrismContainer<C> childItem = null;
         if (expression != null) {
-            C evaluator = getEvaluator(expression.getRealValue());
+            C evaluator = getEvaluator(expression.getRealValue()).cloneWithoutIdAndMetadata();
             childItem = def.instantiate();
             childItem.add(evaluator.asPrismContainerValue());
         }

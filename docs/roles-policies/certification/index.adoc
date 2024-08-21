@@ -326,6 +326,52 @@ To learn more about actions configuration, please follow to xref:/midpoint/refer
 Object collection view configuration can be also defined within access certification definition (_view_ element).
 This configuration will be merged with the global one and applied to all campaigns created on the base of this definition.
 
+=== Dashboard widget configuration
+
+Certification dashboard widget can be configured to be shown on the self-service dashboard page.
+The widget can be configured in the _systemConfiguration -> adminGuiConfiguration -> homePage_ element.
+
+[source,xml]
+----
+            <widget>
+                <identifier>dashboardCertItems</identifier>
+                <display>
+                    <label>
+                        <t:orig>Certification items</t:orig>
+                        <t:norm>certification items</t:norm>
+                        <t:translation>
+                            <t:key>PageCertItems.title</t:key>
+                        </t:translation>
+                    </label>
+                    <icon>
+                        <cssClass>fa fa-certificate</cssClass>
+                    </icon>
+                </display>
+                <displayOrder>50</displayOrder>
+                <panelType>dashboardCertItems</panelType>
+                <previewSize>5</previewSize>
+                <action>
+                    <identifier>viewAll</identifier>
+                    <display>
+                        <label>
+                            <t:orig>View all</t:orig>
+                            <t:norm>view all</t:norm>
+                            <t:translation>
+                                <t:key>PageSelfDashboard.button.viewAll</t:key>
+                            </t:translation>
+                        </label>
+                        <icon>
+                            <cssClass>fa fa-search</cssClass>
+                        </icon>
+                    </display>
+                    <target>
+                        <targetUrl>/admin/certification/myActiveCampaigns</targetUrl>
+                    </target>
+                </action>
+            </widget>
+----
+
+
 
 == Reporting
 

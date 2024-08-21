@@ -10,35 +10,29 @@ doc-type: intro
 
 == Introduction
 
-Object Marks are light-weight marking mechanism for objects in order to ease
-administration of Midpoint and/or induce specific behavior policies to marked
-objects.
+Object Marks are light-weight marking mechanism for objects in order to ease administration of midPoint and/or induce specific behavior policies to marked objects.
 
-Marked objects could be filtered by mark in Admin GUI and may receive additional
-policies based on effective marks.
+Marked objects could be filtered by mark in Admin GUI and may receive additional policies based on effective marks.
 
 Technically object marks are `MarkType` with archetype `Object Mark`.
 
-IMPORTANT: Object Marks are only supported with Postgres Native Repository
+IMPORTANT: Object Marks are only supported with Postgres Native Repository.
 
-IMPORTANT: Object Marks are currently only supported for shadows
+IMPORTANT: Object Marks are currently only fully supported for shadows.
 
 == Basic Concepts
 
 === Effective Marks
 
-Effective marks are marks, which are applied to object based on policies, or explicitly
-specified by policy statements of the object.
+Effective marks are marks, which are applied to object based on policies, or explicitly specified by policy statements of the object.
 
-Effective marks are stored in object `effectiveMarkRef` of type `ObjectReferenceType`
-and are indexed by repository, so it is possible to use them for search.
+Effective marks are stored in object `effectiveMarkRef` of type `ObjectReferenceType` and are indexed by repository, so it is possible to use them for search.
 
 === Policy Statements
 
-Effective marks could be manually added / induced / excluded from object
-by modifying policy statement of particular object.
+Effective marks could be manually added / induced / excluded from object by modifying policy statement of particular object.
 
-Policy statement has two main properties:
+A policy statement has two main properties:
 
 * *markRef* - object reference, which specifies mark
 * *type* - enumeration, which specifies type of policy statement
@@ -59,60 +53,88 @@ Policy statement has two main properties:
 
 == Object Operation Policy
 
-NOTE: In 4.7 object operation policy is only supported for shadow objects
+NOTE: Currently, the object operation policy is supported for shadow objects only.
 
-Object Marks allows to specify operation policy, which may disable specific operations for marked objects.
+Object Marks allows to specify operation policy, which may enabled or disable specific operations for marked objects.
 
 Currently supported object operation policies for shadows are:
 
-* `synchronize/inbound`
-** if enabled, shadow is used for inbound synchronization
-** if disabled shadow is excluded from inbound synchronization, changes on resource
-   does not trigger mappings / recomputation of focus object
-* `synchronize/outbound`
-** if enabled, changes in focus object triggers changes in shadows
-** if disabled, changes in focus object does not trigger mappings and are not propagated to resource
-* `add`
-* `modify`
-** if disabled, any modifications of shadow (mappings or manual) results in error
-* `delete`
-** if disabled, shadow on resource can not be deleted (enforced in provisioning)
+[%autowidth]
+|===
+| Operation | Kind | Behavior if disabled
+
+2+| `add`
+| New shadows having this operation disabled cannot be added on the resource, neither manually nor automatically.
+Any such attempt results in an error.
+2+| `modify`
+| Shadows having this operation disabled cannot be modified on the resource, neither manually nor automatically.
+Any such attempt results in an error.
+2+| `delete`
+| Shadows having this operation disabled cannot be deleted from the resource, neither manually nor automatically.
+Any such attempt results in an error.
+(Except for manual deletion from GUI, where the severity of `info` is respected.)
+.2+| `synchronize`
+| `inbound`
+| Shadows having this operation disabled are excluded from inbound synchronization.
+| `outbound`
+| Changes in focus objects do not trigger mappings and are not propagated to the resource.
+.3+| `synchronize/membership` (applies to entitlements only)
+| `inbound`
+| The membership information regarding entitlement shadows having this operation disabled is excluded from inbound synchronization.
+| `outbound`
+| The membership information regarding entitlement shadows having this operation disabled is not propagated from focus objects to the resource.
+| `tolerant`
+| This is actually not an operation, but a boolean (`true`/`false`) flag that overrides whether the membership information regarding this entitlement is tolerated on the resource, if it's not provided by any mappings.
+Please see xref:/midpoint/reference/resources/entitlements/#_tolerating_existing_association_values[Tolerating Existing Association Values].
+|===
 
 *Default object operation policy* for objects without marks specifying policy is to have *all operations enabled*.
+This default can be changed by setting `defaultOperationPolicyRef` for specific resource object type definition.
 
-If object has multiple effective marks specifying object operation policy, policies are merged, operations disabled by any of the marks are always disabled.
+If object has multiple effective marks specifying object operation policy, these policies are merged.
+Operations disabled by any of the marks are always disabled.
 
+The `tolerant` flag should not have values of `true` and `false` mixed together.
+The current implementation is that the value of `true` is the result, should such a combination occur (with a warning into the log), but this behavior may change in the future.
 
 .Object Operation Policy of Protected mark
 [source, xml]
 ----
 <objectOperationPolicy>
-        <synchronize>
-            <inbound>
-                <enabled>false</enabled>
-                <severity>info</severity>
-            </inbound>
-            <outbound>
-                <enabled>false</enabled>
-                <severity>error</severity>
-            </outbound>
-        </synchronize>
-        <add>
+    <synchronize>
+        <inbound>
             <enabled>false</enabled>
-            <severity>error</severity>
-        </add>
-        <modify>
+            <severity>info</severity>
+        </inbound>
+        <outbound>
             <enabled>false</enabled>
-            <severity>error</severity>
-        </modify>
-        <delete>
-            <enabled>false</enabled>
-            <severity>error</severity>
-        </delete>
-    </objectOperationPolicy>
+            <severity>info</severity>
+        </outbound>
+    </synchronize>
+    <add>
+        <enabled>false</enabled>
+        <severity>error</severity>
+    </add>
+    <modify>
+        <enabled>false</enabled>
+        <severity>error</severity>
+    </modify>
+    <delete>
+        <enabled>false</enabled>
+        <severity>error</severity>
+    </delete>
+</objectOperationPolicy>
 ----
 
-WARNING: Currently only severity `error` is supported for `add`,`modify`,`delete` operations.
+[WARNING]
+====
+*Limitations*
+
+- For `add`,`modify`,`delete` operations, only the `error` severity is supported.
+- For all other operations, only the `info` severity is supported.
+- The `synchronize/membership/inbound` is supported only for `associationSynchronization` expression evaluator.
+- The `synchronize/membership/outbound` is supported only for `associationConstruction` expression evaluator.
+====
 
 === Built-in Object Marks
 

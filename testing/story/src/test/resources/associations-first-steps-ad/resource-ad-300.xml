@@ -101,6 +101,10 @@
                     </target>
                 </inbound>
             </attribute>
+            <marking>
+                <markRef oid="00000000-0000-0000-0000-000000000805"/>
+                <applicationTime>classification</applicationTime>
+            </marking>
             <synchronization>
                 <reaction>
                     <situation>unmatched</situation>
@@ -137,7 +141,6 @@
                         <expression>
                             <associationConstruction>
                                 <objectRef>
-                                    <ref>ri:group</ref>
                                     <mapping>
                                         <name>group</name>
                                         <expression>
@@ -154,7 +157,6 @@
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
-                                    <ref>ri:group</ref>
                                     <correlator/>
                                     <mapping>
                                         <name>group-to-targetRef</name>
@@ -183,6 +185,7 @@
                             </associationSynchronization>
                         </expression>
                     </inbound>
+                    <tolerant>false</tolerant>
                 </association>
             </subject>
         </associationType>

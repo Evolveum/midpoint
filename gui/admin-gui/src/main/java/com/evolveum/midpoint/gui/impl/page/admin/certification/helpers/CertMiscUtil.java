@@ -286,6 +286,9 @@ public class CertMiscUtil {
         OperationResult result = task.getResult();
         try {
             ObjectQuery query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(campaignOids, principal, notDecidedOnly);
+            if (query == null) {
+                return 0;
+            }
             count = pageBase.getModelService()
                     .countContainers(AccessCertificationWorkItemType.class, query, null, task, result);
         } catch (Exception ex) {

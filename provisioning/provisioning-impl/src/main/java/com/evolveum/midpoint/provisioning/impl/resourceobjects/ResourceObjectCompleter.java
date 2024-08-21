@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.util.ErrorState;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -21,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 class ResourceObjectCompleter {
 
     /**
-     * Fills-in provisioning policy, simulated activation, associations, and so on.
+     * Fills-in simulated activation, associations, and so on.
      * Modifies provided {@link ResourceObjectShadow} instance.
      *
      * This is the core of the processing on objects coming from the resources.
@@ -44,8 +43,6 @@ class ResourceObjectCompleter {
             // The idea is that we do not want to process objects which are not guaranteed to be "complete".
             return CompleteResourceObject.of(resourceObject, resourceObject.getErrorState());
         }
-
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, resourceObject, result);
 
         new ActivationConverter(ctx)
                 .completeActivation(resourceObject, result);

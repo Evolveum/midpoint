@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * - {@link #executeDirectly(RawRepoShadow, Collection, OperationProvisioningScriptsType, ProvisioningOperationOptions, ProvisioningOperationContext, Task, OperationResult)}
  * - {@link #executeInRefresh(ProvisioningContext, RepoShadow, PendingOperation, ProvisioningOperationOptions, OperationResult)}
- * - {@link #executeInPropagation(ProvisioningContext, RepoShadow, Collection, List, OperationResult)}
+ * - {@link #executeInPropagation(ProvisioningContext, RepoShadow, Collection, PendingOperations, OperationResult)}
  */
 public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOperationState> {
 
@@ -249,7 +249,8 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         RepoShadow repoShadow = opState.getRepoShadowRequired(); // Shadow in opState was updated in the above call!
         ctx.applyDefinitionInNewCtx(repoShadow);
 
-        accessChecker.checkModifyAccess(ctx, requestedModifications, result);
+        determineEffectiveMarksAndPolicies(repoShadow, result);
+        accessChecker.checkAttributesModifyAccess(ctx, requestedModifications, result);
 
         if (resourceDelta.isEmpty()) {
             opState.setExecutionStatus(COMPLETED);

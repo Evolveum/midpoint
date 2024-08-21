@@ -43,10 +43,6 @@ public abstract class SingleSelectContainerTileTablePanel<C extends Containerabl
     protected MultivalueContainerListDataProvider<C> createProvider() {
         return new MultivalueContainerListDataProvider<>(
                 getPageBase(), () -> (Search) getSearchModel().getObject(), model) {
-            @Override
-            protected PageStorage getPageStorage() {
-                return SingleSelectContainerTileTablePanel.this.getPageStorage();
-            }
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {

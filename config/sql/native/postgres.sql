@@ -1058,7 +1058,11 @@ CREATE TABLE m_shadow (
     correlationEndTimestamp TIMESTAMPTZ,
     correlationCaseOpenTimestamp TIMESTAMPTZ,
     correlationCaseCloseTimestamp TIMESTAMPTZ,
-    correlationSituation CorrelationSituationType
+    correlationSituation CorrelationSituationType,
+    disableReasonId INTEGER REFERENCES m_uri(id),
+    enableTimestamp TIMESTAMPTZ,
+    disableTimestamp TIMESTAMPTZ
+
 ) PARTITION BY LIST (resourceRefTargetOid);
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow

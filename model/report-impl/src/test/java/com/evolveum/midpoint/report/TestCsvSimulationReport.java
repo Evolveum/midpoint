@@ -142,9 +142,9 @@ public class TestCsvSimulationReport extends TestCsvReport {
 
     private List<UserType> existingUsers;
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override

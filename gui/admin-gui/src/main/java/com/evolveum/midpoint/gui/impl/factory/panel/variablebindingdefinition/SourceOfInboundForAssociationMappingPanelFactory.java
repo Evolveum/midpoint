@@ -14,6 +14,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,13 +41,11 @@ public class SourceOfInboundForAssociationMappingPanelFactory extends SourceOrTa
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return QNameUtil.match(VariableBindingDefinitionType.COMPLEX_TYPE, wrapper.getTypeName())
                 && ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_ASSOCIATION_TYPE,
-                ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                ShadowAssociationDefinitionType.F_OBJECT_REF,
-                ResourceAttributeDefinitionType.F_INBOUND,
-                InboundMappingType.F_SOURCE).equivalent(wrapper.getPath().namedSegmentsOnly());
+                    SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION,
+                    AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF,
+                    AttributeInboundMappingsDefinitionType.F_MAPPING,
+                    InboundMappingType.F_SOURCE)
+                .equivalent(wrapper.getPath().namedSegmentsOnly());
     }
 
     @Override
@@ -55,13 +55,17 @@ public class SourceOfInboundForAssociationMappingPanelFactory extends SourceOrTa
             return Collections.emptyIterator();
         }
 
-        ShadowReferenceAttributeDefinition shadowRefAttrParent = AssociationChildWrapperUtil.getShadowReferenceAttribute(itemWrapperModel.getObject().getParent(), pageBase);
-        if(shadowRefAttrParent == null) {
+        ShadowAssociationDefinition assocDef = AssociationChildWrapperUtil.getShadowAssociationDefinition(itemWrapperModel.getObject().getParent(), pageBase);
+        if(assocDef == null) {
             return Collections.emptyIterator();
         }
 
         List<String> toSelect = new ArrayList<>();
-        shadowRefAttrParent.getRepresentativeTargetObjectDefinition().getSimpleAttributeDefinitions()
+        if (!assocDef.isComplex()) {
+            return toSelect.iterator();
+        }
+
+        assocDef.getAssociationDataObjectDefinition().getSimpleAttributeDefinitions()
                 .forEach(simpleAttr -> {
                     QName name = PrismContext.get().getSchemaRegistry().getNamespacePrefixMapper()
                             .setQNamePrefix(new QName(simpleAttr.getItemName().getNamespaceURI(), simpleAttr.getItemName().getLocalPart()));

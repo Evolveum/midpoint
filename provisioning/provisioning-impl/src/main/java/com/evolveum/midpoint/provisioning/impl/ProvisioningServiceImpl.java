@@ -13,8 +13,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
-import com.evolveum.midpoint.schema.util.RawRepoShadow;
+import com.evolveum.midpoint.schema.util.*;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -31,7 +33,6 @@ import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceOb
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
@@ -70,8 +71,6 @@ import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -916,7 +915,29 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             throw e;
         } finally {
             result.close();
-            result.cleanupResult();
+            result.cleanup();
+        }
+    }
+
+    @Override
+    public void updateShadowMarksAndPolicies(PrismObject<ShadowType> shadow, boolean isNew, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SecurityViolationException {
+        OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".updateShadowMarksAndPolicies");
+        result.addParam("shadow", shadow);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+        try {
+            ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
+            ctx.computeAndUpdateEffectiveMarksAndPolicies(
+                    AbstractShadow.of(shadow),
+                    isNew ? ShadowState.TO_BE_CREATED : ShadowState.EXISTING,
+                    result);
+        } catch (Throwable e) {
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
+            throw e;
+        } finally {
+            result.close();
+            result.cleanup();
         }
     }
 

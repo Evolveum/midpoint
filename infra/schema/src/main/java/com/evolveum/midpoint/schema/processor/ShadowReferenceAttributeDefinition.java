@@ -40,6 +40,19 @@ public interface ShadowReferenceAttributeDefinition
                 Referencable,
                 ShadowReferenceAttribute> {
 
+    /**
+     * What is the role of the object that holds this reference attribute in the subject-object relationship?
+     *
+     * For example, when considering `ri:group` reference attribute on `ri:user` object class pointing to the `ri:group`
+     * object class, the participant role for this attribute is {@link ShadowReferenceParticipantRole#SUBJECT}, because
+     * `ri:user` object class participates in this relation as the subject.
+     *
+     * For the other side of this reference, the `ri:member` reference attribute on `ri:group` object class will have
+     * participant role of {@link ShadowReferenceParticipantRole#OBJECT}, because `ri:group` object class participates
+     * in this relation as the object.
+     */
+    @NotNull ShadowReferenceParticipantRole getParticipantRole();
+
     /** Returns types of the objects on the other side. Always non-empty. */
     @NotNull Collection<ShadowRelationParticipantType> getTargetParticipantTypes();
 
@@ -129,4 +142,6 @@ public interface ShadowReferenceAttributeDefinition
     }
 
     @NotNull ShadowReferenceAttributeDefinition clone();
+
+    @NotNull ShadowReferenceAttributeDefinition cloneWithNewCardinality(int newMinOccurs, int newMaxOccurs);
 }

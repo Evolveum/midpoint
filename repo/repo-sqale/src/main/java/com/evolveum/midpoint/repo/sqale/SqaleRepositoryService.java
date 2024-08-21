@@ -2142,6 +2142,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         try {
             return executeAllocateContainerIdentifiers(type, oidUuid, howMany);
+        } catch (ObjectNotFoundException e) {
+            operationResult.recordHandledError(e);
+            throw e;
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {

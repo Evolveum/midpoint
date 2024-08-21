@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -193,6 +194,25 @@ public class ShadowReferenceAttributeDefinitionImpl
                 nativeDefinition,
                 customizationBean,
                 limitationsMap,
+                accessOverride.clone(), // TODO do we want to preserve also the access override?
+                referenceTypeDefinition);
+    }
+
+    @Override
+    public @NotNull ShadowReferenceAttributeDefinition cloneWithNewCardinality(int newMinOccurs, int newMaxOccurs) {
+        var newNativeDef = (NativeShadowReferenceAttributeDefinition)
+                nativeDefinition.cloneWithNewCardinality(newMinOccurs, newMaxOccurs);
+        newNativeDef.freeze();
+        Map<LayerType, PropertyLimitations> newLimitationsMap =
+                limitationsMap.entrySet().stream()
+                        .collect(Collectors.toMap(
+                                e -> e.getKey(),
+                                e -> e.getValue().cloneWithNewCardinality(newMinOccurs, newMaxOccurs)));
+        return new ShadowReferenceAttributeDefinitionImpl(
+                currentLayer,
+                newNativeDef,
+                customizationBean,
+                newLimitationsMap,
                 accessOverride.clone(), // TODO do we want to preserve also the access override?
                 referenceTypeDefinition);
     }
@@ -514,5 +534,10 @@ public class ShadowReferenceAttributeDefinitionImpl
     @Override
     public @NotNull PrismReferenceValue migrateIfNeeded(@NotNull PrismReferenceValue value) throws SchemaException {
         return ShadowReferenceAttributeValue.fromRefValue(value);
+    }
+
+    @Override
+    public @NotNull ShadowReferenceParticipantRole getParticipantRole() {
+        return nativeDefinition.getReferenceParticipantRole();
     }
 }

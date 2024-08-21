@@ -6,12 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.component.form.CreateObjectForReferencePanel;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.CreateObjectForReferenceValueWrapper;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +20,10 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import java.io.Serializable;
 
 /**
  * Factory for reference values that support creating of new object.
@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 @Component
 public class CreateObjectForReferencePanelFactory
-        implements GuiComponentFactory<PrismReferencePanelContext<ObjectReferenceType>> {
+        implements GuiComponentFactory<PrismReferencePanelContext<ObjectReferenceType>>, Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(CreateObjectForReferencePanelFactory.class);
 
@@ -49,54 +49,36 @@ public class CreateObjectForReferencePanelFactory
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, wrapper.getTypeName()) &&
-                ItemPath.equivalent(
-                        ItemPath.create(ResourceType.F_SCHEMA_HANDLING,
-                                SchemaHandlingType.F_OBJECT_TYPE,
-                                ResourceObjectTypeDefinitionType.F_FOCUS,
-                                ResourceObjectFocusSpecificationType.F_ARCHETYPE_REF),
-                        wrapper.getPath().namedSegmentsOnly());
+        return valueWrapper instanceof CreateObjectForReferenceValueWrapper<?>;
     }
 
     @Override
     public org.apache.wicket.Component createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
         CreateObjectForReferencePanel panel = new CreateObjectForReferencePanel(
-                panelCtx.getComponentId(), panelCtx.getValueWrapperModel(), createContainerConfiguration());
+                panelCtx.getComponentId(),
+                panelCtx.getValueWrapperModel(),
+                createContainerConfiguration(panelCtx.getValueWrapperModel().getObject())) {
+
+            protected boolean isHeaderOfCreateObjectVisible() {
+                if (panelCtx.getValueWrapperModel().getObject() instanceof CreateObjectForReferenceValueWrapper<?> createObjectForReferenceWrapper) {
+                    return createObjectForReferenceWrapper.isHeaderOfCreateObjectVisible();
+                }
+                return false;
+            }
+        };
+
         panel.setFeedback(panelCtx.getFeedback());
         panel.setOutputMarkupId(true);
         return panel;
     }
+    private ContainerPanelConfigurationType createContainerConfiguration(PrismValueWrapper<ObjectReferenceType> valueWrapper) {
 
-    private ContainerPanelConfigurationType createContainerConfiguration() {
-        return new ContainerPanelConfigurationType()
-                .applicableForOperation(OperationTypeType.WIZARD)
-                .container(new VirtualContainersSpecificationType()
-                        .identifier("new-archetype")
-                        .item(new VirtualContainerItemSpecificationType()
-                                .path(new ItemPathType(ArchetypeType.F_SUPER_ARCHETYPE_REF))
-                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
-                        .item(new VirtualContainerItemSpecificationType()
-                                .path(new ItemPathType(ArchetypeType.F_NAME))
-                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
-                        .item(new VirtualContainerItemSpecificationType()
-                                .path(new ItemPathType(ArchetypeType.F_DESCRIPTION))
-                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
-                        .item(new VirtualContainerItemSpecificationType()
-                                .path(new ItemPathType(
-                                        ItemPath.create(
-                                                ArchetypeType.F_ARCHETYPE_POLICY,
-                                                ArchetypePolicyType.F_DISPLAY,
-                                                DisplayType.F_ICON,
-                                                IconType.F_CSS_CLASS)))
-                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
-                        .item(new VirtualContainerItemSpecificationType()
-                                .path(new ItemPathType(
-                                        ItemPath.create(
-                                                ArchetypeType.F_ARCHETYPE_POLICY,
-                                                ArchetypePolicyType.F_DISPLAY,
-                                                DisplayType.F_ICON,
-                                                IconType.F_COLOR)))
-                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
-                );
+        if (valueWrapper instanceof CreateObjectForReferenceValueWrapper<?> createObjectForReferenceWrapper) {
+            return createObjectForReferenceWrapper.createContainerConfiguration();
+        }
+
+        return new ContainerPanelConfigurationType();
     }
+
+
 }

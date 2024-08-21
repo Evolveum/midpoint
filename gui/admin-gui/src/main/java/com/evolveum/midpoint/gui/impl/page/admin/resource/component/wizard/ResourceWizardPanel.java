@@ -52,18 +52,23 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
 
         WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper =
-                new WizardPanelHelper<>(getAssignmentHolderModel(), valueModel) {
+                new WizardPanelHelper<>(getAssignmentHolderModel()) {
 
-            @Override
-            public void onExitPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createObjectTypesTablePanel());
-            }
+                    @Override
+                    public void onExitPerformed(AjaxRequestTarget target) {
+                        showChoiceFragment(target, createObjectTypesTablePanel());
+                    }
 
-            @Override
-            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                return getHelper().onSaveObjectPerformed(target);
-            }
-        };
+                    @Override
+                    public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                        return getHelper().onSaveObjectPerformed(target);
+                    }
+
+                    @Override
+                    public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getDefaultValueModel() {
+                        return valueModel;
+                    }
+                };
         ResourceObjectTypeWizardPanel wizard = new ResourceObjectTypeWizardPanel(getIdOfChoicePanel(), helper);
         wizard.setOutputMarkupId(true);
         return wizard;

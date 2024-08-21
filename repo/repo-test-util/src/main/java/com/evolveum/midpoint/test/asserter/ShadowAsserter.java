@@ -711,6 +711,14 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    /** Requires {@link #abstractShadow} to be present. */
+    public ShadowAsserter<RA> assertAttributesAtLeast(int expectedNumber) {
+        assertThat(ShadowUtil.getAttributesTolerant(getObjectable()))
+                .as("attributes")
+                .hasSizeGreaterThanOrEqualTo(expectedNumber);
+        return this;
+    }
+
     private void checkAbstractShadowPresent() {
         stateCheck(abstractShadow != null, "This assertion is available only when abstractShadow is present.");
     }
@@ -734,6 +742,56 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         assertThat(getObjectable().getContentDescription())
                 .as("content description")
                 .isEqualTo(ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE);
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertEffectiveOperationsDeeply() {
+        assertEffectiveOperationsDeeply(getObjectable(), desc());
+        return this;
+    }
+
+    // See ShadowsUtil.checkReturnedShadowValidityDeeply method
+    private static void assertEffectiveOperationsDeeply(@NotNull ShadowType shadow, String context) {
+        assertThat(shadow.getEffectiveOperationPolicy())
+                .as("effective operations in " + context)
+                .isNotNull();
+        for (var refAttr : ShadowUtil.getReferenceAttributes(shadow)) {
+            for (var refAttrVal : refAttr.getReferenceValues()) {
+                assertEffectiveOperationsDeeply(
+                        refAttrVal.getShadowBean(),
+                        refAttr.getElementName() + " value " + refAttrVal + " in " + context);
+            }
+        }
+        for (var assoc : ShadowUtil.getAssociations(shadow)) {
+            for (var assocVal : assoc.getAssociationValues()) {
+                var assocContext = assoc.getElementName() + " value " + assocVal + " in " + context;
+                for (var ref : assocVal.getObjectReferences()) {
+                    for (var refAttrVal : ref.getReferenceValues()) {
+                        assertEffectiveOperationsDeeply(
+                                refAttrVal.getShadowBean(),
+                                ref.getElementName() + " value " + refAttrVal + " in " + assocContext);
+                    }
+                }
+                if (assoc.getDefinitionRequired().isComplex()) {
+                    assertEffectiveOperationsDeeply(
+                            assocVal.getAssociationDataObject().getBean(),
+                            "object in " + assocContext);
+                }
+            }
+        }
+    }
+
+    public ShadowAsserter<RA> assertProtected() {
+        assertThat(getObjectable().isProtectedObject())
+                .as("protected flag")
+                .isTrue();
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertNotProtected() {
+        assertThat(getObjectable().isProtectedObject())
+                .as("protected flag")
+                .isNotEqualTo(Boolean.TRUE);
         return this;
     }
 }

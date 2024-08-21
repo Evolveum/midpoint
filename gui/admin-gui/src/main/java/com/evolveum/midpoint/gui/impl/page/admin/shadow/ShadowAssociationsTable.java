@@ -21,12 +21,14 @@ import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationValueType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationsType;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -39,9 +41,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<ShadowAssociationValueWrapper> {
 
@@ -163,7 +163,49 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
                                                 && associationType.getSubject().getAssociation().getRef() != null) {
                                             @NotNull ItemPath currentPath = ItemPath.create(getContainerModel().getObject().getItemName());
                                             if (currentPath.equivalent(associationType.getSubject().getAssociation().getRef().getItemPath())) {
-                                                associationType.getSubject().getAssociation().getAttribute().forEach(attribute -> {
+
+                                                Map<ItemPathType, AbstractAttributeMappingsDefinitionType> attributes = new HashMap<>();
+                                                associationType.getSubject().getAssociation().getInbound().forEach(inbound -> {
+                                                    if (inbound.getExpression() == null) {
+                                                        return;
+                                                    }
+
+                                                    try {
+                                                        AssociationSynchronizationExpressionEvaluatorType evaluator =
+                                                                ExpressionUtil.getAssociationSynchronizationExpressionValue(inbound.getExpression());
+                                                        if (evaluator == null) {
+                                                           return;
+                                                        }
+                                                        evaluator.getAttribute().forEach(attribute ->
+                                                            attributes.put(attribute.getRef(), attribute)
+                                                        );
+                                                    } catch (SchemaException e) {
+                                                        // ignore it
+                                                    }
+                                                });
+
+                                                associationType.getSubject().getAssociation().getOutbound().forEach(outbound -> {
+                                                    if (outbound.getExpression() == null) {
+                                                        return;
+                                                    }
+
+                                                    try {
+                                                        AssociationConstructionExpressionEvaluatorType evaluator =
+                                                                ExpressionUtil.getAssociationConstructionExpressionValue(outbound.getExpression());
+                                                        if (evaluator == null) {
+                                                            return;
+                                                        }
+                                                        evaluator.getAttribute().forEach(attribute -> {
+                                                            if (!attributes.containsKey(attribute.getRef())) {
+                                                                attributes.put(attribute.getRef(), attribute);
+                                                            }
+                                                        });
+                                                    } catch (SchemaException e) {
+                                                        // ignore it
+                                                    }
+                                                });
+
+                                                attributes.values().forEach(attribute -> {
                                                     if (attribute.getRef() != null) {
                                                         columns.add(
                                                                 new PrismPropertyWrapperColumn<>(
@@ -189,6 +231,11 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
 
                     @Override
                     protected boolean isDuplicationSupported() {
+                        return false;
+                    }
+
+                    @Override
+                    protected boolean allowEditMultipleValuesAtOnce() {
                         return false;
                     }
                 };

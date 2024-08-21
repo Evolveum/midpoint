@@ -6,8 +6,18 @@
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
-    <div><wicket:message key="CreateActivationMappingPopup.description"/></div>
+    <div class="card-footer text-center pb-0">
+        <wicket:message key="CreateActivationMappingPopup.description"/>
+    </div>
 
     <div wicket:id="panel"/>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex">
+            <a wicket:id="doneButton" class="ml-auto btn btn-primary">
+                <span><wicket:message key="OnePanelPopupPanel.button.done"/></span>
+            </a>
+        </div>
+    </wicket:fragment>
 
 </wicket:panel>

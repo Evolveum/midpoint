@@ -18,6 +18,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
+import java.util.List;
+
 public class ShadowAssociationTypeDefinitionConfigItem
         extends ConfigurationItem<ShadowAssociationTypeDefinitionType> {
 
@@ -46,13 +48,14 @@ public class ShadowAssociationTypeDefinitionConfigItem
 //        return subjectSpec != null ? subjectSpec.getTypeIdentifiers() : List.of();
 //    }
 //
-//    public @NotNull List<ShadowAssociationTypeObjectDefinitionConfigItem> getObject()
-//            throws ConfigurationException {
-//        return children(
-//                value().getObject(),
-//                ShadowAssociationTypeObjectDefinitionConfigItem.class,
-//                ShadowAssociationTypeDefinitionType.F_OBJECT);
-//    }
+
+    public @NotNull List<ShadowAssociationTypeObjectDefinitionConfigItem> getObjects()
+            throws ConfigurationException {
+        return children(
+                value().getObject(),
+                ShadowAssociationTypeObjectDefinitionConfigItem.class,
+                ShadowAssociationTypeDefinitionType.F_OBJECT);
+    }
 
     public @NotNull ShadowAssociationTypeSubjectDefinitionConfigItem getSubject()
             throws ConfigurationException {

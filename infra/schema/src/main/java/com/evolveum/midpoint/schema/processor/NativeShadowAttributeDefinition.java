@@ -39,6 +39,8 @@ public interface NativeShadowAttributeDefinition extends
 
     NativeShadowAttributeDefinition clone();
 
+    NativeShadowAttributeDefinition cloneWithNewCardinality(int newMinOccurs, int maxOccurs);
+
     boolean isSimple();
 
     boolean isReference();

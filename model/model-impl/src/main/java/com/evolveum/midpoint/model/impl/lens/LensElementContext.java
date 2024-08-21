@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
 import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefiner;
 import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -36,10 +37,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentSpec;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
@@ -939,6 +936,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     abstract @NotNull ItemChangeApplicationModeConfiguration createItemChangeApplicationModeConfiguration()
             throws SchemaException, ConfigurationException;
+
+    @Override
+    public boolean hasEffectiveMark(@NotNull String oid) {
+        var current = getObjectCurrent();
+        return current != null
+                && current.asObjectable().getEffectiveMarkRef().stream()
+                        .anyMatch(ref -> oid.equals(Referencable.getOid(ref)));
+    }
     //endregion
 
     /** Currently, just a single-use interface for {@link #modifyPrimaryDelta(DeltaModifier)} method. No deep ideas here. */

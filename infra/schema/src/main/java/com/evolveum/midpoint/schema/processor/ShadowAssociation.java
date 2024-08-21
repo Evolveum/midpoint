@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationVal
  * The lower-level representation of the association is {@link ShadowReferenceAttribute}.
  */
 public class ShadowAssociation
-        extends PrismContainerImpl<ShadowAssociationValueType> {
+        extends PrismContainerImpl<ShadowAssociationValueType> implements Cloneable {
 
     @Serial private static final long serialVersionUID = 0L;
 

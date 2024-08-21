@@ -51,6 +51,9 @@ public interface CommonInitialObjects {
     TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
             ARCHETYPES, "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
+    TestObject<ArchetypeType> ARCHETYPE_SHADOW_POLICY_MARK = TestObject.classPath(
+            ARCHETYPES, "705-archetype-shadow-policy-mark.xml", SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value());
+
     TestObject<ArchetypeType> ARCHETYPE_RECONCILIATION_TASK = TestObject.classPath(
             ARCHETYPES, "501-archetype-task-reconciliation.xml",
             SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
@@ -141,6 +144,12 @@ public interface CommonInitialObjects {
 
     TestObject<MarkType> MARK_INVALID_DATA = TestObject.classPath(
             MARKS, "804-mark-invalid-data.xml", SystemObjectsType.MARK_INVALID_DATA.value());
+
+    TestObject<MarkType> MARK_UNMANAGED = TestObject.classPath(
+            MARKS, "805-mark-unmanaged.xml", SystemObjectsType.MARK_UNMANAGED.value());
+
+    TestObject<MarkType> MARK_MANAGED = TestObject.classPath(
+            MARKS, "806-mark-managed.xml", SystemObjectsType.MARK_MANAGED.value());
 
     TestObject<MarkType> MARK_EXCLUSION_VIOLATION = TestObject.classPath(
             MARKS, "811-exclusion-violation.xml", SystemObjectsType.MARK_EXCLUSION_VIOLATION.value());
@@ -271,6 +280,7 @@ public interface CommonInitialObjects {
                     task, result,
                     ARCHETYPE_EVENT_MARK,
                     ARCHETYPE_OBJECT_MARK,
+                    ARCHETYPE_SHADOW_POLICY_MARK,
                     MARK_FOCUS_ACTIVATED,
                     MARK_FOCUS_DEACTIVATED,
                     MARK_FOCUS_RENAMED,
@@ -292,6 +302,8 @@ public interface CommonInitialObjects {
                     MARK_CORRELATE_LATER,
                     MARK_DO_NOT_TOUCH,
                     MARK_INVALID_DATA,
+                    MARK_UNMANAGED,
+                    MARK_MANAGED,
                     MARK_EXCLUSION_VIOLATION,
                     MARK_REQUIREMENT_VIOLATION,
                     MARK_UNDERASSIGNED,

@@ -62,6 +62,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 import static com.evolveum.midpoint.model.impl.lens.ChangeExecutionResult.getExecutedDelta;
 import static com.evolveum.midpoint.model.impl.lens.ElementState.in;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -1576,7 +1577,25 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (fullShadow) {
             sb.append(", full");
         } else {
-            sb.append(", shadow-only (not full)");
+            sb.append(", shadow-only (not full) ");
+            var current = getObjectCurrent();
+            if (current != null) {
+                ResourceObjectDefinition definition = null;
+                try {
+                    definition = getStructuralObjectDefinition();
+                    if (definition == null) {
+                        sb.append("(no definition)");
+                    } else {
+                        sb.append("(fresh: ");
+                        sb.append(ShadowUtil.isShadowFresh(current, ModelBeans.get().clock.currentTimeXMLGregorianCalendar()));
+                        sb.append(")");
+                    }
+                } catch (Throwable t) {
+                    sb.append("(definition/freshness error: ").append(t.getMessage()).append(")");
+                }
+            } else {
+                sb.append("(no current)");
+            }
         }
         sb.append(", exists=").append(exists);
         if (!shadowExistsInRepo) {
@@ -2142,35 +2161,35 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     @Nullable
-    private ObjectOperationPolicyType operationPolicy(OperationResult result) {
+    private ObjectOperationPolicyType operationPolicy(OperationResult result) throws ConfigurationException {
         if (getObjectNewOrCurrentOrOld() == null) {
             return null;
         }
         return ObjectOperationPolicyHelper.get().getEffectivePolicy(getObjectNewOrCurrentOrOld().asObjectable(), result);
     }
 
-    public boolean isMarkedReadOnly(OperationResult result) {
+    public boolean isMarkedReadOnly(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
             return false;
         }
-        return !policy.getAdd().isEnabled() && !policy.getModify().isEnabled() && !policy.getDelete().isEnabled();
+        return isAddDisabled(policy) && isModifyDisabled(policy) && isDeleteDisabled(policy);
     }
 
-    public boolean isInboundSyncDisabled(OperationResult result) {
+    public boolean isInboundSyncDisabled(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
             return false;
         }
-        return !policy.getSynchronize().getInbound().isEnabled();
+        return isSyncInboundDisabled(policy); // TODO severity
     }
 
-    public boolean isOutboundSyncDisabled(OperationResult result) {
+    public boolean isOutboundSyncDisabled(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
             return false;
         }
-        return !policy.getSynchronize().getOutbound().isEnabled();
+        return isSyncOutboundDisabled(policy); // TODO severity
     }
 
     /**

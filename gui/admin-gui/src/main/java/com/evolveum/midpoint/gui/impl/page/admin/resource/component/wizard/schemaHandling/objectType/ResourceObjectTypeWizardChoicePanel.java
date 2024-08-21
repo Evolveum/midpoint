@@ -46,14 +46,13 @@ public abstract class ResourceObjectTypeWizardChoicePanel
     public enum ResourceObjectTypePreviewTileType implements TileEnum {
 
         BASIC("fa fa-circle"),
-//        PREVIEW_DATA("fa fa-magnifying-glass"),
         ATTRIBUTE_MAPPING("fa fa-retweet"),
         SYNCHRONIZATION("fa fa-arrows-rotate"),
         CORRELATION("fa fa-code-branch"),
         CAPABILITIES("fa fa-atom"),
         ACTIVATION("fa fa-toggle-off"),
         CREDENTIALS("fa fa-key"),
-        ASSOCIATIONS("fa fa-shield");
+        POLICIES("fa fa-balance-scale");
 
         private final String icon;
 
@@ -74,23 +73,6 @@ public abstract class ResourceObjectTypeWizardChoicePanel
 
     @Override
     protected void addCustomButtons(RepeatingView buttons) {
-//        AjaxIconButton goToResource = new AjaxIconButton(
-//                buttons.newChildId(),
-//                Model.of("fa fa-server"),
-//                getPageBase().createStringResource(
-//                        "WizardChoicePanel.toObject" ,
-//                        WebComponentUtil.translateMessage(
-//                                ObjectTypeUtil.createTypeDisplayInformation(
-//                                        getObjectType().getLocalPart(), false)))) {
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                goToObjectPerformed(getObjectType());
-//            }
-//        };
-//        goToResource.showTitleAsLabel(true);
-//        goToResource.add(AttributeAppender.append("class", "btn btn-default"));
-//        buttons.add(goToResource);
-
         AjaxIconButton previewData = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-magnifying-glass"),

@@ -21,11 +21,8 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Definition of a {@link ShadowAssociation}, e.g., `ri:group`.
@@ -37,30 +34,28 @@ public interface ShadowAssociationDefinition
         PrismContainerDefinition<ShadowAssociationValueType>,
         ShadowItemDefinition {
 
-    /** True if this is a "rich" association (with association object), false if it's a trivial one. */
-    default boolean hasAssociationObject() {
-        return getReferenceAttributeDefinition()
-                .isTargetingSingleEmbeddedObjectClass();
-    }
+    /** True if this is a "complex" association (with association data object), false if it's a trivial one. */
+    boolean isComplex();
 
-    /** Returns the association object definition (for complex associations), or fails (for trivial ones). */
-    default @NotNull ResourceObjectDefinition getAssociationObjectDefinition() {
-        stateCheck(hasAssociationObject(), "No association object in " + this);
-
-        var immediateTargets = getReferenceAttributeDefinition().getTargetParticipantTypes();
-        return MiscUtil.extractSingletonRequired(
-                        immediateTargets,
-                        () -> new IllegalStateException("Multiple immediate targets in " + this + ": " + immediateTargets),
-                        () -> new IllegalStateException("No immediate target in " + this))
-                .getObjectDefinition();
-    }
+    /** Returns the association object definition (for complex associations), or fails (for simple ones). */
+    @NotNull ResourceObjectDefinition getAssociationDataObjectDefinition();
 
     /**
      * Provides information on acceptable types of shadows participating in this association as objects.
      * These come from the underlying reference attribute definition, but can be further restricted by the association
      * type definition.
      */
-    @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants(@NotNull CompleteResourceSchema resourceSchema);
+    @NotNull Multimap<QName, ShadowRelationParticipantType> getObjectParticipants();
+
+    /**
+     * Returns the name(s) of participant(s) playing the role of association object:
+     *
+     * - Exactly one for simple associations.
+     * - Zero, one, or more for complex associations.
+     */
+    default @NotNull Collection<QName> getObjectParticipantNames() {
+        return getObjectParticipants().keySet();
+    }
 
     default boolean matches(@NotNull ShadowType potentialTarget) {
         return getReferenceAttributeDefinition().getTargetParticipantTypes().stream()
@@ -137,17 +132,15 @@ public interface ShadowAssociationDefinition
 
     ItemPath getStandardPath();
 
-    /** To be used only for trivial associations. */
+    /** To be used only for trivial associations; moreover, replaced by mark-based tolerance. */
     default List<String> getTolerantValuePatterns() {
         return getReferenceAttributeDefinition().getTolerantValuePatterns();
     }
 
-    /** To be used only for trivial associations. */
+    /** To be used only for trivial associations; moreover, replaced by mark-based tolerance. */
     default List<String> getIntolerantValuePatterns() {
         return getReferenceAttributeDefinition().getIntolerantValuePatterns();
     }
 
-    default boolean isTolerant() {
-        return getReferenceAttributeDefinition().isTolerant();
-    }
+    boolean isTolerant();
 }

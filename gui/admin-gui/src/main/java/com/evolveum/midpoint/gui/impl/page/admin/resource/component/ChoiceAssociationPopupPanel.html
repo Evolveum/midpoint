@@ -1,0 +1,21 @@
+<!--
+  ~ Copyright (c) 2023 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div class="d-flex flex-wrap">
+        <div wicket:id="list">
+            <div wicket:id="tile"/>
+        </div>
+    </div>
+
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex">
+            <a wicket:id="cancelButton" class="ml-auto btn btn-default">
+                <span><wicket:message key="PageBase.button.cancel"/></span>
+            </a>
+        </div>
+    </wicket:fragment>
+</wicket:panel>

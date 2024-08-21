@@ -253,9 +253,9 @@ class MappedSourceItems<T extends Containerable> {
 
         MappedSourceItem.ItemProvider<ShadowAssociationValue, ShadowAssociationDefinition>
                 associationProvider = () -> {
-                    //noinspection unchecked,rawtypes
-                    return (Item) MappedSourceItems.this.inboundsSource.sourceData.getAssociation(assocName);
-                };
+            //noinspection unchecked,rawtypes
+            return (Item) MappedSourceItems.this.inboundsSource.sourceData.getAssociation(assocName);
+        };
 
         if (inboundsSource.isItemNotProcessable(
                 itemPath,

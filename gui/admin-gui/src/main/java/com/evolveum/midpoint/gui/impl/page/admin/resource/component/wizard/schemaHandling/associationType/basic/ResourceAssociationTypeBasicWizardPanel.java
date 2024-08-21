@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -107,8 +109,6 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                     getValueModel().getObject().findContainer(ShadowAssociationTypeDefinitionType.F_OBJECT);
             cleanParticipantContainer(objectContainer);
 
-
-            boolean selectSubject = true;
             if (value.getSubject().getKind() != null) {
                 PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeOfSubjectContainer =
                         getValueModel().getObject().findContainer(
@@ -117,7 +117,6 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                                         ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE));
 
                 addNewValue(objectTypeOfSubjectContainer, value.getSubject());
-                selectSubject = false;
             }
 
             PrismPropertyWrapper<ItemPathType> sourceAttributeRef =
@@ -148,21 +147,18 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                                     ShadowAssociationDefinitionType.F_REF));
             refAttribute.getValue().setRealValue(new ItemPathType(ItemPath.create(refQName)));
 
-
-            boolean selectObject = true;
             if (value.getObjects().size() == 1 && value.getObjects().get(0).getKind() != null) {
                 PrismContainerValueWrapper<Containerable> objectContainerValue = objectContainer.getValues().get(0);
                 PrismContainerWrapper<ResourceObjectTypeIdentificationType> objectTypeOfObjectContainer =
                         objectContainerValue.findContainer(ShadowAssociationTypeObjectDefinitionType.F_OBJECT_TYPE);
 
                 addNewValue(objectTypeOfObjectContainer, value.getObjects().get(0));
-                selectObject = false;
             }
 
             showWizardFragment(target,
                     new WizardPanel(
                             getIdOfWizardPanel(),
-                            new WizardModel(createBasicStepsForCreate(selectSubject, selectObject))));
+                            new WizardModel(createBasicStepsForCreate())));
 
         } catch (SchemaException e) {
             LOGGER.error("Couldn't save association configuration.", e);
@@ -189,7 +185,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
         container.getValues().add(valueWrapper);
     }
 
-    private List<WizardStep> createBasicStepsForCreate(boolean selectSubject, boolean selectObject) {
+    private List<WizardStep> createBasicStepsForCreate() {
         List<WizardStep> steps = new ArrayList<>();
 
         steps.add(new BasicSettingResourceAssociationTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
@@ -210,23 +206,19 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             }
         });
 
-        if (selectSubject) {
-            steps.add(new SubjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
-                @Override
-                protected void onExitPerformed(AjaxRequestTarget target) {
-                    ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
-                }
-            });
-        }
+        steps.add(new SubjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
+            }
+        });
 
-        if(selectObject) {
-            steps.add(new ObjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
-                @Override
-                protected void onExitPerformed(AjaxRequestTarget target) {
-                    ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
-                }
-            });
-        }
+        steps.add(new ObjectAssociationStepPanel(getAssignmentHolderModel(), getValueModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
+            }
+        });
 
         steps.add(new AssociationDataAssociationTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
 
@@ -236,8 +228,6 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                 if (result == null || result.isError()) {
                     target.add(getFeedback());
                     refresh(target);
-                } else {
-                    onExitPerformed(target);
                 }
             }
 
@@ -265,6 +255,14 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             }
 
             @Override
+            public VisibleEnableBehaviour getBackBehaviour() {
+                return new VisibleBehaviour(() -> showChoicePanel);
+            }
+        });
+
+        steps.add(new AssociationDataAssociationTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
+
+            @Override
             protected void onSubmitPerformed(AjaxRequestTarget target) {
                 OperationResult result = ResourceAssociationTypeBasicWizardPanel.this.onSavePerformed(target);
                 if (result == null || result.isError()) {
@@ -276,8 +274,19 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             }
 
             @Override
-            public VisibleEnableBehaviour getBackBehaviour() {
-                return new VisibleBehaviour(() -> showChoicePanel);
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ResourceAssociationTypeBasicWizardPanel.this.onExitPerformed(target);
+            }
+
+            @Override
+            protected ItemVisibilityHandler getVisibilityHandler() {
+                return wrapper -> {
+                    if (wrapper.getItemName().equals(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF)
+                            || wrapper.getItemName().equals(ShadowAssociationDefinitionType.F_REF)) {
+                        return ItemVisibility.HIDDEN;
+                    }
+                    return ItemVisibility.AUTO;
+                };
             }
         });
         return steps;

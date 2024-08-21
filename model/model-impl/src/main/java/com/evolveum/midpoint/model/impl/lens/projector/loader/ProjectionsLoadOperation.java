@@ -522,6 +522,10 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 // Make sure it has a proper definition. This may come from outside of the model.
                 provisioningService.applyDefinition(embeddedShadow, task, result);
                 provisioningService.determineShadowState(embeddedShadow, task, result);
+                if (embeddedShadow.asObjectable().getEffectiveOperationPolicy() == null) {
+                    // As far as marks are to be computed, we assume that the shadow does not exist yet in the repository.
+                    provisioningService.updateShadowMarksAndPolicies(embeddedShadow, true, task, result);
+                }
                 return embeddedShadow;
             }
 
@@ -653,6 +657,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                                     .build();
                     shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
                     provisioningService.determineShadowState(shadow, task, result);
+                    provisioningService.updateShadowMarksAndPolicies(shadow, false, task, result);
                     projectionContext = getOrCreateEmptyGone(oid);
                     projectionContext.setFresh(true);
                     projectionContext.setExists(false);

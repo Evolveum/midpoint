@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -111,15 +112,18 @@ public class AssociationAttributeMappingItemPathPanelFactory extends AttributeMa
 
     @Override
     protected List<DisplayableValue<ItemPathType>> getAttributes(ResourceSchema schema, PrismValueWrapper<ItemPathType> propertyWrapper) {
-        ShadowReferenceAttributeDefinition refAttribute = AssociationChildWrapperUtil.getShadowReferenceAttribute(schema, propertyWrapper);
-        if (refAttribute == null) {
+        ShadowAssociationDefinition assocDef = AssociationChildWrapperUtil.getShadowAssociationDefinition(schema, propertyWrapper);
+        if (assocDef == null) {
             return Collections.emptyList();
         }
 
         List<DisplayableValue<ItemPathType>> attributes = new ArrayList<>();
-        refAttribute.getRepresentativeTargetObjectDefinition().getAttributeDefinitions()
-                .forEach(attribute -> attributes.add(createDisplayValue(attribute)));
-        attributes.add(createDisplayValue(refAttribute));
+        if (!assocDef.isComplex()){
+            return attributes;
+        }
+        assocDef.getAssociationDataObjectDefinition().getSimpleAttributeDefinitions()
+                .forEach(attr -> attributes.add(createDisplayValue(attr)));
+
         return attributes;
     }
 
