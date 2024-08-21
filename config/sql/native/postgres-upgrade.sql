@@ -945,6 +945,22 @@ call apply_change(45, $aa$
        ADD COLUMN   disableTimestamp TIMESTAMPTZ;
 $aa$);
 
+call apply_change(46, $aa$
+    ALTER TABLE m_role_analysis_outlier
+       ADD COLUMN targetObjectRefTargetOid UUID,
+       ADD COLUMN targetObjectRefTargetType ObjectType,
+       ADD COLUMN targetObjectRefRelationId INTEGER REFERENCES m_uri(id)
+
+       CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetOid_idx
+               ON m_role_analysis_outlier (targetObjectRefTargetOid);
+
+       CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetType_idx
+               ON m_role_analysis_outlier (targetObjectRefTargetType);
+
+       CREATE INDEX m_role_analysis_outlier_targetObjectRefRelationId_idx
+               ON m_role_analysis_outlier (targetObjectRefRelationId);
+$aa$);
+
 
 ---
 -- WRITE CHANGES ABOVE ^^
