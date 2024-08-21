@@ -1,3 +1,7 @@
+---
+midpoint-feature: policy-concept
+doc-type: intro
+---
 = PolicyType
 :page-upkeep-status: yellow
 
