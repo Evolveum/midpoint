@@ -15,16 +15,13 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import com.evolveum.midpoint.util.DebugUtil;
-
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
+
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * The state of the subscription with regards to the current situation
@@ -154,7 +151,19 @@ public class SubscriptionState implements DebugDumpable, Serializable {
 
     /** Should we allow clustering? In production environments ONLY with an active subscription. */
     public boolean isClusteringAvailable() {
-        return isActive() || !isProductionEnvironment();
+        return (isActive() || !isProductionEnvironment()) && !noFeatureSubscriptionType();
+    }
+
+    public boolean noFeatureSubscriptionType() {
+        return subscriptionId.isWellFormed() && (subscriptionId.getType() == SubscriptionId.Type.CONSULTING_PLATFORM
+                || subscriptionId.getType() == SubscriptionId.Type.PRODUCT_SUPPORT_JP_MODEL
+                || subscriptionId.getType() == SubscriptionId.Type.PRODUCT_SUPPORT_SAAS);
+    }
+
+    public boolean isFooterVisible() {
+        return isInactiveOrDemo()
+                || isInGracePeriod()
+                || noFeatureSubscriptionType();
     }
 
     public @NotNull SystemFeatures getSystemFeatures() {
