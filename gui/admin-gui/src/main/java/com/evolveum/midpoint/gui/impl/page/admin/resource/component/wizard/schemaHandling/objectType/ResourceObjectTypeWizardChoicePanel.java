@@ -51,7 +51,8 @@ public abstract class ResourceObjectTypeWizardChoicePanel
         CORRELATION("fa fa-code-branch"),
         CAPABILITIES("fa fa-atom"),
         ACTIVATION("fa fa-toggle-off"),
-        CREDENTIALS("fa fa-key");
+        CREDENTIALS("fa fa-key"),
+        POLICIES("fa fa-balance-scale");
 
         private final String icon;
 

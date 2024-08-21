@@ -253,7 +253,7 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
                     getContainerConfiguration()) {
                 @Override
                 protected boolean isHeaderVisible() {
-                    return false;
+                    return isHeaderOfCreateObjectVisible();
                 }
 
                 @Override
@@ -307,5 +307,9 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
      */
     public Component getReferencePanel() {
         return get(createComponentPath(ID_USE_EXISTING_CONTAINER, ID_USE_EXISTING_INPUT));
+    }
+
+    protected boolean isHeaderOfCreateObjectVisible() {
+        return false;
     }
 }
