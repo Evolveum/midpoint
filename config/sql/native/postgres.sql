@@ -1058,7 +1058,11 @@ CREATE TABLE m_shadow (
     correlationEndTimestamp TIMESTAMPTZ,
     correlationCaseOpenTimestamp TIMESTAMPTZ,
     correlationCaseCloseTimestamp TIMESTAMPTZ,
-    correlationSituation CorrelationSituationType
+    correlationSituation CorrelationSituationType,
+    disableReasonId INTEGER REFERENCES m_uri(id),
+    enableTimestamp TIMESTAMPTZ,
+    disableTimestamp TIMESTAMPTZ
+
 ) PARTITION BY LIST (resourceRefTargetOid);
 
 CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
@@ -2597,4 +2601,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(44, $$ SELECT 1 $$, true);
+call apply_change(45, $$ SELECT 1 $$, true);

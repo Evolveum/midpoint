@@ -73,6 +73,15 @@ public class QShadow extends QObject<MShadow> {
     public static final ColumnMetadata CORRELATION_SITUATION =
             ColumnMetadata.named("correlationSituation").ofType(Types.OTHER);
 
+
+    public static final ColumnMetadata ACTIVATION_DISABLE_REASON_ID =
+            ColumnMetadata.named("disableReasonId").ofType(Types.INTEGER);
+
+    public static final ColumnMetadata ACTIVATION_ENABLE_TIMESTAMP =
+            ColumnMetadata.named("enableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+    public static final ColumnMetadata ACTIVATION_DISABLE_TIMESTAMP =
+            ColumnMetadata.named("disableTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
+
     // columns and relations
 
     public final NumberPath<Integer> objectClassId =
@@ -112,6 +121,14 @@ public class QShadow extends QObject<MShadow> {
             createInstant("correlationCaseCloseTimestamp", CORRELATION_CASE_CLOSE_TIMESTAMP);
     public final EnumPath<CorrelationSituationType> correlationSituation =
             createEnum("correlationSituation", CorrelationSituationType.class, CORRELATION_SITUATION);
+
+    public final NumberPath<Integer> disableReasonId =
+            createInteger("disableReasonId", ACTIVATION_DISABLE_REASON_ID);
+    public final DateTimePath<Instant> enableTimestamp =
+            createInstant("enableTimestamp", ACTIVATION_ENABLE_TIMESTAMP);
+
+    public final DateTimePath<Instant> disableTimestamp =
+            createInstant("disableTimestamp", ACTIVATION_DISABLE_TIMESTAMP);
 
     public QShadow(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

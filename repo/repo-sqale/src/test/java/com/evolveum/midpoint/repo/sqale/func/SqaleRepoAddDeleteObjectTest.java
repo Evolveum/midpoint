@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sqale.qmodel.focus.*;
 
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
@@ -1053,6 +1054,10 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .name(objectName)
                 .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .activation(new ActivationType()
+                        .disableReason(SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT)
+                        .enableTimestamp(XmlTypeConverter.createXMLGregorianCalendar())
+                )
                 .extension(new ExtensionType());
 
         ExtensionType extensionContainer = object.getExtension();
