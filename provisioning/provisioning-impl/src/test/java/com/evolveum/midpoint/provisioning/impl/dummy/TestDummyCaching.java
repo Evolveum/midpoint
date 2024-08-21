@@ -448,17 +448,12 @@ public class TestDummyCaching extends TestDummy {
 
     @Override
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
-        return getAccountDefaultDefinition().getAttributeDefinitions().stream()
-                .map(def -> def.getItemName())
-                .toList();
+        return getAccountDefaultDefinition().getAttributeNames();
     }
 
     @Override
     protected void assertRepoShadowCacheActivation(RawRepoShadow repoShadow, ActivationStatusType expectedAdministrativeStatus) {
-        ActivationType activationType = repoShadow.getBean().getActivation();
-        assertNotNull("No activation in repo shadow " + repoShadow, activationType);
-        ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
-        assertEquals("Wrong activation administrativeStatus in repo shadow " + repoShadow, expectedAdministrativeStatus, administrativeStatus);
+        assertRepoShadowCacheActivation(repoShadow, expectedAdministrativeStatus, true);
     }
 
     @Override
@@ -471,18 +466,12 @@ public class TestDummyCaching extends TestDummy {
 
     @Override
     protected void assertRepoCachingMetadata(PrismObject<ShadowType> shadowFromRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        CachingMetadataType cachingMetadata = shadowFromRepo.asObjectable().getCachingMetadata();
-        assertNotNull("No caching metadata in " + shadowFromRepo, cachingMetadata);
-
-        TestUtil.assertBetween("retrieval timestamp in caching metadata in " + shadowFromRepo,
-                start, end, cachingMetadata.getRetrievalTimestamp());
+        assertRepoCachingMetadata(shadowFromRepo, start, end, true);
     }
 
     @Override
     protected void assertCachingMetadata(ShadowType shadow, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
-        CachingMetadataType cachingMetadata = shadow.getCachingMetadata();
-        assertNotNull("No caching metadata in " + shadow, cachingMetadata);
-        TestUtil.assertBetween("retrievalTimestamp in caching metadata in " + shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
+        assertCachingMetadata(shadow, startTs, endTs, true);
     }
 
     @Override

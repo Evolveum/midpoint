@@ -1,4 +1,4 @@
-= What's New For Tasks in 4.4
+= What is New For Tasks starting 4.4
 
 == Activities
 

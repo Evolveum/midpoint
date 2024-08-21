@@ -56,6 +56,9 @@ public class RelatedTasksPanel extends BasePanel {
     private static final String ID_RELATED_TASKS = "relatedTasks";
     private CertificationDetailsModel model;
 
+    private static final int MAX_RELATED_TASKS = 5;
+    private int realTasksCount = 0;
+
     public RelatedTasksPanel(String id, CertificationDetailsModel model) {
         super(id);
         this.model = model;
@@ -64,28 +67,42 @@ public class RelatedTasksPanel extends BasePanel {
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initRelatedTasksPanel();
+        add(initRelatedTasksPanel(ID_RELATED_TASKS, true));
     }
 
-    private void initRelatedTasksPanel() {
-        IModel<List<StatisticBoxDto<TaskType>>> tasksModel = getRelatedTasksModel();
+    private StatisticListBoxPanel<TaskType> initRelatedTasksPanel(String id, boolean allowViewAll) {
+        IModel<List<StatisticBoxDto<TaskType>>> tasksModel = getRelatedTasksModel(allowViewAll);
         DisplayType relatedTasksDisplay = new DisplayType()
                 .label("RelatedTasksPanel.title");
-        StatisticListBoxPanel<TaskType> relatedTasks = new StatisticListBoxPanel<>(ID_RELATED_TASKS, Model.of(relatedTasksDisplay),
+        return new StatisticListBoxPanel<>(id, Model.of(relatedTasksDisplay),
                 tasksModel) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected void viewAllActionPerformed(AjaxRequestTarget target) {
-                //todo show in the popup? redirect to the report page?
+            protected boolean isViewAllAllowed() {
+                return tasksCountExceedsLimit() && allowViewAll;
             }
 
             @Override
-            protected Component createRightSideBoxComponent(String id, IModel<StatisticBoxDto<TaskType>> model) {
-                return createRightSideTaskComponent(id, model.getObject().getStatisticObject());
+            protected void viewAllActionPerformed(AjaxRequestTarget target) {
+                showAllRelatedTasksPerformed(target);
+            }
+
+
+            @Override
+            protected Component createRightSideBoxComponent(String id, StatisticBoxDto<TaskType> statisticObject) {
+                return createRightSideTaskComponent(id, statisticObject.getStatisticObject());
             }
         };
-        add(relatedTasks);
+    }
+
+    private void showAllRelatedTasksPerformed(AjaxRequestTarget target) {
+        getPageBase().showMainPopup(initRelatedTasksPanel(getPageBase().getMainPopupBodyId(), false), target);
+    }
+
+
+    private boolean tasksCountExceedsLimit() {
+        return realTasksCount > MAX_RELATED_TASKS;
     }
 
     private Component createRightSideTaskComponent(String id, TaskType task) {
@@ -159,21 +176,26 @@ public class RelatedTasksPanel extends BasePanel {
         return reports.get(0).asObjectable();
     }
 
-    private IModel<List<StatisticBoxDto<TaskType>>> getRelatedTasksModel() {
+    private IModel<List<StatisticBoxDto<TaskType>>> getRelatedTasksModel(boolean restricted) {
         return () -> {
             List<StatisticBoxDto<TaskType>> list = new ArrayList<>();
             List<TaskType> tasks = loadTasks();
             if (tasks == null) {
                 return list;
             }
-            tasks.forEach(t -> list.add(createTaskStatisticBoxDto(t)));
+            if (restricted) {
+                realTasksCount = tasks.size();
+                tasks.stream().limit(MAX_RELATED_TASKS).forEach(t -> list.add(createTaskStatisticBoxDto(t)));
+            } else {
+                tasks.forEach(t -> list.add(createTaskStatisticBoxDto(t)));
+            }
             return list;
         };
     }
 
     private List<TaskType> loadTasks() {
         String campaignOid = model.getObjectType().getOid();
-        ObjectQuery query = getPrismContext().queryFor(TaskType.class)
+        ObjectQuery query = PrismContext.get().queryFor(TaskType.class)
                 .item(ItemPath.create(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY,
                         ActivityAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_OBJECT_REF))
                 .ref(campaignOid)

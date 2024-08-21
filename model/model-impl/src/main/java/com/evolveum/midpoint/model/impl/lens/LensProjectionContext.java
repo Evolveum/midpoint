@@ -1577,7 +1577,25 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (fullShadow) {
             sb.append(", full");
         } else {
-            sb.append(", shadow-only (not full)");
+            sb.append(", shadow-only (not full) ");
+            var current = getObjectCurrent();
+            if (current != null) {
+                ResourceObjectDefinition definition = null;
+                try {
+                    definition = getStructuralObjectDefinition();
+                    if (definition == null) {
+                        sb.append("(no definition)");
+                    } else {
+                        sb.append("(fresh: ");
+                        sb.append(ShadowUtil.isShadowFresh(current, ModelBeans.get().clock.currentTimeXMLGregorianCalendar()));
+                        sb.append(")");
+                    }
+                } catch (Throwable t) {
+                    sb.append("(definition/freshness error: ").append(t.getMessage()).append(")");
+                }
+            } else {
+                sb.append("(no current)");
+            }
         }
         sb.append(", exists=").append(exists);
         if (!shadowExistsInRepo) {

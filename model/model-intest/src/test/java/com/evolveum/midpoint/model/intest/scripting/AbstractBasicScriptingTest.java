@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.intest.CommonArchetypes;
 import com.evolveum.midpoint.schema.config.ConfigurationItemOrigin;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.ScriptingBeansUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
 
@@ -411,7 +412,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         assertSuccess(result);
         assertEquals(5, output.getFinalOutput().getData().size());
-        assertAttributesNotFetched(output.getFinalOutput().getData());
+        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            assertAttributesNotFetched(output.getFinalOutput().getData());
+        }
     }
 
     @Test
@@ -447,7 +450,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         assertSuccess(result);
         assertEquals(4, output.getFinalOutput().getData().size());
-        assertAttributesNotFetched(output.getFinalOutput().getData());
+        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            assertAttributesNotFetched(output.getFinalOutput().getData());
+        }
     }
 
     @Test

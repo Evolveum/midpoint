@@ -80,6 +80,7 @@ public class ItemPanelSettings implements Serializable {
                 .editabilityHandler(editabilityHandler)
                 .visibilityHandler(visibilityHandler)
                 .mandatoryHandler(mandatoryHandler)
+                .displayedInColumn(displayedInColumn)
                 .build();
     }
 }

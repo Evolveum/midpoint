@@ -5,6 +5,11 @@
        When any of suppresion has notes and cve reordered, it will not load suppression file
   -->
   <suppress>
+      <notes>False Positive. Derby is not part of production build of midPoint, it is used only for testing.</notes>
+      <cve>CVE-2022-46337</cve>
+  </suppress>
+  
+  <suppress>
       <notes>False Positive. Jetty is not part of production build of midPoint, it is used only for testing.</notes>
       <cve>CVE-2023-36478</cve>
       <cve>CVE-2023-44487</cve>

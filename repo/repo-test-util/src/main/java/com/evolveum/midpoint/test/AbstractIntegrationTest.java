@@ -1458,6 +1458,18 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
     }
 
+    protected void assertSteadyResourcesAfterInvalidation() {
+        var invalidated = InternalsConfig.isShadowCachingOnByDefault();
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, invalidated ? 1 : 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, invalidated ? 1 : 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+    }
+
     protected void rememberSteadyResources() {
         rememberCounter(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT);
         rememberCounter(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
@@ -4593,13 +4605,17 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void invalidateShadowCacheIfNeeded(String resourceOid)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        repositoryService.modifyObject(
-                ResourceType.class,
-                resourceOid,
-                prismContext.deltaFor(ResourceType.class)
-                        .item(ResourceType.F_CACHE_INVALIDATION_TIMESTAMP)
-                        .replace(clock.currentTimeXMLGregorianCalendar())
-                        .asItemDeltas(),
-                getTestOperationResult());
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            repositoryService.modifyObject(
+                    ResourceType.class,
+                    resourceOid,
+                    prismContext.deltaFor(ResourceType.class)
+                            .item(ResourceType.F_CACHE_INVALIDATION_TIMESTAMP)
+                            .replace(clock.currentTimeXMLGregorianCalendar())
+                            .asItemDeltas(),
+                    getTestOperationResult());
+        } else {
+            // No need to invalidate; caching should either be off, or the test should take care of invalidation.
+        }
     }
 }

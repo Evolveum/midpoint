@@ -735,7 +735,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         updateQueryModelSearchAndParameters(item);
 
         TileTablePanel<?, ?> tilesTable = getTileTable();
-        tilesTable.initHeaderFragment();
+//        tilesTable.initHeaderFragment();
 
         target.add(tilesTable);
         target.add(get(ID_MENU));

@@ -614,6 +614,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         dmsScenario.accountAccess.add(dmsScenario.account.getByNameRequired(userName), dummyAdminAccess);
         dmsScenario.accessDocument.add(dummyAdminAccess, dmsScenario.document.getByNameRequired(documentName));
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_DMS.oid);
+
         and("provisioning the user with write access to the document");
         executeChanges(
                 deltaFor(UserType.class)
@@ -836,6 +838,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         adScenario.accountGroup.add(
                 adScenario.account.getByNameRequired(userName),
                 adScenario.group.getByNameRequired(ROLE_TESTERS_NAME));
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AD.oid);
 
         and("provisioning the user with 'operators' membership");
         executeChanges(

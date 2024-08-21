@@ -711,6 +711,14 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    /** Requires {@link #abstractShadow} to be present. */
+    public ShadowAsserter<RA> assertAttributesAtLeast(int expectedNumber) {
+        assertThat(ShadowUtil.getAttributesTolerant(getObjectable()))
+                .as("attributes")
+                .hasSizeGreaterThanOrEqualTo(expectedNumber);
+        return this;
+    }
+
     private void checkAbstractShadowPresent() {
         stateCheck(abstractShadow != null, "This assertion is available only when abstractShadow is present.");
     }

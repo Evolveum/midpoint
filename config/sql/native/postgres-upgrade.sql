@@ -938,6 +938,13 @@ call apply_change(44, $aa$
 ALTER TYPE ShadowKindType RENAME VALUE 'ASSOCIATED' TO 'ASSOCIATION';
 $aa$);
 
+call apply_change(45, $aa$
+    ALTER TABLE m_shadow
+       ADD COLUMN disableReasonId INTEGER REFERENCES m_uri(id),
+       ADD COLUMN  enableTimestamp TIMESTAMPTZ,
+       ADD COLUMN   disableTimestamp TIMESTAMPTZ;
+$aa$);
+
 
 ---
 -- WRITE CHANGES ABOVE ^^

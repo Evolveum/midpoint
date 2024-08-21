@@ -37,6 +37,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.IResource;
 
@@ -53,6 +54,8 @@ import java.util.List;
                 icon = GuiStyleConstants.CLASS_TASK_STATISTICS_ICON, order = 10))
 public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCertificationCampaignType, CertificationDetailsModel> {
 
+    @Serial private static final long serialVersionUID = 1L;
+
     private static final Trace LOGGER = TraceManager.getTrace(CampaignStatisticsPanel.class);
 
     private static final String DOT_CLASS = CampaignStatisticsPanel.class.getName() + ".";
@@ -62,30 +65,39 @@ public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCerti
     private static final String ID_RELATED_REPORTS = "relatedTasks";
     private static final String ID_REVIEWERS_PANEL = "reviewersPanel";
 
+    //todo?
+    private static final int MAX_REVIEWERS = 5;
+    private int realreviewersCount;
+
     public CampaignStatisticsPanel(String id, CertificationDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
     @Override
     protected void initLayout() {
-        initReviewersPanel();
+        add(initReviewersPanel(ID_REVIEWERS_PANEL, true));
         add(new RelatedTasksPanel(ID_RELATED_REPORTS, getObjectDetailsModels()));
     }
 
-    private void initReviewersPanel() {
-        IModel<List<StatisticBoxDto<ObjectReferenceType>>> reviewersModel = getReviewersModel();
-        StatisticListBoxPanel<ObjectReferenceType> reviewersPanel = new StatisticListBoxPanel<>(ID_REVIEWERS_PANEL,
+    private StatisticListBoxPanel<ObjectReferenceType> initReviewersPanel(String id, boolean allowViewAll) {
+        IModel<List<StatisticBoxDto<ObjectReferenceType>>> reviewersModel = getReviewersModel(allowViewAll);
+        return new StatisticListBoxPanel<>(id,
                 getReviewersPanelDisplayModel(reviewersModel.getObject().size()), reviewersModel) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected void viewAllActionPerformed(AjaxRequestTarget target) {
-                //todo show in the popup?
+            protected boolean isViewAllAllowed() {
+                return reviewersCountExceedsLimit() && allowViewAll;
             }
 
             @Override
-            protected Component createRightSideBoxComponent(String id, IModel<StatisticBoxDto<ObjectReferenceType>> model) {
-                ObjectReferenceType reviewerRef = model.getObject().getStatisticObject();
+            protected void viewAllActionPerformed(AjaxRequestTarget target) {
+                showAllReviewersPerformed(target);
+            }
+
+            @Override
+            protected Component createRightSideBoxComponent(String id, StatisticBoxDto<ObjectReferenceType> statisticObject) {
+                ObjectReferenceType reviewerRef = statisticObject.getStatisticObject();
                 DoughnutChartConfiguration chartConfig = getReviewerProgressChartConfig(reviewerRef);
 
                 ChartJsPanel<ChartConfiguration> chartPanel = new ChartJsPanel<>(id, Model.of(chartConfig)) {
@@ -102,7 +114,6 @@ public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCerti
                 return chartPanel;
             }
         };
-        add(reviewersPanel);
     }
 
     private DoughnutChartConfiguration getReviewerProgressChartConfig(ObjectReferenceType reviewerRef) {
@@ -112,19 +123,32 @@ public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCerti
         }
         AccessCertificationCampaignType campaign = getObjectDetailsModels().getObjectType();
         MidPointPrincipal principal = MidPointPrincipal.create(reviewer.asObjectable());
-        long notDecidedCertItemsCount = CertMiscUtil.countOpenCertItems(Collections.singletonList(campaign.getOid()),
-                principal, true, getPageBase());
         return CertMiscUtil.createDoughnutChartConfigForCampaigns(
                 Collections.singletonList(campaign.getOid()), principal, getPageBase());
     }
 
-    private IModel<List<StatisticBoxDto<ObjectReferenceType>>> getReviewersModel() {
-        return () -> {
-            List<StatisticBoxDto<ObjectReferenceType>> list = new ArrayList<>();
-            List<ObjectReferenceType> reviewers = loadReviewers();
-            reviewers.forEach(r -> list.add(createReviewerStatisticBoxDto(r)));
-            return list;
+    private LoadableDetachableModel<List<StatisticBoxDto<ObjectReferenceType>>> getReviewersModel(boolean restricted) {
+        return new LoadableDetachableModel<>() {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<StatisticBoxDto<ObjectReferenceType>> load() {
+                List<StatisticBoxDto<ObjectReferenceType>> list = new ArrayList<>();
+                List<ObjectReferenceType> reviewers = loadReviewers();
+                if (restricted) {
+                    realreviewersCount = reviewers.size();
+                    reviewers.stream().limit(MAX_REVIEWERS).forEach(r -> list.add(createReviewerStatisticBoxDto(r)));
+                } else {
+                    reviewers.forEach(r -> list.add(createReviewerStatisticBoxDto(r)));
+                }
+                return list;
+            }
         };
+    }
+
+    private boolean reviewersCountExceedsLimit() {
+        return realreviewersCount > MAX_REVIEWERS;
     }
 
     private List<ObjectReferenceType> loadReviewers() {
@@ -196,4 +220,7 @@ public class CampaignStatisticsPanel extends AbstractObjectMainPanel<AccessCerti
                 .help(createStringResource(reviewersCountKey, reviewersCount).getString());
     }
 
+    private void showAllReviewersPerformed(AjaxRequestTarget target) {
+        getPageBase().showMainPopup(initReviewersPanel(getPageBase().getMainPopupBodyId(), false), target);
+    }
 }

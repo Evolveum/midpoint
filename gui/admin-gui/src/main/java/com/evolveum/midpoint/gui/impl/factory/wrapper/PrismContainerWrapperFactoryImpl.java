@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import jakarta.annotation.PostConstruct;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;
@@ -49,7 +50,6 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
     private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
-
 
     @Override
     public boolean match(ItemDefinition<?> def) {
@@ -286,6 +286,18 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
         for (VirtualContainersSpecificationType virtualContainer : context.getVirtualContainers()) {
 
             if (virtualContainer.getPath() != null) {
+                if (virtualContainer.isExpanded() != null) {
+                    try {
+                        PrismContainerWrapper<Containerable> container =
+                                objectValueWrapper.findContainer(virtualContainer.getPath().getItemPath());
+                        if (container != null) {
+                            container.getValues().forEach(vw -> vw.setExpanded(virtualContainer.isExpanded()));
+                            container.setExpanded(virtualContainer.isExpanded());
+                        }
+                    } catch (Exception e) {
+                        //ignore exception
+                    }
+                }
                 continue;
             }
 

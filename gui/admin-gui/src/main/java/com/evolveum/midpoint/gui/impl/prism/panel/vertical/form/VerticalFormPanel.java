@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.panel.vertical.form;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
 import com.evolveum.midpoint.prism.Containerable;
@@ -22,7 +23,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -82,11 +82,15 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
         SingleContainerPanel<C> singleContainer = new SingleContainerPanel<C>(ID_SINGLE_CONTAINER, getModel(), config) {
             @Override
             protected Panel createPanel(String id, QName typeName, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) throws SchemaException {
-                return createVirtualPanel(id, model, builder);
+                return createVirtualPanel(id, model, builder, null);
             }
 
             @Override
-            protected Panel createVirtualPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) {
+            protected Panel createVirtualPanel(
+                    String id,
+                    IModel<PrismContainerWrapper<C>> model,
+                    ItemPanelSettingsBuilder builder,
+                    VirtualContainersSpecificationType virtualContainer) {
                 if (settings.getVisibilityHandler() != null) {
                     builder.visibilityHandler(getVisibilityHandler(settings.getVisibilityHandler()));
                 }
@@ -94,11 +98,11 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
                 return new VerticalFormPrismContainerPanel<C>(id, model, builder.build()) {
                     @Override
                     protected IModel<String> getTitleModel() {
-                        PrismContainerWrapper<C> container = getModelObject();
-                        //TODO why?
-//                        if (container == null || !container.isVirtual() || StringUtils.isEmpty(container.getDisplayName())) {
-//                            return VerticalFormPanel.this.getTitleModel();
-//                        }
+                        if (virtualContainer != null
+                                && virtualContainer.getDisplay() != null
+                                && virtualContainer.getDisplay().getLabel() != null) {
+                            return () -> WebComponentUtil.getTranslatedPolyString(virtualContainer.getDisplay().getLabel());
+                        }
 
                         return VerticalFormPanel.this.getTitleModel();
                     }

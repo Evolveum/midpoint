@@ -293,6 +293,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
 
         when("there is a change on the resource and the user is reconciled");
         account.replaceAttributeValue(ATTR_FAMILY_NAME, "Big Tester");
+        invalidateShadowCacheIfNeeded(RESOURCE_SHADOW_MARKS.oid);
         reconcileUser(userOid, task, result);
 
         then("the user is changed");
@@ -331,6 +332,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
 
         when("there is a change on resource and the user is reconciled");
         account.replaceAttributeValue(ATTR_FAMILY_NAME, "Mega Tester");
+        invalidateShadowCacheIfNeeded(RESOURCE_SHADOW_MARKS.oid);
         reconcileUser(userOid, task, result);
 
         then("the user in midPoint is not changed; and it is no longer marked as having unmanaged projections");
