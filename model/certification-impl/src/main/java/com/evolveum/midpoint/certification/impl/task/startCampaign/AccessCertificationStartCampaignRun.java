@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.certification.impl.task.openNextStage;
+package com.evolveum.midpoint.certification.impl.task.startCampaign;
 
 import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
@@ -31,14 +31,11 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -58,13 +55,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 /**
  * Execution of a certification campaign creation.
  */
-public final class AccessCertificationOpenNextStageRun
+public final class AccessCertificationStartCampaignRun
         extends SearchBasedActivityRun
-        <AssignmentHolderType, AccessCertificationOpenNextStageWorkDefinition,
-                AccessCertificationOpenNextStageActivityHandler,
+        <AssignmentHolderType, AccessCertificationStartCampaignWorkDefinition,
+                AccessCertificationStartCampaignActivityHandler,
                 AbstractActivityWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationOpenNextStageRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationStartCampaignRun.class);
 
 
 //    private String campaignOid;
@@ -74,8 +71,8 @@ public final class AccessCertificationOpenNextStageRun
     private AccessCertificationReviewerSpecificationType reviewerSpec;
     private AccessCertificationStageType stage;
 
-    AccessCertificationOpenNextStageRun(
-            @NotNull ActivityRunInstantiationContext<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler> context) {
+    AccessCertificationStartCampaignRun(
+            @NotNull ActivityRunInstantiationContext<AccessCertificationStartCampaignWorkDefinition, AccessCertificationStartCampaignActivityHandler> context) {
         super(context, "");
         setInstanceReady();
     }
@@ -237,7 +234,7 @@ public final class AccessCertificationOpenNextStageRun
 
     //    @Override
 //    protected @NotNull ActivityRunResult runLocally(OperationResult result) throws ActivityRunException, CommonException {
-//        @NotNull AccessCertificationOpenNextStageActivityHandler handler = getActivityHandler();
+//        @NotNull AccessCertificationStartCampaignActivityHandler handler = getActivityHandler();
 //
 //        LOGGER.trace("Task run starting");
 //

@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.certification.impl.task.openNextStage;
+package com.evolveum.midpoint.certification.impl.task.startCampaign;
 
 import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
@@ -23,8 +23,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AccessCertificationOpenNextStageActivityHandler
-        extends ModelActivityHandler<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler> {
+public class AccessCertificationStartCampaignActivityHandler
+        extends ModelActivityHandler<AccessCertificationStartCampaignWorkDefinition, AccessCertificationStartCampaignActivityHandler> {
 
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value();
 
@@ -73,20 +73,20 @@ public class AccessCertificationOpenNextStageActivityHandler
     public void register() {
         handlerRegistry.register(
                 CertificationOpenNextStageWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_CERTIFICATION_OPEN_NEXT_STAGE,
-                AccessCertificationOpenNextStageWorkDefinition.class, AccessCertificationOpenNextStageWorkDefinition::new, this);
+                AccessCertificationStartCampaignWorkDefinition.class, AccessCertificationStartCampaignWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                CertificationOpenNextStageWorkDefinitionType.COMPLEX_TYPE, AccessCertificationOpenNextStageWorkDefinition.class);
+                CertificationOpenNextStageWorkDefinitionType.COMPLEX_TYPE, AccessCertificationStartCampaignWorkDefinition.class);
     }
 
     @Override
-    public AbstractActivityRun<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler> context,
+    public AbstractActivityRun<AccessCertificationStartCampaignWorkDefinition, AccessCertificationStartCampaignActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<AccessCertificationStartCampaignWorkDefinition, AccessCertificationStartCampaignActivityHandler> context,
             @NotNull OperationResult result) {
-        return new AccessCertificationOpenNextStageRun(context);
+        return new AccessCertificationStartCampaignRun(context);
     }
 
     @Override
