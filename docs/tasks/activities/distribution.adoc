@@ -35,10 +35,14 @@ Supported by activities marked as multi-threading-capable.
 | All items are processing by a single thread.
 
 | `subtask`
-| If present, the activity is executed in a specially-created subtask, devoted to their
-execution. This is not normally needed, except for these reasons: (1) Visibility: there are
-task-specific counters (e.g. related to environmental performance or internal midPoint performance)
-that can be useful to be viewed separately for a given activity. (2) Concurrent execution:
+a| If present, the activity is executed in a specially-created subtask, devoted to their
+execution. This is not normally needed, except for these reasons:
+
+. Visibility: +
+there are task-specific counters (e.g. related to environmental performance or internal midPoint performance)
+that can be useful to be viewed separately for a given activity.
+
+. Concurrent execution: +
 if multiple activities are needed to run concurrently, they should be placed into distinct tasks.
 | No subtask for the activity.
 
@@ -54,8 +58,284 @@ in separate subtasks.
 
 == Buckets
 
-NOTE: Here will be a description of bucketing.
-For the time being, please refer to xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/[an older description].
+The work is divided into _buckets_ - abstract chunks of work.
+
+Usually the work consists of iteration over a set of objects: either stored in midPoint repository (e.g. for recomputation task) or stored on a resource (e.g. import, reconciliation or live synchronization).
+So, the most natural way of segmentation of the work into buckets is by defining a bucket as a set of objects for which a particular item - let us call it_ discriminator_ - has a value in a given interval.
+The interval can be numeric, alphanumeric, or of anything comparable (e.g. timestamps).
+In the future, OIDs can be used for segmentation as well.
+
+There are other possibilities as well.
+For example, one could segment users according to employee type, organization membership, and so on.
+Work buckets can be defined using arbitrary search filter(s) over the set of objects.
+
+=== Basic bucket state
+
+A major distinction for a work bucket is: _is it complete or not_? The work bucket is declared `complete` if there's no work that can be done on it.
+It does not mean that all the objects were successfully processed, though.
+Some of them might incur failures; however, this is considered a normal situation and such objects are treated as processed.
+(Re-processing of such objects can be implemented in the future, if needed.) The other state is `ready` meaning that there is some part of the bucket (maybe all of it) that needs to be processed.
+
+Buckets are kept in the task `workState` data structure.
+This allows us to track the progress done (at coarse-grained level), restarting the work on last known point if necessary.
+
+=== Multi-node work distribution
+
+Buckets allow us not only to track the progress, but to easily distribute the work among multiple worker tasks, with the intention of their distribution among cluster nodes.
+
+For such multi-node scenario there is a _coordinator_ task and _worker_ tasks.
+Coordinator holds the authoritative list of buckets to be processed.
+Each worker tries to grab one or more buckets to work on.
+Such buckets are then copied from the coordinator's `workState` into the worker's one.
+To know they were allocated their state in coordinator's state is marked as `delegated`. (This is the third possible state besides `ready` and `complete`). After the bucket is processed, it is removed from worker's `workState` and marked in coordinator's `workState` as `complete`.
+
+=== Bucket segmentation definition
+
+The segmentation is defined like this:
+
+.An example of segmentation configuration
+[source,xml]
+----
+<task ...>
+    ...
+                <distribution>
+                    <buckets>
+                        <numericSegmentation>
+                            <discriminator>attributes/number</discriminator>
+                            <numberOfBuckets>100</numberOfBuckets>
+                            <to>100000</to>
+                        </numericSegmentation>
+                    </buckets>
+                </distribution>
+</task>
+----
+
+This is to be read such that the discriminator (`attributes/number` attribute) is expected to have a numeric value from 0 to 99999 (inclusive) and we want do divide this range into 100 buckets.
+So the first one will contain values from 0 to 999, second one from 1000 to 1999, then 2000-2999, etc.
+And the last one (100th) will contain values from 99000 to 99999, inclusive.
+
+=== Definition options
+
+Current implementation supports the following segmentation definitions:
+
+[%autowidth]
+|===
+| Segmentation definition | Parameters | Description
+
+.3+| _all definitions_
+| discriminator
+| Item whose values will be used to segment objects into buckets (if applicable).
+Usually required.
+
+1+| matchingRule
+1+| Matching rule to be applied when creating filters (if applicable).
+Optional.
+
+1+| numberOfBuckets
+1+| Number of buckets to be created (if applicable).
+Optional.
+
+.3+| numericSegmentation
+| from
+| Start of the processing space (inclusive).
+If omitted, 0 is assumed.
+
+1+| to
+1+| End of the processing space (exclusive).
+If not present, both `bucketSize` and `numberOfBuckets` must be defined and the end of processing space is determined as their product.
+In the future we might implement dynamic determination of this value e.g. by counting objects to be processed.
+
+1+| bucketSize
+1+| Size of one bucket.
+If not present it is computed as the total processing space divided by number of buckets (i.e. `to` and `numberOfBuckets` must be present).
+
+.3+| stringSegmentation
+| boundaryCharacters
+a| Characters that make up the prefix or interval.
+Currently, the string segmentation is done by creating all possible boundaries (by combining `boundaryCharacters`) and then using these boundaries either as interval boundaries (if `comparisonMethod` is `interval`) or as prefixes (if `comparisonMethod` is `prefix`).
+
+This is a multivalued property:
+
+* the first value contains characters that occupy the first place in the boundary.
+* the second value contains characters destined for the second place, etc.
+
+An example:
+
+* if `boundaryCharacters` = ("qx", "0123456789", "0123456789", "0123456789") then the following boundaries are generated: q000, q001, q002, ..., q999, x000, x001, ..., x999.
+* this might be suitable e.g. for accounts that start either with "q" or with "x" and then continue with numbers, like q732812.
+
+Another example:
+
+* if `boundaryCharacters` = ("abcdefghijklmnopqrstuvwxyz", "0123456789abcdefghijklmnopqrstuvwxyz") then the following boundaries are generated: a0, a1, a2, ..., a9, aa, ab, ..., az, b0, b1, ..., b9, ba, ..., bz, ..., z0, z1, ..., z9, za, ..., zz.
+* this might be suitable e.g. for alphanumeric account names that always start with alphabetic character.
+
+*Beware*: current implementation requires that the characters are specified in the order that complies with the matching rule used.
+
+Otherwise, empty intervals might be generated, like when using "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" there will be an interval of e.g. "values greater than `z` but lower than `A` " (empty one) or "values greater than `Z` " (covers items covered by earlier intervals of a-b, b-c, ...).
+
+1+| depth
+1+| If a value `N` greater than 1 is specified here, `boundaryCharacters` values are repeated `N` times.
+This means that if values of V~1~, V~2~, ..., V~k~ are specified, the resulting sequence is V~1~, V~2~, ..., V~k~, V~1~, V~2~, ..., V~k~ etc, with `N` repetitions - so `N` × `k` values in total.
+
+| comparisonMethod
+| Either `interval` (the default), resulting in interval queries like `item >= 'a' and item < 'b'`. Or `prefix`, resulting in prefix queries like item `starts with 'a'`. Beware, when using `prefix` method, all the discriminator values are covered by `boundaryCharacters` you specify.
+Otherwise some items will not be processed at all.
+
+| oidSegmentation
+2+| The same as stringSegmentation but providing defaults of `discriminator` = `#` and `boundaryCharacters` = `0-9a-f` (repeated `depth` times, if needed).
+
+| explicitSegmentation
+| content
+| Explicit content of work buckets to be used.
+This is useful e.g. when dealing with filter-based buckets.
+But any other bucket content (e.g. numeric intervals, string intervals, string prefixes) might be used here as well.
+
+| implicitSegmentation
+2+| Implicit content of work buckets for given kind of activity to be used.
+
+| segmentation
+2+| How to partition the work into buckets and manage them.
+
+3+h| Additional configuration for the Buckets
+
+.3+| allocation
+1+| bucketCreationBatch
+1+| How many buckets are to be created at once
+
+1+| workAllocationInitialDelay
+1+| Size of random interval for the initial delay.
+
+1+| workAllocationFreeBucketWaitInterval
+1+| if specified, overrides the time used to wait for free bucket(s) reclamation.
+This is applied when no free buckets are available but the work is not completely done.
+
+.2+| sampling +
+1+| regular +
+1+a| Sampling using regular distribution of samples.
+Following parameters are available:
+
+* *interval* +
+Interval of buckets in the sample (i.e. N means that each N-th bucket is selected).
+* *sampleSize* +
+Number of buckets in the sample.
+It is converted to an interval by dividing the total number of buckets (if known) by the sample size.
+
+
+1+| random +
+1+a| Sampling using random distribution of samples.
+Following parameters are available:
+
+* *probability* +
+Probability of including a bucket in the sample (a number between 0 and 1).
+
+* *sampleSize* +
+Approximate number of buckets in the sample.
+It is converted to a probability by dividing the sample size by the total number of buckets (if known).
+|===
+
+=== More examples
+
+The `oidSegmentation` is the easiest one to be used when dealing with repository objects.
+The following creates 16^2^ = 256 segments.
+
+.Buckets defined on first two characters of the OID
+[source,xml]
+----
+<distribution>
+    <buckets>
+        <oidSegmentation>
+            <depth>2</depth>
+        </oidSegmentation>
+    </buckets>
+</distribution>
+----
+
+The following configuration provides string interval buckets:
+
+* less than `a`
+* greater or equal `a`, less than `b`
+* greater or equal `b`, less than `c`
+* ...
+* greater or equal `y`, less than `z`
+* greater or equal `z`
+
+(comparison is done on normalized form of the `name` attribute)
+
+.Buckets defined on the first character of the name
+[source,xml]
+----
+<distribution>
+    <buckets>
+        <stringSegmentation>
+            <discriminator>name</discriminator>
+            <matchingRule>polyStringNorm</matchingRule>
+            <boundaryCharacters>abcdefghijklmnopqrstuvwxyz</boundaryCharacters>
+            <comparisonMethod>interval</comparisonMethod>
+        </stringSegmentation>
+    </buckets>
+</distribution>
+----
+
+he following configuration provides three buckets.
+The first comprises `identifier` values less than 123.
+The second comprises values from 123 (inclusive) to 200 (exclusive).
+And the last one contains values greater than or equal to 200.
+
+.Three work buckets defined as numeric intervals
+[source,xml]
+----
+<distribution>
+    <buckets>
+        <explicitSegmentation>
+            <discriminator>attributes/ri:identifier</discriminator>
+            <content xsi:type="NumericIntervalWorkBucketContentType">
+               <to>123</to>
+            </content>
+            <content xsi:type="NumericIntervalWorkBucketContentType">
+               <from>123</from>
+               <to>200</to>
+            </content>
+            <content xsi:type="NumericIntervalWorkBucketContentType">
+               <from>200</from>
+            </content>
+        </explicitSegmentation>
+    </buckets>
+</distribution>
+----
+
+The following configuration provides four buckets.
+The first three correspond to users with `employeeType` of `teacher`, `student` and `administrative`. The last one corresponds to user with no `employeeType` set.
+
+.Work buckets defined on employeeType values
+[source,xml]
+----
+<distribution>
+    <buckets>
+        <explicitSegmentation>
+            <content xsi:type="FilterWorkBucketContentType">
+                <q:filter>
+                    <q:text>employeeType = "teacher"</q:text>
+                </q:filter>
+            </content>
+            <content xsi:type="FilterWorkBucketContentType">
+                <q:filter>
+                    <q:text>employeeType = "student"</q:text>
+                </q:filter>
+            </content>
+            <content xsi:type="FilterWorkBucketContentType">
+                <q:filter>
+                    <q:text>employeeType = "administrative"</q:text>
+                </q:filter>
+            </content>
+            <content xsi:type="FilterWorkBucketContentType">
+                <q:filter>
+                    <q:text>employeeType not exists</q:text>
+                </q:filter>
+            </content>
+        </explicitSegmentation>
+    </buckets>
+</distribution>
+----
 
 == Auto-scaling
 
@@ -69,3 +349,8 @@ Currently the auto-scaling configuration is very simple:
 | Is autoscaling enabled for this activity?
 | `true` if the autoscaling configuration exists, `false` otherwise. (Note that this may change in the future.)
 |===
+
+== Related information
+xref:/midpoint/devel/design/multi-node-partitioned-and-stateful-tasks/[Design Notes @Developer zone]
+
+link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/tasks[samples on GitHub] (external link)
