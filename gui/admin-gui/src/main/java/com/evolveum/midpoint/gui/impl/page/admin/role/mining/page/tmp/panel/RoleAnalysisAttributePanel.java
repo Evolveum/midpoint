@@ -308,7 +308,12 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
             @Override
             public String getIconCssClass() {
-                return classObjectIcon + " ml-1";
+                if (this.isClicked())
+                {
+                    return "fa fa-check ml-1";
+                } else {
+                    return classObjectIcon + " ml-1";
+                }
             }
 
             @Override
@@ -383,7 +388,12 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
             @Override
             public String getIconCssClass() {
-                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
+                if (this.isClicked())
+                {
+                    return "fa fa-check ml-1";
+                } else {
+                    return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON + " ml-1";
+                }
             }
 
         };

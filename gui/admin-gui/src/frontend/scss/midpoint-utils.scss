@@ -113,32 +113,28 @@ div[role="button"].btn {
 div[role="button"].btn, .btn {
   //Custom links styles (tertiary style)
   &.btn-pill {
-    border: 1px solid rgb(221, 221, 221);
+    border: 1px solid $button-default-border-color;
     border-radius: 50rem !important;
     color: $text-toned-color;
+    background-color: $white;
 
     & > .pill-label {
       color:$text-color;
     }
 
     &:hover {
+      background-color: darken($button-default-background-color, 5%);
+
+      & > * {
+        color:$text-color;
+      }
+    }
+    &.active {
       border: 1px solid $primary;
       background-color: mix($primary, $white, 10%);
 
       & > * {
         color:$primary;
-      }
-    }
-    &.active {
-      border: 1px solid $primary;
-      background-color: $primary;
-
-      & > * {
-        color:$white;
-      }
-
-      & > .fa::before {
-        content:"\f00c";
       }
     }
   }

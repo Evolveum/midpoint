@@ -400,7 +400,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     }
                 };
 
-                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 m-4 justify-content-center"));
+                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
                 iconWithLabel.add(AttributeAppender.append("style", "background-color: #dcf1f4;"));
                 return iconWithLabel;
             }
@@ -749,7 +749,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     }
                 };
 
-                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 m-4 justify-content-center"));
+                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
                 iconWithLabel.add(AttributeAppender.append("style", "background-color: #dcf1f4;"));
                 return iconWithLabel;
             }
@@ -1218,7 +1218,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 Model.of(outlierPartition), Model.of(topSessionOutlier)) {
             @Override
             protected @NotNull String replaceWidgetCssClass() {
-                return "col-6 mb-3";
+                return "col-12 col-xl-6 p-2";
             }
         };
         panel.setOutputMarkupId(true);

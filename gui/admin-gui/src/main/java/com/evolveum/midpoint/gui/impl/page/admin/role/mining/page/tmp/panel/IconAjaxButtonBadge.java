@@ -11,9 +11,11 @@ import java.io.Serial;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -57,6 +59,13 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
         Label image = new Label(ID_ICON);
         image.add(AttributeModifier.replace("class", getIconCssClass()));
         image.setOutputMarkupId(true);
+        image.add(new Behavior() {
+            @Override
+            public void onConfigure(Component component) {
+                image.add(AttributeModifier.replace("class", getIconCssClass()));
+                super.onConfigure(component);
+            }
+        });
         add(image);
 
         Label label = new Label(ID_TEXT, getModel());
