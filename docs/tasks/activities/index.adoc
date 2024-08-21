@@ -1,6 +1,5 @@
 = Activities
 :toc:
-:page-since: "4.4"
 :page-upkeep-status: green
 
 == Introduction
