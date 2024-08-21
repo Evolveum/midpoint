@@ -158,10 +158,6 @@ public class CertificationCasesPanel extends
                 searchModel, options) {
             @Serial private static final long serialVersionUID = 1L;
 
-            @Override
-            protected PageStorage getPageStorage() {
-                return getPageBase().getSessionStorage().getCertDecisions();
-            }
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {

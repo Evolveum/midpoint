@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,19 +56,30 @@ public class PagingSizePanel extends BasePanel<Integer> {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                onPageSizeChangePerformed(target);
+                Integer newValue = getModelObject();
+                onPageSizeChangePerformed(newValue, target);
             }
         });
         size.add(AttributeAppender.append("class", () -> small ? "form-control-sm" : null));
         add(size);
     }
 
-    protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
+    protected void onPageSizeChangePerformed(Integer newValue, AjaxRequestTarget target) {
 
     }
 
+    //TODO this is not entirely correct. If the getPagingSizes is overriden, the getConfiguredPagingSize is not called.
     protected List<Integer> getPagingSizes() {
-        return Arrays.asList(UserProfileStorage.DEFAULT_PAGING_SIZES);
+        List<Integer> predefinedSizes = new ArrayList<>(Arrays.asList(UserProfileStorage.DEFAULT_PAGING_SIZES));
+        Integer configuredSize = getConfiguredPagingSize();
+        if (configuredSize != null && !predefinedSizes.contains(configuredSize)) {
+            predefinedSizes.add(configuredSize);
+        }
+        return predefinedSizes.stream().sorted().toList();
+    }
+
+    protected Integer getConfiguredPagingSize() {
+        return null;
     }
 
     @Override
@@ -77,27 +89,15 @@ public class PagingSizePanel extends BasePanel<Integer> {
             @Override
             public Integer getObject() {
                 Table tablePanel = findParent(Table.class);
-                UserProfileStorage.TableId tableId = tablePanel.getTableId();
-                if (tableId == null || !tablePanel.enableSavePageSize()) {
-                    return tablePanel.getItemsPerPage();
-                }
-
-                return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableId);
+                return tablePanel.getItemsPerPage();
             }
 
             @Override
             public void setObject(Integer o) {
                 Table tablePanel = findParent(Table.class);
-                UserProfileStorage.TableId tableId = tablePanel.getTableId();
                 if (o != null) {
-                    if (tableId == null || !tablePanel.enableSavePageSize()) {
-                        tablePanel.setItemsPerPage(o);
-                        return;
-                    }
-
-                    getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
+                    tablePanel.setItemsPerPage(o);
                 }
-
             }
 
             @Override

@@ -96,6 +96,10 @@ public class TemplateTilePanel<O extends Serializable, T extends TemplateTile<O>
         }
     }
 
+    protected WebMarkupContainer getIcon() {
+        return (WebMarkupContainer) get(ID_ICON);
+    }
+
     protected boolean addClickBehaviour() {
         return true;
     }

@@ -65,7 +65,7 @@ class AuthorizationSearchItemsEvaluation<O extends ObjectType> extends Authoriza
             throws ConfigurationException {
 
         String selectorDesc = TracingUtil.getHumanReadableDesc(selector);
-        var baseSelector = SelectorWithItems.of(selector, authorization.getItems(), authorization.getExceptItems(), selectorDesc);
+        var baseSelector = SelectorWithItems.of(selector, authorization.getItems(), authorization.getExceptItems(), selectorDesc, authorization.isExceptMetadata());
         var tieredSelectors = baseSelector.asTieredSelectors(objectType);
         if (tieredSelectors == null || !tieredSelectors.hasOverlapWith(objectType)) {
             traceAutzProcessingNote("selector %s cannot be matched to %s", selectorDesc, objectType.getSimpleName());

@@ -105,7 +105,8 @@ public class ShadowReferenceAttributeValue extends PrismReferenceValueImpl {
             if (ShadowUtil.isRaw(shadow)) {
                 var definition = SchemaService.get().resourceSchemaRegistry().getDefinitionForShadow(shadow);
                 if (definition != null) {
-                    new ShadowDefinitionApplicator(definition).applyToShadow(shadow);
+                    ShadowDefinitionApplicator.strict(definition)
+                            .applyToShadow(shadow);
                 }
             }
             newVal.setObject(shadow.asPrismObject());

@@ -15,6 +15,8 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.ShortDumpable;
 
+import javax.xml.namespace.QName;
+
 /**
  * NOTE: Never try to determine type (simple/reference) by querying the interfaces. The default implementation implements
  * both interfaces. Use {@link #isSimple()} and {@link #isReference()} methods instead.
@@ -33,7 +35,11 @@ public interface NativeShadowAttributeDefinition extends
     @NotNull
     ShadowReferenceParticipantRole getReferenceParticipantRole();
 
+    QName getReferencedObjectClassName();
+
     NativeShadowAttributeDefinition clone();
+
+    NativeShadowAttributeDefinition cloneWithNewCardinality(int newMinOccurs, int maxOccurs);
 
     boolean isSimple();
 
@@ -49,5 +55,6 @@ public interface NativeShadowAttributeDefinition extends
         void setFrameworkAttributeName(String value);
         void setReturnedByDefault(Boolean value);
         void setReferenceParticipantRole(ShadowReferenceParticipantRole value);
+        void setReferencedObjectClassName(QName value);
     }
 }

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -590,6 +591,35 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
                 .doesNotContain(uri);
         return this;
     }
+
+    public PrismObjectAsserter<O,RA> assertEffectiveMark(String oid) {
+        assertThat(getObject().asObjectable().getEffectiveMarkRef().stream().map(r -> r.getOid()).collect(Collectors.toList()))
+                .as("Effective marks")
+                .contains(oid);
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertEffectiveMarks(String... oids) {
+        assertThat(getObject().asObjectable().getEffectiveMarkRef().stream().map(r -> r.getOid()).collect(Collectors.toList()))
+                .as("Effective marks")
+                .containsExactlyInAnyOrder(oids);
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertNoEffectiveMark(String oid) {
+        assertThat(getObject().asObjectable().getEffectiveMarkRef().stream().map(r -> r.getOid()).collect(Collectors.toList()))
+                .as("Policy situations")
+                .doesNotContain(oid);
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertNoEffectiveMarks() {
+        assertThat(getObject().asObjectable().getEffectiveMarkRef())
+                .as("Policy situations")
+                .isEmpty();
+        return this;
+    }
+
 
     public PrismObjectAsserter<O,RA> assertTriggeredPolicyRules(int count) {
         assertThat(getObject().asObjectable().getTriggeredPolicyRule())

@@ -145,9 +145,17 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
     protected static final TestObject<ArchetypeType> ARCHETYPE_OBJECT_MARK = TestObject.classPath(
             "initial-objects/archetype", "701-archetype-object-mark.xml", SystemObjectsType.ARCHETYPE_OBJECT_MARK.value());
 
+    private static final TestObject<ArchetypeType> ARCHETYPE_SHADOW_POLICY_MARK = TestObject.classPath(
+            "initial-objects/archetype", "705-archetype-shadow-policy-mark.xml",
+            SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value());
+
     protected static final TestObject<MarkType> MARK_PROTECTED_SHADOW = TestObject.classPath(
             "initial-objects/mark", "800-mark-protected.xml",
             SystemObjectsType.MARK_PROTECTED.value());
+
+    protected static final TestObject<MarkType> MARK_INVALID_DATA = TestObject.classPath(
+            "initial-objects/mark", "804-mark-invalid-data.xml",
+            SystemObjectsType.MARK_INVALID_DATA.value());
 
     @Autowired
     protected ProvisioningContextFactory provisioningContextFactory;
@@ -177,7 +185,9 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 
         if (areMarksSupported()) {
             repoAdd(ARCHETYPE_OBJECT_MARK, initResult);
+            repoAdd(ARCHETYPE_SHADOW_POLICY_MARK, initResult);
             repoAdd(MARK_PROTECTED_SHADOW, initResult);
+            repoAdd(MARK_INVALID_DATA, initResult);
         }
     }
 

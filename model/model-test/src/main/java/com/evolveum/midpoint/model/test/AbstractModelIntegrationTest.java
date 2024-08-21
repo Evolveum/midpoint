@@ -68,6 +68,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.FilterInvocation;
+import org.springframework.security.web.SecurityFilterChain;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
@@ -4789,6 +4790,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 //TODO
                 return null;
             }
+
+            @Override
+            public SecurityFilterChain getSecurityFilterChain() {
+                return null;
+            }
         };
         mpAuthentication.setAuthModules(Collections.singletonList(authModule));
         mpAuthentication.setPrincipal(authentication.getPrincipal());
@@ -7183,7 +7189,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void dumpStatistics(Task task) {
-        OperationStatsType stats = task.getStoredOperationStatsOrClone();
+        dumpStatistics(task.getStoredOperationStatsOrClone());
+    }
+
+    protected void dumpStatistics(PrismObject<TaskType> task) {
+        dumpStatistics(task.asObjectable().getOperationStats());
+    }
+
+    private void dumpStatistics(OperationStatsType stats) {
         displayValue("Provisioning statistics", ProvisioningStatistics.format(
                 stats.getEnvironmentalPerformanceInformation().getProvisioningStatistics()));
     }
@@ -7705,6 +7718,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
     }
 
+    protected void markShadowExcluded(String oid, String markOid, Task task, OperationResult result) throws CommonException {
+        var statement = new PolicyStatementType()
+                .markRef(markOid, MarkType.COMPLEX_TYPE)
+                .type(PolicyStatementTypeType.EXCLUDE);
+        modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
+    }
+
     protected @NotNull CaseType getOpenCaseRequired(List<CaseType> cases) {
         var openCases = cases.stream()
                 .filter(c -> QNameUtil.matchUri(c.getState(), CASE_STATE_OPEN_URI))
@@ -7739,5 +7759,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .item(ShadowType.F_ASSOCIATIONS.append(assocName), assocDef)
                 .add(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
+    }
+
+    protected void refreshShadowIfNeeded(@NotNull String shadowOid) throws CommonException {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            provisioningService.getShadow(shadowOid, null, getTestTask(), getTestOperationResult());
+        }
     }
 }

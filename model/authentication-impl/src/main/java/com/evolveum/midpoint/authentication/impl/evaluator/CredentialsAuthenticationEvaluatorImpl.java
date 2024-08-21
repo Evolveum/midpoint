@@ -255,8 +255,10 @@ public abstract class CredentialsAuthenticationEvaluatorImpl<C extends AbstractC
         return decryptedPassword;
     }
 
+
     private boolean isLockedOut(AuthenticationAttemptDataType authenticationAttemptData, CredentialPolicyType credentialsPolicy) {
-        return isOverFailedLockoutAttempts(authenticationAttemptData, credentialsPolicy) && !isLockoutExpired(authenticationAttemptData, credentialsPolicy);
+        return isOverFailedLockoutAttempts(authenticationAttemptData, credentialsPolicy)
+                && !isLockoutExpired(authenticationAttemptData, credentialsPolicy);
     }
 
     private boolean isOverFailedLockoutAttempts(AuthenticationAttemptDataType authenticationAttemptData, CredentialPolicyType credentialsPolicy) {

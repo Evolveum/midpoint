@@ -27,14 +27,6 @@ In the following we'll see how a campaign looks like.
 Then we'll go through a very quick tutorial.
 And after that we'll have a look at various possibilities connected to defining certification campaigns.
 
-[WARNING]
-====
-Information on this page is related to midPoint 3.4.
-
-In version 3.3, access certification feature is present at the level of a *technology preview*. It is not suitable for production environments, mainly because of performance issues.
-Also, not all features mentioned here are implemented in 3.3.
-====
-
 == Certification campaign
 
 Certification campaigns are created using templates that are called *certification campaign definitions*, or certification definitions for short.
@@ -55,21 +47,33 @@ More on this below.
 
 . *ownerRef* - who owns the definition and related campaigns? Campaign owner may be different from the owner of the campaign definition.
 
+. *remediationDefinition* - how will the remediation phase look like, e.g. will it be automated or manual?
+
+. *reiterationDefinition* - should the iteration start automatically (by default is manual)? how many iterations are allowed?
+
 . *stageDefinition*(s) - how will the individual review stages look like, e.g. how long should a given stage take? how will the reviewers be selected? More on this below.
 
-. *remediationDefinition* - how will the remediation phase look like, e.g. will it be automated or manual?
+. *reviewStrategy* - defines a strategy which is used to compute review outcome for a given case.
+
+. *view* - specifies a view for a presentation of the certification items collections which are created on the basis of the current certification definition.
+This means that every certification campaign created on the basis of this definition will use this view while displaying certification items collection.
+
+
 
 An example of a campaign definition (taken from link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/certification/def-all-user-assignments.xml[samples/certification/def-all-user-assignments.xml] file):
 
 [source,xml]
 ----
 <accessCertificationDefinition
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <name>All user assignments</name>
     <description>Certifies all users' assignments. Everything is certified by the administrator.</description>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/handlers-3#direct-assignment</handlerUri>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"><!-- administrator --></ownerRef>
+    <remediationDefinition>
+        <style>automated</style>
+    </remediationDefinition>
     <stageDefinition>
         <number>1</number>
         <name>Administrator's review</name>
@@ -82,9 +86,6 @@ An example of a campaign definition (taken from link:https://github.com/Evolveum
             <defaultReviewerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />   <!-- administrator -->
         </reviewerSpecification>
     </stageDefinition>
-    <remediationDefinition>
-        <style>automated</style>
-    </remediationDefinition>
 </accessCertificationDefinition>
 ----
 
@@ -154,9 +155,13 @@ For example, direct assignment handler provides the following ones:
 
 .. *includeServices* - should assignments/inducements of services be included in the certification? (default = true)
 
+.. *includeUsers* - should assignments/inducements of users (e.g. deputy relations) be included in the certification? (default = true)
+
 .. *enabledItemsOnly* - should we approve only assignments/inducements that are currently enabled? (I.e. with administrativeStatus either null or ENABLED) (default = true)
 
-
+.. *relation* - relation(s) which are to be considered.
+Value of q:any means "any relation".
+If no relation is present, org:default (i.e. null) is assumed.
 
 An example of more advanced scope definition:
 
@@ -229,10 +234,31 @@ All certification-related tasks are shown.
 
 image::scheduling.jpg[]
 
-=== Configuring choice buttons
+=== Access certification configuration in system configuration
 
-Unneeded choice buttons might be hidden at the level of the system configuration.
-The configuration is done by listing available buttons, like this:
+Access certification configuration can be defined as a part of the system configuration.
+This configuration is used globally in the system and applied to all campaigns.
+
+You can define the following items within the _accessCertification_ element:
+
+. *availableResponse* - what responses are available to reviewers? Empty list means all responses.
+
+WARNING: This element is deprecated.
+It is advised to use the configuration of the actions for certification items collection view.
+
+
+. *enableCertItemsCollectionView* - defines if the certification items collection view can be reached directly from main menu.
+If not defined (or set to false), the certification items collection view can be reached only from the active campaigns panel.
+
+. *multiselect* - defines the possibility to select multiple items in the certification items collection view table (possible values are: _selectAll_ - gives the possibility to select all items at once, _selectIndividualItems_ - gives the possibility to select individual items without possibility to select all at once, _noSelect_ - no possibility to select any items).
+
+. *defaultView* - defines the identifier of the collection view that should be used as a default view for the certification items.
+
+==== Configuring decision options for certification items
+
+It is possible to configure the available set of responses to be used while making a decision on a certification item(s).
+By default, there are 2 available responses in the system: accept and revoke.
+You can configure _availableResponse_ items in the _accessCertification_ element straight in the system configuration.
 
 [source,xml]
 ----
@@ -243,18 +269,109 @@ The configuration is done by listing available buttons, like this:
 </accessCertification>
 ----
 
-If there are no available responses listed, all 6 can be used (accept, revoke, reduce, notDecided, delegate, noResponse).
+WARNING: Be aware that _availableResponse_ element is deprecated therefore it's advised to use the configuration of the actions for certification items collection view.
 
-If there is a pre-existing response that is currently not among specified items, it is displayed as red button "Illegal Response" just to distinguish it from "no response" state.
-It can be changed to any of the available responses.
-Seems like this:
+=== Configuring collection views for certification items
 
-image::button-configuration.jpg[]
+Certification items collection view brings more extended configuration options.
+Default certification items collection view can be configured in the _systemConfiguration -> adminGuiConfiguration -> objectCollectionViews -> objectCollectionView_.
+To be used as a default view, the collection view identifier should be defined in the _accessCertification_ -> _defaultView_ element in the system configuration.
+Collection view configuration should define identifier and type.
+Collection view can also contain columns and actions configuration.
+
+[source,xml]
+----
+            <objectCollectionView>
+                <identifier>defaultCertItemsView</identifier>
+                <column>
+                    <name>stage</name>
+                    <path>stageNumber</path>
+                    <display>
+                        <label>Stage</label>
+                    </display>
+                </column>
+                <column>
+                    <name>comment</name>
+                    <path>output/comment</path>
+                    <display>
+                        <label/>
+                    </display>
+                </column>
+                <includeDefaultColumns>true</includeDefaultColumns>
+                <type>AccessCertificationWorkItemType</type>
+                <action>
+                    <identifier>certItemAccept</identifier>
+                    <panel>
+                        <display>
+                            <label>Do you really want to accept the item?</label>
+                        </display>
+                        <container>
+                            <identifier>comment</identifier>
+                            <display>
+                                <label>Please, provide a comment (required)</label>
+                            </display>
+                            <item>
+                                <path>output/comment</path>
+                                <mandatory>true</mandatory>
+                            </item>
+                        </container>
+                        <type>AccessCertificationWorkItemType</type>
+                    </panel>
+                </action>
+            </objectCollectionView>
+----
+
+To learn more about actions configuration, please follow to xref:/midpoint/reference/roles-policies/certification/actions/[GUI Actions] page.
+
+Object collection view configuration can be also defined within access certification definition (_view_ element).
+This configuration will be merged with the global one and applied to all campaigns created on the base of this definition.
+
+=== Dashboard widget configuration
+
+Certification dashboard widget can be configured to be shown on the self-service dashboard page.
+The widget can be configured in the _systemConfiguration -> adminGuiConfiguration -> homePage_ element.
+
+[source,xml]
+----
+            <widget>
+                <identifier>dashboardCertItems</identifier>
+                <display>
+                    <label>
+                        <t:orig>Certification items</t:orig>
+                        <t:norm>certification items</t:norm>
+                        <t:translation>
+                            <t:key>PageCertItems.title</t:key>
+                        </t:translation>
+                    </label>
+                    <icon>
+                        <cssClass>fa fa-certificate</cssClass>
+                    </icon>
+                </display>
+                <displayOrder>50</displayOrder>
+                <panelType>dashboardCertItems</panelType>
+                <previewSize>5</previewSize>
+                <action>
+                    <identifier>viewAll</identifier>
+                    <display>
+                        <label>
+                            <t:orig>View all</t:orig>
+                            <t:norm>view all</t:norm>
+                            <t:translation>
+                                <t:key>PageSelfDashboard.button.viewAll</t:key>
+                            </t:translation>
+                        </label>
+                        <icon>
+                            <cssClass>fa fa-search</cssClass>
+                        </icon>
+                    </display>
+                    <target>
+                        <targetUrl>/admin/certification/myActiveCampaigns</targetUrl>
+                    </target>
+                </action>
+            </widget>
+----
 
 
-
-As for statistics, we currently list all 6 of responses.
-(Might be changed in the future.)
 
 == Reporting
 

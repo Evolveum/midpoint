@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -31,19 +32,19 @@ public class AssociationReferenceMappingItemPathPanelFactory extends Association
 
     @Override
     protected ItemName getItemNameForContainerOfAttributes() {
-        return ShadowAssociationDefinitionType.F_OBJECT_REF;
+        return AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF;
     }
 
     @Override
     protected List<DisplayableValue<ItemPathType>> getAttributes(ResourceSchema schema, PrismValueWrapper<ItemPathType> propertyWrapper) {
-        ShadowReferenceAttributeDefinition refAttribute = AssociationChildWrapperUtil.getShadowReferenceAttribute(schema, propertyWrapper);
-        if (refAttribute == null) {
+        ShadowAssociationDefinition assocDef = AssociationChildWrapperUtil.getShadowAssociationDefinition(schema, propertyWrapper);
+        if (assocDef == null) {
             return Collections.emptyList();
         }
 
         List<DisplayableValue<ItemPathType>> attributes = new ArrayList<>();
-        refAttribute.getRepresentativeTargetObjectDefinition().getReferenceAttributeDefinitions()
-                .forEach(attr -> attributes.add(createDisplayValue(attr)));
+        assocDef.getObjectParticipantNames()
+                .forEach(key -> attributes.add(createDisplayValue(key)));
 
         return attributes;
     }

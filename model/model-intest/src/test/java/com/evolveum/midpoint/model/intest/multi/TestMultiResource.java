@@ -494,6 +494,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         displayDumpable("dummy resource before", getDummyResource());
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+
         // WHEN
         when();
         recomputeUser(USER_JACK_OID, task, result);

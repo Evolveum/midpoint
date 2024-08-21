@@ -156,32 +156,6 @@ public class CertCampaignTypeUtil {
         return open;
     }
 
-    //todo cleanup - quick copy of getCasesCompletedPercentage, unify
-    public static float getCasesCompletedPercentageCurrStageCurrIterationByReviewer(AccessCertificationCampaignType campaign,
-            String reviewerOid) {
-        List<AccessCertificationCaseType> caseList = campaign.getCase();
-        Integer iteration = norm(campaign.getIteration());
-        Integer stage = accountForClosingStates(campaign.getStageNumber(), campaign.getState());
-        int allCases = 0;
-        int completedCases = 0;
-        for (AccessCertificationCaseType aCase : caseList) {
-            if (!caseMatches(aCase, stage, iteration)) {
-                continue;
-            }
-            allCases++;
-            List<AccessCertificationWorkItemType> workItems = aCase.getWorkItem().stream().filter(wi -> workItemMatches(wi, stage, iteration)).collect(toList());
-            if (iteration == null) {
-                removeRedundantWorkItems(workItems);
-            }
-            // now check whether all (remaining) work items have outcome
-            if (workItems.stream().allMatch(wi -> WorkItemTypeUtil.getOutcome(wi) != null
-                    && (reviewerOid == null || reviewerOid.equals(wi.getOriginalAssigneeRef().getOid()))) ) {
-                completedCases++;
-            }
-        }
-        return allCases > 0 ? 100.0f * ((float) completedCases) / (float) allCases : 100.0f;
-    }
-
     // what % of cases is fully decided? (i.e. either they have all the decisions or they are review-completed)
     public static float getCasesCompletedPercentageAllStagesAllIterations(AccessCertificationCampaignType campaign) {
         return getCasesCompletedPercentage(campaign.getCase(), null, null);
@@ -348,7 +322,7 @@ public class CertCampaignTypeUtil {
         }
     }
 
-    protected static Integer accountForClosingStates(Integer stage, AccessCertificationCampaignStateType state) {
+    public static Integer accountForClosingStates(Integer stage, AccessCertificationCampaignStateType state) {
         if (stage != null && (state == IN_REMEDIATION || state == CLOSED)) {
             return stage - 1;          // move to last campaign state
         } else {

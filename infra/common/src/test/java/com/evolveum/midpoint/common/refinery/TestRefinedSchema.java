@@ -9,8 +9,10 @@ package com.evolveum.midpoint.common.refinery;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
+import static com.evolveum.midpoint.test.util.ActualReturningAssert.actualReturning;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -26,10 +28,12 @@ import com.evolveum.midpoint.prism.impl.polystring.NormalizerRegistryFactory;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 
+import com.evolveum.midpoint.schema.processor.ShadowMarkingRules.MarkingRule;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.testng.Assert;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Listeners;
@@ -446,13 +450,24 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceObjectTypeDefinition rAccount = findObjectTypeDefinitionRequired(rSchema, ShadowKindType.ACCOUNT, null);
 
         // WHEN
-        Collection<ResourceObjectPattern> protectedAccounts = rAccount.getProtectedObjectPatterns();
+        var markingRules = rAccount.getShadowMarkingRules();
 
         // THEN
-        assertNotNull("Null protectedAccounts", protectedAccounts);
-        assertFalse("Empty protectedAccounts", protectedAccounts.isEmpty());
-        assertEquals("Unexpected number of protectedAccounts", 2, protectedAccounts.size());
-        Iterator<ResourceObjectPattern> iterator = protectedAccounts.iterator();
+        var patterns = assertThat(markingRules)
+                .as("marking rules")
+                .extracting(rules -> rules.getMarkingRulesMap(), as(InstanceOfAssertFactories.map(String.class, MarkingRule.class)))
+                .as("marking rules map")
+                .hasSize(1)
+                .extracting(map -> map.get(SystemObjectsType.MARK_PROTECTED.value()))
+                .as("protected objects entry")
+                .extracting(rule -> rule.getPatterns(), as(InstanceOfAssertFactories.collection(ResourceObjectPattern.class)))
+                .as("protected objects patterns")
+                .hasSize(2)
+                .asInstanceOf(as(actualReturning(Collection.class)))
+                .getActual();
+
+        //noinspection unchecked
+        Iterator<ResourceObjectPattern> iterator = patterns.iterator();
         assertProtectedAccount("first protected account", iterator.next(), "uid=idm,ou=Administrators,dc=example,dc=com", rAccount);
         assertProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com", rAccount);
     }

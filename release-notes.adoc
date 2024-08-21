@@ -75,12 +75,23 @@ Tree node search is now same for all nodes.
 ** SchemaType can be configured by GUI. Configuration via GUI contains some limitations that related with schema lifecycle (TODO add link).
 ** For more information can see xref:/midpoint/reference/schema/custom-schema-extension.adoc[].
 
-* xref:/midpoint/reference/roles-policies/classification/[Information Classification and Clearances]
-
 * Object marks
 ** Supported for all object types including assignments when executed via policy rules
 ** GUI support for adding/removing marks for focus objects and shadows
 ** GUI Support to show mark in the focus and shadow tables
+
+* Regulatory compliance
+** Compliance dashboard provides overview of metrics related to regulatory compliance.
+** Built-in support for xref:/midpoint/reference/roles-policies/classification/[information classification and clearances].
+** Support for `requirement` policy constraint in xref:/midpoint/reference/roles-policies/policy-rules/[policy rules].
+** Built-in classifications for _privileged access_ and _information security responsibility_.
+
+* Spring Boot/hibernate upgrade
+** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
+** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
+
+* Shadow table Partitioning in Native PostgreSQL Repository
+** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
 
 === Other Improvements
 
@@ -111,13 +122,17 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Role wizard is now supported also for children of application and business roles (archetypes).
 * Dedicated data type for policy objects (xref:/midpoint/reference/schema/policy/[PolicyType])
 * Implementation of new task activities for opening next stage of certification campaign and certification remediation. More details can be found in the xrefv:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
+* Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
+* Added the ability to modify selected object classes for resources via the Resource Schema panel. See bug:MID-8476[].
 
 === Releases Of Other Components
 
-// * New version (1.5.1.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-//
-// * New version (2.7) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
-//
+ * New version (1.5.2.0) of xref:/connectors/connectors/org.identityconnectors.databasetable.DatabaseTableConnector/[DatabaseTable Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+
+ * New version (2.8) of xref:/connectors/connectors/com.evolveum.polygon.connector.csv.CsvConnector/[CSV Connector] was released and bundled with midPoint. The connector suggest all names of columns for configuration properties related with name of column.
+** Fixed NPE with multivalue attributes when delimiter is not defined. (bug:MID-8609[]).
+** Fix UTF-8 BOM character in csv file during of discovery functions. (bug:MID-9497[] and bug:MID-9498[]).
+
 // * New version (3.7) of LDAP connector bundle (including xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.LdapConnector/[LDAP Connector] and xref:/connectors/connectors/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector/[Active Directory Connector]) was released and bundled with midPoint.
 // ** This version improve processing of fetching existing entry when updating it in AD connector. (bug:MID-8929[]).
 // ** Adding configuration option for suppression of user parameter exceptions and log only a warning message.
@@ -566,6 +581,12 @@ Only things that cannot be described as simple "fixing" something are described 
 The changes since 4.8 are of interest probably for "advanced" midPoint deployments only.
 You should at least scan through them, though.
 ====
+
+* Checking for conflicts for single-valued items was fixed (strengthened).
+In 4.8.3 and before, there were situations that two strong mappings produced different values for a given single-valued item, yet no error was produced.
+(If the item contained the same value that was produced by one of these mappings.)
+Such configurations are in principle unstable, so this kind of errors should be identified and fixed.
+Please see bug:MID-9621[] and https://github.com/Evolveum/midpoint/commit/22e2d8429e269e4c54b19c3e2df153b9fbfd1437[this commit].
 
 * The default configuration for caching was changed.
 Currently, only mapped attributes are cached by default.

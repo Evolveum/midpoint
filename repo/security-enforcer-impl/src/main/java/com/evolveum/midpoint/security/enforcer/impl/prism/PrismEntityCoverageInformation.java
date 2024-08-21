@@ -20,4 +20,5 @@ import com.evolveum.midpoint.util.DebugDumpable;
 public interface PrismEntityCoverageInformation extends DebugDumpable {
 
     @NotNull PrismEntityCoverage getCoverage();
+    boolean isExceptMetadata();
 }

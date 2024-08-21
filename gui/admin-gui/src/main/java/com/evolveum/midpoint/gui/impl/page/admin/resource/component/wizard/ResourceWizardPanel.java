@@ -52,18 +52,23 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
 
         WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper =
-                new WizardPanelHelper<>(getAssignmentHolderModel(), valueModel) {
+                new WizardPanelHelper<>(getAssignmentHolderModel()) {
 
-            @Override
-            public void onExitPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createObjectTypesTablePanel());
-            }
+                    @Override
+                    public void onExitPerformed(AjaxRequestTarget target) {
+                        showChoiceFragment(target, createObjectTypesTablePanel());
+                    }
 
-            @Override
-            public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
-                return getHelper().onSaveObjectPerformed(target);
-            }
-        };
+                    @Override
+                    public OperationResult onSaveObjectPerformed(AjaxRequestTarget target) {
+                        return getHelper().onSaveObjectPerformed(target);
+                    }
+
+                    @Override
+                    public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getDefaultValueModel() {
+                        return valueModel;
+                    }
+                };
         ResourceObjectTypeWizardPanel wizard = new ResourceObjectTypeWizardPanel(getIdOfChoicePanel(), helper);
         wizard.setOutputMarkupId(true);
         return wizard;
@@ -74,7 +79,7 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel wizard = createObjectTypeWizard(valueModel);
-                wizard.setShowTypePreview(true);
+                wizard.setShowChoicePanel(true);
                 showChoiceFragment(target, wizard);
             }
 
@@ -109,9 +114,9 @@ public class ResourceWizardPanel extends AbstractWizardPanel<ResourceType, Resou
     }
 
     private void exitToPreview(AjaxRequestTarget target) {
-        ResourceWizardPreviewPanel preview = new ResourceWizardPreviewPanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
+        SchemaHandlingWizardChoicePanel preview = new SchemaHandlingWizardChoicePanel(getIdOfChoicePanel(), getAssignmentHolderModel()) {
             @Override
-            protected void onTileClickPerformed(ResourceWizardPreviewPanel.PreviewTileType value, AjaxRequestTarget target) {
+            protected void onTileClickPerformed(SchemaHandlingWizardChoicePanel.PreviewTileType value, AjaxRequestTarget target) {
                 switch (value) {
                     case PREVIEW_DATA:
                         showChoiceFragment(target, createPreviewResourceDataWizardPanel());

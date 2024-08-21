@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.isShadowCachingOnByDefault;
+
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -956,8 +958,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         List<? extends PrismValue> oldValues = (List<? extends PrismValue>) badLuckDelta.getEstimatedOldValues();
         assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
         ItemFactory factory = prismContext.itemFactory();
+
         PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues",
-                oldValues, factory.createPropertyValue(123L), factory.createPropertyValue(456L));
+                oldValues.stream().map(p -> p.getRealValue()).toList(), 123L, 456L);
     }
 
     @Test
@@ -1831,7 +1834,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         //  doesn't have change for processed property.
         //
         // Either we fix this or recommend setting volatility=unpredictable for such situations.
-        PrismAsserts.assertPropertyValue(userAfter, UserType.F_DESCRIPTION, "Imported user");
+        PrismAsserts.assertPropertyValue(
+                userAfter, UserType.F_DESCRIPTION, isShadowCachingOnByDefault() ? "Came from null" : "Imported user");
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userAfter, ROLE_PIRATE_OID);
         assertAssignments(userAfter, 2);

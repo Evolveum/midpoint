@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Evaluation of inbound mappings from all projections in given lens context. This is the "full mode".
+ * See the description in {@link AbstractInboundsProcessing}.
  */
 public class FullInboundsProcessing<F extends FocusType> extends AbstractInboundsProcessing<F> {
 
@@ -109,16 +110,16 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                 try {
                     // Here we prepare all those complex source/target/context objects ...
                     PrismObject<F> objectCurrentOrNew = lensContext.getFocusContext().getObjectCurrentOrNew();
-                    var mappingContext = new FullContext(lensContext, env, assignmentsProcessingContext);
-                    var mappingSource = new FullSource(
+                    var inboundsContext = new FullInboundsContext(lensContext, env);
+                    var inboundsSource = new FullInboundsSource(
                             InboundSourceData.forShadow(
                                     projectionContext.getObjectCurrent(),
                                     getAPrioriDelta(projectionContext),
                                     projectionContext.getCompositeObjectDefinitionRequired()),
                             projectionContext.getCompositeObjectDefinition(),
                             projectionContext,
-                            mappingContext);
-                    var mappingTarget = new FullTarget<>(
+                            inboundsContext);
+                    var inboundsTarget = new FullInboundsTarget<>(
                             lensContext,
                             objectCurrentOrNew,
                             getFocusDefinition(objectCurrentOrNew),
@@ -127,8 +128,8 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
 
                     // ... and run the preparation itself
                     var preparation = new SingleShadowInboundsPreparation<>(
-                            evaluationRequests, mappingSource, mappingTarget, mappingContext,
-                            new SpecialInboundsEvaluatorImpl(mappingSource, mappingTarget, mappingContext, projectionContext));
+                            evaluationRequestsMap, inboundsSource, inboundsTarget, inboundsContext,
+                            new SpecialInboundsEvaluatorImpl(inboundsSource, inboundsTarget, inboundsContext, projectionContext));
 
                     preparation.prepareOrEvaluate(result);
 
@@ -216,19 +217,19 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
 
     class SpecialInboundsEvaluatorImpl implements SingleShadowInboundsPreparation.SpecialInboundsEvaluator {
 
-        @NotNull private final FullSource mappingSource;
-        @NotNull private final FullTarget<F> mappingTarget;
-        @NotNull private final FullContext mappingContext;
+        @NotNull private final FullInboundsSource inboundsSource;
+        @NotNull private final FullInboundsTarget<F> inboundsTarget;
+        @NotNull private final FullInboundsContext inboundsContext;
         @NotNull private final LensProjectionContext projectionContext;
 
         SpecialInboundsEvaluatorImpl(
-                @NotNull FullSource mappingSource,
-                @NotNull FullTarget<F> mappingTarget,
-                @NotNull FullContext mappingContext,
+                @NotNull FullInboundsSource inboundsSource,
+                @NotNull FullInboundsTarget<F> inboundsTarget,
+                @NotNull FullInboundsContext inboundsContext,
                 @NotNull LensProjectionContext projectionContext) {
-            this.mappingSource = mappingSource;
-            this.mappingTarget = mappingTarget;
-            this.mappingContext = mappingContext;
+            this.inboundsSource = inboundsSource;
+            this.inboundsTarget = inboundsTarget;
+            this.inboundsContext = inboundsContext;
             this.projectionContext = projectionContext;
         }
 
@@ -236,22 +237,29 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
         public void evaluateSpecialInbounds(OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
+            // TODO how exactly can be the password cached? Normally it's hashed, and that means it is not usable for inbounds.
+            var passwordValueLoaded = projectionContext.isPasswordValueLoaded();
+            var activationLoaded = projectionContext.isActivationLoaded();
             // TODO convert to mapping creation requests
             evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
-                    mappingSource.getInboundDefinition().getPasswordInbound(),
+                    inboundsSource.getInboundDefinition().getPasswordInbound(),
                     SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE,
+                    passwordValueLoaded,
                     result);
             evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
                     getActivationInbound(ActivationType.F_ADMINISTRATIVE_STATUS),
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                    activationLoaded,
                     result);
             evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
                     getActivationInbound(ActivationType.F_VALID_FROM),
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM,
+                    activationLoaded,
                     result);
             evaluateSpecialInbounds( // [EP:M:IM] DONE, obviously belonging to the resource
                     getActivationInbound(ActivationType.F_VALID_TO),
                     SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO,
+                    activationLoaded,
                     result);
         }
 
@@ -267,7 +275,8 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
          */
         private void evaluateSpecialInbounds(
                 List<MappingType> inboundMappingBeans,
-                ItemPath sourcePath, ItemPath targetPath, OperationResult result)
+                ItemPath sourcePath, ItemPath targetPath,
+                boolean sourceItemAvailable, OperationResult result)
                 throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
                 ConfigurationException, SecurityViolationException {
 
@@ -277,14 +286,13 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
 
             LOGGER.trace("Collecting {} inbounds for special property {}", inboundMappingBeans.size(), sourcePath);
 
-            F focus = mappingTarget.getTargetRealValue();
-//        if (focus == null) {
-//            LOGGER.trace("No current/new focus, skipping.");
-//            return;
-//        }
-            if (!projectionContext.isFullShadow()) {
-                // TODO - is this ok?
-                LOGGER.trace("Full shadow not loaded, skipping.");
+            F focus = inboundsTarget.getTargetRealValue();
+            if (focus == null) {
+                LOGGER.trace("No current/new focus, skipping.");
+                return;
+            }
+            if (!sourceItemAvailable) {
+                LOGGER.trace("Source item not loaded, skipping.");
                 return;
             }
 
@@ -308,8 +316,8 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                         }
 
                         ItemDelta<PrismPropertyValue<?>, PrismPropertyDefinition<?>> specialAttributeDelta;
-                        if (mappingSource.getAPrioriDelta() != null) {
-                            specialAttributeDelta = mappingSource.getAPrioriDelta().findItemDelta(sourcePath);
+                        if (inboundsSource.getAPrioriDelta() != null) {
+                            specialAttributeDelta = inboundsSource.getAPrioriDelta().findItemDelta(sourcePath);
                         } else {
                             specialAttributeDelta = null;
                         }
@@ -327,14 +335,14 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus, FocusType.class)
                                 .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
 
-                        PrismObject<ShadowType> account = this.mappingSource.getSourceData().getShadowIfPresent();
+                        PrismObject<ShadowType> account = this.inboundsSource.getSourceData().getShadowIfPresent();
                         builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account, ShadowType.class)
                                 .addVariableDefinition(ExpressionConstants.VAR_SHADOW, account, ShadowType.class)
                                 .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account, ShadowType.class)
                                 .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
                                 .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
                                 .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, this.projectionContext.getResource(), ResourceType.class)
-                                .valuePolicySupplier(mappingContext.createValuePolicySupplier())
+                                .valuePolicySupplier(inboundsContext.createValuePolicySupplier())
                                 .mappingKind(MappingKindType.INBOUND)
                                 .implicitSourcePath(sourcePath)
                                 .implicitTargetPath(targetPath)
@@ -396,7 +404,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
             params.setMappingConfigItems( // [EP:M:IM] DONE, see above
                     ConfigurationItem.ofList(inboundMappingBeans, originProvider, MappingConfigItem.class));
             params.setMappingDesc("inbound mapping for " + sourcePath + " in " + projectionContext.getResource());
-            params.setNow(mappingContext.getEnv().now);
+            params.setNow(inboundsContext.getEnv().now);
             params.setInitializer(initializer);
             params.setProcessor(processor);
             //noinspection unchecked
@@ -406,13 +414,13 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
             params.setDefaultTargetItemPath(targetPath);
             params.setEvaluateCurrent(MappingTimeEval.CURRENT);
             params.setContext(lensContext);
-            params.setHasFullTargetObject(true);
-            beans.projectionMappingSetEvaluator.evaluateMappingsToTriples(params, mappingContext.getEnv().task, result);
+            params.setTargetValueAvailable(true);
+            beans.projectionMappingSetEvaluator.evaluateMappingsToTriples(params, inboundsContext.getEnv().task, result);
         }
 
         private List<MappingType> getActivationInbound(ItemName itemName) {
             ResourceBidirectionalMappingType biDirMapping =
-                    mappingSource.getInboundDefinition().getActivationBidirectionalMappingType(itemName);
+                    inboundsSource.getInboundDefinition().getActivationBidirectionalMappingType(itemName);
             return biDirMapping != null ? biDirMapping.getInbound() : Collections.emptyList();
         }
     }

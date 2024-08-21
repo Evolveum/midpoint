@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState.EXISTING;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.determineContentDescription;
 import static com.evolveum.midpoint.schema.GetOperationOptions.getErrorReportingMethod;
 
 import java.util.ArrayList;
@@ -13,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Implements `search` and `count` operations.
  */
 class ShadowSearchLikeOperation {
+
+    private static final String OP_PROCESS_SHADOW = ShadowSearchLikeOperation.class.getName() + ".processShadow";
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowSearchLikeOperation.class);
 
@@ -105,7 +111,7 @@ class ShadowSearchLikeOperation {
         return ctx;
     }
 
-    SearchResultMetadata executeIterativeSearch(ResultHandler<ShadowType> handler, OperationResult result)
+    SearchResultMetadata executeIterativeSearch(@NotNull ResultHandler<ShadowType> handler, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (shouldDoRepoSearch()) {
@@ -141,7 +147,8 @@ class ShadowSearchLikeOperation {
         }
     }
 
-    private SearchResultMetadata executeIterativeSearchOnResource(ResultHandler<ShadowType> handler, OperationResult result)
+    private SearchResultMetadata executeIterativeSearchOnResource(
+            @NotNull ResultHandler<ShadowType> handler, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -155,6 +162,8 @@ class ShadowSearchLikeOperation {
             ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound);
             shadowedObjectFound.initialize(ctx.getTask(), lResult);
             ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod, lResult);
+            shadowedObject.setContentDescription(
+                    determineContentDescription(options, shadowedObjectFound.isError()));
 
             try {
                 return handler.handle(shadowedObject.asPrismObject(), lResult);
@@ -270,16 +279,29 @@ class ShadowSearchLikeOperation {
     }
 
     private SearchResultMetadata executeIterativeSearchInRepository(
-            ResultHandler<ShadowType> upstreamHandler, OperationResult result)
+            @NotNull ResultHandler<ShadowType> upstreamHandler, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         try {
+            var repoShadowHandler = (ResultHandler<ShadowType>) (repoShadow, lResult) -> {
+                OperationResult result = lResult.createMinorSubresult(ShadowsFacade.OP_HANDLE_OBJECT);
+                try {
+                    var processedShadow = processRepoShadow(repoShadow, result);
+                    var cont = upstreamHandler.handle(processedShadow, lResult);
+                    lResult.summarize();
+                    return cont;
+                } catch (CommonException e) {
+                    result.recordException(e);
+                    throw new TunnelException(e);
+                } catch (Throwable t) {
+                    result.recordException(t);
+                    throw t;
+                } finally {
+                    result.close();
+                }
+            };
             return b.shadowFinder.searchShadowsIterative(
-                    ctx,
-                    query,
-                    options,
-                    createRepoShadowHandler(upstreamHandler),
-                    result);
+                    ctx, query, options, repoShadowHandler, parentResult);
         } catch (TunnelException e) {
             unwrapAndThrowSearchingTunnelException(e);
             throw new AssertionError();
@@ -289,77 +311,61 @@ class ShadowSearchLikeOperation {
     private @NotNull SearchResultList<PrismObject<ShadowType>> executeNonIterativeSearchInRepository(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        SearchResultList<PrismObject<ShadowType>> shadows = b.shadowFinder.searchShadows(ctx, query, options, result);
-
-        ResultHandler<ShadowType> repoShadowHandler = createRepoShadowHandler(null);
+        var shadows = b.shadowFinder.searchShadows(ctx, query, options, result);
         for (PrismObject<ShadowType> shadow : shadows) {
-            try {
-                repoShadowHandler.handle(shadow, result);
-            } catch (TunnelException e) {
-                unwrapAndThrowSearchingTunnelException(e);
-                throw new AssertionError();
-            }
+            processRepoShadow(shadow, result);
         }
         return shadows;
     }
 
     /**
      * Provides common processing for shadows found in repo during iterative and non-iterative searches.
-     * Analogous to {@link ShadowGetOperation#returnCached(String)}. (Except for the futurization.)
+     * Analogous to {@link ShadowGetOperation#returnCached(String, OperationResult)}. (Except for the futurization.)
      */
-    private ResultHandler<ShadowType> createRepoShadowHandler(ResultHandler<ShadowType> upstreamHandler) {
-        return (PrismObject<ShadowType> shadow, OperationResult result) -> {
-            OperationResult lResult = result.createMinorSubresult(ShadowsFacade.OP_HANDLE_OBJECT);
-            boolean cont;
-            try {
-                shadow = processRepoShadow(shadow, lResult);
-                cont = upstreamHandler == null || upstreamHandler.handle(shadow, lResult);
-            } catch (CommonException e) {
-                lResult.recordException(e);
-                throw SystemException.unexpected(e); // TODO shouldn't we honor FetchErrorHandlingType here?
-            } catch (Throwable t) {
-                lResult.recordException(t);
-                throw t; // TODO shouldn't we honor FetchErrorHandlingType here?
-            } finally {
-                lResult.close();
-            }
-            if (!lResult.isSuccess()) {
-                shadow.asObjectable().setFetchResult(
-                        lResult.createBeanReduced());
-            }
-            result.summarize();
-            return cont;
-        };
-    }
-
-    private PrismObject<ShadowType> processRepoShadow(PrismObject<ShadowType> rawRepoShadow, OperationResult result)
+    private PrismObject<ShadowType> processRepoShadow(PrismObject<ShadowType> rawRepoShadow, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
 
-        if (isRaw()) {
-            ctx.applyDefinitionInNewCtx(rawRepoShadow); // TODO is this really OK?
-            return rawRepoShadow;
-        }
+        PrismObject<ShadowType> resultingShadow;
+        var result = parentResult.createMinorSubresult(OP_PROCESS_SHADOW);
+        try {
+            if (isRaw()) {
+                ctx.applyDefinitionInNewCtx(rawRepoShadow); // TODO is this really OK?
+                resultingShadow = rawRepoShadow;
+            } else {
 
-        // We don't need to keep the raw repo shadow. (At least not now.)
-        RepoShadow repoShadow = ctx.adoptRawRepoShadowSimple(rawRepoShadow);
+                // We don't need to keep the raw repo shadow. (At least not now.)
+                RepoShadow repoShadow = ctx.adoptRawRepoShadowSimple(rawRepoShadow);
 
-        // Fixing MID-1640; hoping that the protected object filter uses only identifiers (that are stored in repo)
-        // TODO we will eventually store the "protected" flag right in the repo shadow, so this code will be obsolete
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, repoShadow, result);
+                // Effective operation policies are not stored in repo, so they must be computed anew.
+                // Object marks maybe need to be updated as well.
+                ctx.computeAndUpdateEffectiveMarksAndPolicies(repoShadow, EXISTING, result);
 
-        ProvisioningUtil.validateShadow(repoShadow.getBean(), true); // TODO move elsewhere
+                ProvisioningUtil.validateShadow(repoShadow.getBean(), true); // TODO move elsewhere
 
-        if (isMaxStaleness()) {
-            if (repoShadow.getBean().getCachingMetadata() == null) {
-                result.recordFatalError("Requested cached data but no cached data are available in the shadow");
+                if (isMaxStaleness()) {
+                    if (repoShadow.getBean().getCachingMetadata() == null) {
+                        result.recordFatalError("Requested cached data but no cached data are available in the shadow");
+                    }
+                }
+
+                b.associationsHelper.convertReferenceAttributesToAssociations(
+                        ctx, repoShadow.getBean(), ctx.getObjectDefinitionRequired(), result);
+
+                resultingShadow = repoShadow.getPrismObject();
+                resultingShadow.asObjectable().setContentDescription(ShadowContentDescriptionType.FROM_REPOSITORY);
             }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t; // TODO shouldn't we honor FetchErrorHandlingType here?
+        } finally {
+            result.close();
         }
-
-        b.associationsHelper.convertReferenceAttributesToAssociations(
-                ctx, repoShadow.getBean(), ctx.getObjectDefinitionRequired(), result);
-
-        return repoShadow.getPrismObject();
+        if (!result.isSuccess()) {
+            resultingShadow.asObjectable().setFetchResult(
+                    result.createBeanReduced());
+        }
+        return resultingShadow;
     }
 
     private void unwrapAndThrowSearchingTunnelException(TunnelException e) throws ObjectNotFoundException, SchemaException,

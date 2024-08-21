@@ -234,6 +234,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="cacheInvalidationTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If specified, all shadows cached on or before this time are considered expired.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="synchronization" type="tns:SynchronizationType" minOccurs="0"/>
                     <xsd:element name="business" type="tns:ResourceBusinessConfigurationType" minOccurs="0"/>
                 </xsd:sequence>
@@ -965,7 +975,39 @@
                     <xsd:documentation>
                         Specification of a protected resource object: one that cannot be affected by IDM. It will be
                         ignored by operations, will not appear in lists, etc. A typical example is the administrator's account.
+
+                        DEPRECATED: Use "marking" instead.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.9</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="marking" type="tns:ShadowMarkingConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Drives automatic marking of shadows, e.g., as protected objects.
+                        Each mark should have at most one entry in this object, in order to avoid conflicting information.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultOperationPolicyRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default operation policy for those operations that do not have their behavior specified explicitly
+                        via object marks. I.e., if there is no mark for specific shadow, or if the mark(s) do not specify
+                        the policy explicitly, the policy is determined by the mark referenced here.
+
+                        The mark referenced here should have the archetype of "Shadow policy mark".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="activation" minOccurs="0" type="tns:ResourceActivationDefinitionType">
@@ -1076,6 +1118,78 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:complexType name="ShadowMarkingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How is given shadow mark automatically applied to shadows.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="markRef" type="tns:ObjectReferenceType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the mark to which this configuration applies.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="applicationTime" type="tns:ShadowMarkApplicationTimeType" minOccurs="0" default="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        On what occasion(s) is the marking done? E.g., always or for newly discovered shadows only.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="pattern" type="tns:ResourceObjectPatternType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The pattern(s) used to describe the matching objects.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ShadowMarkApplicationTimeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                On what occasion(s) is the marking done?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="always">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Marking is done always when the shadow is seen. This includes also when it's being added by midPoint.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALWAYS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="classification">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Marking is done when the shadow is being classified (this implies that it's being discovered by midPoint).
+                        Either at the first classification time, or when its classification changes.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLASSIFICATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="AssociatedResourceObjectTypeDefinitionType">
         <xsd:annotation>
@@ -2751,18 +2865,15 @@
                     <a:version>4.0</a:version>
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
+            <xsd:element name="filter" type="q:SearchFilterType">
                 <xsd:annotation>
                     <xsd:documentation>
                         The filter used to match the object. If the object matches then it is regarded to be
                         protected.
-
-                        Although this is minOccurs=0 it is a mandatory attribute for all current practical uses.
-                        The minOccurs=0 is here only for compatibility and it will be changed to minOccurs=1
-                        when the deprecated syntax is removed.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3215,6 +3326,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="tolerant" minOccurs="0" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When set to true, allows association values that are set outside midPoint.
+                        When true, midPoint will only remove values that are computed as being deleted by the mappings,
+                        but will tolerate extra native values.
+                        When set to false, extra values are not tolerated. When midPoint detects
+                        such value (e.g. during reconciliation) it will remove it.
+
+                        May be overridden by shadow marks.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -3353,10 +3477,10 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="AttributeOutboundMappingsDefinitionType">
+    <xsd:complexType name="AbstractAttributeMappingsDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Defines outbound mapping(s) for an attribute.
+                Defines mapping(s) for an attribute.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -3369,22 +3493,34 @@
                     <xsd:documentation>
                         Path of the attribute that this definition describes.
                     </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeOutboundMappingsDefinitionType.ref</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The mappings for the attribute.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeOutboundMappingsDefinitionType.mapping</a:displayName>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AttributeOutboundMappingsDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines outbound mapping(s) for an attribute.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAttributeMappingsDefinitionType">
+            <xsd:sequence>
+                <xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The mappings for the attribute.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="attributeOutboundMappingsDefinition" type="tns:AttributeOutboundMappingsDefinitionType"/>
 
@@ -3398,38 +3534,32 @@
                 <a:since>4.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="ref" type="t:ItemPathType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Path of the attribute that this definition describes.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeInboundMappingsDefinitionType.ref</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="correlator" type="tns:ItemCorrelatorDefinitionType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Creates a single-item correlator for this attribute.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeInboundMappingsDefinitionType.correlator</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="mapping" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The mappings for the attribute.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AttributeInboundMappingsDefinitionType.mapping</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAttributeMappingsDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="correlator" type="tns:ItemCorrelatorDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Creates a single-item correlator for this attribute.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AttributeInboundMappingsDefinitionType.correlator</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="mapping" type="tns:InboundMappingType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The mappings for the attribute.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AttributeInboundMappingsDefinitionType.mapping</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="attributeInboundMappingsDefinition" type="tns:AttributeInboundMappingsDefinitionType"/>
 
@@ -4257,17 +4387,6 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="deleted">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The value existed on the resource, but it has been deleted.
-                        TODO
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DELETED"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="matched">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4275,6 +4394,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MATCHED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="matchedIndirectly">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The target reference exists among references to indirectly assigned abstract roles.
+                        (I.e., it is present in current roleMembershipRef values.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MATCHED_INDIRECTLY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -4421,6 +4551,17 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NOT_APPLICABLE_FOR_TASK"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="expired">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object (presumably obtained from shadow cache) is not considered fresh enough, i.e., its
+                        time to live in the cache already passed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPIRED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -5277,6 +5418,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="contentDescription" type="tns:ShadowContentDescriptionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Describes the content of the shadow, mainly regarding the source (repository / resource),
+                                plus other limitations. Transient property, not to be stored in the repository.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                                <a:operational>true</a:operational>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -5328,10 +5481,10 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="associated">
+            <xsd:enumeration value="association">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ASSOCIATED"/>
+                        <jaxb:typesafeEnumMember name="ASSOCIATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -5495,6 +5648,87 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="INCOMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ShadowContentDescriptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes what exactly is in the shadow, mainly regarding the origin of the data.
+
+                Currently it is a simple enumeration. Later on we can add more detailed information here,
+                like exactly what attributes are to be expected in the shadow.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="fromResourceComplete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The shadow comes from the resource.
+
+                        It should be relatively complete, meaning that at least the attributes provided by default
+                        (including associations) are present.
+
+                        This means that e.g. it is safe to cache it, run mappings against it, and so on.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FROM_RESOURCE_COMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fromResourceIncomplete">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The shadow comes from the resource but we cannot assure it's complete.
+
+                        We should not cache it. It is questionable whether we should run mappings against it.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FROM_RESOURCE_INCOMPLETE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="fromRepository">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The shadow comes from the cache, i.e., from the repository.
+
+                        Its expiration should be determined by examining cachingMetadata item.
+
+                        Note that the shadow may or may not really exist on the resource.
+                        The shadow lifecycle state must be examined to learn this.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FROM_REPOSITORY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="new">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This is a shadow that is going to be created on the resource.
+                        Resource-provided attributes (like icfs:uid, or LDAP uid) should or may be missing.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="identificationOnly">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This shadow serves just as a holder of identifiers pointing to a real shadow.
+                        Used for shadow references.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IDENTIFICATION_ONLY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -6953,6 +7187,21 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="timeToLive" type="xsd:duration" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                For how long do we consider cached data as usable?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="defaultCacheUse" type="tns:CachedShadowsUseType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How should be the cache used by default, e.g., if no caching behavior
+                                is specified in model execution options?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -6969,17 +7218,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="attributes" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="mapped">
+            <xsd:element name="attributes" type="tns:ShadowSimpleAttributesCachingScopeType" minOccurs="0" default="defined">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Scope of the caching for attributes.
+                        Scope of the caching for simple attributes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="associations" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Scope of the caching for associations.
+                        Scope of the caching for associations i.e. reference attributes.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -6987,7 +7236,20 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Scope of the caching for the activation information.
-                        The value of "mapped" is currently not supported here. (It is interpreted as "all".)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="auxiliaryObjectClasses" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope of the caching for the auxiliary object classes.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="credentials" type="tns:ShadowItemsCachingScopeType" minOccurs="0" default="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scope of the caching for credentials.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -6995,10 +7257,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:simpleType name="ShadowItemsCachingScopeType">
+    <xsd:simpleType name="ShadowSimpleAttributesCachingScopeType">
         <xsd:annotation>
             <xsd:documentation>
-                Scope of the shadow caching for a category of items (e.g., attributes or associations).
+                Scope of the shadow caching for simple attributes.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -7009,6 +7271,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="defined">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Only attributes defined (refined) in schemaHandling section will be cached.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEFINED"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -7036,11 +7308,44 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:simpleType name="ShadowItemsCachingScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope of the shadow caching for a category of items other than simple attributes (e.g., associations).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="none">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        No items of given kind will be cached.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="all">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        All items of given kind will be cached.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ALL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="AssociationConstructionExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
                 Creates association values by constructing it via mappings for individual attributes and object references.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
@@ -7077,6 +7382,9 @@
                 Synchronizes association values by correlating and mapping them to values of respective focus item
                 (typically, an assignment).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>

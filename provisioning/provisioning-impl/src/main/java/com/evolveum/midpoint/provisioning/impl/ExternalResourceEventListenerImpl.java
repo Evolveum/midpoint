@@ -97,12 +97,13 @@ public class ExternalResourceEventListenerImpl implements ExternalResourceEventL
             }
 
             ResourceObjectDefinition definition = ctx.getObjectDefinitionRequired();
+            UcfResourceObject resourceObject = getResourceObject(event, primaryIdentifierRealValue);
             ExternalResourceObjectChange resourceObjectChange = new ExternalResourceObjectChange(
                     currentSequenceNumber.getAndIncrement(),
                     primaryIdentifierRealValue,
                     definition,
                     identifiers,
-                    getResourceObject(event, primaryIdentifierRealValue),
+                    resourceObject,
                     event.getObjectDelta(),
                     ctx);
             ShadowedExternalChange adoptedChange = new ShadowedExternalChange(resourceObjectChange);

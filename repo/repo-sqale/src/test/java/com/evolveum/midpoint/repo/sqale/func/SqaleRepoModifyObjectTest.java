@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sqale.func;
 
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -21,26 +21,22 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.InfraItemName;
-import com.evolveum.midpoint.prism.query.TypedObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.query.PreparedQuery;
-import com.evolveum.midpoint.schema.query.TypedQuery;
-import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
-import com.evolveum.midpoint.util.exception.*;
-
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoBaseTest;
@@ -69,11 +65,14 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.query.TypedQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -91,7 +90,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     @BeforeClass
     public void initObjects() throws Exception {
         OperationResult result = createOperationResult();
-
+        var resouceOid = UUID.randomUUID().toString();
         user1Oid = repositoryService.addObject(
                 new UserType().name("user-1").asPrismObject(),
                 null, result);
@@ -99,7 +98,10 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 new TaskType().name("task-1").asPrismObject(),
                 null, result);
         shadow1Oid = repositoryService.addObject(
-                new ShadowType().name("shadow-1").asPrismObject(),
+                new ShadowType().name("shadow-1")
+                        .resourceRef(resouceOid, ResourceType.COMPLEX_TYPE)
+                        .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                        .asPrismObject(),
                 null, result);
         service1Oid = repositoryService.addObject(
                 new ServiceType().name("service-1").asPrismObject(),
@@ -1787,7 +1789,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel status replace to null ('delete') for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE,  MetadataType.F_CREATE_CHANNEL)
+                .item(InfraItemName.METADATA, 1, ValueMetadataType.F_STORAGE, MetadataType.F_CREATE_CHANNEL)
                 .replace()
                 .asObjectDelta(task1Oid);
 
@@ -1822,7 +1824,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata/createChannel (multi-part path) change for task 1 adding value");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE, MetadataType.F_CREATE_CHANNEL)
+                .item(InfraItemName.METADATA, 1, ValueMetadataType.F_STORAGE, MetadataType.F_CREATE_CHANNEL)
                 .replace("any://channel")
                 .asObjectDelta(task1Oid);
 
@@ -1855,7 +1857,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata add with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).add()
+                .item(InfraItemName.METADATA, 1, ValueMetadataType.F_STORAGE).add()
                 .asObjectDelta(task1Oid);
 
         and("task row previously having some value in metadata container");
@@ -1890,7 +1892,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID modifierRefOid = UUID.randomUUID();
         QName modifierRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).add(new StorageMetadataType()
+                .item(InfraItemName.METADATA, 1, ValueMetadataType.F_STORAGE).add(new StorageMetadataType()
                         .modifyChannel("any://modify-channel")
                         .modifierRef(modifierRefOid.toString(),
                                 UserType.COMPLEX_TYPE, modifierRelation))
@@ -1936,7 +1938,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         UUID creatorRefOid = UUID.randomUUID();
         QName creatorRelation = QName.valueOf("{https://random.org/ns}modifier-rel");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).replace(new StorageMetadataType()
+                .item(InfraItemName.METADATA, 1, ValueMetadataType.F_STORAGE).replace(new StorageMetadataType()
                         .createChannel("any://create-channel")
                         .modifyChannel("any://modify2-channel")
                         .creatorRef(creatorRefOid.toString(),
@@ -2018,7 +2020,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with metadata replaced with no value for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).replace(new StorageMetadataType())
+                .item(InfraItemName.METADATA, 1, ValueMetadataType.F_STORAGE).replace(new StorageMetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -2057,7 +2059,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta replacing metadata with nothing for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).replace()
+                .item(InfraItemName.METADATA, 1, ValueMetadataType.F_STORAGE).replace()
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -2081,7 +2083,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         given("delta with empty metadata added for task 1");
         ObjectDelta<TaskType> delta = prismContext.deltaFor(TaskType.class)
-                .item(InfraItemName.METADATA, 1 ,ValueMetadataType.F_STORAGE).add(new StorageMetadataType())
+                .item(InfraItemName.METADATA, 1, ValueMetadataType.F_STORAGE).add(new StorageMetadataType())
                 .asObjectDelta(task1Oid);
 
         when("modifyObject is called");
@@ -3401,28 +3403,23 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         var accountDef = new TestShadowDefinition(resourceRef,
                 SchemaConstants.RI_ACCOUNT_OBJECT_CLASS, ShadowKindType.ACCOUNT, "default");
         var nameAttr = accountDef.defineAttribute("name", DOMUtil.XSD_STRING);
-        var groupRef = accountDef.defineReference("group",-1);
+        var groupRef = accountDef.defineReference("group", -1);
 
         var groupDef = new TestShadowDefinition(resourceRef,
                 SchemaConstants.RI_GROUP_OBJECT_CLASS, ShadowKindType.ENTITLEMENT, "default");
         groupDef.defineAttribute("name", DOMUtil.XSD_STRING);
         var ownerRef = groupDef.defineReference("owner", -1);
 
-
-
-
         given("a shadow in repository");
         ShadowType account = accountDef.newShadow("account");
         var accountOid = repositoryService.addObject(account.asPrismObject(), null, result);
 
-
-        ShadowType groupAll =groupDef.newShadow("all");
+        ShadowType groupAll = groupDef.newShadow("all");
         var groupAllOid = repositoryService.addObject(groupAll.asPrismObject(), null, result);
 
         ShadowType owner = accountDef.newShadow("owner");
         owner.asPrismObject().findOrCreateItem(ItemPath.create(ShadowType.F_REFERENCE_ATTRIBUTES, groupRef), PrismReference.class)
                 .add(new ObjectReferenceType().oid(groupAllOid).asReferenceValue());
-
 
         var ownerOid = repositoryService.addObject(owner.asPrismObject(), null, result);
 
@@ -3431,12 +3428,10 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         when("reference attribute group is added");
         var addAllDeltas = accountDef.newDelta()
-                        .item(ShadowType.F_REFERENCE_ATTRIBUTES, groupRef)
-                                .add(new ObjectReferenceType().oid(groupAllOid))
-                                        .asItemDeltas();
+                .item(ShadowType.F_REFERENCE_ATTRIBUTES, groupRef)
+                .add(new ObjectReferenceType().oid(groupAllOid))
+                .asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, accountOid, addAllDeltas, result);
-
-
 
         then("reference attributes should be readed back");
         account = repositoryService.getObject(ShadowType.class, accountOid, null, result).asObjectable();
@@ -3453,7 +3448,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
 
         then("accounts can be found by ref filter with oid");
         query = TypedQuery.parse(ShadowType.class, accountDef.objectDefinition,
-                "referenceAttributes/ri:group matches (oid = '"  + groupAllOid + "' )").toObjectQuery();
+                "referenceAttributes/ri:group matches (oid = '" + groupAllOid + "' )").toObjectQuery();
         accountsList = repositoryService.searchObjects(ShadowType.class, query, null, result);
         assertThat(accountsList)
                 .hasSize(2);
@@ -3510,8 +3505,6 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         PrismProperty<PolyString> valueAfter = shadowAfter.findProperty(attrPath);
         assertThat(valueAfter.getRealValue()).isEqualTo(PolyString.fromOrig("JACK2"));
     }
-
-
 
     // region value metadata
     @Test
@@ -3877,8 +3870,8 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     /**
-        Disabled: This type of edit (remove of assignment row) does not survive reindex if assignments are not stored in
-        full object.
+     * Disabled: This type of edit (remove of assignment row) does not survive reindex if assignments are not stored in
+     * full object.
      */
     @Test(enabled = false)
     public void test951ReindexAfterManualChangeOfFullObject()
@@ -4130,4 +4123,62 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(row.version).isEqualTo(originalRow.version + 2);
     }
     // endregion
+
+    @Test(expectedExceptions = SystemException.class)
+    public void test992UpdateAssignmentWithWrongOid() throws Exception {
+        // GIVEN
+        final String targetOid = UUID.randomUUID().toString();
+
+        final ObjectReferenceType originalRef = new ObjectReferenceType()
+                .oid(targetOid)
+                .type(RoleType.COMPLEX_TYPE)
+                .relation(SchemaConstants.ORG_DEFAULT);
+
+        AssignmentType a = new AssignmentType();
+        a.setTargetRef(originalRef);
+
+        OperationResult result = new OperationResult("updateAssignmentWithWrongOid");
+
+        UserType userObject = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        ObjectDelta<UserType> delta = userObject.asPrismObject().createModifyDelta();
+        delta.addModificationAddContainer(UserType.F_ASSIGNMENT, a);
+
+        delta.addModificationDeleteContainer(
+                UserType.F_ASSIGNMENT, userObject.getAssignment().stream().map(i -> i.clone()).toList().toArray(new AssignmentType[0]));
+
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        try (JdbcSession session = sqlRepoContext.newJdbcSession()) {
+            QAssignment qa = new QAssignment("a");
+
+            UUID uuid = session.newQuery().select(qa.targetRefTargetOid)
+                    .from(qa)
+                    .where(qa.ownerOid.eq(SqaleUtils.oidToUuid(user1Oid))).fetchFirst();
+            AssertJUnit.assertEquals(SqaleUtils.oidToUuid(targetOid), uuid);
+        }
+
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        AssertJUnit.assertEquals(1, user.getAssignment().size());
+
+        AssignmentType created = user.getAssignment().get(0);
+        AssertJUnit.assertEquals(targetOid, created.getTargetRef().getOid());
+
+        // WHEN
+        ObjectReferenceType newRef = new ObjectReferenceType()
+                .oid("1234")
+                .type(RoleType.COMPLEX_TYPE)
+                .relation(SchemaConstants.ORG_DEFAULT);
+
+        delta = user.asPrismObject().createModifyDelta();
+        ReferenceDelta refDelta = delta.createReferenceModification(ItemPath.create(UserType.F_ASSIGNMENT, created.getId(), AssignmentType.F_TARGET_REF));
+        refDelta.addValuesToAdd(newRef.asReferenceValue());
+        refDelta.addValueToDelete(originalRef.asReferenceValue().clone());
+
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        // THEN
+        AssertJUnit.fail("Should fail in repository service modify, since oid in targetRef is invalid");
+    }
 }

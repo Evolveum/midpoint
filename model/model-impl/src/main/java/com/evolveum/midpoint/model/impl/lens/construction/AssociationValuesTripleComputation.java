@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.construction;
 
 import static com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator.EvaluationContext.forProjectionContext;
+import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isMembershipSyncOutboundDisabled;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
@@ -23,11 +24,15 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
+import com.evolveum.midpoint.schema.config.AbstractAttributeMappingsDefinitionConfigItem;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -67,7 +72,7 @@ public class AssociationValuesTripleComputation {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationValuesTripleComputation.class);
 
-    private final boolean hasAssociationObject;
+    private final boolean complexAssociation;
     @NotNull private final ShadowAssociationDefinition associationDefinition;
     @NotNull private final AssociationOutboundMappingType outboundBean;
     @NotNull private final LensProjectionContext projectionContext;
@@ -82,7 +87,7 @@ public class AssociationValuesTripleComputation {
             @NotNull LensProjectionContext projectionContext,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull OperationResult result) {
-        this.hasAssociationObject = associationDefinition.hasAssociationObject();
+        this.complexAssociation = associationDefinition.isComplex();
         this.associationDefinition = associationDefinition;
         this.outboundBean = outboundBean;
         this.projectionContext = projectionContext;
@@ -124,9 +129,12 @@ public class AssociationValuesTripleComputation {
                                 ea.getRoles().foreach(
                                         (targetSet, target) -> {
                                             try {
-                                                var mode = PlusMinusZero.compute(eaSet, targetSet);
-                                                if (mode != null) {
-                                                    processAssignmentTarget(mode, target);
+                                                if (target.getAssignmentPath().last().isMatchingOrder()) {
+                                                    var mode = PlusMinusZero.compute(eaSet, targetSet);
+                                                    if (mode != null) {
+                                                        // TODO consider validity as well
+                                                        processAssignmentTarget(mode, target);
+                                                    }
                                                 }
                                             } catch (CommonException e) {
                                                 throw new LocalTunnelException(e);
@@ -172,8 +180,9 @@ public class AssociationValuesTripleComputation {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
 
-        var objectParticipants = associationDefinition.getObjectParticipants(projectionContext.getResourceSchemaRequired());
-        LOGGER.trace("Trying to find relevant shadows for focus {} (object types: {})", focus, objectParticipants);
+        var objectParticipants = associationDefinition.getObjectParticipants();
+        LOGGER.trace("Trying to find relevant shadows for focus {} having {} linkRefs (object types: {})",
+                focus, focus.getLinkRef().size(), objectParticipants);
 
         stateCheck(!objectParticipants.isEmpty(), "No object participants in %s", associationDefinition);
 
@@ -186,6 +195,12 @@ public class AssociationValuesTripleComputation {
                             env.task, result));
             if (shadow.isDead()) {
                 LOGGER.trace("Ignoring dead shadow {}", shadow);
+                continue;
+            }
+            if (isMembershipSyncOutboundDisabled(shadow.getEffectiveOperationPolicyRequired())) {
+                // This check is supported for simple associations right now. But it does not hurt to evaluate it
+                // for complex ones as well.
+                LOGGER.trace("Ignoring shadow {} because of membership sync outbound policy", shadow);
                 continue;
             }
             // TODO we should distinguish between types of objects in this associations
@@ -218,34 +233,42 @@ public class AssociationValuesTripleComputation {
         private PrismValueDeltaSetTriple<ShadowAssociationValue> compute(@NotNull PlusMinusZero mode)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
-            if (hasAssociationObject) {
-                for (var attrDefBean : outboundBean.getAttribute()) {
-                    evaluateAttribute(attrDefBean, false);
-                }
-                for (var attrDefBean : outboundBean.getObjectRef()) {
-                    evaluateAttribute(attrDefBean, true);
-                }
-                var associationObject = consolidate();
-                var associationValue =
-                        ShadowAssociationValue.fromAssociationObject(
-                                AbstractShadow.of(associationObject),
-                                associationDefinition);
-                var resultingTriple = PrismContext.get().deltaFactory().<ShadowAssociationValue>createPrismValueDeltaSetTriple();
-                resultingTriple.addAllToSet(mode, List.of(associationValue));
-                return resultingTriple;
-            } else {
-                // FIXME implement this
-                return PrismContext.get().deltaFactory().createPrismValueDeltaSetTriple();
+            var resultingTriple = PrismContext.get().deltaFactory().<ShadowAssociationValue>createPrismValueDeltaSetTriple();
+            for (var attrDefBean : outboundBean.getAttribute()) {
+                evaluateAttribute(attrDefBean, false);
             }
+            for (var attrDefBean : outboundBean.getObjectRef()) {
+                evaluateAttribute(attrDefBean, true);
+            }
+            var associationDataObject = consolidate();
+            ShadowAssociationValue associationValue;
+            if (complexAssociation) {
+                associationValue =
+                        ShadowAssociationValue.fromAssociationDataObject(
+                                AbstractShadow.of(associationDataObject),
+                                associationDefinition);
+            } else {
+                associationValue = ShadowAssociationValue.empty(associationDefinition);
+                var referenceAttributes = ShadowUtil.getAttributesContainer(associationDataObject).getReferenceAttributes();
+                if (referenceAttributes.isEmpty()) {
+                    return resultingTriple;
+                }
+                var referenceAttribute = MiscUtil.extractSingletonRequired(referenceAttributes);
+                associationValue.getOrCreateObjectsContainer().addAttribute(referenceAttribute.clone());
+            }
+            resultingTriple.addAllToSet(mode, List.of(associationValue));
+            return resultingTriple;
         }
 
         private void evaluateAttribute(AttributeOutboundMappingsDefinitionType attrDefBean, boolean isObjectRef)
                 throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException,
                 ConfigurationException, ObjectNotFoundException {
+
+            var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
+            var mappingsCI = AbstractAttributeMappingsDefinitionConfigItem.of(attrDefBean, origin);
+            var targetItemName = isObjectRef ? mappingsCI.getObjectRefOrDefault(associationDefinition) : mappingsCI.getRef();
+            var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
             for (var outboundBean : attrDefBean.getMapping()) {
-                var targetItemName = attrDefBean.getRef().getItemPath().firstNameOrFail();
-                var targetItemPath = ShadowType.F_ATTRIBUTES.append(targetItemName);
-                var origin = ConfigurationItemOrigin.inResourceOrAncestor(projectionContext.getResourceRequired());
                 var mappingConfigItem = MappingConfigItem.of(outboundBean, origin);
 
                 MappingBuilder<PrismValue, ItemDefinition<?>> builder =
@@ -266,9 +289,14 @@ public class AssociationValuesTripleComputation {
 
                 var magicAssignmentIdi = assignmentPathVariables.getMagicAssignment();
 
-                var outputDefinition = associationDefinition
-                        .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
-                        .findAttributeDefinitionRequired(targetItemName);
+                var outputDefinition =
+                        associationDefinition.isComplex() ?
+                                associationDefinition
+                                        .getAssociationDataObjectDefinition()
+                                        .findAttributeDefinitionRequired(targetItemName) :
+                                projectionContext
+                                        .getCompositeObjectDefinition()
+                                        .findAttributeDefinitionRequired(targetItemName);
 
                 builder = builder
                         .targetItemName(targetItemName)
@@ -303,10 +331,10 @@ public class AssociationValuesTripleComputation {
         private @NotNull ShadowType consolidate()
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
-            var shadow = associationDefinition
-                    .getAssociationObjectDefinition() // FIXME this may fail for trivial associations
-                    .createBlankShadow()
-                    .getBean();
+            var shadowDef = associationDefinition.isComplex() ?
+                    associationDefinition.getAssociationDataObjectDefinition() :
+                    projectionContext.getCompositeObjectDefinitionRequired();
+            var shadow = shadowDef.createBlankShadow().getBean();
             //noinspection unchecked
             var consolidation = new DeltaSetTripleMapConsolidation<>(
                     tripleMap,

@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -32,8 +32,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -69,7 +67,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
     }
 
     default @NotNull String getOidRequired() {
-        return MiscUtil.stateNonNull(getBean().getOid(), "No OID in %s", this);
+        return stateNonNull(getBean().getOid(), "No OID in %s", this);
     }
 
     /** Currently, returns "plain" reference (only type + OID). This may change in the future. Returns null if there's no OID. */
@@ -175,7 +173,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
     @NotNull AbstractShadow withNewContent(@NotNull ShadowType newBean);
 
     default @NotNull String getResourceOidRequired() {
-        return MiscUtil.stateNonNull(
+        return stateNonNull(
                 getResourceOid(),
                 "No resource OID in %s", this);
     }
@@ -185,7 +183,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
     }
 
     default @NotNull QName getObjectClassName() throws SchemaException {
-        return MiscUtil.stateNonNull(
+        return stateNonNull(
                 getBean().getObjectClass(),
                 "No object class name in %s", this);
     }
@@ -195,7 +193,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
     }
 
     default @NotNull ShadowAttributesContainer getAttributesContainer() {
-        return MiscUtil.stateNonNull(
+        return stateNonNull(
                 ShadowUtil.getAttributesContainer(getBean()),
                 "No attributes container in %s", this);
     }
@@ -250,7 +248,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
     default void checkAttributeDefinitions() {
         ResourceObjectDefinition objectDefinition = getObjectDefinition();
         for (var attribute : getAttributes()) {
-            var attrDef = MiscUtil.stateNonNull(
+            var attrDef = stateNonNull(
                     attribute.getDefinition(),
                     "Attribute %s with no definition in %s", attribute, this);
             var attrDefFromObjectDef = objectDefinition.findAttributeDefinitionStrictlyRequired(attribute.getElementName());
@@ -308,7 +306,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
     }
 
     default @NotNull <T> ShadowSimpleAttribute<T> getSimpleAttributeRequired(QName attrName) {
-        return MiscUtil.stateNonNull(
+        return stateNonNull(
                 getSimpleAttribute(attrName),
                 "No '%s' in %s", attrName, this);
     }
@@ -338,7 +336,7 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
     }
 
     default @NotNull QName getObjectClass() {
-        return MiscUtil.stateNonNull(
+        return stateNonNull(
                 getBean().getObjectClass(),
                 "No object class in %s", this);
     }
@@ -386,6 +384,22 @@ public interface AbstractShadow extends ShadowLikeValue, ShortDumpable, DebugDum
                     .kind(null)
                     .intent(null);
         }
+    }
+
+    default @NotNull ShadowContentDescriptionType getContentDescriptionRequired() {
+        return stateNonNull(
+                getContentDescription(),
+                "No content description in %s", this);
+    }
+
+    default @Nullable ShadowContentDescriptionType getContentDescription() {
+        return getBean().getContentDescription();
+    }
+
+    default @NotNull ObjectOperationPolicyType getEffectiveOperationPolicyRequired() {
+        return stateNonNull(
+                getBean().getEffectiveOperationPolicy(),
+                "No effective provisioning policy in %s", this);
     }
 
     /**

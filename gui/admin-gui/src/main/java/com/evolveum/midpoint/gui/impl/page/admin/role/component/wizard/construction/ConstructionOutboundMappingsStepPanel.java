@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.attributeMapping.OutboundAttributeMappingsTable;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ObjectTypeAttributeMappingWrapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -137,8 +137,8 @@ public class ConstructionOutboundMappingsStepPanel<AR extends AbstractRoleType>
 
                 PrismContainerWrapper container =
                         ((PrismContainerWrapper) constructionModel.getObject().getParent()).findContainer(ConstructionType.F_ATTRIBUTE);
-                if (container instanceof ResourceAttributeMappingWrapper) {
-                    ((ResourceAttributeMappingWrapper)container).applyDelta();
+                if (container instanceof ObjectTypeAttributeMappingWrapper) {
+                    ((ObjectTypeAttributeMappingWrapper)container).applyDelta();
                 }
             }
         } catch (SchemaException e) {

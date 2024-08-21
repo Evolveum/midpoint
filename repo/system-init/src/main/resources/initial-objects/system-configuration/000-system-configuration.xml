@@ -169,6 +169,9 @@
                 </tracingTypeProfile>
             </profile>
         </tracing>
+        <repository>
+            <autoCreatePartitionsOnAdd>true</autoCreatePartitionsOnAdd>
+        </repository>
     </internals>
     <adminGuiConfiguration>
         <homePage id="21">
@@ -1252,6 +1255,10 @@
                             <path>schemaHandling/objectType/default</path>
                             <visibility>visible</visibility>
                         </item>
+                        <item id="268">
+                            <path>schemaHandling/objectType/lifecycleState</path>
+                            <visibility>visible</visibility>
+                        </item>
                     </container>
                     <container id="131">
                         <identifier>objectType</identifier>
@@ -1682,6 +1689,11 @@
             <identifier>admin-dashboard</identifier>
             <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001" relation="org:default" type="c:DashboardType"/>
         </configurableUserDashboard>
+        <configurableUserDashboard id="267">
+            <identifier>compliance-dashboard</identifier>
+            <configurableDashboardRef oid="00000000-0000-0000-0001-000000001001" relation="org:default" type="c:DashboardType"/>
+        </configurableUserDashboard>
+
         <accessRequest>
             <roleCatalog>
                 <collection id="215">

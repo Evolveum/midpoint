@@ -69,7 +69,7 @@ class ResourceObjectDeleteOperation extends ResourceObjectProvisioningOperation 
 
         ctx.checkExecutionFullyPersistent();
         ctx.checkForCapability(DeleteCapabilityType.class);
-        ctx.checkProtectedObjectDeletion(shadow, result);
+        ctx.checkProtectedObjectDeletion(shadow);
 
         executeProvisioningScripts(ProvisioningOperationTypeType.DELETE, BeforeAfterType.BEFORE, result);
 

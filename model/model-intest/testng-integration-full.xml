@@ -76,7 +76,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestAssignmentsProcessing"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
-            <class name="com.evolveum.midpoint.model.intest.rbac.TestRequirement"/>
+            <class name="com.evolveum.midpoint.model.intest.rbac.TestPolicyRules"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestAssignmentValidity"/>
@@ -102,6 +102,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestIdentities"/>
             <class name="com.evolveum.midpoint.model.intest.TestInitialObjects"/>
             <class name="com.evolveum.midpoint.model.intest.TestSecretProviders"/>
+            <class name="com.evolveum.midpoint.model.intest.TestShadowCaching"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="none" verbose="10">

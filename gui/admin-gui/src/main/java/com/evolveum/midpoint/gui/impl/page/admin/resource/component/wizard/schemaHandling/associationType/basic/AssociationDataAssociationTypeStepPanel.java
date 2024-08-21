@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.LinkedReferencePanelFactory;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -47,7 +49,6 @@ public class AssociationDataAssociationTypeStepPanel
                 ItemPath.create(
                         ShadowAssociationTypeDefinitionType.F_SUBJECT,
                         ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION));
-                        //ShadowAssociationDefinitionType.F_FOCUS));
     }
 
     @Override
@@ -80,5 +81,15 @@ public class AssociationDataAssociationTypeStepPanel
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageResource.wizard.step.associationType.data.subText");
+    }
+
+    @Override
+    protected ItemVisibilityHandler getVisibilityHandler() {
+        return wrapper -> {
+            if (wrapper.getItemName().equals(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF)) {
+                return ItemVisibility.HIDDEN;
+            }
+            return ItemVisibility.AUTO;
+        };
     }
 }

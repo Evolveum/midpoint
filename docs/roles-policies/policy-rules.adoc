@@ -1,6 +1,10 @@
 ---
 midpoint-feature: policy-rule
 doc-type: intro
+compliance:
+    iso27001:
+        '5.15':
+            description: 'Use of policy rules to set up rules and constraints for access control model.'
 ---
 = Policy Rules
 :page-wiki-name: Policy Rules
@@ -86,7 +90,24 @@ It is just a matter of getting used to.
 In case that you need a logical OR between several constraints you just need to re-formulate them into several policy rules.
 Each of the policy rules is triggered individually, therefore implementing logical OR operation.
 
-=== Policy Situation
+=== Object Marks
+
+feature:object-mark[Object marks] indicate result of policy rule execution.
+
+[TIP]
+.TODO
+====
+This section needs to be expanded.
+However, documentation work is similar to the development work in that it takes time and that it needs funding.
+
+If you are midPoint link:https://evolveum.com/services/[subscriber], you can request that we complete this section and we will do that as soon as possible.
+Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] completion of midPoint documentation.
+====
+
+
+=== Policy Situation (Legacy)
+
+Policy situations are replaced by feature:object-mark[object marks] in midPoint 4.9.
 
 [TIP]
 .TODO

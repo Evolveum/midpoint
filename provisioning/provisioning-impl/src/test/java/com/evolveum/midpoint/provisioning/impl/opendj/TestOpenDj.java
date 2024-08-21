@@ -306,7 +306,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // Although connector does not support activation, the resource specifies a way how to simulate it.
         // Therefore the following should succeed
         capAct = ResourceTypeUtil.getEnabledCapability(resource, ActivationCapabilityType.class);
-        assertNotNull("activation capability not found", capAct);
+        if (isActivationCapabilityClassSpecific()) {
+            assertNull("activation capability should not be present at the resource level", capAct);
+        } else {
+            assertNotNull("activation capability not found", capAct);
+        }
 
         PagedSearchCapabilityType capPage = ResourceTypeUtil.getEnabledCapability(resource, PagedSearchCapabilityType.class);
         assertNotNull("paged search capability not present", capPage);
@@ -3225,6 +3229,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         addResourceFromFile(
                 RESOURCE_OPENDJ_NO_READ_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
+        // The cached shadow contains some extra attributes. Invalidation makes that less serious.
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
+
         try {
             provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
             AssertJUnit.fail("Expected unsupported operation exception, but haven't got one.");
@@ -3256,6 +3263,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         addResourceFromFile(RESOURCE_OPENDJ_NO_DELETE_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
 
+        // The cached shadow contains some extra attributes. Invalidation makes that less serious.
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
+
         try {
             provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
             AssertJUnit.fail("Expected unsupported operation exception, but haven't got one.");
@@ -3270,6 +3280,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
         OperationResult result = task.getResult();
 
         addResourceFromFile(RESOURCE_OPENDJ_NO_UPDATE_FILE, IntegrationTestTools.CONNECTOR_LDAP_TYPE, true, result);
+
+        // The cached shadow contains some extra attributes. Invalidation makes that less serious.
+        invalidateShadowCacheIfNeeded(RESOURCE_OPENDJ_OID);
 
         try {
             PropertyDelta<String> delta =
@@ -3536,5 +3549,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 .item(ShadowType.F_ASSOCIATIONS, assocName)
                 .add(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
+    }
+
+    protected boolean isActivationCapabilityClassSpecific() {
+        return true;
     }
 }

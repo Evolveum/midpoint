@@ -88,6 +88,7 @@
             </delineation>
             <focus>
                 <type>RoleType</type>
+                <archetypeRef oid="5200a309-554d-46c7-a551-b8a4fdc26a18"/>
             </focus>
             <attribute>
                 <ref>icfs:name</ref>
@@ -127,7 +128,6 @@
                         <expression>
                             <associationConstruction>
                                 <objectRef>
-                                    <ref>ri:group</ref>
                                     <mapping>
                                         <expression>
                                             <associationFromLink/>
@@ -138,10 +138,10 @@
                         </expression>
                     </outbound>
                     <inbound>
+                        <name>groups-inbound</name>
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
-                                    <ref>ri:group</ref>
                                     <correlator/>
                                     <mapping>
                                         <expression>
@@ -165,16 +165,15 @@
                                             <synchronize/>
                                         </actions>
                                     </reaction>
+                                    <reaction>
+                                        <situation>matchedIndirectly</situation>
+                                        <!-- no actions here -->
+                                    </reaction>
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <assignmentSubtype>groupMembership</assignmentSubtype>
-                            <set>
-                                <predefined>all</predefined>
-                            </set>
-                        </target>
                     </inbound>
+                    <tolerant>false</tolerant> <!-- overridden by marks -->
                 </association>
             </subject>
         </associationType>

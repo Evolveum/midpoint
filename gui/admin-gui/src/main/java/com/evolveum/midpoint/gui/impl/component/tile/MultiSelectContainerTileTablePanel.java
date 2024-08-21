@@ -10,21 +10,18 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.prism.Containerable;
-
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.web.session.PageStorage;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
 public abstract class MultiSelectContainerTileTablePanel<E extends Serializable, C extends Containerable>
@@ -50,10 +47,6 @@ public abstract class MultiSelectContainerTileTablePanel<E extends Serializable,
     protected MultivalueContainerListDataProvider<C> createProvider() {
         return new MultivalueContainerListDataProvider<>(
                 getPageBase(), () -> (Search) getSearchModel().getObject(), model) {
-            @Override
-            protected PageStorage getPageStorage() {
-                return MultiSelectContainerTileTablePanel.this.getPageStorage();
-            }
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {

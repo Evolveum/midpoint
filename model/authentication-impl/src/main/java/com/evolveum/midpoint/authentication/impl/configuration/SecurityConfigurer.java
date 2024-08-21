@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.configuration;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,6 +42,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.context.DeferredSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
@@ -87,6 +89,11 @@ public class SecurityConfigurer {
 
     private ObjectPostProcessor<Object> objectObjectPostProcessor;
     private ContentNegotiationStrategy contentNegotiationStrategy = new HeaderContentNegotiationStrategy();
+
+    @PostConstruct
+    void initSecurityContext() {
+        SecurityContextHolder.setContextHolderStrategy(new MidpointSecurityContextHolderStrategy());
+    }
 
     @Autowired(required = false)
     void setContentNegotiationStrategy(ContentNegotiationStrategy contentNegotiationStrategy) {
@@ -167,16 +174,20 @@ public class SecurityConfigurer {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.setSharedObject(AuthenticationTrustResolverImpl.class, new MidpointAuthenticationTrustResolverImpl());
         http.addFilter(new WebAsyncManagerIntegrationFilter())
-                .sessionManagement().and()
-                .securityContext();
-        http.apply(new AuthFilterConfigurer());
+                .sessionManagement(configurer -> {})
+                .securityContext(configurer -> {
+                    configurer.securityContextRepository(createSessionContextRepository(http));
+                });
+        http.with(new AuthFilterConfigurer(), authFilterConfigurer -> {});
 
-        createSessionContextRepository(http);
+        http.setSharedObject(SecurityContextRepository.class, createSessionContextRepository(http));
 
-        http.sessionManagement()
-                .maximumSessions(-1)
-                .sessionRegistry(sessionRegistry)
-                .maxSessionsPreventsLogin(true);
+        http.sessionManagement(configurer -> {
+            configurer
+                    .maximumSessions(-1)
+                    .sessionRegistry(sessionRegistry)
+                    .maxSessionsPreventsLogin(true);
+                });
         return http.build();
     }
 
@@ -196,7 +207,7 @@ public class SecurityConfigurer {
         return sharedObjects;
     }
 
-    private void createSessionContextRepository(HttpSecurity http) {
+    private HttpSessionSecurityContextRepository createSessionContextRepository(HttpSecurity http) {
         HttpSessionSecurityContextRepository httpSecurityRepository = new HttpSessionSecurityContextRepository() {
             @Override
             public void saveContext(SecurityContext context, HttpServletRequest request, HttpServletResponse response) {
@@ -220,6 +231,7 @@ public class SecurityConfigurer {
 
             @Override
             protected SecurityContext generateNewContext() {
+
                 return new MidpointSecurityContext(super.generateNewContext());
             }
         };
@@ -228,7 +240,7 @@ public class SecurityConfigurer {
         if (trustResolver != null) {
             httpSecurityRepository.setTrustResolver(trustResolver);
         }
-        http.setSharedObject(SecurityContextRepository.class, httpSecurityRepository);
+        return httpSecurityRepository;
     }
 
     @Bean

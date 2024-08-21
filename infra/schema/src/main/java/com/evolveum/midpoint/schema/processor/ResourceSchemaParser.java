@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.CapabilityUtil.getCapability;
 import static com.evolveum.midpoint.schema.config.ConfigurationItem.*;
 import static com.evolveum.midpoint.schema.config.ConfigurationItemOrigin.inResourceOrAncestor;
 import static com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil.SuperReference;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,9 +77,6 @@ class ResourceSchemaParser {
     /** Raw resource schema we start with. */
     @NotNull private final NativeResourceSchema nativeSchema;
 
-    /** TEMPORARY! */
-    @NotNull private final Set<QName> ignoredAttributes;
-
     /** This is used when parsing "modern" reference types. */
     @Nullable private final ReferencesCapabilityConfigItem referencesCapabilityCI;
 
@@ -112,7 +112,6 @@ class ResourceSchemaParser {
         this.schemaHandling = schemaHandling;
         this.basicResourceInformation = BasicResourceInformation.of(resource);
         this.nativeSchema = nativeSchema;
-        this.ignoredAttributes = new ResourceSchemaAdjuster(resource, nativeSchema).getIgnoredAttributes();
         this.referencesCapabilityCI = referencesCapabilityCI;
         this.contextDescription = contextDescription;
         this.resourceSchema = resourceSchema;
@@ -129,7 +128,7 @@ class ResourceSchemaParser {
                                 ConfigurationItemOrigin.inResourceOrAncestor(resource, ResourceType.F_SCHEMA_HANDLING),
                                 SchemaHandlingConfigItem.class) :
                         emptySchemaHandlingConfigItem();
-        var associationCapabilityBean = CapabilityUtil.getCapability(resource, null, ReferencesCapabilityType.class);
+        var associationCapabilityBean = CapabilityUtil.getCapability(resource, ReferencesCapabilityType.class);
         var associationsCapabilityCI = configItemNullable(
                 associationCapabilityBean,
                 inResourceOrAncestor(
@@ -380,32 +379,6 @@ class ResourceSchemaParser {
         }
     }
 
-//    /**
-//     * Creates {@link AbstractShadowAssociationClassDefinition} objects in {@link ResourceSchemaImpl#associationTypeDefinitionsMap}.
-//     * These are based on native or simulated association classes.
-//     *
-//     * Legacy simulated associations are not dealt with here.
-//     */
-//    private void parseAssociationTypesDefinitions() throws ConfigurationException {
-//        // Explicitly defined types
-//        for (var assocTypeDefCI : schemaHandling.getAssociationTypes()) {
-//            String className = assocTypeDefCI.getAssociationClassLocalName();
-//            var implementation = assocTypeDefCI.configNonNull(
-//                    resourceSchema.getAssociationClassImplementation(className),
-//                    "No association class '%s' in %s", className, DESC);
-//            resourceSchema.addAssociationTypeDefinition(
-//                    ShadowAssociationClassDefinition.fromAssociationType(assocTypeDefCI, implementation, resourceSchema));
-//        }
-//
-//        // Types from association classes
-//        for (var associationClassImplementation : resourceSchema.getAssociationClassImplementations()) {
-//            if (resourceSchema.getAssociationClassDefinition(associationClassImplementation.getName()) == null) {
-//                resourceSchema.addAssociationTypeDefinition(
-//                        ShadowAssociationClassDefinition.fromImplementation(associationClassImplementation));
-//            }
-//        }
-//    }
-
     private void forAllObjects(SpecificFeatureParser parser) throws ConfigurationException {
         for (var objectDef : resourceSchema.getResourceObjectDefinitions()) {
             parser.execute(new ResourceObjectDefinitionParser(objectDef));
@@ -436,6 +409,9 @@ class ResourceSchemaParser {
          */
         @NotNull private final AbstractResourceObjectDefinitionConfigItem<?> definitionCI;
 
+        /** Currently, we mark the source attribute for simulated activation as ignored (if requested so). */
+        @NotNull private final Collection<QName> attributesToIgnore;
+
         ResourceObjectDefinitionParser(@NotNull ResourceObjectDefinition definition) {
             this.definition = (AbstractResourceObjectDefinitionImpl) definition;
             if (definition instanceof ResourceObjectTypeDefinition typeDefinition) {
@@ -453,6 +429,44 @@ class ResourceSchemaParser {
             } else {
                 throw new IllegalStateException("Neither object type or object class? " + definition);
             }
+            attributesToIgnore = computeAttributesToIgnore();
+        }
+
+        /**
+         * See ResourceSchemaAdjuster in 4.8 and below. The actual code is adapted from
+         * {@code 133f999746b4ab3d55c9684fcb1b4f07855c222f} (4.8.4)
+         */
+        private @NotNull Collection<QName> computeAttributesToIgnore() {
+            var activationCapability = getCapability(resource, definition.getTypeDefinition(), ActivationCapabilityType.class);
+            if (activationCapability == null) {
+                return Set.of();
+            }
+            var statusCapability = CapabilityUtil.getEnabledActivationStatus(activationCapability);
+            if (statusCapability == null) {
+                return Set.of();
+            }
+            if (Boolean.FALSE.equals(statusCapability.isIgnoreAttribute())) {
+                return Set.of();
+            }
+            var attributeName = statusCapability.getAttribute();
+            if (attributeName == null) {
+                return Set.of();
+            }
+            var nativeAttrDef = definition.getNativeObjectClassDefinition().findSimpleAttributeDefinition(attributeName);
+            if (nativeAttrDef == null) {
+                // Simulated activation attribute points to something that is not in the schema
+                // technically, this is an error. But it looks to be quite common in connectors.
+                // The enable/disable is using operational attributes that are not exposed in the
+                // schema, but they work if passed to the connector.
+                // Therefore we don't want to break anything. We could log an warning here, but the
+                // warning would be quite frequent. Maybe a better place to warn user would be import
+                // of the object.
+                LOGGER.debug("Simulated activation attribute {} for objectclass {} in {} does not exist in "
+                        + "the resource schema. This may work well, but it is not clean. Connector exposing "
+                        + "such schema should be fixed.", attributeName, definition.getObjectClassName(), resource);
+                return Set.of();
+            }
+            return Set.of(nativeAttrDef.getItemName());
         }
 
         /**
@@ -503,7 +517,10 @@ class ResourceSchemaParser {
             definition.add(
                     ShadowAssociationDefinitionImpl.modern(
                             assocTypeCI.getSubject().getAssociationNameRequired(),
-                            refAttrDef, subjectSideCI.value(), assocTypeCI.value()));
+                            refAttrDef,
+                            subjectSideCI,
+                            assocTypeCI,
+                            resourceSchema));
         }
 
         /**
@@ -595,7 +612,7 @@ class ResourceSchemaParser {
             ItemDefinition<?> attrDef;
             try {
                 if (nativeAttrDef.isSimple()) {
-                    boolean ignored = ignoredAttributes.contains(attrName);
+                    boolean ignored = attributesToIgnore.contains(attrName);
                     var simpleAttrDef = ShadowSimpleAttributeDefinitionImpl.create(nativeAttrDef.asSimple(), attrDefBean, ignored);
                     if (simpleAttrDef.isDisplayNameAttribute()) {
                         definition.setDisplayNameAttributeName(attrName);
@@ -662,41 +679,16 @@ class ResourceSchemaParser {
          * Parses protected objects, delineation, and so on.
          */
         private void parseOtherFeatures() throws ConfigurationException {
-            parseProtected();
+            parseMarkingRules();
             parseDelineation();
         }
 
         /**
          * Converts protected objects patterns from "bean" to "compiled" form.
          */
-        private void parseProtected() throws ConfigurationException {
-            List<ResourceObjectPatternType> protectedPatternBeans = definitionCI.value().getProtected();
-            if (protectedPatternBeans.isEmpty()) {
-                return;
-            }
-            var prismObjectDef = definition.getPrismObjectDefinition();
-            for (ResourceObjectPatternType protectedPatternBean : protectedPatternBeans) {
-                definition.addProtectedObjectPattern(
-                        convertToPattern(protectedPatternBean, prismObjectDef));
-            }
-        }
-
-        private ResourceObjectPattern convertToPattern(
-                ResourceObjectPatternType patternBean, PrismObjectDefinition<ShadowType> prismObjectDef)
-                throws ConfigurationException {
-            SearchFilterType filterBean =
-                    MiscUtil.configNonNull(
-                            patternBean.getFilter(),
-                            () -> "No filter in resource object pattern");
-            try {
-                ObjectFilter filter =
-                        MiscUtil.configNonNull(
-                                PrismContext.get().getQueryConverter().parseFilter(filterBean, prismObjectDef),
-                                () -> "No filter in resource object pattern");
-                return new ResourceObjectPattern(definition, filter);
-            } catch (SchemaException e) {
-                throw new ConfigurationException("Couldn't parse protected object filter: " + e.getMessage(), e);
-            }
+        private void parseMarkingRules() throws ConfigurationException {
+            definition.setShadowMarkingRules(
+                    ShadowMarkingRules.parse(definitionCI, definition));
         }
 
         private void parseDelineation() throws ConfigurationException {

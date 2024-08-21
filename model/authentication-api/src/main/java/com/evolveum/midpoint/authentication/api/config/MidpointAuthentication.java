@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.collections4.list.UnmodifiableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -110,7 +111,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     }
 
     public List<AuthModule<?>> getAuthModules() {
-        return authModules;
+        return Collections.unmodifiableList(authModules);
     }
 
     public void setAuthModules(List<AuthModule<?>> authModules) {
@@ -118,7 +119,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             List<AuthModule<?>> modules = new ArrayList<>(this.authModules);
             RemoveUnusedSecurityFilterPublisher.get().publishCustomEvent(modules);
         }
-        this.authModules = authModules;
+        this.authModules = new ArrayList<>(authModules);
     }
 
     public AuthenticationSequenceType getSequence() {

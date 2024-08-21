@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
  * What kinds of objects can participate in given {@link ShadowReferenceAttribute} or {@link ShadowAssociation}?
  *
  * Some participants are object types, others are object classes. The former is obligatory for legacy simulated associations.
- * Modern simulated associations and native associations can have class-scoped participants.
+ * Modern simulated references and native references can have class-scoped participants.
  */
 public class ShadowRelationParticipantType implements Serializable {
 

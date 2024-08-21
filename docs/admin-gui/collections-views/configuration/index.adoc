@@ -237,6 +237,9 @@ MidPoint comes with default collections defined for most of the objects. These d
 | allObjectTemplates
 | All object templates
 
+| allSchemas
+| All schemas
+
 |===
 
 == Search configuration

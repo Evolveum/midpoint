@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -53,7 +54,7 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
 
     @Override
     protected ItemPath getPathForValueContainer() {
-        return ItemPath.create(ShadowAssociationTypeDefinitionType.F_SUBJECT, ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE);
+        return ShadowAssociationTypeDefinitionType.F_SUBJECT;
     }
 
     @Override
@@ -87,29 +88,41 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
     }
 
     protected void performSelectedObjects() {
-        List<ObjectTypeWrapper> selectedNewItems = new ArrayList<>(getSelectedItemsModel().getObject());
+        List<ParticipantObjectTypeWrapper> selectedNewItems = new ArrayList<>(getSelectedItemsModel().getObject());
 
-        ItemPath containerPath = getPathForValueContainer();
+        ItemPath containerPath = ItemPath.create(ShadowAssociationTypeDefinitionType.F_SUBJECT, ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE);
+
         PrismContainerWrapper<ResourceObjectTypeIdentificationType> container;
         try {
             container = getValueModel().getObject().findContainer(containerPath);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't find object type subcontainer of " + getNameOfParticipant() + " container in " + getValueModel().getObject());
+            LOGGER.error("Couldn't find object type subcontainer " + containerPath + " container in " + getValueModel().getObject());
             return;
         }
+
+        List<PrismContainerValueWrapper<ResourceObjectTypeIdentificationType>> valueForRemove = new ArrayList<>();
         container.getValues().forEach(value -> {
             boolean match = getSelectedItemsModel().getObject().stream()
                     .anyMatch(wrapper -> equalValueAndObjectTypeWrapper(value, wrapper));
             if (!match) {
-                try {
-                    container.remove(value, getPageBase());
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't remove deselected value " + value);
+                if (value.getStatus() == ValueStatus.ADDED) {
+                    valueForRemove.add(value);
+                } else {
+                    value.setStatus(ValueStatus.DELETED);
                 }
             } else {
                 selectedNewItems.removeIf(wrapper -> equalValueAndObjectTypeWrapper(value, wrapper));
             }
         });
+
+        valueForRemove.forEach(value -> {
+            try {
+                container.remove(value, getPageBase());
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't remove deselected value " + value);
+            }
+        });
+
         selectedNewItems.forEach(wrapper -> {
             try {
                 PrismContainerValue<ResourceObjectTypeIdentificationType> newValue = container.getItem().createNewValue();

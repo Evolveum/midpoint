@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -65,7 +66,7 @@ public class DataAccessProcessor {
             throw new AuthorizationException("Access denied");
         } else {
             assert decision == AccessDecision.DEFAULT;
-            var mutable = (PrismContainerValue<?>) value.cloneIfImmutable();
+            var mutable =(PrismContainerValue<?>) applyReadConstraintsToMetadata(value.cloneIfImmutable(), constraints);
             applyReadConstraintsToMutablePcv(mutable, constraints);
             if (mutable.isEmpty()) {
                 // let's make it explicit (note that the log message may show empty object if it was originally mutable)
@@ -116,6 +117,7 @@ public class DataAccessProcessor {
                 valuesToRemove.add(value);
             } else {
                 assert valueDecision == AccessDecision.DEFAULT;
+                applyReadConstraintsToMetadata(value, valueConstraints);
                 if (value instanceof PrismContainerValue<?>) {
                     applyReadConstraintsToMutablePcv((PrismContainerValue<?>) value, valueConstraints);
                 } else {
@@ -128,6 +130,38 @@ public class DataAccessProcessor {
                 item.clear();
             } else {
                 item.removeAll(valuesToRemove, EquivalenceStrategy.LITERAL);
+            }
+        }
+    }
+
+    private <V extends PrismValue> V  applyReadConstraintsToMetadata(
+            V value, PrismEntityOpConstraints.ForValueContent readConstraints) {
+        if (!value.hasValueMetadata()) {
+            // Value does not have metadata no need to do any changes.
+            return value;
+        }
+
+
+
+        var itemConstraints = readConstraints.getMetadataConstraints();
+        var explictConstraints = itemConstraints.getDecision();
+
+        switch (explictConstraints) {
+            case ALLOW -> {
+                return value;
+            }
+            case DEFAULT -> {
+                value = (V) value.cloneIfImmutable();
+                applyReadConstraintsToMutableValues(value.getValueMetadataAsContainer(), itemConstraints);
+                return value;
+            }
+            case DENY -> {
+                V ret = (V) value.cloneIfImmutable();
+                ret.getValueMetadata().clear();
+                return ret;
+            }
+            default -> {
+                throw new UnsupportedOperationException("Unsupported decision {}" + explictConstraints);
             }
         }
     }

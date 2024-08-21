@@ -17,6 +17,10 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
+import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -90,8 +94,10 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         // Reconcile even if it was not explicitly requested and if we have full shadow
         // reconciliation is cheap if the shadow is already fetched therefore just do it
-        if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow()) {
-            LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow", projCtx.getHumanReadableName());
+        boolean avoidCachedShadows = !projCtx.isCachedShadowsUseAllowed();
+        if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow() && avoidCachedShadows) {
+            LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow (and cache use disallowed)",
+                    projCtx.getHumanReadableName());
             return;
         }
 
@@ -106,17 +112,20 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             return;
         }
 
-        contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
-        if (!projCtx.isFullShadow()) {
-            LOGGER.trace("Full shadow is not available, skipping the reconciliation of {}", projCtx.getHumanReadableName());
-            result.recordNotApplicable("Full shadow is not available");
-            return;
+        if (avoidCachedShadows) {
+            // This is the pre-4.9 behavior, present here to improve compatible behavior
+            contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
+            if (!projCtx.isFullShadow()) {
+                LOGGER.trace("Full shadow is not available, skipping the reconciliation of {}", projCtx.getHumanReadableName());
+                result.recordNotApplicable("Full shadow is not available");
+                return;
+            }
         }
 
         LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
 
-        reconcileAuxiliaryObjectClasses(projCtx);
-        reconcileProjectionAttributes(projCtx, task);
+        reconcileAuxiliaryObjectClasses(projCtx, task, result);
+        reconcileProjectionAttributes(projCtx, task, result);
         reconcileProjectionAssociations(projCtx, task, result);
 
         reconcileMissingAuxiliaryObjectClassAttributes(projCtx);
@@ -124,12 +133,21 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         projCtx.checkConsistenceIfNeeded();
     }
 
-    private void reconcileAuxiliaryObjectClasses(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
+    private void reconcileAuxiliaryObjectClasses(LensProjectionContext projCtx, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
 
         var squeezedAuxiliaryObjectClasses = projCtx.getSqueezedAuxiliaryObjectClasses();
         if (squeezedAuxiliaryObjectClasses == null || squeezedAuxiliaryObjectClasses.isEmpty()) {
             return;
         }
+
+        if (!projCtx.isAuxiliaryObjectClassPropertyLoaded()) {
+            if (!loadIfPossible(projCtx, "auxiliary object class", task, result)) {
+                return;
+            }
+        }
+
         LOGGER.trace("Auxiliary object class reconciliation processing {}", projCtx.getHumanReadableName());
 
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
@@ -287,21 +305,25 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         }
     }
 
-    private void reconcileProjectionAttributes(LensProjectionContext projCtx, Task task)
-            throws SchemaException, ConfigurationException {
+    private void reconcileProjectionAttributes(LensProjectionContext projCtx, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
 
         LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
+
+        boolean useCachedShadows = projCtx.isCachedShadowsUseAllowed();
 
         var squeezedAttributes = projCtx.getSqueezedAttributes();
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
-        PrismContainer<?> attributesContainer = shadowNew.findContainer(ShadowType.F_ATTRIBUTES);
-        Collection<QName> attributeNames = squeezedAttributes != null ?
-                MiscUtil.union(squeezedAttributes.keySet(), attributesContainer.getValue().getItemNames()) :
-                attributesContainer.getValue().getItemNames();
+        var attributesContainer = shadowNew.findContainer(ShadowType.F_ATTRIBUTES);
+        var attributeNames = MiscUtil.union(
+                squeezedAttributes != null ? squeezedAttributes.keySet() : null,
+                attributesContainer.getValue().getItemNames(),
+                useCachedShadows ? projCtx.getCachedAttributesNames() : null);
 
         for (QName attrName : attributeNames) {
-            reconcileProjectionAttribute(attrName, projCtx, squeezedAttributes, attributesContainer, task);
+            reconcileProjectionAttribute(attrName, projCtx, squeezedAttributes, attributesContainer, task, result);
         }
     }
 
@@ -310,7 +332,9 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             LensProjectionContext projCtx,
             Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes,
             PrismContainer<?> attributesContainer,
-            Task task) throws SchemaException, ConfigurationException {
+            Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
 
         LOGGER.trace("Attribute reconciliation processing attribute {}", attrName);
 
@@ -345,6 +369,12 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             }
             if (projCtx.isModify() && !limitations.canModify()) {
                 LOGGER.trace("Skipping reconciliation of attribute {} because it is non-updateable", attrName);
+                return;
+            }
+        }
+
+        if (!projCtx.isAttributeLoaded(attrName)) {
+            if (!loadIfPossible(projCtx, "attribute " + attrName, task, result)) {
                 return;
             }
         }
@@ -557,6 +587,12 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 //                }
 //            }
 
+            if (!projCtx.isAssociationLoaded(assocName)) {
+                if (!loadIfPossible(projCtx, "association " + assocName, task, result)) {
+                    return;
+                }
+            }
+
             Collection<ItemValueWithOrigin<ShadowAssociationValue, ShadowAssociationDefinition>> shouldBeCValues;
             if (cvwoTriple == null) {
                 shouldBeCValues = new HashSet<>();
@@ -660,8 +696,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, ExpressionEvaluationException {
 
-        boolean evaluatePatterns = !assocDef.getTolerantValuePatterns().isEmpty() || !assocDef.getIntolerantValuePatterns().isEmpty();
-        MatchingRule<Object> matchingRule = evaluatePatterns ? getMatchingRuleForTargetNamingIdentifier(assocDef) : null;
+        var evaluatePatterns = !assocDef.getTolerantValuePatterns().isEmpty() || !assocDef.getIntolerantValuePatterns().isEmpty();
+        var matchingRule = evaluatePatterns ? getMatchingRuleForTargetNamingIdentifier(assocDef) : null;
 
         // for each existing value we decide whether to keep it or delete it
         for (var isCValue : areCValues) {
@@ -674,7 +710,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 }
             }
 
-            String assocNameLocal = assocDef.getItemName().getLocalPart();
+            var assocNameLocal = assocDef.getItemName().getLocalPart();
             if (evaluatePatterns && matchesAssociationPattern(assocDef.getTolerantValuePatterns(), targetNamingIdentifier, matchingRule)) {
                 LOGGER.trace("Reconciliation: KEEPING value {} of association {}: identifier {} matches with tolerant value pattern.",
                         isCValue, assocNameLocal, targetNamingIdentifier);
@@ -692,18 +728,40 @@ public class ReconciliationProcessor implements ProjectorProcessor {
                 continue;
             }
 
-            if (!assocDef.isTolerant()) {
-                swallowAssociationDelta(accCtx, assocDef, ModificationType.DELETE,
-                        isCValue, null, "it is not given by any mapping and the association is not tolerant");
+            // TODO maybe we should override also patterns evaluation here
+
+            AbstractShadow shadowToGetToleranceFrom;
+            if (assocDef.isComplex()) {
+                shadowToGetToleranceFrom = isCValue.getAssociationDataObject();
             } else {
-                LOGGER.trace("Reconciliation: KEEPING value {} of association {}: the association is tolerant and the value"
-                        + " was not caught by any intolerantValuePattern", isCValue, assocNameLocal);
+                // We are strict here: it's simpler + it's better to get exception instead of unstable behavior.
+                // If the real life tells otherwise, we will change this.
+                shadowToGetToleranceFrom = isCValue.getSingleObjectShadowRequired();
+            }
+            var associationTolerance = assocDef.isTolerant();
+            var toleranceOverride =
+                    ObjectOperationPolicyTypeUtil.getToleranceOverride(
+                            shadowToGetToleranceFrom.getEffectiveOperationPolicyRequired());
+            var effectivelyTolerant = Objects.requireNonNullElse(toleranceOverride, associationTolerance);
+
+            if (!effectivelyTolerant) {
+                swallowAssociationDelta(
+                        accCtx, assocDef, ModificationType.DELETE, isCValue, null,
+                        String.format(
+                                "it is not given by any mapping and the value is not tolerated "
+                                        + "(association tolerant: %s, value override: %s)",
+                                associationTolerance, toleranceOverride));
+            } else {
+                LOGGER.trace("Reconciliation: KEEPING value {} of association {}: there was no reason to NOT tolerate it"
+                        + " (association tolerant: {}, value override: {})",
+                        isCValue, assocNameLocal, associationTolerance, toleranceOverride);
             }
         }
     }
 
     @NotNull
-    private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(ShadowAssociationDefinition associationDefinition) throws SchemaException {
+    private MatchingRule<Object> getMatchingRuleForTargetNamingIdentifier(ShadowAssociationDefinition associationDefinition)
+            throws SchemaException {
         var targetObjectDefinition = associationDefinition.getRepresentativeTargetObjectDefinition();
         // TODO why naming attribute? Why not valueAttribute from the association definition?
         ShadowSimpleAttributeDefinition<?> targetNamingAttributeDef = targetObjectDefinition.getNamingAttribute();
@@ -828,14 +886,14 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         if (changeType == ModificationType.ADD) {
             assocDelta.addValueToAdd(valueClone);
         } else {
-            ItemDelta<ShadowReferenceAttributeValue, ?> existingDelta;
+            ItemDelta<ShadowAssociationValue, ?> existingDelta;
             ObjectDelta<ShadowType> currentDelta = projCtx.getCurrentDelta();
             if (currentDelta != null) {
                 existingDelta = currentDelta.findItemDelta(assocDef.getStandardPath());
             } else {
                 existingDelta = null;
             }
-            if (isNotAlreadyBeingDeleted(existingDelta, ShadowReferenceAttributeValue.semanticEqualsChecker(), value)) {
+            if (isNotAlreadyBeingDeleted(existingDelta, ShadowAssociationValue.semanticEqualsChecker(), value)) {
                 LOGGER.trace("Adding association value to delete {} ", valueClone);
                 assocDelta.addValueToDelete(valueClone);
             }
@@ -968,5 +1026,25 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             }
         }
         return false;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean loadIfPossible(LensProjectionContext projCtx, String desc, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        if (!projCtx.isDoReconciliation()) {
+            LOGGER.trace(
+                    "Skipping loading the shadow, as the reconciliation was not requested for {}",
+                    projCtx.getHumanReadableName());
+            return false;
+        }
+        contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
+        if (!projCtx.isFullShadow()) {
+            LOGGER.trace(
+                    "Full shadow could or should not be loaded, skipping the reconciliation of {} in {}",
+                    desc, projCtx.getHumanReadableName());
+            return false;
+        }
+        return true;
     }
 }

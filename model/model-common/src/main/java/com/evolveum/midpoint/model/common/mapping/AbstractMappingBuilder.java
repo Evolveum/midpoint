@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.VariableProducer;
@@ -98,6 +97,8 @@ public abstract class AbstractMappingBuilder<
     private OriginType originType;
     private ObjectType originObject;
     private ConfigurableValuePolicySupplier valuePolicySupplier;
+
+    /** @see AbstractMappingImpl#variableProducer */
     private VariableProducer variableProducer;
     private MappingPreExpression mappingPreExpression;
     private boolean conditionMaskOld = true;
@@ -200,7 +201,7 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
-    public RT variableResolver(VariableProducer variableProducer) {
+    public RT variableProducer(VariableProducer variableProducer) {
         this.variableProducer = variableProducer;
         return typedThis();
     }

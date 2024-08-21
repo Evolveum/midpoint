@@ -9,6 +9,8 @@ compliance:
             description: 'Example demonstrating use of policy rules to enforce classification requirements'
         '5.14':
             description: 'Description of an idea for limiting access to internal information using classification scheme'
+        '5.15':
+            description: 'Setting up additional policies for access control, based on classifications.'
         '5.16':
             description: 'Management of user clearances'
         '6.1':
@@ -25,10 +27,6 @@ compliance:
 :page-nav-title: Classification
 :page-since: "4.9"
 :page-upkeep-status: green
-
-.Work in progress
-NOTE: This is still work in progress.
-The mechanisms that underlay the classifications are being updated to a more modern approach, planned for midPoint 4.9.
 
 Information classification is a process in which organisations assess their data and systems, with regard to the necessary level of protection.
 The information is classified by assigning information _labels_ or _classifications_ to individual assets, such as databases, filesystems, applications or even individual files.
@@ -261,21 +259,13 @@ We will use xref:../policy-rules/[policy rule] for this purpose:
         <targetRef oid="91a1bdf1-addc-4d34-b834-190938be3aca" type="PolicyType"/>
     </inducement>
     <inducement>
-        <orderConstraint>
-            <order>2</order>
-        </orderConstraint>
         <policyRule>
             <name>required-nda</name>
             <policyConstraints>
-                <hasNoAssignment>
-                    <presentation>
-                        <message>
-                            <fallbackMessage>NDA required</fallbackMessage>
-                        </message>
-                    </presentation>
+                <requirement>
                     <!-- NDA clearance -->
                     <targetRef oid="09360ff0-d506-4751-b13f-4e01422693ac" type="PolicyType" />
-                </hasNoAssignment>
+                </requirement>
             </policyConstraints>
             <policyActions>
                 <enforcement/>
@@ -285,10 +275,12 @@ We will use xref:../policy-rules/[policy rule] for this purpose:
 </policy>
 ----
 
-The policy rule prohibits assignment of privilege (`policyAction` is set to `enforce`) in case where the user does not have `NDA` clearance already assigned.
-The policy rule is specified in second-order inducement, therefore it is applied to all applications that have the `Category II` classification.
-The second-order inducement is the usual mechanism used in configurations based on xref:../metaroles/[meta-roles].
-Classifications naturally act as meta-roles for applications.
+The policy rule states that assignment of application classified using this classification _requires_ presence of `NDA` clearance.
+In other words, it prohibits assignment of privilege (`policyAction` is set to `enforce`) in case where the user does not have `NDA` clearance already assigned.
+The policy rule is specified in _inducement_, therefore it is applied to all objects that have this classification assigned, which means all applications that have `Category II` classification.
+
+TIP: Classifications naturally act as xref:../metaroles/[meta-roles].
+Policies specified in classifications can be transitively applied through the entire assignment/inducement chain, all the way to the user.
 
 Explicit assignment of NDA clearance is perhaps a good method for external workers.
 However, employees usually have non-disclosure clause as part of their employment contract.
@@ -350,21 +342,13 @@ We can use the approach described above to place requirement for the special cle
         <targetRef oid="71a7cb99-3a69-48e3-9521-d9a933c2b5c5" type="PolicyType"/>
     </inducement>
     <inducement>
-        <orderConstraint>
-            <order>2</order>
-        </orderConstraint>
         <policyRule>
             <name>required-special-training</name>
             <policyConstraints>
-                <hasNoAssignment>
-                    <presentation>
-                        <message>
-                            <fallbackMessage>Special cybersecurity training required</fallbackMessage>
-                        </message>
-                    </presentation>
+                <requirement>
                     <!-- Special cybersecurity training clearance -->
                     <targetRef oid="5bb5c5b5-eca2-4129-b73f-34c0b0bd2736" type="PolicyType" />
-                </hasNoAssignment>
+                </requirement>
             </policyConstraints>
             <policyActions>
                 <enforcement/>

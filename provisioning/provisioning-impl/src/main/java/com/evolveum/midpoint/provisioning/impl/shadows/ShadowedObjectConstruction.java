@@ -142,14 +142,11 @@ class ShadowedObjectConstruction {
         b.associationsHelper.convertReferenceAttributesToAssociations(
                 ctx, resultingShadowedBean, authoritativeDefinition, result);
 
-        copyCachingMetadata();
+        // caching metadata are kept from the repository shadow
 
         checkConsistence();
 
         var updatedObject = resourceObject.withNewContent(resultingShadowedBean);
-
-        // Called here, as we need AbstractShadow to be present.
-        ProvisioningUtil.setEffectiveProvisioningPolicy(ctx, updatedObject, result);
 
         LOGGER.trace("Shadowed resource object:\n{}", updatedObject.debugDumpLazily(1));
 

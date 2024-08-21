@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.midpoint.xml.ns._public.prism_schema_3.PrismSchemaType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -469,7 +470,9 @@ public class WebPrismUtil {
             displayName = name.getLocalPart();
 
             PrismContainerValue<?> val = item.getParent();
-            if (val != null && val.getDefinition() != null
+            if (!(item instanceof ShadowAttributesContainer)
+                    && val != null
+                    && val.getDefinition() != null
                     && val.getDefinition().isRuntimeSchema()) {
                 return localizeName(displayName, displayName);
             }
@@ -556,6 +559,66 @@ public class WebPrismUtil {
         }
 
         return findContainerValueParent(parentItem, clazz);
+    }
+    public static String createMappingTypeDescription(MappingType mapping) {
+        return createMappingTypeDescription(mapping, true);
+    }
+
+    public static String createMappingTypeDescription(MappingType mapping, boolean showExpression) {
+        if (StringUtils.isNotEmpty(mapping.getDescription())) {
+            return mapping.getDescription();
+        }
+        String strength = translateStrength(mapping);
+
+        ExpressionType expressionBean = mapping.getExpression();
+        String description = LocalizationUtil.translate(
+                "AbstractSpecificMappingTileTable.tile.description.prefix",
+                new Object[] {strength});
+
+        if (showExpression) {
+            ExpressionUtil.ExpressionEvaluatorType evaluatorType = null;
+            if (expressionBean != null) {
+                String expression = ExpressionUtil.loadExpression(expressionBean, PrismContext.get(), LOGGER);
+                evaluatorType = ExpressionUtil.getExpressionType(expression);
+
+            }
+
+            if (evaluatorType == null) {
+                evaluatorType = ExpressionUtil.ExpressionEvaluatorType.AS_IS;
+            }
+
+            String evaluator = PageBase.createStringResourceStatic(null, evaluatorType).getString();
+
+            description += " " + LocalizationUtil.translate(
+                    "AbstractSpecificMappingTileTable.tile.description.suffix",
+                    new Object[] { evaluator });
+        }
+        return description;
+    }
+
+    public static String createMappingTypeStrengthHelp(MappingType mapping) {
+        String strength = translateStrength(mapping);
+        return LocalizationUtil.translate("AbstractSpecificMappingTileTable.tile.help", new Object[]{strength});
+    }
+
+    private static String translateStrength(MappingType mapping) {
+        MappingStrengthType strengthBean = mapping.getStrength();
+        if (strengthBean == null) {
+            strengthBean = MappingStrengthType.NORMAL;
+        }
+        return PageBase.createStringResourceStatic(null, strengthBean).getString().toLowerCase();
+    }
+
+    public static QName convertStringWithPrefixToQName(String object) {
+        if (StringUtils.isEmpty(object)) {
+            return null;
+        }
+
+        if (object.contains(":")) {
+            int index = object.indexOf(":");
+            return new QName(null, object.substring(index + 1), object.substring(0, index));
+        }
+        return new QName(object);
     }
 
 }

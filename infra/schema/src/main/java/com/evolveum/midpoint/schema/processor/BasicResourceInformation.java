@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowCachingPolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -16,6 +17,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 
 /**
@@ -32,7 +34,9 @@ import java.io.Serializable;
 public record BasicResourceInformation(
         @Nullable String oid,
         @Nullable PolyStringType name,
-        @Nullable ShadowCachingPolicyType cachingPolicy)
+        @Nullable ShadowCachingPolicyType cachingPolicy,
+        boolean readCachedCapabilityPresent,
+        @Nullable XMLGregorianCalendar cacheInvalidationTimestamp)
         implements Serializable {
 
     public static BasicResourceInformation of(@NotNull PrismObject<ResourceType> resource) {
@@ -43,7 +47,9 @@ public record BasicResourceInformation(
         return new BasicResourceInformation(
                 resource.getOid(),
                 CloneUtil.clone(resource.getName()),
-                CloneUtil.toImmutable(resource.getCaching()));
+                CloneUtil.toImmutable(resource.getCaching()),
+                CapabilityUtil.isReadingCachingOnly(resource, null),
+                CloneUtil.clone(resource.getCacheInvalidationTimestamp()));
     }
 
     @Override

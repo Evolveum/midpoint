@@ -268,7 +268,7 @@
             </attribute>
             <attribute>
                 <ref>ri:members</ref>
-                <matchingRule>mr:distinguishedName</matchingRule>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
             </attribute>
         </objectType>
 

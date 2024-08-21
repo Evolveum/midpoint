@@ -10,6 +10,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
+import java.util.function.Predicate;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -67,6 +70,24 @@ public class ShadowAssociationAsserter<R> extends AbstractAsserter<R> {
 //        return asserter;
 //    }
 
+    public ShadowAssociationValueAsserter<ShadowAssociationAsserter<R>> singleValue() {
+        var value = MiscUtil.extractSingletonRequired(values);
+        ShadowAssociationValueAsserter<ShadowAssociationAsserter<R>> asserter =
+                new ShadowAssociationValueAsserter<>(value, this, "association value in "+desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ShadowAssociationValueAsserter<ShadowAssociationAsserter<R>> singleValueSatisfying(
+            Predicate<ShadowAssociationValue> predicate) {
+        var value = MiscUtil.extractSingletonRequired(values, predicate);
+        ShadowAssociationValueAsserter<ShadowAssociationAsserter<R>> asserter =
+                new ShadowAssociationValueAsserter<>(value, this, "association value in "+desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    /** Looks by default objectRef OID. */
     public ShadowAssociationValueAsserter<ShadowAssociationAsserter<R>> forShadowOid(String shadowOid) {
         var value = findByShadowOid(shadowOid);
         assertThat(value).as("association value with shadow OID " + shadowOid).isNotNull();

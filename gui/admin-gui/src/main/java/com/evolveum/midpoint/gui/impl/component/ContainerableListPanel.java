@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -15,8 +16,11 @@ import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 
 import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableChartedHeader;
+import com.evolveum.midpoint.prism.impl.query.ObjectPagingImpl;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 
+import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -187,8 +191,12 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         PageStorage storage = getPageStorage();
         Search<C> search = loadSearch(storage);
 
+        //is this correct place for loading paging?
+        ObjectPaging paging = loadPaging(storage);
+
         if (storage != null && !isPreview()) {
             storage.setSearch(search);
+            storage.setPaging(paging);
         }
         getPageBase().getPageParameters().remove(PageBase.PARAMETER_SEARCH_BY_NAME);
         return search;
@@ -204,6 +212,30 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             search = createSearch();
         }
         return search;
+    }
+
+    private ObjectPaging loadPaging(PageStorage storage) {
+        ObjectPaging paging = null;
+        if (storage != null) {
+            paging = storage.getPaging();
+        }
+        if (paging == null) {
+            paging = createPaging();
+        }
+        return paging;
+    }
+
+    private ObjectPaging createPaging() {
+        CompiledObjectCollectionView view = getObjectCollectionView();
+        ObjectPaging paging = null;
+        if (view != null) {
+            paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging());
+        }
+        if (paging == null) {
+            paging = ObjectPagingImpl.createEmptyPaging();
+            paging.setMaxSize(getDefaultPageSize());
+        }
+        return paging;
     }
 
     protected String getSearchByNameParameterValue() {
@@ -306,7 +338,7 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         setUseCounting(provider);
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
-            private static final long serialVersionUID = 1L;
+            @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Component createHeader(String headerId) {
@@ -370,6 +402,16 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
             protected boolean isPagingVisible() {
                 return ContainerableListPanel.this.isPagingVisible();
             }
+
+            @Override
+            protected Integer getConfiguredPagingSize() {
+                return getViewPagingMaxSize();
+            }
+
+            @Override
+            protected void savePagingNewValue(Integer newValue) {
+                setPagingSizeNewValue(newValue);
+            }
         };
         itemTable.setOutputMarkupId(true);
 
@@ -384,6 +426,18 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         itemTable.setShowAsCard(showTableAsCard());
 
         return itemTable;
+    }
+
+    private void setPagingSizeNewValue(Integer newValue) {
+        PageStorage pageStorage = getPageStorage();
+        if (pageStorage == null) {
+            return;
+        }
+        ObjectPaging paging = pageStorage.getPaging();
+        if (paging == null) {
+            return;
+        }
+        paging.setMaxSize(newValue);
     }
 
     protected boolean showTableAsCard() {
@@ -526,6 +580,14 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
             return Objects.requireNonNullElse(previewSize, UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
+        }
+
+        PageStorage storage = getPageStorage();
+        if (storage != null) {
+            ObjectPaging paging = storage.getPaging();
+            if (paging != null && paging.getMaxSize() != null) {
+                return paging.getMaxSize();
+            }
         }
 
         Integer collectionViewPagingSize = getViewPagingMaxSize();
@@ -720,7 +782,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     private void addingCheckAndIconColumnIfExists(List<IColumn<PO, String>> columns) {
         if (!isPreview()) {
             IColumn<PO, String> checkboxColumn = createCheckboxColumn();
-            checkboxColumn = applyMultiselectOptionConfiguration(checkboxColumn);
             if (checkboxColumn != null) {
                 columns.add(checkboxColumn);
             }
@@ -1420,29 +1481,5 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     protected LoadableModel<PageParameters> getNavigationParametersModel() {
         return null;
-    }
-
-    private IColumn<PO, String> applyMultiselectOptionConfiguration(IColumn<PO, String> column) {
-        if (column == null) {
-            return null;
-        }
-        CompiledObjectCollectionView view = getObjectCollectionView();
-        if (view == null) {
-            return column;
-        }
-        MultiselectOptionType multiselect = view.getMultiselect();
-        if (multiselect == null) {
-            return column; //when no multiselect is defined, we take checkbox column as it is
-        }
-        return switch (multiselect) {
-            case NO_SELECT -> null;
-            case SELECT_ALL -> column;
-            case SELECT_INDIVIDUALS -> {
-                if (column instanceof CheckBoxHeaderColumn) {
-                    ((CheckBoxHeaderColumn) column).setCheckboxVisible(false);
-                }
-                yield column;
-            }
-        };
     }
 }

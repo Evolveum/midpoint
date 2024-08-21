@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
+import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.EqualsChecker;
@@ -79,13 +80,22 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     // FIXME decide on this
     private final boolean hasAssociationObject;
 
+    /**
+     * For complex associations, this is the association object itself: except attributes and activation.
+     *
+     * Ignored by equals/hashCode for now.
+     *
+     * Experimental: to be decided if this is the right approach.
+     */
+    private ShadowType associationObjectExtraItems;
+
     private ShadowAssociationValue(
             OriginType type, Objectable source,
             PrismContainerable<?> container, Long id,
             @NotNull ShadowAssociationDefinition definition) {
         super(type, source, container, id, definition.getComplexTypeDefinition());
         this.definition = definition;
-        this.hasAssociationObject = definition.hasAssociationObject();
+        this.hasAssociationObject = definition.isComplex();
     }
 
     /**
@@ -103,8 +113,8 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         }
 
         var newValue = empty(definition);
-        if (definition.hasAssociationObject()) {
-            ShadowDefinitionApplicator applicator = new ShadowDefinitionApplicator(definition.getAssociationObjectDefinition());
+        if (definition.isComplex()) {
+            var applicator = ShadowDefinitionApplicator.strict(definition.getAssociationDataObjectDefinition());
 
             var rawAttributes = bean.getAttributes();
             if (rawAttributes != null) {
@@ -161,7 +171,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     }
 
     /** Creates a new value from the association object. */
-    public static @NotNull ShadowAssociationValue fromAssociationObject(
+    public static @NotNull ShadowAssociationValue fromAssociationDataObject(
             @NotNull AbstractShadow associationObject,
             @NotNull ShadowAssociationDefinition associationDefinition) throws SchemaException {
         var newValue = empty(associationDefinition);
@@ -191,6 +201,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     protected void copyValues(CloneStrategy strategy, ShadowAssociationValue clone) {
         super.copyValues(strategy, clone);
         clone.definition = this.definition;
+        clone.associationObjectExtraItems = CloneUtil.cloneCloneable(this.associationObjectExtraItems);
     }
 
     @Override
@@ -311,14 +322,19 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
      */
     public @NotNull ShadowReferenceAttributeValue toReferenceAttributeValue() throws SchemaException {
         var def = getDefinitionRequired();
-        if (def.hasAssociationObject()) {
-            var shadow = def.getAssociationObjectDefinition().createBlankShadow();
+        if (def.isComplex()) {
+            var shadow = def.getAssociationDataObjectDefinition().createBlankShadow();
             // We do not preserve the OID, kind/intent and similar things.
             copy(shadow.getAttributesContainer(), getAttributesContainer());
             copy(shadow.getAttributesContainer(), getObjectsContainer());
             shadow.getBean().setActivation(
                     CloneUtil.cloneCloneable(
                             asContainerable().getActivation()));
+            // TODO review this
+            if (associationObjectExtraItems != null) {
+                shadow.getBean().setEffectiveOperationPolicy(
+                        CloneUtil.cloneCloneable(associationObjectExtraItems.getEffectiveOperationPolicy()));
+            }
             return ShadowReferenceAttributeValue.fromShadow(shadow, true);
         } else {
             return getSingleObjectRefValueRequired().clone();
@@ -357,7 +373,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
     public ShadowAssociationValue fillFromReferenceAttributeValue(@NotNull ShadowReferenceAttributeValue refAttrValue)
             throws SchemaException {
         var def = getDefinitionRequired();
-        if (def.hasAssociationObject()) {
+        if (def.isComplex()) {
             return fillFromAssociationObject(refAttrValue.getShadow());
         } else {
             getOrCreateObjectsContainer()
@@ -382,6 +398,10 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
         asContainerable().setActivation(
                 CloneUtil.cloneCloneable(
                         associationObject.getBean().getActivation()));
+        // TODO implement more nicely
+        associationObjectExtraItems = associationObject.getBean().clone();
+        associationObjectExtraItems.setAttributes(null);
+        associationObjectExtraItems.setActivation(null);
         return this;
     }
 
@@ -414,7 +434,7 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
      * Returns the associated object as an {@link AbstractShadow}.
      * Fails if there's none.
      */
-    public @NotNull AbstractShadow getAssociationObject() {
+    public @NotNull AbstractShadow getAssociationDataObject() {
         try {
             if (hasAssociationObject) {
                 return toReferenceAttributeValue().getShadowRequired();
@@ -428,5 +448,23 @@ public class ShadowAssociationValue extends PrismContainerValueImpl<ShadowAssoci
 
     public boolean hasAssociationObject() {
         return hasAssociationObject;
+    }
+
+    public boolean isInboundMembershipSynchronizationDisabled() {
+        if (hasAssociationObject) {
+            return false; // Not supported for complex associations
+        } else {
+            return ObjectOperationPolicyTypeUtil.isMembershipSyncInboundDisabled(
+                    getSingleObjectShadowRequired().getEffectiveOperationPolicyRequired());
+        }
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        var sb = new StringBuilder(super.debugDump(indent));
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "Has association object", hasAssociationObject, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Association object extra items", associationObjectExtraItems, indent + 1);
+        return sb.toString();
     }
 }

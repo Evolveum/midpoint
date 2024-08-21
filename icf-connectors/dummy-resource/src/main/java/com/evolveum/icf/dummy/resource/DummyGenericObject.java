@@ -37,7 +37,7 @@ public class DummyGenericObject extends DummyObject {
             return name;
         }
         var objectClassDef = resource.getStructuralObjectClass(objectClassName);
-        if (objectClassDef.isAssociationObject()) {
+        if (objectClassDef.isEmbeddedObject()) {
             return RandomStringUtils.randomAlphabetic(20);
         } else {
             throw new IllegalArgumentException("No name provided for a regular (non-association) object: " + objectClassName);

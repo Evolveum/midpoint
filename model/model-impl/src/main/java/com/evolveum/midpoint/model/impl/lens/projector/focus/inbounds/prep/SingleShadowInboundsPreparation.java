@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequests;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.StopProcessingProjectionException;
 
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachedShadowsUseType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,13 +34,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * To reduce complexity, the majority of the work is delegated to smaller classes:
  *
- *  * {@link MappingSource}, {@link MappingTarget}, {@link MappingContext} describing the environment in which mappings are to be evaluated
- *  * {@link MappedItems} containing {@link MappedItem} instances - intermediate structures helping with the mapping preparation
+ *  * {@link InboundsSource}, {@link InboundsTarget}, {@link InboundsContext} describing the environment
+ *  in which mappings are to be evaluated
+ *  * {@link MappedSourceItems} containing {@link MappedSourceItem} instances - intermediate structures
+ *  helping with the mapping preparation
  *
  * FIXME Special mappings i.e. password and activation ones, are evaluated immediately and using different code path.
  *  This should be unified.
  *
- * TODO should the {@link MappingContext} be both included in {@link MappingSource} and here?!
+ * TODO should the {@link InboundsContext} be both included in {@link InboundsSource} and here?!
  */
 public class SingleShadowInboundsPreparation<T extends Containerable> {
 
@@ -47,30 +51,30 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
     private static final String OP_PREPARE_OR_EVALUATE = SingleShadowInboundsPreparation.class.getName() + ".prepareOrEvaluate";
 
     /** Place where the prepared mappings are gathered. */
-    @NotNull private final MappingEvaluationRequests evaluationRequestsBeingCollected;
+    @NotNull private final MappingEvaluationRequestsMap evaluationRequestsBeingCollected;
 
     /** Source - i.e. the resource object along with the whole context (like lens context for Clockwork execution). */
-    @NotNull private final MappingSource source;
+    @NotNull private final InboundsSource inboundsSource;
 
     /** Target - the focus including supporting data. */
-    @NotNull private final MappingTarget<T> target;
+    @NotNull private final InboundsTarget<T> inboundsTarget;
 
     /** Context of the execution (mapping evaluation environment, operation result). */
-    @NotNull private final MappingContext context;
+    @NotNull private final InboundsContext inboundsContext;
 
     /** Temporary */
     @NotNull private final SpecialInboundsEvaluator specialInboundsEvaluator;
 
     public SingleShadowInboundsPreparation(
-            @NotNull MappingEvaluationRequests evaluationRequestsBeingCollected,
-            @NotNull MappingSource source,
-            @NotNull MappingTarget<T> target,
-            @NotNull MappingContext context,
+            @NotNull MappingEvaluationRequestsMap evaluationRequestsBeingCollected,
+            @NotNull InboundsSource inboundsSource,
+            @NotNull InboundsTarget<T> inboundsTarget,
+            @NotNull InboundsContext inboundsContext,
             @NotNull SpecialInboundsEvaluator specialInboundsEvaluator) {
         this.evaluationRequestsBeingCollected = evaluationRequestsBeingCollected;
-        this.source = source;
-        this.target = target;
-        this.context = context;
+        this.inboundsSource = inboundsSource;
+        this.inboundsTarget = inboundsTarget;
+        this.inboundsContext = inboundsContext;
         this.specialInboundsEvaluator = specialInboundsEvaluator;
     }
 
@@ -84,28 +88,31 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
             ConfigurationException, ExpressionEvaluationException, StopProcessingProjectionException {
 
         OperationResult result = parentResult.subresult(OP_PREPARE_OR_EVALUATE)
-                .addArbitraryObjectAsParam("source", source)
+                .addArbitraryObjectAsParam("source", inboundsSource)
                 .build();
         try {
-            LOGGER.trace("Going to prepare/evaluate inbound mappings for:\n{}", source.debugDumpLazily(1));
+            LOGGER.trace("Going to prepare/evaluate inbound mappings for:\n{}", inboundsSource.debugDumpLazily(1));
 
             // Preliminary checks
-            if (!source.isEligibleForInboundProcessing(result)) {
+            if (!inboundsSource.isEligibleForInboundProcessing(result)) {
                 return;
             }
 
             // Collecting information about all source items that are to be mapped
-            MappedItems<T> mappedItems = new MappedItems<>(source, target, context);
-            mappedItems.collectMappedItems();
+            MappedSourceItems<T> mappedSourceItems = new MappedSourceItems<>(inboundsSource, inboundsTarget, inboundsContext);
+            mappedSourceItems.collectMappedItems();
 
-            // Now we load the full shadow, if we need to. We no longer do that at other places.
-            source.loadFullShadowIfNeeded(mappedItems.isFullStateRequired(), context, result);
+            // Load the shadow if needed. Note that we no longer do the loading at other inbounds-related places.
+            // This is where the cache state and usage policy is evaluated.
+            if (needsFullShadowLoad(mappedSourceItems)) {
+                inboundsSource.loadFullShadow(inboundsContext, result);
+            }
 
             // Let's create the mappings and put them to `evaluationRequestsBeingCollected`
-            mappedItems.createMappings(evaluationRequestsBeingCollected, result);
+            mappedSourceItems.createMappings(evaluationRequestsBeingCollected, result);
 
             // Evaluation of special mappings. This part will be transformed to the same style as the other mappings (eventually).
-            if (!source.isProjectionBeingDeleted()) {
+            if (!inboundsSource.isProjectionBeingDeleted()) {
                 specialInboundsEvaluator.evaluateSpecialInbounds(result);
             } else {
                 // TODO why we are skipping this evaluation?
@@ -116,6 +123,42 @@ public class SingleShadowInboundsPreparation<T extends Containerable> {
             throw t;
         } finally {
             result.close();
+        }
+    }
+
+    private boolean needsFullShadowLoad(MappedSourceItems<T> mappedSourceItems) throws SchemaException, ConfigurationException {
+        if (inboundsSource.isFullShadowAvailable()) {
+            LOGGER.trace("Full shadow is available, we don't need to load anything");
+            return false;
+        }
+        if (inboundsSource.isShadowGone()) {
+            LOGGER.trace("Shadow is gone, there's no point in loading it");
+            return false;
+        }
+        var itemsRequiringCurrentValue = mappedSourceItems.getItemsRequiringCurrentValue();
+        LOGGER.trace("Items requiring current value: {}", itemsRequiringCurrentValue);
+        if (itemsRequiringCurrentValue.isEmpty()) {
+            LOGGER.trace("No items requiring current value, no need to load anything");
+            return false;
+        }
+        var cachedShadowsUse = inboundsSource.getCachedShadowsUse();
+        if (cachedShadowsUse == CachedShadowsUseType.USE_FRESH) {
+            LOGGER.trace("Loading the shadow because fresh inbound data is needed (pre-4.9 default behavior)");
+            return true;
+        }
+        var itemsRequiringCurrentValueAndNotHavingIt = mappedSourceItems.getItemsRequiringCurrentValueAndNotHavingIt();
+        LOGGER.trace("Items requiring current value and not having it: {}", itemsRequiringCurrentValueAndNotHavingIt);
+        if (itemsRequiringCurrentValueAndNotHavingIt.isEmpty()) {
+            LOGGER.trace("No items requiring current value and not having it, no need to load anything");
+            return false;
+        }
+        if (cachedShadowsUse == CachedShadowsUseType.USE_CACHED_OR_FRESH) {
+            LOGGER.trace("Loading the shadow because some items require current value and it's not available");
+            return true;
+        } else {
+            // The distinction between various options is treated when mappings are to be created.
+            LOGGER.trace("Will not load the shadow because the current policy is not to do so");
+            return false;
         }
     }
 

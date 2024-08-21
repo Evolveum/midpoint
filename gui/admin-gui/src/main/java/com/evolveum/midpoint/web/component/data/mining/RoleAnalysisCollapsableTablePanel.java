@@ -397,14 +397,12 @@ public class RoleAnalysisCollapsableTablePanel<T> extends BasePanel<T> implement
             PagingSizePanel menu = new PagingSizePanel(ID_PAGE_SIZE) {
 
                 @Override
-                protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
+                protected void onPageSizeChangePerformed(Integer newValue, AjaxRequestTarget target) {
                     Table table = findParent(Table.class);
                     UserProfileStorage.TableId tableId = table.getTableId();
 
                     if (tableId != null && table.enableSavePageSize()) {
-                        int pageSize = (int) getPageBase().getItemsPerPage(tableId);
-
-                        table.setItemsPerPage(pageSize);
+                        table.setItemsPerPage(newValue);
                     }
                     target.add(findParent(PagingFooter.class));
                     target.add((Component) table);

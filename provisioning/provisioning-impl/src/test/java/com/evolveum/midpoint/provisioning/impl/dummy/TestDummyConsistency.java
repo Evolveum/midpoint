@@ -383,7 +383,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertIsNotExists()
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME);
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME);
 
         assertShadowNoFetch(ACCOUNT_MORGAN_OID)
             .pendingOperations()
@@ -407,7 +407,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertNoPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(1);
+                .assertSizeCachingAware(1);
 
         ShadowAsserter<Void> shadowProvisioningFutureAsserter =
                 assertShadowFuture(ACCOUNT_MORGAN_OID)
@@ -1232,7 +1232,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertIsNotExists()
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME)
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME)
                 .end()
             .pendingOperations()
                 .assertNone();
@@ -1245,7 +1245,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertNoPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(1)
+                .assertSizeCachingAware(1)
                 .end()
             .pendingOperations()
                 .assertNone();
@@ -1311,7 +1311,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertTombstone()
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
                 .end()
             .pendingOperations()
                 .assertNone();
@@ -1323,7 +1323,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2)
+                .assertSizeCachingAware(2)
                 .end()
             .pendingOperations()
                 .assertNone();
@@ -2221,7 +2221,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertNoPrimaryIdentifierValue()
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME)
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME)
                 .end()
             .pendingOperations()
                 .singleOperation()
@@ -2246,7 +2246,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertNoPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(1)
+                .assertSizeCachingAware(1)
                 .end()
             .pendingOperations()
                 .singleOperation()
@@ -2289,7 +2289,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
                 .end()
             .pendingOperations()
                 .singleOperation()
@@ -2315,7 +2315,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2)
+                .assertSizeCachingAware(2)
                 .end()
             .pendingOperations()
                 .singleOperation()
@@ -2402,7 +2402,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
 
         PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
         shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
@@ -2430,7 +2430,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
 
         Task task = getTestTask();
         OperationResult result = createSubresult("assertUnmodifiedMorgan");
@@ -2447,7 +2447,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
         // TODO: assert caching metadata?
 
         PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
@@ -2462,7 +2462,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(3)
+                .assertSizeCachingAware(3)
                 .assertValue(dummyResourceCtl.getAttributeFullnameQName(), expectedFullName);
         // @formatter:on
 
@@ -2514,7 +2514,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
 
         PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
         shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
@@ -2543,7 +2543,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
 
         OperationResult result = createSubresult("assertModifiedMorgan");
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(
@@ -2618,7 +2618,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
 
         PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
         shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
@@ -2644,7 +2644,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
 
         OperationResult result = createSubresult("assertMorganModifyFailed");
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(
@@ -2660,7 +2660,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
         // TODO: assert caching metadata?
 
         PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
@@ -2674,7 +2674,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
@@ -2720,7 +2720,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertNoPrimaryIdentifierValue()
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
 
         PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
         shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
@@ -2747,7 +2747,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
 
         OperationResult result = createSubresult("assertUndeletedMorgan");
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(
@@ -2764,7 +2764,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
         // TODO: assert caching metadata?
 
         PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
@@ -2778,7 +2778,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
@@ -2823,7 +2823,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertIndexedPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
 
         PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
         shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
@@ -2850,7 +2850,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
 
         OperationResult result = createSubresult("assertMorganDeleteFailed");
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(
@@ -2867,7 +2867,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
         // TODO: assert caching metadata?
 
         PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
@@ -2882,7 +2882,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2);
+                .assertSizeCachingAware(2);
         // @formatter:on
 
         // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
@@ -2929,7 +2929,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertTombstone()
             .assertNoLegacyConsistency()
             .attributes()
-                .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+                .assertAttributesCachingAware(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
 
         assertShadowNoFetch(shadowMorganOid)
             .assertTombstone()
@@ -2938,7 +2938,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertResourceAttributeContainer()
                 .assertHasPrimaryIdentifier()
                 .assertHasSecondaryIdentifier()
-                .assertSize(2)
+                .assertSizeCachingAware(2)
                 .end()
             .pendingOperations()
                 .assertOperations(expectedNumberOfPendingOperations)

@@ -114,6 +114,30 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
     }
 
     @Override
+    public RoleAsserter<RA> assertEffectiveMark(String oid) {
+        super.assertEffectiveMark(oid);
+        return this;
+    }
+
+    @Override
+    public RoleAsserter<RA> assertEffectiveMarks(String... oids) {
+        super.assertEffectiveMarks(oids);
+        return this;
+    }
+
+    @Override
+    public RoleAsserter<RA> assertNoEffectiveMark(String oid) {
+        super.assertNoEffectiveMark(oid);
+        return this;
+    }
+
+    @Override
+    public RoleAsserter<RA> assertNoEffectiveMarks() {
+        super.assertNoEffectiveMarks();
+        return this;
+    }
+
+    @Override
     public RoleAsserter<RA> display() {
         super.display();
         return this;

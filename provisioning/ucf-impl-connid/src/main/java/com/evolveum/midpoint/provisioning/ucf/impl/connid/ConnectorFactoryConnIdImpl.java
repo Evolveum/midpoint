@@ -8,7 +8,6 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil.addNewComplexTypeDefinition;
 import static com.evolveum.midpoint.prism.schema.PrismSchemaBuildingUtil.addNewContainerDefinition;
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdTypeMapper.connIdTypeToXsdTypeInfo;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICF_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME;
 import static com.evolveum.midpoint.schema.processor.ConnectorSchema.*;
@@ -418,14 +417,28 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
             ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
 
-            var propXsdTypeInfo = connIdTypeToXsdTypeInfo(icfProperty.getType(), null, icfProperty.isConfidential());
-            LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", this,
-                    icfPropertyName, icfProperty.getType(), propXsdTypeInfo);
+            var type = icfProperty.getType();
+            boolean multivalue;
+            Class<?> componentType;
+            // For multi-valued configuration properties we are only interested in the component type.
+            // We consider arrays to be multi-valued ... unless it is byte[] or char[]
+            if (type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class)) {
+                multivalue = true;
+                componentType = type.getComponentType();
+            } else {
+                multivalue = false;
+                componentType = type;
+            }
+
+            var xsdTypeName = ConnIdTypeMapper.connIdTypeToXsdTypeName(
+                    componentType, null, icfProperty.isConfidential(), null);
+            LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {} (multi: {})", this,
+                    icfPropertyName, icfProperty.getType(), xsdTypeName, multivalue);
             PrismPropertyDefinitionMutator<?> propertyDefinition =
-                    configPropertiesCtd.mutator().createPropertyDefinition(icfPropertyName, propXsdTypeInfo.xsdTypeName());
+                    configPropertiesCtd.mutator().createPropertyDefinition(icfPropertyName, xsdTypeName);
             propertyDefinition.setDisplayName(icfProperty.getDisplayName(null));
             propertyDefinition.setHelp(icfProperty.getHelpMessage(null));
-            propertyDefinition.setMaxOccurs(propXsdTypeInfo.getMaxOccurs());
+            propertyDefinition.setMaxOccurs(multivalue ? -1 : 1);
             if (icfProperty.isRequired() && icfProperty.getValue() == null) {
                 // If ICF says that the property is required it may not be in fact really required if it also has a default value
                 propertyDefinition.setMinOccurs(1);

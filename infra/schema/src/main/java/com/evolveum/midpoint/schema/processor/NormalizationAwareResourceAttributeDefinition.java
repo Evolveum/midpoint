@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -566,11 +567,11 @@ public class NormalizationAwareResourceAttributeDefinition<T>
     /**
      * @param typeClass Java class representing `refinedTypeName`
      */
-    private record DefinitionOverrides<T>(
+    private record DefinitionOverrides<T> (
             boolean switchedToPolyString,
             @NotNull QName typeName,
             @NotNull Class<T> typeClass,
             @Nullable QName nativeMatchingRuleName,
-            @Nullable QName overriddenMatchingRuleName) {
+            @Nullable QName overriddenMatchingRuleName) implements Serializable {
     }
 }

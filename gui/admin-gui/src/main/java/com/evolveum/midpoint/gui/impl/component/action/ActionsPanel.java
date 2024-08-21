@@ -34,9 +34,15 @@ public abstract class ActionsPanel<C extends Containerable> extends BasePanel<Li
     private static final String ID_BUTTON = "button";
     private static final String ID_ACTIONS_DROPDOWN_PANEL = "actionsDropdownPanel";
 
+    private C rowObject = null;
 
     public ActionsPanel(String id, IModel<List<AbstractGuiAction<C>>> model) {
         super(id, model);
+    }
+
+    public ActionsPanel(String id, IModel<List<AbstractGuiAction<C>>> model, C rowObject) {
+        super(id, model);
+        this.rowObject = rowObject;
     }
 
     @Override
@@ -48,18 +54,20 @@ public abstract class ActionsPanel<C extends Containerable> extends BasePanel<Li
     private void initLayout() {
         IModel<List<AbstractGuiAction<C>>> buttonsListModel = getButtonsListModel();
         ListView<AbstractGuiAction<C>> buttonsPanel = new ListView<AbstractGuiAction<C>>(ID_BUTTONS, buttonsListModel) {
+            @Serial private static final long serialVersionUID = 1L;
+
             @Override
             protected void populateItem(ListItem<AbstractGuiAction<C>> listItem) {
                 Component buttonPanel = createButtonComponent(ID_BUTTON, listItem.getModel());
                 listItem.add(buttonPanel);
-                listItem.add(new VisibleBehaviour(() -> listItem.getModelObject().isVisible()));
+                listItem.add(new VisibleBehaviour(() -> listItem.getModelObject().isVisible(rowObject)));
             }
         } ;
         buttonsPanel.setOutputMarkupId(true);
         add(buttonsPanel);
 
         ActionDropdownButtonPanel<C> actionsDropdownPanel = new ActionDropdownButtonPanel<>(ID_ACTIONS_DROPDOWN_PANEL,
-                null, getModel()) {
+                null, getModel(), rowObject) {
 
             @Serial private static final long serialVersionUID = 1L;
 

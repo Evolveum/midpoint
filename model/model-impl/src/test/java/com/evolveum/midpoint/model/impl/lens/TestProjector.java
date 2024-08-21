@@ -19,6 +19,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,10 +31,6 @@ import com.evolveum.midpoint.model.api.context.ProjectionContextFilter;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -707,20 +705,27 @@ public class TestProjector extends AbstractLensTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
+        var orgPropValue = PrismContext.get().itemFactory().createPropertyValue();
+        orgPropValue.setValue(PrismTestUtil.createPolyString(ORG_BRETHREN_INDUCED_ORGANIZATION));
+        orgPropValue.setValueMetadata(new ValueMetadataType()
+                .provenance(new ProvenanceMetadataType()
+                        .mappingSpecification(new MappingSpecificationType()
+                                .definitionObjectRef("9c6bfc9a-ca01-11e3-a5aa-001e8c717e5b", OrgType.COMPLEX_TYPE)
+                                .mappingName("brethen-organization")
+                        )));
         // @formatter:off
         repositoryService.modifyObject(
                 UserType.class,
                 USER_BARBOSSA_OID,
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ORGANIZATION)
-                            .replace(PrismTestUtil.createPolyString(ORG_BRETHREN_INDUCED_ORGANIZATION))
+                            .replace(orgPropValue)
                         .item(UserType.F_ASSIGNMENT)
                             .add(new AssignmentType()
                                 .targetRef(ORG_BRETHREN_OID, OrgType.COMPLEX_TYPE))
                         .asItemDeltas(),
                 result);
         // @formatter:on
-
         LensContext<UserType> context = createUserLensContext();
         PrismObject<UserType> focus = repositoryService.getObject(UserType.class, USER_BARBOSSA_OID, null, result);
         fillContextWithFocus(context, focus);
@@ -734,15 +739,20 @@ public class TestProjector extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", task, result);
+            try {
+                projector.project(context, "test", task, result);
+            } catch (ConflictDetectedException e) {
+                throw new RuntimeException(e);
+            }
 
-        // THEN
+            // THEN
         displayDumpable("Output context", context);
 
         assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.MODIFY);
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         displayDumpable("User Secondary Delta", userSecondaryDelta);
         PrismAsserts.assertPropertyDelete(userSecondaryDelta, UserType.F_ORGANIZATION, PrismTestUtil.createPolyString(ORG_BRETHREN_INDUCED_ORGANIZATION));
+
 
         Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
@@ -751,7 +761,6 @@ public class TestProjector extends AbstractLensTest {
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 
         assertSerializable(context);
-
         // Delete the assignment, to restore the environment for further tests
         // @formatter:off
         executeChanges(
@@ -1044,6 +1053,8 @@ public class TestProjector extends AbstractLensTest {
         DummyAccount dummyAccount = getDummyResource().getAccountByName(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Fuycrush Greepdood");
         dummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
+
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
 
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANNEL_RECON);

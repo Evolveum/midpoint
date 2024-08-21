@@ -10,8 +10,11 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerValuePanel;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -46,11 +49,21 @@ public class ShadowAssociationValuePanel extends BasePanel<PrismContainerValueWr
         ItemPanelSettingsBuilder attributesSettingsBuilder = new ItemPanelSettingsBuilder()
                 .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper));
 
-        VerticalFormPrismContainerValuePanel attributesPanel = new VerticalFormPrismContainerValuePanel<>(
-                ID_ATTRIBUTES,
-                PrismContainerValueWrapperModel.fromContainerValueWrapper(getModel(), ShadowAssociationValueType.F_ATTRIBUTES),
-                attributesSettingsBuilder.build());
-        add(attributesPanel);
+        try {
+            WebMarkupContainer attributesPanel;
+            if (getModelObject().findContainer(ShadowAssociationValueType.F_ATTRIBUTES) == null) {
+                attributesPanel = new WebMarkupContainer(ID_ATTRIBUTES);
+                attributesPanel.add(VisibleBehaviour.ALWAYS_INVISIBLE);
+            } else {
+                attributesPanel = new VerticalFormPrismContainerValuePanel<>(
+                        ID_ATTRIBUTES,
+                        PrismContainerValueWrapperModel.fromContainerValueWrapper(getModel(), ShadowAssociationValueType.F_ATTRIBUTES),
+                        attributesSettingsBuilder.build());
+            }
+            add(attributesPanel);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
 
         ItemPanelSettingsBuilder associationBuilder = new ItemPanelSettingsBuilder()
                 .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper));

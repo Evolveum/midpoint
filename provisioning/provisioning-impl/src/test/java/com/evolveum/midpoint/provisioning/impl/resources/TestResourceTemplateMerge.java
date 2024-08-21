@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.SchemaConstantsGenerated.ICF_C_CONFIGURATION_PROPERTIES;
@@ -19,10 +20,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappin
 import static com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ResultsHandlerConfigurationType.*;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
@@ -498,10 +502,16 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
         assertThat(weaponInbound.getName()).as("weapon mapping name").isEqualTo("weapon-mapping"); // this is the key
 
         and("one protected pattern is added (there are two, but one is exactly the same as one in parent)");
-        Collection<ResourceObjectPattern> protectedPatterns = accountDef.getProtectedObjectPatterns();
-        assertThat(protectedPatterns).as("protected object patterns").hasSize(3); // 2 inherited, 1 added
-        Set<String> names = protectedPatterns.stream().map(this::getFilterValue).collect(Collectors.toSet());
-        assertThat(names)
+        var shadowMarkingRules = accountDef.getShadowMarkingRules().getMarkingRulesMap();
+        assertThat(shadowMarkingRules)
+                .as("shadow marking rules map")
+                .hasSize(1) // marking protected accounts
+                .extracting(map -> map.get(SystemObjectsType.MARK_PROTECTED.value()))
+                .as("protected objects entry")
+                .extracting(rule -> rule.getPatterns(), as(InstanceOfAssertFactories.collection(ResourceObjectPattern.class)))
+                .as("protected objects patterns")
+                .hasSize(3) // 2 inherited, 1 added
+                .extracting(pattern -> getFilterValue(pattern))
                 .as("protected objects names")
                 .containsExactlyInAnyOrder("root", "daemon", "extra");
 

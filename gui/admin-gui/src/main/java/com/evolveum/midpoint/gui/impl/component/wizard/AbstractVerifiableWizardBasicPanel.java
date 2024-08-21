@@ -58,7 +58,7 @@ public abstract class AbstractVerifiableWizardBasicPanel<C extends Containerable
 
     protected void onExitPerformedAfterValidate(AjaxRequestTarget target) {
         super.onExitPerformed(target);
-        superHelper.onExitPerformed(target);
+        superHelper.onExitPerformedAfterValidate(target);
     }
 
     @Override
@@ -102,5 +102,9 @@ public abstract class AbstractVerifiableWizardBasicPanel<C extends Containerable
 
     protected String getPanelType() {
         return null;
+    }
+
+    public WizardPanelHelper<C, AHD> getHelper() {
+        return superHelper;
     }
 }

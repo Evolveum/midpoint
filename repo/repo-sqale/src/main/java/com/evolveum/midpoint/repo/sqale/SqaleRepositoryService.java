@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -40,10 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.evolveum.midpoint.common.SequenceUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -115,6 +112,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     private final SqlQueryExecutor sqlQueryExecutor;
 
+    private final SqaleSystemConfigurationListener configurationChangeListener;
+
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal =
@@ -127,6 +126,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection) {
         super(repositoryContext, sqlPerformanceMonitorsCollection);
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
+        this.configurationChangeListener = new SqaleSystemConfigurationListener(repositoryContext);
     }
 
     // region getObject/getVersion
@@ -770,6 +770,22 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } else {
             ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);
         }
+
+        // additional check to prevent storing invalid reference OIDs
+        modifications.forEach(delta -> {
+            delta.accept(visitable -> {
+                if (visitable instanceof PrismReferenceValue prv) {
+                    String oid = prv.getOid();
+                    if (oid != null) {
+                        try {
+                             UUID.fromString(oid);
+                        } catch (IllegalArgumentException e) {
+                            throw new IllegalArgumentException("Cannot convert OID '" + oid + "' to UUID", e);
+                        }
+                    }
+                }
+            }, false);
+        });
     }
 
     private void logTraceModifications(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
@@ -882,17 +898,22 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             throws ObjectNotFoundException {
 
         QueryTableMapping<T, Q, R> mapping = sqlRepoContext.getMappingBySchemaType(type);
-        Q entityPath = mapping.defaultAlias();
-        byte[] fullObject = jdbcSession.newQuery()
-                .select(entityPath.fullObject)
+        QObject<?> entityPath = mapping.defaultAlias();
+        Tuple result = jdbcSession.newQuery()
+                .select(entityPath.objectType, entityPath.fullObject)
                 .forUpdate()
                 .from(entityPath)
                 .where(entityPath.oid.eq(oid))
                 .fetchOne();
-        if (fullObject == null) {
+        if (result == null) {
             throw new ObjectNotFoundException(type, oid.toString(), false);
         }
+        var fullObject = result.get(entityPath.fullObject);
 
+        if (ObjectType.class.equals(type)) {
+            mapping = (QueryTableMapping) sqlRepoContext.getMappingBySchemaType(result.get(entityPath.objectType).getSchemaType());
+            entityPath = mapping.defaultAlias();
+        }
         // object delete cascades to all owned related rows
         jdbcSession.newDelete(entityPath)
                 .where(entityPath.oid.eq(oid))
@@ -2121,6 +2142,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         try {
             return executeAllocateContainerIdentifiers(type, oidUuid, howMany);
+        } catch (ObjectNotFoundException e) {
+            operationResult.recordHandledError(e);
+            throw e;
         } catch (RepositoryException | RuntimeException | SchemaException e) {
             throw handledGeneralException(e, operationResult);
         } catch (Throwable t) {
@@ -2572,7 +2596,12 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
      * https://www.postgresql.org/docs/16/transaction-iso.html
      */
     private static final String PSQL_CONCURRENT_UPDATE_MESSAGE = "ERROR: could not serialize access due to concurrent update";
+
     private static final String PSQL_FOREIGN_KEY_VIOLATION = "23503";
+    private static final String PSQL_CHECK_VIOLATION = "23514";
+
+    private static final String PSQL_DEADLOCK_DETECTED = "40P01";
+
 
     private boolean isRetriableException(Exception e) {
         Throwable toCheck = e;
@@ -2584,6 +2613,16 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 }
                 if (PSQL_FOREIGN_KEY_VIOLATION.equals(pgEx.getSQLState()) && pgEx.getMessage().contains("m_uri")) {
                     // This could be immediate retry - because of URI cache.
+                    return true;
+                }
+                if (PSQL_CHECK_VIOLATION.equals(pgEx.getSQLState()) && pgEx.getMessage().contains("partition constraint")) {
+                    // Retry on partition constraints failed - partition may be added during insert from another client
+                    // and now shadow belong to other partition.
+                    return true;
+                }
+                if (PSQL_DEADLOCK_DETECTED.equals(pgEx.getSQLState())) {
+                    // Sometimes there can be deadlock if one thread is updating shadow in default partition
+                    // and other thread (client) triggered partition move.
                     return true;
                 }
             }
@@ -2655,4 +2694,36 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return attempt + 1;
     }
 
+    @Override
+    public void createPartitionsForExistingData(OperationResult parentResult) throws SchemaException {
+        // Currently we support only partitioning for shadow type
+        // If partitioning is added for other types we should also call their partition
+        // manager
+
+
+        var shadowMapping = (SqaleTableMapping) sqlRepoContext.getMappingBySchemaType(ShadowType.class);
+        var partitionManager = shadowMapping.getPartitionManager();
+        if (partitionManager == null) {
+            return;
+        }
+
+        var result = parentResult.createSubresult(OP_CREATE_PARTITIONS_FOR_EXISTING_DATA);
+        try {
+            long opHandle = registerOperationStart(OP_CREATE_PARTITIONS_FOR_EXISTING_DATA, ShadowType.class);
+            executeRetriable("createPartitions", null, opHandle, () -> {
+                partitionManager.createMissingPartitions(result);
+                return null;
+            });
+            result.computeStatus();
+        } catch (Exception e) {
+            result.recordFatalError(e);
+        } finally {
+            result.close();
+        }
+    }
+
+    @Override
+    public void applyRepositoryConfiguration(@Nullable RepositoryConfigurationType repositoryConfig) {
+        configurationChangeListener.update(repositoryConfig);
+    }
 }

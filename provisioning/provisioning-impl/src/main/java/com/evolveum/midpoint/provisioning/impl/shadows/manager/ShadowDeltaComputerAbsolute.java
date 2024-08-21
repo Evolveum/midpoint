@@ -16,6 +16,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,8 +62,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * These two situations are discriminated by {@link #fromResource} flag.
  *
  * @see ShadowDeltaComputerRelative
- * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, RepoShadow, ResourceObjectShadow, ObjectDelta,
- * ResourceObjectClassification, OperationResult)
+ * @see ShadowUpdater#updateShadowInRepositoryAndInMemory(ProvisioningContext, RepoShadowWithState, ResourceObjectShadow,
+ * ObjectDelta, ResourceObjectClassification, EffectiveMarksAndPolicies, OperationResult)
  * @see ShadowObjectComputer
  */
 class ShadowDeltaComputerAbsolute {
@@ -81,6 +84,9 @@ class ShadowDeltaComputerAbsolute {
     /** The delta reflecting what happened with the object on the resource. Always `null` if {@link #fromResource} is false. */
     @Nullable private final ObjectDelta<ShadowType> resourceObjectDelta;
 
+    /** Effective marks and policies for the shadow or resource object. Provided externally. */
+    @NotNull private final EffectiveMarksAndPolicies effectiveMarksAndPolicies;
+
     /**
      * True if the information we deal with ({@link #resourceObject}, {@link #resourceObjectDelta}) comes from the resource.
      *
@@ -92,8 +98,6 @@ class ShadowDeltaComputerAbsolute {
     /** Here we collect modifications that will be (presumably) applied to the repo shadow by the caller. */
     @NotNull private final RepoShadowModifications computedModifications = new RepoShadowModifications();
 
-    private final boolean cachingEnabled; // FIXME partial caching?!
-
     private final ShadowsLocalBeans b = ShadowsLocalBeans.get();
 
     private ShadowDeltaComputerAbsolute(
@@ -101,7 +105,9 @@ class ShadowDeltaComputerAbsolute {
             @NotNull RepoShadow repoShadow,
             @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull EffectiveMarksAndPolicies effectiveMarksAndPolicies,
             boolean fromResource) {
+        this.effectiveMarksAndPolicies = effectiveMarksAndPolicies;
         argCheck(fromResource || resourceObjectDelta == null,
                 "Non-null delta with object not coming from resource?");
         this.ctx = ctx;
@@ -109,7 +115,6 @@ class ShadowDeltaComputerAbsolute {
         this.rawRepoShadow = Preconditions.checkNotNull(repoShadow.getRawRepoShadow(), "no raw repo shadow");
         this.resourceObject = resourceObject;
         this.resourceObjectDelta = resourceObjectDelta;
-        this.cachingEnabled = ctx.isCachingEnabled();
         this.fromResource = fromResource;
     }
 
@@ -118,10 +123,12 @@ class ShadowDeltaComputerAbsolute {
             @NotNull RepoShadow repoShadow,
             @NotNull ResourceObjectShadow resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull EffectiveMarksAndPolicies effectiveMarksAndPolicies,
             boolean fromResource)
             throws SchemaException, ConfigurationException {
-        return new ShadowDeltaComputerAbsolute(ctx, repoShadow, resourceObject, resourceObjectDelta, fromResource)
-                .execute();
+        var computer = new ShadowDeltaComputerAbsolute(
+                ctx, repoShadow, resourceObject, resourceObjectDelta, effectiveMarksAndPolicies, fromResource);
+        return computer.execute();
     }
 
     /**
@@ -135,6 +142,8 @@ class ShadowDeltaComputerAbsolute {
 
         var incompleteCacheableItems = updateAttributes();
         updateShadowName();
+
+        // TODO should we take "caching aux OCs" into account here? (the information was always updated in the repo shadow)
         updateAuxiliaryObjectClasses();
 
         if (fromResource) {
@@ -144,28 +153,27 @@ class ShadowDeltaComputerAbsolute {
         }
 
         if (fromResource) { // TODO reconsider this
-            updateEffectiveMarks();
-            if (cachingEnabled) {
+            if (ctx.getObjectDefinitionRequired().isActivationCached()) {
                 updateCachedActivation();
+            }
+            if (ctx.getObjectDefinitionRequired().areCredentialsCached()) {
+                // FIXME update password if it happened to be present in the data
+            }
+            if (ctx.getObjectDefinitionRequired().isCachingEnabled()) {
                 updateCachingMetadata(incompleteCacheableItems);
             } else {
                 clearCachingMetadata();
             }
         }
+        updateEffectiveMarks();
         return computedModifications;
     }
 
     private void updateEffectiveMarks() throws SchemaException {
-        // protected status of resourceShadow was computed without exclusions present in
-        // original shadow
-        List<ObjectReferenceType> effectiveMarkRef = resourceObject.getBean().getEffectiveMarkRef();
-        if (!effectiveMarkRef.isEmpty()) {
-            // We should check if marks computed on resourceObject without exclusions should
-            // be excluded and not propagated to repository layer.
-            computedModifications.add(
-                    ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(
-                            repoShadow.getBean(), effectiveMarkRef));
-        }
+        computedModifications.add(
+                ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(
+                        repoShadow.getBean().getEffectiveMarkRef(),
+                        effectiveMarksAndPolicies.effectiveMarkRefs()));
     }
 
     private void updateShadowName() throws SchemaException {
@@ -274,7 +282,7 @@ class ShadowDeltaComputerAbsolute {
             if (resourceObjectAttribute instanceof ShadowSimpleAttribute<?> simpleAttribute) {
                 var attrDef = simpleAttribute.getDefinitionRequired();
                 var attrName = attrDef.getItemName();
-                if (shouldStoreSimpleAttributeInShadow(ctx, ocDef, attrDef)) {
+                if (shouldStoreSimpleAttributeInShadow(ocDef, attrDef)) {
                     expectedRepoSimpleAttributes.add(attrName);
                     if (!resourceObjectAttribute.isIncomplete()) {
                         updateSimpleAttributeIfNeeded(simpleAttribute);
@@ -287,7 +295,7 @@ class ShadowDeltaComputerAbsolute {
             } else if (resourceObjectAttribute instanceof ShadowReferenceAttribute referenceAttribute) {
                 var attrDef = referenceAttribute.getDefinitionRequired();
                 var attrName = attrDef.getItemName();
-                if (shouldStoreReferenceAttributeInShadow(ctx, ocDef, attrDef)) {
+                if (shouldStoreReferenceAttributeInShadow(ocDef, attrDef)) {
                     expectedRepoReferenceAttributes.add(attrName);
                     if (!resourceObjectAttribute.isIncomplete()) {
                         updateReferenceAttributeIfNeeded(referenceAttribute);

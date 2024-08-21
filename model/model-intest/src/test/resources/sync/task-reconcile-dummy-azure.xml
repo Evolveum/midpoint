@@ -14,7 +14,7 @@
     <name>Reconciliation: Dummy Azure</name>
     <taskIdentifier>10000000-0000-0000-5656-56560000a204</taskIdentifier>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionState>runnable</executionState>
+    <executionState>closed</executionState> <!-- run on demand -->
     <objectRef oid="10000000-0000-0000-0000-00000000a204" type="ResourceType"/>
     <activity>
         <work>

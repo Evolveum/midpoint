@@ -206,8 +206,8 @@ public interface ResourceObjectDefinitionDelegator extends ResourceObjectDefinit
     }
 
     @Override
-    default @NotNull Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
-        return delegate().getProtectedObjectPatterns();
+    default @NotNull ShadowMarkingRules getShadowMarkingRules() {
+        return delegate().getShadowMarkingRules();
     }
 
     @Override

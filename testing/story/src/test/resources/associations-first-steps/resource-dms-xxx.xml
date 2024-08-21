@@ -150,7 +150,6 @@
                                     </mapping>
                                 </attribute>
                                 <objectRef>
-                                    <ref>ri:document</ref> <!-- TODO make optional if there's only one object -->
                                     <mapping>
                                         <name>document</name>
                                         <expression>
@@ -165,7 +164,6 @@
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
-                                    <ref>ri:document</ref> <!-- TODO make optional if there's only one object -->
                                     <mapping> <!-- not strictly necessary, just for illustration -->
                                         <name>documentName-and-level-into-assignment-identifier</name>
                                         <source>
@@ -226,11 +224,6 @@
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <set> <!-- TEMPORARY! Will be turned on automatically soon. -->
-                                <predefined>matchingProvenance</predefined>
-                            </set>
-                        </target>
                     </inbound>
                 </association>
             </subject>

@@ -123,9 +123,9 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
 
     static final String METRIC_ATTRIBUTE_MODIFICATIONS_ID = "attribute-modifications";
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     @Override

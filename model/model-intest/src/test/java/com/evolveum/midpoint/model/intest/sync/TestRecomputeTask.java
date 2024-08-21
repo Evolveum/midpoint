@@ -78,10 +78,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         super.initSystem(initTask, initResult);
         addObject(ARCHETYPE_TASK_RECOMPUTATION, initTask, initResult);
 
-        if (areMarksSupported()) {
-            repoAdd(CommonInitialObjects.ARCHETYPE_OBJECT_MARK, initResult);
-            repoAdd(CommonInitialObjects.MARK_PROTECTED, initResult);
-        }
+        CommonInitialObjects.addMarks(this, initTask, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 

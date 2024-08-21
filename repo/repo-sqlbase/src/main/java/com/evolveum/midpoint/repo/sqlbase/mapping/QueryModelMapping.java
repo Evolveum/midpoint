@@ -171,8 +171,13 @@ public class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
                 : path.firstName();
         ItemRelationResolver<Q, R, TQ, TR> resolver = getRelationResolver(itemName);
         if (resolver == null) {
-            throw new QueryException("Missing relation resolver for '" + itemName
-                    + "' in mapping " + getClass().getSimpleName());
+            var technicalMessage = "Missing relation resolver for '" + itemName
+                    + "' in mapping " + getClass().getSimpleName();
+            SingleLocalizableMessage message = new SingleLocalizableMessage(
+                    "QueryModelMapping.item.not.searchable",
+                    new Object[]{itemName},
+                    technicalMessage);
+            throw new QueryException(message);
         }
         return resolver;
     }

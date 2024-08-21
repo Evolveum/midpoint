@@ -53,13 +53,6 @@ public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactor
         return false;
     }
 
-//    @Override
-//    protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<Containerable> parent, PrismContainerValue<Containerable> value) {
-//        if (value == null || value.getComplexTypeDefinition() == null) {
-//            return Collections.emptyList();
-//        }
-//        return value.getComplexTypeDefinition().getDefinitions();
-//    }
 
     @Override
     public GuiComponentRegistry getRegistry() {

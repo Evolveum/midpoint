@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -9,11 +8,15 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -43,12 +46,12 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class ParticipantAssociationStepPanel
-        extends MultiSelectContainerTileWizardStepPanel<ParticipantAssociationStepPanel.ObjectTypeWrapper, ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
+        extends MultiSelectContainerTileWizardStepPanel<ParticipantObjectTypeWrapper, ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
     protected static final Trace LOGGER = TraceManager.getTrace(ParticipantAssociationStepPanel.class);
 
     private final IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel;
-    private final IModel<List<ObjectTypeWrapper>> selectedItems = Model.ofList(new ArrayList<>());
+    private final IModel<List<ParticipantObjectTypeWrapper>> selectedItems = Model.ofList(new ArrayList<>());
 
     public ParticipantAssociationStepPanel(
             ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> valueModel) {
@@ -66,6 +69,9 @@ public abstract class ParticipantAssociationStepPanel
     protected final IModel<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> getValueModel() {
         return valueModel;
     }
+
+    @Override
+    protected abstract ItemPath getPathForValueContainer();
 
     private void initSelectedItemsModel() {
         try {
@@ -89,9 +95,10 @@ public abstract class ParticipantAssociationStepPanel
                     continue;
                 }
 
-                @NotNull ResourceObjectTypeDefinitionType objectType = objectTypeDef.getDefinitionBean();
+                @NotNull ResourceObjectTypeDefinitionType objectType = objectTypeDef.getDefinitionBean().clone();
+                objectType.setIntent(objectTypeDef.getIntent());
                 QName objectClass = getObjectClass(objectType);
-                ObjectTypeWrapper wrapper = new ObjectTypeWrapper(
+                ParticipantObjectTypeWrapper wrapper = new ParticipantObjectTypeWrapper(
                         objectType.getKind(),
                         objectType.getIntent(),
                         GuiDisplayNameUtil.getDisplayName(objectType),
@@ -105,11 +112,21 @@ public abstract class ParticipantAssociationStepPanel
 
     protected List<PrismContainerValueWrapper<ResourceObjectTypeIdentificationType>> getInitValues() throws SchemaException {
         ItemPath containerPath = getPathForValueContainer();
-        PrismContainerWrapper<ResourceObjectTypeIdentificationType> container = getValueModel().getObject().findContainer(containerPath);
+        PrismContainerWrapper<ShadowAssociationTypeParticipantDefinitionType> container = getValueModel().getObject().findContainer(containerPath);
         if (container == null) {
             return Collections.emptyList();
         }
-        return container.getValues();
+        List<PrismContainerValueWrapper<ResourceObjectTypeIdentificationType>> list = new ArrayList<>();
+        container.getValues().forEach(value -> {
+            try {
+                PrismContainerWrapper<ResourceObjectTypeIdentificationType> subContainer =
+                        value.findContainer(ShadowAssociationTypeParticipantDefinitionType.F_OBJECT_TYPE);
+                list.addAll(subContainer.getValues());
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find sub container " + ShadowAssociationTypeParticipantDefinitionType.F_OBJECT_TYPE + " in " + container);
+            }
+        });
+        return list;
     }
 
     @Override
@@ -118,21 +135,21 @@ public abstract class ParticipantAssociationStepPanel
     }
 
     @Override
-    protected IModel<List<ObjectTypeWrapper>> getSelectedItemsModel() {
+    protected IModel<List<ParticipantObjectTypeWrapper>> getSelectedItemsModel() {
         return selectedItems;
     }
 
     @Override
-    protected IModel<String> getItemLabelModel(ObjectTypeWrapper wrapper) {
+    protected IModel<String> getItemLabelModel(ParticipantObjectTypeWrapper wrapper) {
         return Model.of(wrapper.getDisplayName());
     }
 
     @Override
-    protected void deselectItem(ObjectTypeWrapper removedWrapper) {
+    protected void deselectItem(ParticipantObjectTypeWrapper removedWrapper) {
         removeSelectedItem(removedWrapper);
     }
 
-    private void removeSelectedItem(ObjectTypeWrapper removedWrapper) {
+    private void removeSelectedItem(ParticipantObjectTypeWrapper removedWrapper) {
         selectedItems.getObject().removeIf(wrapper -> wrapper.equals(removedWrapper));
     }
 
@@ -193,7 +210,7 @@ public abstract class ParticipantAssociationStepPanel
             @Nullable ResourceObjectTypeDefinition objectTypeDef =
                     resourceSchema.getObjectTypeDefinition(ResourceObjectTypeIdentification.of(objectType));
 
-            ObjectTypeWrapper wrapper = new ObjectTypeWrapper(
+            ParticipantObjectTypeWrapper wrapper = new ParticipantObjectTypeWrapper(
                     objectTypeDef.getKind(),
                     objectTypeDef.getIntent(),
                     GuiDisplayNameUtil.getDisplayName(objectType),
@@ -258,7 +275,7 @@ public abstract class ParticipantAssociationStepPanel
     protected abstract String getNameOfParticipant();
 
     protected boolean equalValueAndObjectTypeWrapper(
-            PrismContainerValueWrapper<ResourceObjectTypeIdentificationType> value, ObjectTypeWrapper wrapper) {
+            PrismContainerValueWrapper<ResourceObjectTypeIdentificationType> value, ParticipantObjectTypeWrapper wrapper) {
         ResourceObjectTypeIdentificationType objectTypeIdentifier = value.getRealValue();
         return wrapper.equals(objectTypeIdentifier.getKind(), objectTypeIdentifier.getIntent());
     }
@@ -272,64 +289,8 @@ public abstract class ParticipantAssociationStepPanel
         return "fa fa-list";
     }
 
-    public class ObjectTypeWrapper implements Serializable {
-
-        private final ShadowKindType kind;
-        private final String intent;
-        private final String displayName;
-        private final QName objectClass;
-
-        private ObjectTypeWrapper(ShadowKindType kind, String intent, String displayName, QName objectClass){
-            this.kind = kind;
-            this.intent = intent;
-            this.displayName = displayName;
-            this.objectClass = objectClass;
-        }
-
-        public ShadowKindType getKind() {
-            return kind;
-        }
-
-        public String getIntent() {
-            return intent;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        public QName getObjectClass() {
-            return objectClass;
-        }
-
-        public boolean equals(ShadowKindType kind, String intent) {
-            return kind == this.kind && Objects.equals(intent, this.intent);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
-            ObjectTypeWrapper that = (ObjectTypeWrapper) o;
-            return kind == that.kind && Objects.equals(intent, that.intent);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(kind, intent);
-        }
-    }
-
     @Override
-    public VisibleEnableBehaviour getHeaderBehaviour() {
+    protected VisibleEnableBehaviour getHeaderFragmentVisibility() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
-    }
-
-    @Override
-    protected Component createTableHeader(String id, Component header) {
-        header.add(VisibleEnableBehaviour.ALWAYS_INVISIBLE);
-        return header;
     }
 }

@@ -9,10 +9,12 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.ResourceObjectFuturizer.futurizeRepoShadow;
 import static com.evolveum.midpoint.provisioning.impl.ResourceObjectFuturizer.futurizeResourceObject;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.determineContentDescription;
 import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.validateShadow;
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.formatExceptionMessage;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.CONCEIVED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.GESTATING;
 
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 import com.google.common.base.Preconditions;
@@ -53,10 +56,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Implements the `get` operation, except for the `raw` mode.
@@ -189,13 +188,14 @@ class ShadowGetOperation {
             result.close();
         }
 
-        var shadowPostProcessor = new ShadowPostProcessor(ctx, repoShadow, resourceObject, null);
+        var shadowPostProcessor = new ShadowPostProcessor(
+                ctx, RepoShadowWithState.existing(repoShadow), resourceObject, null);
 
         // FIXME maybe special object type for combined object could be created
         var combinedObject = shadowPostProcessor.execute(parentResult);
         ctx = shadowPostProcessor.getCurrentProvisioningContext();
 
-        return returnRetrieved(combinedObject);
+        return returnRetrieved(combinedObject, result.isError(), result);
     }
 
     private static @NotNull RawRepoShadow obtainRepositoryShadow(
@@ -436,7 +436,9 @@ class ShadowGetOperation {
      *
      * TODO shouldn't we try to set the "protected" flag here (like we do in the search-like operation)?
      */
-    private @NotNull Shadow returnCached(String reason, OperationResult result) throws SchemaException, ConfigurationException {
+    private @NotNull Shadow returnCached(String reason, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
         LOGGER.trace("Returning cached (repository) version of shadow {} because of: {}", repoShadow, reason);
         ctx.applyCurrentDefinition(repoShadow.getBean());
         b.associationsHelper.convertReferenceAttributesToAssociations(
@@ -446,22 +448,36 @@ class ShadowGetOperation {
                         futurizeRepoShadow(ctx, repoShadow, now) :
                         repoShadow.asResourceObject();
         LOGGER.trace("Futurized shadow:\n{}", DebugUtil.debugDumpLazily(futurized));
-        return createShadow(ctx, futurized);
+        return createShadow(ctx, futurized, FROM_REPOSITORY, result);
     }
 
-    private @NotNull Shadow returnRetrieved(@NotNull ExistingResourceObjectShadow shadowedObject)
-            throws SchemaException, ConfigurationException {
+    private @NotNull Shadow returnRetrieved(
+            @NotNull ExistingResourceObjectShadow shadowedObject, boolean error, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
         assert repoShadow != null;
         ResourceObjectShadow futurized =
                 ProvisioningUtil.isFuturePointInTime(options) ?
                         futurizeResourceObject(ctx, repoShadow, shadowedObject, false, now) :
                         shadowedObject;
         LOGGER.trace("Futurized shadowed resource object:\n{}", futurized.debugDumpLazily(1));
-        return createShadow(ctx, futurized);
+        return createShadow(ctx, futurized, determineContentDescription(options, error), result);
     }
 
-    private Shadow createShadow(ProvisioningContext ctx, ResourceObjectShadow resourceObject) {
-        validateShadow(resourceObject.getBean(), true);
+    private Shadow createShadow(
+            ProvisioningContext ctx,
+            ResourceObjectShadow resourceObject,
+            ShadowContentDescriptionType contentDescription,
+            OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var bean = resourceObject.getBean();
+        bean.setContentDescription(contentDescription);
+        validateShadow(bean, true);
+        if (bean.getEffectiveOperationPolicy() == null) {
+            // TODO quick hack here - should be done earlier
+            ctx.computeAndUpdateEffectiveMarksAndPolicies(resourceObject, RepoShadowWithState.ShadowState.EXISTING, result);
+        }
         return resourceObject.asShadow(ctx.getResource());
     }
 

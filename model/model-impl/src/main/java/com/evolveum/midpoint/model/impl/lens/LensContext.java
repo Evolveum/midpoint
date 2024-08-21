@@ -346,7 +346,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 .collect(Collectors.toList());
     }
 
-    public boolean hasLowerOrderContext(LensProjectionContext refProjCtx) {
+    boolean hasLowerOrderContextThan(LensProjectionContext refProjCtx) {
         ProjectionContextKey refKey = refProjCtx.getKey();
         for (LensProjectionContext aProjCtx : projectionContexts) {
             ProjectionContextKey aKey = aProjCtx.getKey();
@@ -1152,6 +1152,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         sb.append("\n");
 
         DebugUtil.debugDumpWithLabelLn(sb, "Channel", channel, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Do reconciliation for all projections", doReconciliationForAllProjections, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Options", String.valueOf(options), indent + 1);
         DebugUtil.debugDumpLabel(sb, "Settings", indent + 1);
         sb.append(" ");

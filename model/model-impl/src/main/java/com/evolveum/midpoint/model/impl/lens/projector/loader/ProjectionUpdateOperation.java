@@ -7,6 +7,19 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
+import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.isNoFetch;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.isShadowFresh;
+
+import java.util.Collection;
+import java.util.List;
+
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
+import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -29,15 +42,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
-import static com.evolveum.midpoint.schema.GetOperationOptions.isNoFetch;
 
 /**
  * Updates the projection context:
@@ -158,12 +162,15 @@ class ProjectionUpdateOperation<F extends ObjectType> {
     /**
      * Should the object be loaded or reloaded?
      *
-     * Coupled with {@link #createProjectionLoadingOptions()} regarding whether `noFetch` option should be used.
+     * Coupled with {@link #createProjectionLoadingOptions(OperationResult)} regarding whether `noFetch` option should be used.
      *
      * There is an interesting side effect of "no fetch" loading of already-loaded object: the "full shadow" flag is discarded
      * in such cases. This may ensure the consistency at the cost of resource object re-loading.
      */
     private boolean shouldLoadCurrentObject() throws SchemaException, ConfigurationException {
+
+        LOGGER.trace("Determining whether to load current object for {}", projectionContext);
+
         if (projectionContext.getObjectCurrent() == null) {
             LOGGER.trace("Will load current object, as there is none loaded");
             return true;
@@ -171,7 +178,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
 
         if (projectionContext.isDoReconciliation() && !projectionContext.isFullShadow()) {
             LOGGER.trace("Will reload current object, because we are doing reconciliation and we do not have full shadow");
-            return true; // Note that the loading options will ensure that the full object is loaded.
+            return true; // Note that the loading options will ensure that the full object is loaded, unless cache is used.
         }
 
         // This is kind of brutal. But effective. We are reloading all higher-order dependencies
@@ -290,7 +297,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             return false;
         }
 
-        Collection<SelectorOptions<GetOperationOptions>> options = createProjectionLoadingOptions();
+        var options = createProjectionLoadingOptions(result);
 
         try {
             LOGGER.trace("Loading shadow {} for projection {}, options={}",
@@ -394,7 +401,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
     }
 
     private void checkLoadedShadowConsistency(PrismObject<ShadowType> object) {
-        Validate.notNull(object.getOid());
+        Preconditions.checkNotNull(object.getOid());
         if (InternalsConfig.consistencyChecks) {
             String resourceOid = projectionContext.getResourceOid();
             if (resourceOid != null) {
@@ -410,18 +417,21 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         }
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions() {
+    private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions(OperationResult result)
+            throws SchemaException, ConfigurationException {
         GetOperationOptionsBuilder builder = beans.schemaService.getOperationOptionsBuilder()
                 //.readOnly() [not yet]
                 .futurePointInTime()
                 .allowNotFound();
 
+        // Most probably reconciliation for all projections implies reconciliation for projContext
+        // but we include both conditions just to be sure.
+        var reconciliation = projectionContext.isDoReconciliation() || context.isDoReconciliationForAllProjections();
+
         if (projectionContext.isInMaintenance()) {
             LOGGER.trace("Using 'no fetch' mode because of resource maintenance (to avoid errors being reported)");
             builder = builder.noFetch();
-        } else if (projectionContext.isDoReconciliation() || context.isDoReconciliationForAllProjections()) {
-            // Most probably reconciliation for all projections implies reconciliation for projContext
-            // but we include both conditions just to be sure.
+        } else if (reconciliation && shouldUseFresh(result)) {
             builder = builder.forceRefresh();
 
             // We force operation retry "in hard way" only if we do full-scale reconciliation AND we are starting the clockwork.
@@ -439,6 +449,49 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         }
 
         return builder.build();
+    }
+
+    private boolean shouldUseFresh(OperationResult result) throws SchemaException, ConfigurationException {
+        var decision = switch (projectionContext.getCachedShadowsUse()) {
+            case USE_FRESH -> {
+                LOGGER.trace("Cached shadows use is not allowed, will use fresh data");
+                yield true;
+            }
+            case USE_CACHED_OR_IGNORE, USE_CACHED_OR_FAIL -> {
+                LOGGER.trace("Using fresh data is not allowed, will use cached ones (if available)");
+                yield false;
+            }
+            case USE_CACHED_OR_FRESH -> {
+                LOGGER.trace("Will determine if the data are fresh enough");
+                yield null;
+            }
+        };
+        if (decision != null) {
+            return decision;
+        }
+        // We are to decide on using fresh/cached shadow now. We could try using staleness option instead, but we also need
+        // to decide on refresh and retry, so let's do the determination here. This approach may change later.
+        if (projectionObject == null) {
+            try {
+                // This is extra repo access; but it should be quite infrequent. TODO optimize this
+                projectionObject =
+                        beans.provisioningService
+                                .getShadow(projectionObjectOid, createNoFetchCollection(), task, result)
+                                .getBean();
+            } catch (CommonException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't load shadow {} to determine the freshness", e, projectionObjectOid);
+                return true; // Let's make the regular code throw the exception as usually (when caching is not involved)
+            }
+        }
+        if (isShadowFresh(
+                projectionObject.asPrismObject(),
+                ModelBeans.get().clock.currentTimeXMLGregorianCalendar())) {
+            LOGGER.trace("Shadow is fresh, no need to load it in full");
+            return false;
+        } else {
+            LOGGER.trace("Shadow is not fresh, we'll load it in full:\n{}", projectionObject.debugDumpLazily(1));
+            return true;
+        }
     }
 
     private void refreshContextAfterShadowNotFound(Collection<SelectorOptions<GetOperationOptions>> options,

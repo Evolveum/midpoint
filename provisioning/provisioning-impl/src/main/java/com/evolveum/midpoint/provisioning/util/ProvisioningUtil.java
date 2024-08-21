@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
 import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.Validate;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -44,12 +42,16 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_RESOURCE_COMPLETE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowContentDescriptionType.FROM_RESOURCE_INCOMPLETE;
 
 public class ProvisioningUtil {
 
@@ -136,45 +138,6 @@ public class ProvisioningUtil {
         return filteredDelta;
     }
 
-    public static boolean isAddShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, ResourceObjectShadow object, OperationResult result)
-            throws SchemaException {
-        return getEffectiveProvisioningPolicy(protectedAccountPatterns, object, result).getAdd().isEnabled();
-    }
-
-    public static boolean isModifyShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, RepoShadow shadow, OperationResult result)
-            throws SchemaException {
-        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getModify().isEnabled();
-    }
-
-    public static boolean isDeleteShadowEnabled(
-            Collection<ResourceObjectPattern> protectedAccountPatterns, RepoShadow shadow, OperationResult result)
-            throws SchemaException {
-        return getEffectiveProvisioningPolicy(protectedAccountPatterns, shadow, result).getDelete().isEnabled();
-    }
-
-    private static ObjectOperationPolicyType getEffectiveProvisioningPolicy(
-            @NotNull Collection<ResourceObjectPattern> protectedAccountPatterns,
-            @NotNull AbstractShadow shadow,
-            @NotNull OperationResult result) throws SchemaException {
-        ObjectOperationPolicyType existingPolicy = shadow.getBean().getEffectiveOperationPolicy();
-        if (existingPolicy != null) {
-            return existingPolicy;
-        }
-        ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
-                protectedAccountPatterns, shadow, result);
-        return shadow.getBean().getEffectiveOperationPolicy();
-    }
-
-    public static void setEffectiveProvisioningPolicy (
-            ProvisioningContext ctx, AbstractShadow shadow, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, SecurityViolationException {
-        ObjectOperationPolicyHelper.get().updateEffectiveMarksAndPolicies(
-                ctx.getProtectedAccountPatterns(result), shadow, result);
-    }
-
     public static void recordWarningNotRethrowing(Trace logger, OperationResult result, String message, Exception ex) {
         LoggingUtils.logExceptionAsWarning(logger, message, ex);
         result.muteLastSubresultError();
@@ -197,53 +160,6 @@ public class ProvisioningUtil {
         LoggingUtils.logExceptionOnDebugLevel(logger, message, ex);
         opResult.recordExceptionNotFinish(message, ex); // We are not the one who created the result, so we shouldn't close it
         opResult.markExceptionRecorded();
-    }
-
-    // MID-2585
-    public static boolean shouldStoreActivationItemInShadow(QName elementName, boolean cachingEnabled) {
-        return cachingEnabled
-                || QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP)
-                || QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP)
-                || QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP)
-                || QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
-    }
-
-    public static void cleanupShadowActivation(ShadowType repoShadowType) {
-        // cleanup activation - we don't want to store these data in repo shadow (MID-2585)
-        if (repoShadowType.getActivation() != null) {
-            cleanupShadowActivation(repoShadowType.getActivation());
-        }
-    }
-
-    // mirrors createShadowActivationCleanupDeltas
-    public static void cleanupShadowActivation(ActivationType a) {
-        a.setAdministrativeStatus(null);
-        a.setEffectiveStatus(null);
-        a.setValidFrom(null);
-        a.setValidTo(null);
-        a.setValidityStatus(null);
-        a.setLockoutStatus(null);
-        a.setLockoutExpirationTimestamp(null);
-        a.setValidityChangeTimestamp(null);
-    }
-
-    public static void cleanupShadowPassword(PasswordType p) {
-        p.setValue(null);
-    }
-
-    public static void addPasswordMetadata(PasswordType p, XMLGregorianCalendar now, ObjectReferenceType ownerRef)
-            throws SchemaException {
-        var valueMetadata = p.asPrismContainerValue().getValueMetadata();
-        if (!valueMetadata.isEmpty()) {
-            return;
-        }
-        // Supply some metadata if they are not present. However the normal thing is that those metadata are provided by model.
-        var newMetadata = new ValueMetadataType()
-                .storage(new StorageMetadataType()
-                        .createTimestamp(now)
-                        .creatorRef(ObjectTypeUtil.createObjectRefCopy(ownerRef)));
-        valueMetadata.addMetadataValue(
-                newMetadata.asPrismContainerValue());
     }
 
     public static void checkShadowActivationConsistency(RepoShadow shadow) {
@@ -325,19 +241,6 @@ public class ProvisioningUtil {
     }
 
     // TODO better place?
-    public static CachingStrategyType getPasswordCachingStrategy(ResourceObjectDefinition objectDefinition) {
-        ResourcePasswordDefinitionType passwordDefinition = objectDefinition.getPasswordDefinition();
-        if (passwordDefinition == null) {
-            return null;
-        }
-        CachingPolicyType passwordCachingPolicy = passwordDefinition.getCaching();
-        if (passwordCachingPolicy == null) {
-            return null;
-        }
-        return passwordCachingPolicy.getCachingStrategy();
-    }
-
-    // TODO better place?
     public static void validateShadow(@NotNull ShadowType shadow, boolean requireOid) {
         validateShadow(shadow.asPrismObject(), requireOid);
     }
@@ -382,6 +285,15 @@ public class ProvisioningUtil {
                         refAttr.getElementName(), newDefinition);
                 attributesContainer.remove((ShadowAttribute<?, ?, ?, ?>) refAttr);
             }
+        }
+    }
+
+    public static @NotNull ShadowContentDescriptionType determineContentDescription(
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options, boolean error) {
+        if (error || SelectorOptions.excludesSomethingFromRetrieval(options)) {
+            return FROM_RESOURCE_INCOMPLETE;
+        } else {
+            return FROM_RESOURCE_COMPLETE;
         }
     }
 }

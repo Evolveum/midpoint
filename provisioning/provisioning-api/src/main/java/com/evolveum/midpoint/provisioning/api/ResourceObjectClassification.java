@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.api;
 
 import java.util.Objects;
 
+import com.evolveum.midpoint.schema.util.AbstractShadow;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,12 +35,16 @@ public class ResourceObjectClassification {
         this.definition = definition;
     }
 
-    public static ResourceObjectClassification unknown() {
+    public static @NotNull ResourceObjectClassification unknown() {
         return new ResourceObjectClassification(null);
     }
 
-    public static ResourceObjectClassification of(@Nullable ResourceObjectTypeDefinition definition) {
+    public static @NotNull ResourceObjectClassification of(@Nullable ResourceObjectTypeDefinition definition) {
         return new ResourceObjectClassification(definition);
+    }
+
+    public static @NotNull ResourceObjectClassification of(@NotNull AbstractShadow shadow) {
+        return new ResourceObjectClassification(shadow.getObjectDefinition().getTypeDefinition());
     }
 
     public @Nullable ResourceObjectTypeDefinition getDefinition() {
@@ -64,5 +70,10 @@ public class ResourceObjectClassification {
     @Override
     public String toString() {
         return "Classification{" + definition + '}';
+    }
+
+    public boolean equivalent(ResourceObjectClassification other) {
+        return getKind() == other.getKind()
+                && getIntent().equals(other.getIntent());
     }
 }

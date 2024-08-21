@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
@@ -29,29 +30,36 @@ public class SourceOrTargetOfAssociationMappingPanelFactory extends SourceOrTarg
 
     protected ItemPath createTargetPath(ItemPath containerPath) {
         return ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_ASSOCIATION_TYPE,
-                ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+//                ResourceType.F_SCHEMA_HANDLING,
+//                SchemaHandlingType.F_ASSOCIATION_TYPE,
+//                ShadowAssociationTypeDefinitionType.F_SUBJECT,
+//                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
                 containerPath,
-                ResourceAttributeDefinitionType.F_INBOUND,
-                InboundMappingType.F_TARGET);
+                AttributeInboundMappingsDefinitionType.F_MAPPING,
+                MappingType.F_TARGET);
     }
 
     protected ItemPath createSourcePath(ItemPath containerPath) {
         return ItemPath.create(
-                ResourceType.F_SCHEMA_HANDLING,
-                SchemaHandlingType.F_ASSOCIATION_TYPE,
-                ShadowAssociationTypeDefinitionType.F_SUBJECT,
-                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+//                ResourceType.F_SCHEMA_HANDLING,
+//                SchemaHandlingType.F_ASSOCIATION_TYPE,
+//                ShadowAssociationTypeDefinitionType.F_SUBJECT,
+//                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
                 containerPath,
-                ResourceAttributeDefinitionType.F_OUTBOUND,
-                InboundMappingType.F_SOURCE);
+                AttributeInboundMappingsDefinitionType.F_MAPPING,
+                MappingType.F_SOURCE);
     }
 
     protected Collection<ItemPath> getMatchedPaths() {
-        List<ItemPath> list = new ArrayList<>(super.getMatchedPaths());
-        list.add(ShadowAssociationDefinitionType.F_OBJECT_REF);
+        List<ItemPath> list = new ArrayList<>();
+        list.add(ItemPath.create(SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION,
+                AssociationSynchronizationExpressionEvaluatorType.F_ATTRIBUTE));
+        list.add(ItemPath.create(SchemaConstantsGenerated.C_ASSOCIATION_SYNCHRONIZATION,
+                AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF));
+        list.add(ItemPath.create(SchemaConstantsGenerated.C_ASSOCIATION_CONSTRUCTION,
+                AssociationSynchronizationExpressionEvaluatorType.F_ATTRIBUTE));
+        list.add(ItemPath.create(SchemaConstantsGenerated.C_ASSOCIATION_CONSTRUCTION,
+                AssociationSynchronizationExpressionEvaluatorType.F_OBJECT_REF));
         return list;
     }
 
@@ -63,6 +71,9 @@ public class SourceOrTargetOfAssociationMappingPanelFactory extends SourceOrTarg
                 return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
             }
         };
-        return provider.collectAvailableDefinitions(input).iterator();
+        List<String> values = new ArrayList<>(provider.collectAvailableDefinitions(input));
+        values.removeIf(path -> path.startsWith(AssignmentType.F_METADATA.getLocalPart() + "/")
+                || path.startsWith(AssignmentType.F_CONDITION.getLocalPart() + "/"));
+        return values.iterator();
     }
 }

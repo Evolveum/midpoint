@@ -31,7 +31,9 @@
             <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
             <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
             <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
-             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <!-- Intentionally not providing createTimestamp here. When running with caching, the shadow will contain cached
+                 timestamp (now unknown), and midPoint should be able to deal with this gracefully. -->
         </icfc:configurationProperties>
 
         <icfc:connectorPoolConfiguration>
@@ -89,10 +91,10 @@
                 <valueAttribute>ri:dn</valueAttribute>
                 <explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
-               <protected>
-                   <filter>
-                       <q:equal>
-                           <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
                         <q:path>attributes/ri:dn</q:path>
                         <!-- WilDCapiTaLIzaTioN and spacing makes sure that this is matched properly -->
                         <q:value>uid=cAlyPSo, ou=PeoPle,    DC=example,dc=COM</q:value>

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -206,11 +207,14 @@ public interface ResourceObjectDefinition
     SearchHierarchyScope getSearchHierarchyScope();
 
     /**
-     * Returns compiled patterns denoting protected objects.
+     * Returns compiled patterns denoting protected objects or other kinds of marks.
+     *
+     * Use only in the parsed state.
      *
      * @see ResourceObjectTypeDefinitionType#getProtected()
+     * @see ResourceObjectTypeDefinitionType#getMarking()
      */
-    @NotNull Collection<ResourceObjectPattern> getProtectedObjectPatterns();
+    @NotNull ShadowMarkingRules getShadowMarkingRules();
 
     /**
      * @see ResourceObjectTypeDefinitionType#getAuxiliaryObjectClassMappings()
@@ -495,14 +499,6 @@ public interface ResourceObjectDefinition
     @Experimental
     boolean isDefaultFor(@NotNull ShadowKindType kind);
 
-    /**
-     * Returns shadow caching policy determined by the application of resource-level definitions down to the specific
-     * object type/class definition (using bean merging).
-     *
-     * Throws an exception for unattached raw object class definitions.
-     */
-    @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy();
-
     static void assertAttached(ResourceObjectDefinition resourceObjectDefinition) {
         if (resourceObjectDefinition != null) {
             resourceObjectDefinition.assertAttached();
@@ -602,5 +598,57 @@ public interface ResourceObjectDefinition
         return getAssociationDefinitions().stream()
                 .filter(assocDef -> assocDef.getReferenceAttributeDefinition().getItemName().equals(refAttrName))
                 .toList();
+    }
+
+    /**
+     * Returns shadow caching policy determined by the application of resource-level definitions down to the specific
+     * object type/class definition (using bean merging).
+     *
+     * The returned value has all the defaults applied.
+     *
+     * Throws an exception for unattached raw object class definitions.
+     */
+    @NotNull ShadowCachingPolicyType getEffectiveShadowCachingPolicy();
+
+    default boolean isCachingEnabled() {
+        return Objects.requireNonNull(getEffectiveShadowCachingPolicy().getCachingStrategy()) == CachingStrategyType.PASSIVE;
+    }
+
+    default boolean isActivationCached() {
+        return isCachingEnabled()
+                && getEffectiveShadowCachingPolicy().getScope().getActivation() != ShadowItemsCachingScopeType.NONE;
+    }
+
+    default boolean isAuxiliaryObjectClassPropertyCached() {
+        return isCachingEnabled()
+                && getEffectiveShadowCachingPolicy().getScope().getAuxiliaryObjectClasses() != ShadowItemsCachingScopeType.NONE;
+    }
+
+    default boolean areCredentialsCached() {
+
+        // For simplicity, we first check the legacy password caching strategy.
+        //
+        // Although it is not logical at first sight, it is much easier than checking if the credentials caching is explicitly
+        // enabled/disabled via the modern way.
+
+        var legacy = getLegacyPasswordCachingStrategy();
+        if (legacy != null) {
+            return legacy != CachingStrategyType.NONE;
+        }
+
+        return isCachingEnabled()
+                && getEffectiveShadowCachingPolicy().getScope().getCredentials() != ShadowItemsCachingScopeType.NONE;
+    }
+
+    private CachingStrategyType getLegacyPasswordCachingStrategy() {
+        ResourcePasswordDefinitionType passwordDefinition = getPasswordDefinition();
+        if (passwordDefinition == null) {
+            return null;
+        }
+        CachingPolicyType passwordCachingPolicy = passwordDefinition.getCaching();
+        if (passwordCachingPolicy == null) {
+            return null;
+        }
+        return passwordCachingPolicy.getCachingStrategy();
     }
 }

@@ -12,6 +12,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -59,7 +60,13 @@ public class ProvisioningTestUtil {
         Collection<Item<?,?>> attributes = attributesContainer.getValue().getItems();
         assertFalse("Empty attributes in repo shadow "+repoShadow, attributes.isEmpty());
         if (expectedNumberOfAttributes != null) {
-            assertEquals("Unexpected number of attributes in repo shadow "+repoShadow, (int)expectedNumberOfAttributes, attributes.size());
+            if (InternalsConfig.isShadowCachingOnByDefault()) {
+                assertThat(attributes)
+                        .as("attributes in repo shadow " + repoShadow)
+                        .hasSizeGreaterThanOrEqualTo(expectedNumberOfAttributes);
+            } else {
+                assertEquals("Unexpected number of attributes in repo shadow " + repoShadow, (int) expectedNumberOfAttributes, attributes.size());
+            }
         }
         assertThat(bean.getShadowLifecycleState())
                 .as("shadow lifecycle of " + repoShadow)

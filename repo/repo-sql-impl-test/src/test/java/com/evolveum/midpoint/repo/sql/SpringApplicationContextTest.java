@@ -7,27 +7,27 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.testng.AssertJUnit.assertNotNull;
+
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.assertNotNull;
-
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class SpringApplicationContextTest extends BaseSQLRepoTest {
 
     @Autowired
-    private LocalSessionFactoryBean sessionFactory;
+    private EntityManagerFactory entityManagerFactory;
 
     @Test
     public void initApplicationContext() {
         assertNotNull(repositoryService);
-        assertNotNull(sessionFactory);
+        assertNotNull(entityManagerFactory);
     }
 }

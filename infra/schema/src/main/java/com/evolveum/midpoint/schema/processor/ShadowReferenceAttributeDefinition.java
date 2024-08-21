@@ -40,25 +40,35 @@ public interface ShadowReferenceAttributeDefinition
                 Referencable,
                 ShadowReferenceAttribute> {
 
+    /**
+     * What is the role of the object that holds this reference attribute in the subject-object relationship?
+     *
+     * For example, when considering `ri:group` reference attribute on `ri:user` object class pointing to the `ri:group`
+     * object class, the participant role for this attribute is {@link ShadowReferenceParticipantRole#SUBJECT}, because
+     * `ri:user` object class participates in this relation as the subject.
+     *
+     * For the other side of this reference, the `ri:member` reference attribute on `ri:group` object class will have
+     * participant role of {@link ShadowReferenceParticipantRole#OBJECT}, because `ri:group` object class participates
+     * in this relation as the object.
+     */
+    @NotNull ShadowReferenceParticipantRole getParticipantRole();
+
     /** Returns types of the objects on the other side. Always non-empty. */
     @NotNull Collection<ShadowRelationParticipantType> getTargetParticipantTypes();
 
-    /** Returns the object class definition of the other side. */
-    default @NotNull ResourceObjectClassDefinition getTargetObjectClassDefinition() {
+    default boolean isTargetingSingleEmbeddedObjectClass() {
         var classDefinitions = getTargetParticipantTypes().stream()
                 .map(participantType -> participantType.getObjectDefinition().getObjectClassDefinition())
                 .collect(Collectors.toSet());
-        return MiscUtil.extractSingletonRequired(
-                classDefinitions,
-                () -> new IllegalStateException("Multiple target object class definitions in " + this + ": " + classDefinitions),
-                () -> new IllegalStateException("No target object class definition in " + this));
+        return classDefinitions.size() == 1
+                && classDefinitions.iterator().next().isEmbedded();
     }
 
     @Override
     <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz);
 
     /**
-     * Returns the object class definition of the immediate target object. Should be exactly one.
+     * Returns the object class definition of the immediate target object. Fails if there's not exactly one.
      *
      * TEMPORARY IMPLEMENTATION; this should be resolved during definition parsing/creation.
      */
@@ -132,4 +142,6 @@ public interface ShadowReferenceAttributeDefinition
     }
 
     @NotNull ShadowReferenceAttributeDefinition clone();
+
+    @NotNull ShadowReferenceAttributeDefinition cloneWithNewCardinality(int newMinOccurs, int newMaxOccurs);
 }

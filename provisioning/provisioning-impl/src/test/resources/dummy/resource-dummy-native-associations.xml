@@ -180,7 +180,6 @@
                 </association>
             </subject>
             <object>
-                <ref>ri:group</ref>
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>group</intent>
@@ -199,7 +198,6 @@
                 </association>
             </subject>
             <object>
-                <ref>ri:priv</ref>
                 <objectType>
                     <kind>entitlement</kind>
                     <intent>privilege</intent>

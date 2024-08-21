@@ -194,7 +194,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      *  For the time being, let us keep this. But should decide on it some day.
      */
     private boolean shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         ShadowType shadow = syncCtx.getShadowedResourceObject();
         QName objectClass = shadow.getObjectClass();
         ResourceType resource = syncCtx.getResource();

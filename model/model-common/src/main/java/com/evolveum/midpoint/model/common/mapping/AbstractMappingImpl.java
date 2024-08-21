@@ -399,6 +399,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Value metadata computer to be used when expression is evaluated.
      */
     transient private TransformationValueMetadataComputer valueMetadataComputer;
+    private List<MappingSpecificationType> mappingAliasSpecifications;
     //endregion
 
     //region Constructors and (relatively) simple getters
@@ -431,6 +432,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         targetItemName = builder.targetItemName;
         mappingSpecification = builder.getMappingSpecification() != null ?
                 builder.getMappingSpecification() : createDefaultSpecification();
+        mappingAliasSpecifications = createMappingAliasSpecifications(mappingSpecification,mappingBean.getMappingAlias());
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
@@ -925,12 +927,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * </ol>
      */
     private void checkExistingTargetValues(OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        VariableBindingDefinitionType target = mappingBean.getTarget();
-        if (target == null) {
-            return;
-        }
-
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         if (valueMetadataComputer != null && valueMetadataComputer.supportsProvenance()) {
             restrictNegativeValuesToOwnYield();
             // Must come after the above method because this method creates some values in minus set.
@@ -938,12 +936,16 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             deleteOwnYieldFromNonNegativeValues();
         }
 
-        ValueSetDefinitionType rangeSetDefBean = target.getSet();
+        VariableBindingDefinitionType target = mappingBean.getTarget();
+        ValueSetDefinitionType explicitRangeSetDefBean = target != null ? target.getSet() : null;
+        ValueSetDefinitionType effectiveRangeSetDefBean;
         // As of 4.9: Multivalues have by default provenance set mapping.
-        if (rangeSetDefBean == null && shouldUseMatchingProvenance()) {
-            rangeSetDefBean = new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
+        if (explicitRangeSetDefBean == null && shouldUseMatchingProvenance()) {
+            effectiveRangeSetDefBean = new ValueSetDefinitionType().predefined(ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE);
+        } else {
+            effectiveRangeSetDefBean = explicitRangeSetDefBean;
         }
-        if (rangeSetDefBean == null) {
+        if (effectiveRangeSetDefBean == null) {
             return;
         }
         String name;
@@ -954,13 +956,18 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
 
         if (originalTargetValues == null) {
-            throw new IllegalStateException(
-                    "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
+            if (explicitRangeSetDefBean != null) {
+                throw new IllegalStateException(
+                        "Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
+            } else {
+                // This is mainly to cover corner cases like those in low-level tests
+                // (TestMappingDomain, TestMappingDynamicSimple)
+                return;
+            }
         }
 
-
         ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
-                rangeSetDefBean,
+                effectiveRangeSetDefBean,
                 ValueSetDefinition.ExtraSetSpecification.fromBean(target),
                 getOutputDefinition(),
                 valueMetadataDefinition,
@@ -968,12 +975,15 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 ModelCommonBeans.get().expressionFactory,
                 name,
                 mappingSpecification,
+                mappingAliasSpecifications,
                 "range",
                 "range of " + name + " in " + getMappingContextDescription(),
                 task, result);
         rangeSetDef.init();
         rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
+            // FIXME: Migrate legacy to new?
+
             if (rangeSetDef.contains(originalValue)) {
                 addToMinusIfNecessary(originalValue, rangeSetDef);
             }
@@ -1657,6 +1667,23 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     boolean shouldUseMatchingProvenance() {
-        return getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
+        return getOutputDefinition() != null && getOutputDefinition().isMultiValue() && mappingBean.getName() != null;
+    }
+
+    private static MappingSpecificationType createMappingAliasSpecification(MappingSpecificationType spec, String alias) {
+        if (spec == null || alias == null || alias.isEmpty()) {
+            return null;
+        }
+        return new MappingSpecificationType()
+                .definitionObjectRef(spec.getDefinitionObjectRef().clone())
+                .mappingName(alias);
+    }
+
+    private static List<MappingSpecificationType> createMappingAliasSpecifications(MappingSpecificationType spec, List<String> alias) {
+        if (spec == null || alias == null || alias.isEmpty()) {
+            return null;
+        }
+
+        return alias.stream().map(s -> createMappingAliasSpecification(spec, s)).toList();
     }
 }

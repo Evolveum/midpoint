@@ -7,10 +7,17 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.*;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
 
 import java.util.Objects;
+
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
+
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -83,6 +90,12 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
 
     /** A delta that represents what was executed. High-level language (associations, not references). */
     ObjectDelta<ShadowType> executedDelta;
+
+    /**
+     * Before executing any operation, we have to determine the effective policies; to avoid e.g. modifying protected objects.
+     * Moreover, we also update the actual shadow with the most recent effective marks.
+     */
+    private EffectiveMarksAndPolicies effectiveMarksAndPolicies;
 
     OperationResultStatus statusFromErrorHandling;
 
@@ -254,5 +267,30 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         } else {
             return false;
         }
+    }
+
+    /** Does not enforce anything, just computes. */
+    void determineEffectiveMarksAndPolicies(@NotNull ResourceObjectShadow objectToAdd, @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        effectiveMarksAndPolicies = ctx.computeAndUpdateEffectiveMarksAndPolicies(objectToAdd, ShadowState.TO_BE_CREATED, result);
+    }
+
+    /** Does not enforce anything, just computes. */
+    void determineEffectiveMarksAndPolicies(@NotNull RepoShadow existingShadow, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        effectiveMarksAndPolicies = ctx.computeAndUpdateEffectiveMarksAndPolicies(existingShadow, ShadowState.EXISTING, result);
+    }
+
+    public @NotNull EffectiveMarksAndPolicies getEffectiveMarksAndPoliciesRequired() {
+        return MiscUtil.stateNonNull(
+                effectiveMarksAndPolicies,
+                "Effective marks and policies not determined yet in %s", this);
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" + opState + "}";
     }
 }

@@ -66,7 +66,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     private Collection<SelectorOptions<GetOperationOptions>> domainOptions;
     private PagingType paging;
     private PolyString name;
-    private MultiselectOptionType multiselect;
 
     private UserInterfaceElementVisibilityType visibility;
     private OperationTypeType applicableForOperation;
@@ -204,14 +203,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         this.displayOrder = displayOrder;
     }
 
-    public MultiselectOptionType getMultiselect() {
-        return multiselect;
-    }
-
-    public void setMultiselect(MultiselectOptionType multiselect) {
-        this.multiselect = multiselect;
-    }
-
     public boolean match(QName expectedObjectType, String expectedViewIdentifier) {
         if (!QNameUtil.match(containerType, expectedObjectType)) {
             return false;
@@ -315,7 +306,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         DebugUtil.debugDumpWithLabel(sb, "visibility", visibility, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "applicableForOperation", applicableForOperation, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "objectCollectionDescription", objectCollectionDescription, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "multiselect", multiselect, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "paging", paging, indent + 1);
         return sb.toString();
     }
@@ -341,7 +331,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         viewType.setVisibility(getVisibility());
         viewType.setApplicableForOperation(getApplicableForOperation());
         viewType.setIncludeDefaultColumns(getIncludeDefaultColumns());
-        viewType.setMultiselect(getMultiselect());
         return viewType;
     }
 
@@ -382,7 +371,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         return getOid(getArchetypeRef());
     }
 
-    //TODO check and implement properly
     public CompiledObjectCollectionView clone() {
         CompiledObjectCollectionView clone = new CompiledObjectCollectionView(containerType, viewIdentifier);
         clone.actions = CloneUtil.cloneCollectionMembers(actions);
@@ -401,7 +389,6 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
         clone.domainOptions = CloneUtil.cloneCollectionMembers(domainOptions);
         clone.paging = CloneUtil.clone(paging);
         clone.name = CloneUtil.clone(name);
-        clone.multiselect = CloneUtil.clone(multiselect);
         clone.visibility = visibility;
         clone.applicableForOperation = applicableForOperation;
         clone.includeDefaultColumns = includeDefaultColumns;

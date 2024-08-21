@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertFalse;
@@ -20,10 +21,14 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttribute;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismPropertyAsserter;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
@@ -74,7 +79,41 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
         return this;
     }
 
-    public ShadowAttributesAsserter<R> assertAttributes(QName... expectedAttributes) {
+    public ShadowAttributesAsserter<R> assertSizeAtLeast(int expected) {
+        assertThat(getAttributes().size())
+                .as("number of attributes in " + desc())
+                .isGreaterThanOrEqualTo(expected);
+        return this;
+    }
+
+    public ShadowAttributesAsserter<R> assertSizeCachingAware(int expected) {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            return assertSizeAtLeast(expected);
+        } else {
+            return assertSize(expected);
+        }
+    }
+
+    // TODO better name
+    public ShadowAttributesAsserter<R> assertAttributesCachingAware(QName... expectedAttributes) {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            return assertAttributesPresent(expectedAttributes);
+        } else {
+            return assertAttributesExactly(expectedAttributes);
+        }
+    }
+
+    public ShadowAttributesAsserter<R> assertAttributesPresent(QName... expectedAttributes) {
+        for (QName expectedAttribute: expectedAttributes) {
+            PrismProperty<Object> attr = getAttributes().findProperty(ItemName.fromQName(expectedAttribute));
+            if (attr == null) {
+                fail("Expected attribute "+expectedAttribute+" in "+desc()+" but there was none. Attributes present: "+presentAttributeNames());
+            }
+        }
+        return this;
+    }
+
+    public ShadowAttributesAsserter<R> assertAttributesExactly(QName... expectedAttributes) {
         for (QName expectedAttribute: expectedAttributes) {
             PrismProperty<Object> attr = getAttributes().findProperty(ItemName.fromQName(expectedAttribute));
             if (attr == null) {
@@ -170,6 +209,18 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
         return this;
     }
 
+    public ShadowAsserter<ShadowAttributesAsserter<R>> singleReferenceValueShadow(QName attrName) {
+        var reference = (ShadowReferenceAttribute) findReferenceAttribute(attrName);
+        assertNotNull("No reference attribute " + attrName + " in " + desc(), reference);
+        var value = MiscUtil.extractSingleton(reference.getReferenceValues());
+        assertNotNull("No reference attribute " + attrName + " value in " + desc(), value);
+        AbstractShadow shadow = value.getShadow();
+        assertNotNull("No reference attribute " + attrName + " value shadow in " + desc(), value);
+        var asserter = new ShadowAsserter<>(shadow, this, "reference value object in " + desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
     public <T> ShadowAttributesAsserter<R> assertValueRaw(QName attrName, T... expectedValues) {
         PrismProperty<T> property = findSimpleAttribute(attrName);
         assertNotNull("No attribute "+attrName+" in "+desc(), property);
@@ -204,8 +255,20 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
         return this;
     }
 
+    public <T> ShadowAttributesAsserter<R> assertNoSimpleAttributeIfNotCached(QName attrName) {
+        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            PrismProperty<T> property = findSimpleAttribute(attrName);
+            assertNull("Unexpected attribute "+attrName+" in "+desc()+": "+property, property);
+        }
+        return this;
+    }
+
     private <T> PrismProperty<T> findSimpleAttribute(QName attrName) {
         return getAttributes().findProperty(ItemName.fromQName(attrName));
+    }
+
+    private PrismReference findReferenceAttribute(QName attrName) {
+        return getAttributes().findReference(ItemName.fromQName(attrName));
     }
 
     private Item<?, ?> findAttribute(QName attrName) {

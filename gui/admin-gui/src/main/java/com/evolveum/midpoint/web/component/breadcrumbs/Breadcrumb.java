@@ -7,10 +7,9 @@
 
 package com.evolveum.midpoint.web.component.breadcrumbs;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Objects;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.IPageFactory;
@@ -20,9 +19,10 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Objects;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Breadcrumb object that is stored in the session. It represents the way "back" to the main menu.
@@ -139,6 +139,10 @@ public class Breadcrumb implements Serializable, DebugDumpable {
     }
 
     public WebPage redirect() {
+        if (pageClass == null) {
+            return null;
+        }
+
         IPageFactory pFactory = Session.get().getPageFactory();
         if (parameters == null) {
             return pFactory.newPage(pageClass);

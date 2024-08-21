@@ -72,6 +72,12 @@
                         <link/>
                     </actions>
                 </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
             </synchronization>
         </objectType>
         <objectType>
@@ -88,6 +94,12 @@
             <attribute>
                 <ref>icfs:name</ref>
                 <correlator/>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -106,6 +118,12 @@
                     <situation>unlinked</situation>
                     <actions>
                         <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
                     </actions>
                 </reaction>
             </synchronization>
@@ -137,7 +155,6 @@
                                     </mapping>
                                 </attribute>
                                 <objectRef>
-                                    <ref>ri:document</ref> <!-- TODO make optional if there's only one object -->
                                     <mapping>
                                         <name>document</name>
                                         <expression>
@@ -149,10 +166,10 @@
                         </expression>
                     </outbound>
                     <inbound>
+                        <name>accesses-inbound</name>
                         <expression>
                             <associationSynchronization>
                                 <objectRef>
-                                    <ref>ri:document</ref> <!-- TODO make optional if there's only one object -->
                                     <mapping> <!-- not strictly necessary, just for illustration -->
                                         <name>documentName-and-level-into-assignment-identifier</name>
                                         <source>
@@ -213,12 +230,6 @@
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <assignmentSubtype>documentAccess</assignmentSubtype>
-                            <set>
-                                <predefined>all</predefined>
-                            </set>
-                        </target>
                     </inbound>
                 </association>
             </subject>

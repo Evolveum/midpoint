@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -65,12 +66,21 @@ public class WrapperContext {
      private List<? extends ContainerPanelConfigurationType> detailsPageTypeConfiguration;
     private Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
 
+    private ItemSecurityConstraints securityConstraints;
+
     private MappingDirection attributeMappingType;
     private boolean configureMappingType;
 
     private boolean isShowedByWizard;
 
     private boolean isDeprecatedItemAllowed = false;
+
+    /**
+     * usually virtual containers are created only whtn the whole object wrapper is created
+     * however, there are situations, when we need to create those virtual containers even
+     * when a concrete container wrapper is beeing created.
+     */
+    private boolean forceCreateVirtualContainers;
 
     public WrapperContext(Task task, OperationResult result) {
         this.task = task;
@@ -290,6 +300,23 @@ public class WrapperContext {
         isDeprecatedItemAllowed = deprecatedItemAllowed;
     }
 
+    public void forceCreateVirtualContainer(List<VirtualContainersSpecificationType> virtualContainers) {
+        this.virtualContainers.addAll(virtualContainers);
+        this.forceCreateVirtualContainers = true;
+    }
+
+    public boolean isForceCreateVirtualContainers() {
+        return forceCreateVirtualContainers;
+    }
+
+    public void setSecurityConstraints(ItemSecurityConstraints securityConstraints) {
+        this.securityConstraints = securityConstraints;
+    }
+
+    public ItemSecurityConstraints getSecurityConstraints() {
+        return securityConstraints;
+    }
+
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -309,6 +336,8 @@ public class WrapperContext {
         ctx.setAttributeMappingType(attributeMappingType);
         ctx.setConfigureMappingType(configureMappingType);
         ctx.setShowedByWizard(isShowedByWizard);
+        ctx.setSecurityConstraints(securityConstraints);
         return ctx;
     }
+
 }

@@ -665,6 +665,287 @@ call apply_change(41, $aa$
         ON m_ref_assignment_effective_mark (targetOid, relationId);
 $aa$);
 
+call apply_change(42,$aa$
+    ALTER TABLE m_shadow NO INHERIT m_object;
+    ALTER TABLE m_shadow RENAME TO m_shadow_default;
+
+    ALTER TABLE m_shadow_default
+    ALTER resourceRefTargetOid TYPE uuid,
+    ALTER resourceRefTargetOid SET NOT NULL;
+
+    DROP TRIGGER m_shadow_oid_insert_tr ON m_shadow_default;
+    DROP TRIGGER m_shadow_update_tr ON m_shadow_default;
+    DROP TRIGGER m_shadow_oid_delete_tr ON m_shadow_default;
+
+    CREATE TABLE m_shadow (
+        oid UUID NOT NULL REFERENCES m_object_oid(oid),
+        objectType ObjectType
+                GENERATED ALWAYS AS ('SHADOW') STORED
+            CONSTRAINT m_shadow_objecttype_check
+                CHECK (objectType = 'SHADOW'),
+        nameOrig TEXT NOT NULL,
+        nameNorm TEXT NOT NULL,
+        fullObject BYTEA,
+        tenantRefTargetOid UUID,
+        tenantRefTargetType ObjectType,
+        tenantRefRelationId INTEGER REFERENCES m_uri(id),
+        lifecycleState TEXT,
+        cidSeq BIGINT NOT NULL DEFAULT 1, -- sequence for container id, next free cid
+        version INTEGER NOT NULL DEFAULT 1,
+        policySituations INTEGER[], -- soft-references m_uri, only EQ filter
+        subtypes TEXT[], -- only EQ filter
+        fullTextInfo TEXT,
+
+        ext JSONB,
+        creatorRefTargetOid UUID,
+        creatorRefTargetType ObjectType,
+        creatorRefRelationId INTEGER REFERENCES m_uri(id),
+        createChannelId INTEGER REFERENCES m_uri(id),
+        createTimestamp TIMESTAMPTZ,
+        modifierRefTargetOid UUID,
+        modifierRefTargetType ObjectType,
+        modifierRefRelationId INTEGER REFERENCES m_uri(id),
+        modifyChannelId INTEGER REFERENCES m_uri(id),
+        modifyTimestamp TIMESTAMPTZ,
+
+        -- these are purely DB-managed metadata, not mapped to in midPoint
+        db_created TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+        db_modified TIMESTAMPTZ NOT NULL DEFAULT current_timestamp, -- updated in update trigger
+
+        objectClassId INTEGER REFERENCES m_uri(id),
+        resourceRefTargetOid UUID,
+        resourceRefTargetType ObjectType,
+        resourceRefRelationId INTEGER REFERENCES m_uri(id),
+        intent TEXT,
+        tag TEXT,
+        kind ShadowKindType,
+        dead BOOLEAN,
+        exist BOOLEAN,
+        fullSynchronizationTimestamp TIMESTAMPTZ,
+        pendingOperationCount INTEGER NOT NULL,
+        primaryIdentifierValue TEXT,
+        synchronizationSituation SynchronizationSituationType,
+        synchronizationTimestamp TIMESTAMPTZ,
+        attributes JSONB,
+        -- correlation
+        correlationStartTimestamp TIMESTAMPTZ,
+        correlationEndTimestamp TIMESTAMPTZ,
+        correlationCaseOpenTimestamp TIMESTAMPTZ,
+        correlationCaseCloseTimestamp TIMESTAMPTZ,
+        correlationSituation CorrelationSituationType
+    ) PARTITION BY LIST (resourceRefTargetOid);
+    CREATE TRIGGER m_shadow_oid_insert_tr BEFORE INSERT ON m_shadow
+        FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+    CREATE TRIGGER m_shadow_update_tr BEFORE UPDATE ON m_shadow
+        FOR EACH ROW EXECUTE FUNCTION before_update_object();
+    CREATE TRIGGER m_shadow_oid_delete_tr AFTER DELETE ON m_shadow
+        FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+    ALTER TABLE m_shadow ATTACH PARTITION m_shadow_default DEFAULT;
+
+    DROP VIEW IF EXISTS m_object_view ;
+    CREATE VIEW m_object_view
+    AS SELECT
+        oid,
+        objectType,
+        nameOrig,
+        nameNorm,
+        fullObject,
+        tenantRefTargetOid,
+        tenantRefTargetType,
+        tenantRefRelationId,
+        lifecycleState,
+        cidSeq,
+        version,
+        policySituations,
+        subtypes,
+        fullTextInfo,
+        ext,
+        creatorRefTargetOid,
+        creatorRefTargetType,
+        creatorRefRelationId,
+        createChannelId,
+        createTimestamp,
+        modifierRefTargetOid,
+        modifierRefTargetType,
+        modifierRefRelationId,
+        modifyChannelId,
+        modifyTimestamp,
+        db_created,
+        db_modified
+    from m_object
+    UNION SELECT
+        oid,
+        objectType,
+        nameOrig,
+        nameNorm,
+        fullObject,
+        tenantRefTargetOid,
+        tenantRefTargetType,
+        tenantRefRelationId,
+        lifecycleState,
+        cidSeq,
+        version,
+        policySituations,
+        subtypes,
+        fullTextInfo,
+        ext,
+        creatorRefTargetOid,
+        creatorRefTargetType,
+        creatorRefRelationId,
+        createChannelId,
+        createTimestamp,
+        modifierRefTargetOid,
+        modifierRefTargetType,
+        modifierRefRelationId,
+        modifyChannelId,
+        modifyTimestamp,
+        db_created,
+        db_modified
+    from m_shadow;
+$aa$);
+
+
+
+call apply_change(43,$aa$
+    CREATE OR REPLACE FUNCTION m_shadow_create_partition() RETURNS trigger AS $BODY$
+        DECLARE
+          resource UUID;
+          partitionParent TEXT;
+          partitionName TEXT;
+          sourceTable TEXT;
+          tableOid TEXT;
+        BEGIN
+          IF NEW.resourceOid IS NULL THEN
+            /* Do not create new partition */
+            IF new."table" != 'm_shadow_default' THEN
+                RAISE EXCEPTION 'Only m_shadow_default partition is supported for any resource';
+            END IF;
+            RETURN NULL;
+          END IF;
+          tableOid := REPLACE(new.resourceOid::text,'-','_');
+          partitionParent := 'm_shadow_' || tableOid;
+
+          IF NOT new.partition THEN
+            IF new.resourceOid IS NULL THEN
+              RAISE EXCEPTION 'Can not create partionioned table without resource oid';
+            END IF;
+            EXECUTE format('CREATE TABLE %I (like m_shadow INCLUDING ALL ) PARTITION BY LIST(objectClassId); ', new."table");
+            RETURN new;
+          END IF;
+
+
+          /* Real partitions holding data */
+          IF new.objectClassId IS NOT NULL THEN
+            sourceTable := (SELECT p.table FROM m_shadow_partition_def AS p WHERE p.resourceOid = new.resourceOid AND p.objectClassId IS NULL AND p.partition LIMIT 1);
+          END IF;
+
+          IF sourceTable IS NULL THEN
+            sourceTable := 'm_shadow_default';
+          END IF;
+
+          /* We should check if resource and resource default table exists */
+
+          /* Create Partition table */
+          EXECUTE format('CREATE TABLE %I (like %I INCLUDING ALL ); ', new."table", sourceTable);
+          EXECUTE format('ALTER TABLE %I ALTER objecttype DROP EXPRESSION;', new."table");
+
+          /* Move data to new partition */
+          IF new.objectClassId IS NULL THEN
+            EXECUTE format('INSERT into %I SELECT * FROM %I
+                where resourceRefTargetOid = ''%s''',
+                new."table", sourceTable, new.resourceOid);
+          ELSE
+            EXECUTE format('INSERT into %I SELECT * FROM %I
+                where resourceRefTargetOid = ''%s'' AND objectClassId = %s',
+                new."table", sourceTable, new.resourceOid, new.objectClassId);
+          END IF;
+          EXECUTE format('ALTER TABLE %I DROP objecttype;', new.table);
+          EXECUTE format('ALTER TABLE %I ADD COLUMN objecttype ObjectType
+            GENERATED ALWAYS AS (''SHADOW'') STORED
+                CONSTRAINT m_shadow_objecttype_check
+                    CHECK (objectType = ''SHADOW'')', new.table);
+
+          /* We should skip drop triggers for m_oid table (also probably in resource default table (if exists)) */
+          EXECUTE format('ALTER TABLE %I DISABLE TRIGGER ALL;', sourceTable);
+          IF new.objectClassId IS NULL THEN
+            EXECUTE format('DELETE FROM %I
+                where resourceRefTargetOid = ''%s''', sourceTable, new.resourceOid);
+          ELSE
+            EXECUTE format('DELETE FROM %I
+                where resourceRefTargetOid = ''%s'' AND objectClassId = %s', sourceTable, new.resourceOid, new.objectClassId);
+          END IF;
+          /* Reenable triggers in original table */
+          EXECUTE format('ALTER TABLE %I ENABLE TRIGGER ALL;', sourceTable);
+
+          IF new.objectClassId IS  NULL THEN
+            /* Attach table as default partition */
+            EXECUTE FORMAT ('ALTER TABLE %I ATTACH PARTITION %I DEFAULT', partitionParent, new."table");
+          ELSE
+            EXECUTE FORMAT ('ALTER TABLE %I ATTACH PARTITION %I FOR VALUES IN (%s)', partitionParent, new."table", new.objectClassId);
+            /* Attach table as objectClass partiion */
+          END IF;
+          RETURN new;
+        END;
+      $BODY$
+    LANGUAGE plpgsql;
+
+    CREATE OR REPLACE FUNCTION m_shadow_delete_partition() RETURNS trigger AS $BODY$
+            BEGIN
+                EXECUTE format('DROP TABLE IF EXISTS  %I;', OLD."table" );
+                RETURN OLD;
+            END
+
+        $BODY$
+    LANGUAGE plpgsql;
+
+
+    CREATE OR REPLACE FUNCTION m_shadow_update_partition() RETURNS trigger AS $BODY$
+            BEGIN
+                IF new.partition THEN
+                    return new;
+                END IF;
+
+                IF old.attached = new.attached THEN
+                    return new;
+                END IF;
+                IF new.attached THEN
+                    EXECUTE FORMAT ('ALTER TABLE m_shadow ATTACH PARTITION %I FOR VALUES IN (''%s'')', new."table", new.resourceOid);
+                END IF;
+                RETURN new;
+            END
+
+        $BODY$
+    LANGUAGE plpgsql;
+
+
+
+    DROP TABLE IF EXISTS "m_shadow_partition_def";
+    CREATE TABLE m_shadow_partition_def (
+        resourceOid uuid,
+        objectClassId integer,
+        "table" text NOT NULL,
+        partition boolean NOT NULL,
+        attached boolean NOT NULL
+    ) WITH (oids = false);
+
+    CREATE TRIGGER "m_shadow_partition_def_bi" BEFORE INSERT ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_create_partition();
+    CREATE TRIGGER "m_shadow_partition_def_bu" BEFORE UPDATE ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_update_partition();
+    CREATE TRIGGER "m_shadow_partition_def_bd" BEFORE DELETE ON m_shadow_partition_def FOR EACH ROW EXECUTE FUNCTION m_shadow_delete_partition();
+$aa$);
+
+call apply_change(44, $aa$
+ALTER TYPE ShadowKindType RENAME VALUE 'ASSOCIATED' TO 'ASSOCIATION';
+$aa$);
+
+call apply_change(45, $aa$
+    ALTER TABLE m_shadow
+       ADD COLUMN disableReasonId INTEGER REFERENCES m_uri(id),
+       ADD COLUMN  enableTimestamp TIMESTAMPTZ,
+       ADD COLUMN   disableTimestamp TIMESTAMPTZ;
+$aa$);
+
+
 ---
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql

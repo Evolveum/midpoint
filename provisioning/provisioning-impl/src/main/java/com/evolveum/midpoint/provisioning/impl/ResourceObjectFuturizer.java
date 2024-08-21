@@ -75,7 +75,7 @@ public class ResourceObjectFuturizer {
             @NotNull ProvisioningContext shadowCtx,
             @NotNull RepoShadow repoShadow,
             XMLGregorianCalendar now)
-            throws SchemaException, ConfigurationException {
+            throws SchemaException {
         return new ResourceObjectFuturizer(shadowCtx, repoShadow, null, false, now)
                 .futurize();
     }
@@ -94,9 +94,9 @@ public class ResourceObjectFuturizer {
         if (sortedOperations.isEmpty()) {
             return currentResourceObject;
         }
-        var shadowDefinitionApplicator = new ShadowDefinitionApplicator(shadowCtx.getObjectDefinitionRequired());
-        Duration gracePeriod = shadowCtx.getGracePeriod();
-        boolean resourceReadIsCachingOnly = shadowCtx.isReadingCachingOnly();
+        var shadowDefinitionApplicator = ShadowDefinitionApplicator.strict(shadowCtx.getObjectDefinitionRequired());
+        var gracePeriod = shadowCtx.getGracePeriod();
+        var resourceReadIsCachingOnly = shadowCtx.isReadingCachingOnly();
         for (var pendingOperation : sortedOperations) {
             OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
             PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();

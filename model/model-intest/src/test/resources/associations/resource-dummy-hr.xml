@@ -69,6 +69,12 @@
                         <link/>
                     </actions>
                 </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
             </synchronization>
         </objectType>
         <objectType>
@@ -105,10 +111,16 @@
                         <link/>
                     </actions>
                 </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
             </synchronization>
         </objectType>
         <objectType>
-            <kind>associated</kind>
+            <kind>association</kind>
             <intent>contract</intent>
             <delineation>
                 <objectClass>ri:contract</objectClass>
@@ -124,6 +136,7 @@
                 <association>
                     <ref>ri:contract</ref>
                     <inbound>
+                        <name>contracts-inbound</name>
                         <expression>
                             <associationSynchronization>
                                 <attribute>
@@ -250,22 +263,9 @@
                                             <synchronize/>
                                         </actions>
                                     </reaction>
-                                    <reaction>
-                                        <situation>deleted</situation>
-                                        <actions>
-                                            <!-- This should case deletion of no-longer-connected assignments. Not implemented yet. -->
-                                            <deleteFocusValue/>
-                                        </actions>
-                                    </reaction>
                                 </synchronization>
                             </associationSynchronization>
                         </expression>
-                        <target>
-                            <assignmentSubtype>contract</assignmentSubtype>
-                            <set>
-                                <predefined>all</predefined>
-                            </set>
-                        </target>
                     </inbound>
                 </association>
             </subject>

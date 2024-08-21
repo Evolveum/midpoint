@@ -9,17 +9,15 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -45,7 +43,6 @@ public class InboundProcessor implements ProjectorProcessor {
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private ClockworkMedic medic;
-    @Autowired private ModelBeans beans;
 
     @ProcessorMethod
     <F extends FocusType> void processInbounds(
@@ -53,12 +50,10 @@ public class InboundProcessor implements ProjectorProcessor {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
             CommunicationException, SecurityViolationException, PolicyViolationException {
 
-        MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(activityDescription, now, task);
+        var env = new MappingEvaluationEnvironment(activityDescription, now, task);
 
         new FullInboundsProcessing<>(context, env)
-                .executeCompletely(result);
-
-        //processAssociatedObjects(context, env, result);
+                .executeToDeltas(result);
 
         context.checkConsistenceIfNeeded();
         medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
@@ -69,42 +64,4 @@ public class InboundProcessor implements ProjectorProcessor {
                 context.getFocusContextRequired(), true, task, result);
         context.checkConsistenceIfNeeded();
     }
-
-//    /** Correlates and synchronizes all associated objects. */
-//    private <F extends FocusType> void processAssociatedObjects(
-//            LensContext<F> context, MappingEvaluationEnvironment env, OperationResult result)
-//            throws SchemaException, ConfigurationException {
-//        for (LensProjectionContext projCtx : context.getProjectionContexts()) {
-//            String skipReason = getAssociatedObjectsProcessingSkipReason(projCtx);
-//            if (skipReason != null) {
-//                LOGGER.trace("Skipping processing associated objects of {} because: {}",
-//                        projCtx.getHumanReadableName(), skipReason);
-//                continue;
-//            }
-//            for (var associationDefinition : projCtx.getCompositeObjectDefinition().getReferenceAttributeDefinitions()) {
-//                LOGGER.trace("Processing association {} in {}", associationDefinition, projCtx.getHumanReadableName());
-//                /* TODO */
-//            }
-//        }
-//    }
-//
-//    private String getAssociatedObjectsProcessingSkipReason(LensProjectionContext projCtx) throws SchemaException, ConfigurationException {
-//        if (!projCtx.isFullShadow()) {
-//            return "not a full shadow";
-//        } else if (projCtx.isBroken()) {
-//            return "broken";
-//        } else if (!projCtx.isVisible()) {
-//            return "invisible";
-//        } else if (!projCtx.isCanProject()) {
-//            return "cannot project";
-//        }
-//        CompositeObjectDefinition definition = projCtx.getCompositeObjectDefinition();
-//        if (definition == null) {
-//            return "no object definition";
-//        } else if (definition.getReferenceAttributeDefinitions().isEmpty()) {
-//            return "no associated objects";
-//        } else {
-//            return null;
-//        }
-//    }
 }

@@ -25,7 +25,6 @@ import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.RawRepoShadow;
 
 import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.test.asserter.RepoShadowAsserter;
 
 import com.evolveum.midpoint.util.exception.*;
 
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -152,7 +150,7 @@ public class TestDummyCaching extends TestDummy {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), true, null, startTs);
+        assertCachingMetadata(shadow.getBean(), null, startTs);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -215,7 +213,7 @@ public class TestDummyCaching extends TestDummy {
 
         checkUniqueness(shadow);
 
-        assertCachingMetadata(shadow.getBean(), true, null, startTs);
+        assertCachingMetadata(shadow.getBean(), null, startTs);
 
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -239,12 +237,12 @@ public class TestDummyCaching extends TestDummy {
         accountWill.setEnabled(true);
 
         try {
-            XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
-
             // WHEN
             when();
 
+            var startTs = clock.currentTimeXMLGregorianCalendar();
             var shadow = provisioningService.getShadow(ACCOUNT_WILL_OID, null, task, result);
+            var endTs = clock.currentTimeXMLGregorianCalendar();
 
             // THEN
             then();
@@ -273,7 +271,13 @@ public class TestDummyCaching extends TestDummy {
 
             checkUniqueness(shadow);
 
-            assertCachingMetadata(shadow.getBean(), false, null, startTs);
+            if (getCachedAccountAttributes().contains(DUMMY_ACCOUNT_ATTRIBUTE_SHIP_QNAME)) {
+                // Ship is cached, so we won't update the cached data if it's incomplete
+                assertCachingMetadata(shadow.getBean(), null, startTs);
+            } else {
+                // Ship is not cached, so we can update the cached data even if it's incomplete
+                assertCachingMetadata(shadow.getBean(), startTs, endTs);
+            }
 
             assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -326,7 +330,7 @@ public class TestDummyCaching extends TestDummy {
                 display("fetchResult", fetchResult);
                 assertEquals("Wrong fetch result status in " + shadow, OperationResultStatusType.SUCCESS, fetchResult.getStatus());
             }
-            assertCachingMetadata(shadow.getBean(), true, null, startTs);
+            assertCachingMetadata(shadow.getBean(), null, startTs);
 
             if (shadow.getName().getOrig().equals("meathook")) {
                 assertCachedAttributeValue(shadow, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
@@ -444,17 +448,12 @@ public class TestDummyCaching extends TestDummy {
 
     @Override
     protected @NotNull Collection<? extends QName> getCachedAccountAttributes() throws SchemaException, ConfigurationException {
-        return getAccountDefaultDefinition().getAttributeDefinitions().stream()
-                .map(def -> def.getItemName())
-                .toList();
+        return getAccountDefaultDefinition().getAttributeNames();
     }
 
     @Override
     protected void assertRepoShadowCacheActivation(RawRepoShadow repoShadow, ActivationStatusType expectedAdministrativeStatus) {
-        ActivationType activationType = repoShadow.getBean().getActivation();
-        assertNotNull("No activation in repo shadow " + repoShadow, activationType);
-        ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
-        assertEquals("Wrong activation administrativeStatus in repo shadow " + repoShadow, expectedAdministrativeStatus, administrativeStatus);
+        assertRepoShadowCacheActivation(repoShadow, expectedAdministrativeStatus, true);
     }
 
     @Override
@@ -467,22 +466,12 @@ public class TestDummyCaching extends TestDummy {
 
     @Override
     protected void assertRepoCachingMetadata(PrismObject<ShadowType> shadowFromRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        CachingMetadataType cachingMetadata = shadowFromRepo.asObjectable().getCachingMetadata();
-        assertNotNull("No caching metadata in " + shadowFromRepo, cachingMetadata);
-
-        TestUtil.assertBetween("retrieval timestamp in caching metadata in " + shadowFromRepo,
-                start, end, cachingMetadata.getRetrievalTimestamp());
+        assertRepoCachingMetadata(shadowFromRepo, start, end, true);
     }
 
     @Override
-    protected void assertCachingMetadata(ShadowType shadow, boolean expectedCached, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
-        CachingMetadataType cachingMetadata = shadow.getCachingMetadata();
-        if (expectedCached) {
-            assertNotNull("No caching metadata in " + shadow, cachingMetadata);
-            TestUtil.assertBetween("retrievalTimestamp in caching metadata in " + shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
-        } else {
-            super.assertCachingMetadata(shadow, expectedCached, startTs, endTs);
-        }
+    protected void assertCachingMetadata(ShadowType shadow, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        assertCachingMetadata(shadow, startTs, endTs, true);
     }
 
     @Override
@@ -519,15 +508,5 @@ public class TestDummyCaching extends TestDummy {
             AbstractShadow shadow, String attrName, Object... attrValues) {
         Object[] reallyExpectedValue = isAttrCachedInFullObject(attrName) ? attrValues : new Object[0];
         assertAttribute(shadow, attrName, reallyExpectedValue);
-    }
-
-    @Override
-    protected void checkCachedAccountShadow(
-            AbstractShadow shadow, OperationResult parentResult, boolean fullShadow,
-            XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, ConfigurationException {
-        super.checkAccountShadow(shadow, parentResult, fullShadow);
-        if (fullShadow) {
-            assertCachingMetadata(shadow.getBean(), true, startTs, endTs);
-        }
     }
 }

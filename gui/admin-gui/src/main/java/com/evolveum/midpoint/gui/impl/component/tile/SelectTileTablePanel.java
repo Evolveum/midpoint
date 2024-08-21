@@ -79,11 +79,6 @@ public interface SelectTileTablePanel<T extends Tile, O extends ObjectType> {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected PageStorage getPageStorage() {
-                return SelectTileTablePanel.this.getPageStorage();
-            }
-
-            @Override
             protected ObjectQuery getCustomizeContentQuery() {
                 return getCustomQuery();
             }

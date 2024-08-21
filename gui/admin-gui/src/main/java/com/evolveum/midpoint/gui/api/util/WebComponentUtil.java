@@ -249,6 +249,19 @@ public final class WebComponentUtil {
         }
     }
 
+    public static IModel<String> createLocalizedModelForBoolean(Boolean object) {
+        return () -> {
+            String key;
+            if (object == null) {
+                key = KEY_BOOLEAN_NULL;
+            } else {
+                key = object ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
+            }
+
+            return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(key);
+        };
+    }
+
     public enum AssignmentOrder {
 
         ASSIGNMENT(0),
@@ -331,7 +344,7 @@ public final class WebComponentUtil {
     }
 
     public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes, boolean translate) {
-        if (ref == null) {
+        if (ref == null || ref.getOid() == null) {
             return "";
         }
         String name = ref.getTargetName() == null ? "" :
@@ -702,6 +715,17 @@ public final class WebComponentUtil {
             actionUris.add(action.actionUri());
         }
         return isAuthorized(actionUris);
+    }
+
+    public static boolean isCertItemsViewEnabled(ModelServiceLocator serviceLocator) {
+        try {
+            OperationResult result = new OperationResult("loadingCertificationConfiguration");
+            AccessCertificationConfigurationType config =
+                    serviceLocator.getModelInteractionService().getCertificationConfiguration(result);
+            return config != null && Boolean.TRUE.equals(config.getEnableCertItemsCollectionView());
+        } catch (SchemaException | ObjectNotFoundException e) {
+            return false;
+        }
     }
 
     // TODO: move to util component
@@ -2045,16 +2069,7 @@ public final class WebComponentUtil {
 
             @Override
             public String getDisplayValue(Boolean object) {
-                String key;
-                if (object == null) {
-                    key = KEY_BOOLEAN_NULL;
-                } else {
-                    key = object ? KEY_BOOLEAN_TRUE : KEY_BOOLEAN_FALSE;
-                }
-
-                StringResourceModel model = PageBase.createStringResourceStatic(key);
-
-                return model.getString();
+                return WebComponentUtil.createLocalizedModelForBoolean(object).getObject();
             }
         };
 
@@ -2200,6 +2215,11 @@ public final class WebComponentUtil {
         return filter;
     }
 
+    /**
+     * This seems to be just invalid piece of JS code.
+     * die() function not really defined, and there's no use of about="XXX" attribute in html for jquery to find.
+     */
+    @Deprecated
     public static Behavior getSubmitOnEnterKeyDownBehavior(String submitButtonAboutAttribute) {
         return new Behavior() {
 
@@ -2269,27 +2289,37 @@ public final class WebComponentUtil {
         if (ref == null) {
             return "";
         }
-        StringBuilder sb = new StringBuilder();
+
+        String name = null;
         if (ref.getObject() != null) {
-            sb.append(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ref.getObject().getName()));
+            name = com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ref.getObject().getName());
         } else if (ref.getTargetName() != null && StringUtils.isNotEmpty(ref.getTargetName().getOrig())) {
-            sb.append(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ref.getTargetName()));
+            name = com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ref.getTargetName());
         }
-        if (StringUtils.isNotEmpty(ref.getOid())) {
+
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(name)) {
+            sb.append(name);
+        }
+
+        if (StringUtils.isEmpty(name) && StringUtils.isNotEmpty(ref.getOid())) {
             if (sb.length() > 0) {
                 sb.append("; ");
             }
             sb.append(pageBase.createStringResource("ReferencePopupPanel.oid").getString());
             sb.append(ref.getOid());
         }
-        if (ref.getRelation() != null) {
+
+        QName relation = ref.getRelation();
+        if (ref.getRelation() != null && !QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT)) {
             if (sb.length() > 0) {
                 sb.append("; ");
             }
             sb.append(pageBase.createStringResource("ReferencePopupPanel.relation").getString());
             sb.append(ref.getRelation().getLocalPart());
         }
-        if (ref.getType() != null) {
+
+        if (StringUtils.isEmpty(name) && ref.getType() != null) {
             if (sb.length() > 0) {
                 sb.append("; ");
             }
@@ -2302,6 +2332,7 @@ public final class WebComponentUtil {
                 sb.append(ref.getType().getLocalPart());
             }
         }
+
         return sb.toString();
     }
 
@@ -3850,10 +3881,10 @@ public final class WebComponentUtil {
     }
 
     public static <C extends Containerable> AbstractGuiAction<C> instantiateAction(
-            Class<? extends AbstractGuiAction<C>> actionClass, GuiActionDto<C> actionDto) {
+            Class<? extends AbstractGuiAction<C>> actionClass, GuiActionType guiActionType) {
         if (AbstractGuiAction.class.isAssignableFrom(actionClass)) {
             try {
-                return ConstructorUtils.invokeConstructor(actionClass, actionDto);
+                return ConstructorUtils.invokeConstructor(actionClass, guiActionType);
             } catch (Throwable e) {
                 LOGGER.trace("No constructor found for action.", e);
                 return null;
@@ -3954,6 +3985,15 @@ public final class WebComponentUtil {
                 return new CompiledGuiProfile();
             }
         }
+    }
+
+    public static <T extends FocusType> IResource createJpegPhotoResource(ObjectReferenceType ref, PageBase pageBase) {
+        PrismObject<T> object = WebModelServiceUtils.loadObject(ref, pageBase);
+        if (object == null) {
+            return null;
+        }
+
+        return createJpegPhotoResource(object.asObjectable());
     }
 
     public static <T extends FocusType> IResource createJpegPhotoResource(PrismObject<T> object) {

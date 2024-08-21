@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -38,6 +40,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
@@ -449,7 +452,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createNoFetchCollection();
+        Collection<SelectorOptions<GetOperationOptions>> options = createNoFetchCollection();
 
         when();
         PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountJackOid, options, task, result);
@@ -819,15 +822,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         account.setOid(accountJackOid);
         ObjectDelta<UserType> userDelta = createDeleteAccountDelta(USER_JACK_OID, account);
 
-        when("account is added in the simulation mode");
+        when("account is deleted in the simulation mode");
         var simulationResult = executeWithSimulationResult(List.of(userDelta), task, result);
 
         then("operation is successful");
         assertSuccess(result);
 
-        and("single resource access, steady resources");
-        // The fetch operation just to provide the simulation data (may be configured or turned off in the future).
-        assertShadowFetchOperations(1);
+        and("1 or 0 resource access, steady resources");
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1008,7 +1010,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertUserJack(userJack);
@@ -1073,7 +1075,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("no resource access, steady resources");
-        assertShadowFetchOperations(1); // Because of the event mark policy rules
+        assertShadowFetchOperations(isCached() ? 0 : 1); // Because of the event mark policy rules
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1185,7 +1187,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single resource access (because of sims), steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1445,7 +1447,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single shadow fetch, steady resources");
-        assertShadowFetchOperations(1); // strong mapping, simulation mode
+        assertShadowFetchOperations(isCached() ? 0 : 1); // strong mapping, simulation mode
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1521,7 +1523,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
 
-        assertShadowFetchOperations(1); // There is strong mapping. Complete account is fetched.
+        assertShadowFetchOperations(isCached() ? 0 : 1); // There is strong mapping. Complete account is fetched.
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1730,7 +1732,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single shadow read, steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -1923,7 +1925,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // There is strong mapping. Complete account is fetched.
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2344,7 +2346,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2805,7 +2807,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // First fetch: initial account read
         // Second fetch: fetchback after modification to correctly process inbound
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 2);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -2868,7 +2870,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -2934,7 +2936,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -3029,7 +3031,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
@@ -3181,7 +3183,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("single shadow fetch, steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -3317,7 +3319,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // Check audit
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertRecords(2);
+        // If activation is cached, the weak inbound mapping is applied.
+        // This depends on the default cache use, which is currently USE_CACHED_OR_FRESH.
+        // It this changes, we will need to adapt this test.
+        dummyAuditService.assertRecords(isCached() ? 3 : 2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(0, 3);
         dummyAuditService.assertHasDelta(0, ChangeType.ADD, UserType.class);
@@ -3486,7 +3491,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
 
         and("one shadow fetch, steady resources");
-        assertShadowFetchOperations(1);
+        assertShadowFetchOperations(isCached() ? 0 : 1);
         assertSteadyResources();
 
         and("simulation result is OK");
@@ -3526,7 +3531,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         then();
         assertSuccess(result);
         // Strong mappings
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 1);
 
         PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
         UserType userMorganType = userMorgan.asObjectable();
@@ -3779,7 +3784,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertSuccess(result);
         // Not sure why 2 ... but this is not a big problem now
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 1 : 2);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -4046,6 +4051,74 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertSimpleRecordSanity();
     }
 
+    /** The clockwork should be able to unlink also dead shadows. MID-9668. */
+    @Test
+    public void test780UnlinkDeadShadow() throws Exception {
+        testUnlinkOrDeleteDeadShadow(false);
+    }
+
+    /** The clockwork should be able to delete also dead shadows. MID-9668. */
+    @Test
+    public void test785DeleteDeadShadow() throws Exception {
+        testUnlinkOrDeleteDeadShadow(true);
+    }
+
+    private void testUnlinkOrDeleteDeadShadow(boolean delete) throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        if (isCached()) {
+            throw new SkipException("Temporarily disabled");
+        }
+
+        given("a user with a dead shadow");
+        var user = new UserType()
+                .name(userName)
+                .assignment(new AssignmentType()
+                        .construction(new ConstructionType()
+                                .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)));
+        var userOid = addObject(user, task, result);
+
+        dummyResourceCtl.deleteAccount(userName);
+        reconcileUser(userOid, task, result);
+
+        var deadLinkRefVal = assertUserBefore(userOid)
+                .assertLinks(1, 1)
+                .links()
+                .singleDead()
+                .getRefVal();
+
+        PrismObject<ShadowType> shadowToDelete;
+        if (delete) {
+            shadowToDelete = provisioningService.getObject(
+                    ShadowType.class,
+                    deadLinkRefVal.getOid(),
+                    createNoFetchCollection(),
+                    task, result);
+        } else {
+            shadowToDelete = null;
+        }
+        deadLinkRefVal.setObject(shadowToDelete);
+
+        when("the dead shadow is " + (delete ? "deleted" : "unlinked"));
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .delete(deadLinkRefVal.clone())
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("the dead linkRef is not there anymore");
+        assertUserAfter(userOid)
+                .assertLinks(1, 0);
+
+        and("the shadow still exists (even when unlinked - because of the dead shadow retention by provisioning");
+        assertRepoShadow(deadLinkRefVal.getOid())
+                .display()
+                .assertDead();
+    }
+
     private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {
         ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
                 "   if  :size > 30 [stop]\n   fd :size rt 15\n   spiral :size *1.02\nend\n            ");
@@ -4124,4 +4197,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayValue("OperationResultType serialized", serialized);
     }
 
+    boolean isCached() {
+        return false;
+    }
 }

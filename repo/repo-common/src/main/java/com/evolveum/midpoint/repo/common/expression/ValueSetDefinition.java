@@ -37,6 +37,8 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     private final ExpressionFactory expressionFactory;
     private final String additionalVariableName;
     private final MappingSpecificationType mappingSpecification;
+
+    private final List<MappingSpecificationType> mappingAliasSpecification;
     private final String localContextDescription;
     private final String shortDesc;
     private final Task task;
@@ -55,6 +57,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
             ExpressionFactory expressionFactory,
             String additionalVariableName,
             MappingSpecificationType mappingSpecification,
+            List<MappingSpecificationType> mappingAliasSpecification,
             String localContextDescription,
             String shortDesc,
             Task task,
@@ -68,6 +71,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         this.expressionFactory = expressionFactory;
         this.additionalVariableName = additionalVariableName;
         this.mappingSpecification = mappingSpecification;
+        this.mappingAliasSpecification = mappingAliasSpecification;
         this.localContextDescription = localContextDescription;
         this.shortDesc = shortDesc;
         this.task = task;
@@ -122,6 +126,17 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         if (ProvenanceMetadataUtil.valueHasMappingSpec(pval, mappingSpecification)) {
             return true;
         }
+
+        if (mappingAliasSpecification != null) {
+            for (var aliasSpec : mappingAliasSpecification) {
+                if ( ProvenanceMetadataUtil.valueHasMappingSpec(pval,aliasSpec)) {
+                    // Value matches mappingAlias
+                    return true;
+                }
+
+            }
+        }
+
         List<MappingSpecificationType> additional = setDefinitionBean.getAdditionalMappingSpecification();
         if (additional != null) {
             for (var mapping : additional) {
@@ -235,6 +250,14 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
         if (ProvenanceMetadataUtil.hasMappingSpecification(md, mappingSpecification)) {
             return true;
         }
+        if (mappingAliasSpecification != null) {
+            for (var aliasSpec : mappingAliasSpecification) {
+                if ( ProvenanceMetadataUtil.hasMappingSpecification(md,aliasSpec)) {
+                    // Value matches mappingAlias
+                    return true;
+                }
+            }
+        }
         if (setDefinitionBean != null && setDefinitionBean.getAdditionalMappingSpecification() != null) {
             for (var additionalMapping : setDefinitionBean.getAdditionalMappingSpecification()) {
                 if (ProvenanceMetadataUtil.hasMappingSpecification(md, additionalMapping)) {
@@ -252,9 +275,9 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<
     public record ExtraSetSpecification(
             @Nullable String assignmentSubtype) {
 
-        public static ExtraSetSpecification fromBean(@NotNull VariableBindingDefinitionType defBean) {
+        public static ExtraSetSpecification fromBean(@Nullable VariableBindingDefinitionType defBean) {
             return new ExtraSetSpecification(
-                    defBean.getAssignmentSubtype());
+                    defBean != null ? defBean.getAssignmentSubtype() : null);
         }
 
         public boolean matches(PrismValue value) {

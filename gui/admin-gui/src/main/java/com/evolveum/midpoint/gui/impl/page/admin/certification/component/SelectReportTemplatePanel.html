@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html lang="en" xmlns:wicket="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+<body>
+<wicket:panel>
+    <div wicket:id="feedback"></div>
+    <p class="text-center" wicket:id="messageLabel"/>
+<!--    <p class="text-left" wicket:id="reportsForCasesLabel"/>-->
+    <wicket:container wicket:id="casesReportContainer" >
+        <div class="dashboard-link-component" wicket:id="casesReportSelectionPanel"/>
+    </wicket:container>
+<!--    <p class="text-left" wicket:id="reportsForItemsLabel"/>-->
+    <wicket:container wicket:id="itemsReportContainer" >
+        <div class="dashboard-link-component" wicket:id="itemsReportSelectionPanel"/>
+    </wicket:container>
+    <wicket:fragment wicket:id="buttons">
+        <div class="d-flex flex-wrap gap-2 w-100">
+            <a class="btn btn-primary" wicket:id="confirmButton"/>
+            <a class="btn btn-default" wicket:id="cancelButton"/>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</body>
+</html>

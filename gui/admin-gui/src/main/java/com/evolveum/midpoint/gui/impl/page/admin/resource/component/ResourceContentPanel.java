@@ -42,7 +42,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -179,7 +179,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         initCapabilitiesButton(topButtons);
         initCredentialsButton(topButtons);
         initActivationsButton(topButtons);
-        initAssociationsButton(topButtons);
 
         topButtonsContainer.add(topButtons);
 
@@ -500,28 +499,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         activationButton.showTitleAsLabel(true);
         activationButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(activationButton);
-    }
-
-    private void initAssociationsButton(RepeatingView topButtons) {
-        AjaxIconButton associationConfButton = new AjaxIconButton(
-                topButtons.newChildId(),
-                Model.of(ResourceObjectTypePreviewTileType.ASSOCIATIONS.getIcon()),
-                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.ASSOCIATIONS)) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
-                        getResourceObjectTypeValue(target);
-                if (valueModel != null && valueModel.getObject() != null) {
-                    getObjectDetailsModels().getPageResource().showAssociationsWizard(
-                            target,
-                            valueModel.getObject().getPath());
-                }
-            }
-        };
-        associationConfButton.setOutputMarkupId(true);
-        associationConfButton.showTitleAsLabel(true);
-        associationConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
-        topButtons.add(associationConfButton);
     }
 
     private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeValue(

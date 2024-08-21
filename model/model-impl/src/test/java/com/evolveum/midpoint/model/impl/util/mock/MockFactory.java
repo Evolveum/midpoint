@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,9 +29,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
@@ -213,6 +212,10 @@ public class MockFactory {
 
             @Override
             public void determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) {
+            }
+
+            @Override
+            public void updateShadowMarksAndPolicies(PrismObject<ShadowType> shadow, boolean isNew, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
             }
 
             @Override

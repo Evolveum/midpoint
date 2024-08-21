@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreReferenceAttributeInShadow;
-import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.shouldStoreSimpleAttributeInShadow;
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowComputerUtil.*;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -48,9 +46,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Computes deltas to be applied to repository shadows when they are being updated by midPoint.
@@ -90,7 +89,6 @@ class ShadowDeltaComputerRelative {
 
     RepoShadowModifications computeShadowModifications(OperationResult result) throws SchemaException {
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired(); // If type is not present, OC def is fine
-        boolean cachingEnabled = ctx.isCachingEnabled(); // FIXME partial caching?
 
         // The former of these two (explicit name change) takes precedence over the latter.
         ItemDelta<?, ?> explicitNameMod = null; // Shadow name modification requested explicitly by the client.
@@ -117,11 +115,11 @@ class ShadowDeltaComputerRelative {
                 }
                 var attrDef = objectDefinition.findAttributeDefinitionRequired(attrName);
                 if (attrDef instanceof ShadowSimpleAttributeDefinition<?> simpleAttrDef) {
-                    if (shouldStoreSimpleAttributeInShadow(ctx, objectDefinition, simpleAttrDef)) {
+                    if (shouldStoreSimpleAttributeInShadow(objectDefinition, simpleAttrDef)) {
                         resultingRepoModifications.add(modification, simpleAttrDef);
                     }
                 } else if (attrDef instanceof ShadowReferenceAttributeDefinition refAttrDef) {
-                    if (shouldStoreReferenceAttributeInShadow(ctx, objectDefinition, refAttrDef)) {
+                    if (shouldStoreReferenceAttributeInShadow(objectDefinition, refAttrDef)) {
                         var modificationClone = modification.clone();
                         modificationClone.setParentPath(ShadowType.F_REFERENCE_ATTRIBUTES);
                         //noinspection RedundantCast the casting is necessary
@@ -137,7 +135,7 @@ class ShadowDeltaComputerRelative {
                     }
                 }
             } else if (parentPath.equivalent(ShadowType.F_ACTIVATION)) {
-                if (ProvisioningUtil.shouldStoreActivationItemInShadow(modification.getElementName(), cachingEnabled)) {
+                if (shouldStoreActivationItemInShadow(ctx, modification.getElementName())) {
                     resultingRepoModifications.add(modification);
                 }
             } else if (path.equivalent(ShadowType.F_ACTIVATION)) {
@@ -145,14 +143,16 @@ class ShadowDeltaComputerRelative {
                 //noinspection unchecked
                 ContainerDelta<ActivationType> activationModification = (ContainerDelta<ActivationType>) modification;
                 for (PrismContainerValue<ActivationType> value : emptyIfNull(activationModification.getValuesToAdd())) {
-                    ProvisioningUtil.cleanupShadowActivation(value.asContainerable());
+                    cleanupShadowActivation(ctx, value.asContainerable());
                 }
                 for (PrismContainerValue<ActivationType> value : emptyIfNull(activationModification.getValuesToReplace())) {
-                    ProvisioningUtil.cleanupShadowActivation(value.asContainerable());
+                    cleanupShadowActivation(ctx, value.asContainerable());
                 }
                 resultingRepoModifications.add(activationModification);
             } else if (path.equivalent(SchemaConstants.PATH_PASSWORD_VALUE)) {
-                addPasswordValueDelta(resultingRepoModifications, modification, objectDefinition);
+                if (objectDefinition.areCredentialsCached()) {
+                    addPasswordValueDelta(resultingRepoModifications, modification);
+                }
             } else if (path.startsWith(SchemaConstants.PATH_PASSWORD)
                     && !path.startsWith(SchemaConstants.PATH_PASSWORD_METADATA)) {
                 // ignoring all other password related modifications, except for metadata that must go to shadow
@@ -160,13 +160,11 @@ class ShadowDeltaComputerRelative {
                 explicitNameMod = modification;
             } else if (path.equivalent(ShadowType.F_POLICY_STATEMENT)) {
                 resultingRepoModifications.add(modification);
-                ItemDelta<?, ?> effectiveMarkDelta = computeEffectiveMarkDelta(modification);
-                if (effectiveMarkDelta != null) {
-                    resultingRepoModifications.add(effectiveMarkDelta);
-                }
+                resultingRepoModifications.add(computeEffectiveMarkDelta(modification));
             } else if (path.startsWith(ShadowType.F_ASSOCIATIONS)) {
-                // associations are not stored in the shadow
+                // associations are not stored in the shadow (only reference attributes are)
             } else {
+                // This includes auxiliary object classes (not filtering them for now)
                 resultingRepoModifications.add(modification);
             }
         }
@@ -248,8 +246,9 @@ class ShadowDeltaComputerRelative {
                 .asItemDelta();
     }
 
-    private ItemDelta<?, ?> computeEffectiveMarkDelta(ItemDelta<?, ?> modification) throws SchemaException {
-        return ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(repoShadow.getBean(), modification);
+    private @Nullable ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ItemDelta<?, ?> policyStatementDelta)
+            throws SchemaException {
+        return ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(repoShadow.getBean(), policyStatementDelta);
     }
 
     /**
@@ -269,17 +268,12 @@ class ShadowDeltaComputerRelative {
     }
 
     private void addPasswordValueDelta(
-            RepoShadowModifications repoModifications,
-            ItemDelta<?, ?> requestedPasswordRelatedDelta,
-            ResourceObjectDefinition objectDefinition) throws SchemaException {
-        CachingStrategyType cachingStrategy = ProvisioningUtil.getPasswordCachingStrategy(objectDefinition);
-        if (cachingStrategy != null && cachingStrategy != CachingStrategyType.NONE) {
-            //noinspection unchecked
-            var passwordValueDelta = (PropertyDelta<ProtectedStringType>) requestedPasswordRelatedDelta;
-            hashValues(passwordValueDelta.getValuesToAdd());
-            hashValues(passwordValueDelta.getValuesToReplace());
-            repoModifications.add(requestedPasswordRelatedDelta);
-        }
+            RepoShadowModifications repoModifications, ItemDelta<?, ?> requestedPasswordRelatedDelta) throws SchemaException {
+        //noinspection unchecked
+        var passwordValueDelta = (PropertyDelta<ProtectedStringType>) requestedPasswordRelatedDelta;
+        hashValues(passwordValueDelta.getValuesToAdd());
+        hashValues(passwordValueDelta.getValuesToReplace());
+        repoModifications.add(requestedPasswordRelatedDelta);
     }
 
     private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> propertyValues) throws SchemaException {

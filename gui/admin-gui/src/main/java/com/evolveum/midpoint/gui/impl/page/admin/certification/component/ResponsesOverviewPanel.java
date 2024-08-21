@@ -64,7 +64,6 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
 
     private static final String ID_RESPONSES_CONTAINER = "responsesContainer";
     private static final String ID_RESPONSES = "responses";
-    private static final String ID_CREATED_REPORTS = "createdReports"; //todo temporary here
     private static final String ID_ITEMS_TABBED_PANEL = "itemsTabbedPanel";
 
     public ResponsesOverviewPanel(String id, CertificationDetailsModel model, ContainerPanelConfigurationType config) {
@@ -95,38 +94,6 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
         };
         responsesPanel.setOutputMarkupId(true);
         responsesContainer.add(responsesPanel);
-
-        //todo temporary here; just for testing
-        IModel<List<StatisticBoxDto<ReportDataType>>> createdReportsModel = getCreatedReportsModel();
-        StatisticListBoxPanel<ReportDataType> createdReports = new StatisticListBoxPanel<>(ID_CREATED_REPORTS,
-                getCreatedReportsDisplayModel(createdReportsModel.getObject().size()), createdReportsModel) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void viewAllActionPerformed(AjaxRequestTarget target) {
-                //todo show in the popup? redirect to the report page?
-            }
-
-            @Override
-            protected Component createRightSideBoxComponent(String id, IModel<StatisticBoxDto<ReportDataType>> model) {
-                ReportDataType currentReport = model.getObject().getStatisticObject();
-                AjaxDownloadBehaviorFromStream ajaxDownloadBehavior =
-                        ReportDownloadHelper.createAjaxDownloadBehaviorFromStream(currentReport, getPageBase());
-                AjaxIconButton downloadButton = new AjaxIconButton(id, Model.of("fa fa-download"),
-                        createStringResource("pageCreatedReports.button.download")) {
-                    @Serial private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        ajaxDownloadBehavior.initiate(target);
-                    }
-                };
-                downloadButton.add(ajaxDownloadBehavior);
-                return downloadButton;
-            }
-        };
-        createdReports.add(new VisibleBehaviour(() -> false));
-        add(createdReports);
 
         addOrReplaceCertItemsTabbedPanel();
     }
@@ -183,18 +150,6 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
         };
     }
 
-    private IModel<List<StatisticBoxDto<ReportDataType>>> getCreatedReportsModel() {
-        return () -> {
-            List<StatisticBoxDto<ReportDataType>> list = new ArrayList<>();
-            List<ReportDataType> reports = loadReports();
-            if (reports == null) {
-                return list;
-            }
-            reports.forEach(r -> list.add(createStatisticBoxDto(r)));
-            return list;
-        };
-    }
-
     private List<ReportDataType> loadReports() {
         ObjectQuery query = getPrismContext().queryFor(ReportDataType.class).build();
         try {
@@ -206,39 +161,6 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
                     .collect(Collectors.toList());
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get reports", ex);
-        }
-        return null;
-    }
-
-    private StatisticBoxDto<ReportDataType> createStatisticBoxDto(ReportDataType report) {
-        DisplayType displayType = new DisplayType()
-                .label(report.getName())
-                .help(getCreatedOnDateLabel(report))
-                .icon(new IconType().cssClass("fa fa-chart-pie"));
-        return new StatisticBoxDto<>(Model.of(displayType), null) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public ReportDataType getStatisticObject() {
-                return report;
-            }
-        };
-    }
-
-
-    private IModel<DisplayType> getCreatedReportsDisplayModel(int reportsCount) {
-        String reportsCountKey = reportsCount == 1 ? "PageCertCampaign.singleCreatedReportCount" :
-                "PageCertCampaign.createdReportsCount";
-        return () -> new DisplayType()
-                .label("PageCertCampaign.createdReportsTitle")
-                .help(createStringResource(reportsCountKey, reportsCount).getString());
-    }
-
-    private String getCreatedOnDateLabel(ReportDataType report) {
-        XMLGregorianCalendar createDate = report.getMetadata() != null ? report.getMetadata().getCreateTimestamp() : null;
-        String createdOn = WebComponentUtil.getLocalizedDate(createDate, DateLabelComponent.SHORT_NOTIME_STYLE);
-        if (StringUtils.isNotEmpty(createdOn)) {
-            return createStringResource("PageCertCampaign.createdOn", createdOn).getString();
         }
         return null;
     }

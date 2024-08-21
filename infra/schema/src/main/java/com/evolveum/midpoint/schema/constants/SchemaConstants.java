@@ -725,4 +725,6 @@ public abstract class SchemaConstants {
      */
     public static final String BUILTIN_GROOVY_EXPRESSION_PROFILE_ID = "##groovyBuiltIn";
     public static final String CONNECTOR_CONFIGURATION_PREFIX = "cfg";
+
+    public static final String MARK_PROTECTED_OID = SystemObjectsType.MARK_PROTECTED.value();
 }

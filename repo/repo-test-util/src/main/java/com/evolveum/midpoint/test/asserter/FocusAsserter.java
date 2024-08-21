@@ -158,6 +158,30 @@ public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsser
         return this;
     }
 
+    @Override
+    public FocusAsserter<F,RA> assertEffectiveMark(String oid) {
+        super.assertEffectiveMark(oid);
+        return this;
+    }
+
+    @Override
+    public FocusAsserter<F,RA> assertEffectiveMarks(String... oids) {
+        super.assertEffectiveMarks(oids);
+        return this;
+    }
+
+    @Override
+    public FocusAsserter<F,RA> assertNoEffectiveMark(String oid) {
+        super.assertNoEffectiveMark(oid);
+        return this;
+    }
+
+    @Override
+    public FocusAsserter<F,RA> assertNoEffectiveMarks() {
+        super.assertNoEffectiveMarks();
+        return this;
+    }
+
     public ActivationAsserter<? extends FocusAsserter<F,RA>> activation() {
         ActivationAsserter<FocusAsserter<F,RA>> asserter = new ActivationAsserter<>(getObject().asObjectable().getActivation(), this, getDetails());
         copySetupTo(asserter);

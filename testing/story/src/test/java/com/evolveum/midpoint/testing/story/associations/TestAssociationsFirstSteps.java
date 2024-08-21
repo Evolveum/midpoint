@@ -100,9 +100,9 @@ public class TestAssociationsFirstSteps extends AbstractStoryTest {
 
     private String guideOid;
 
-    @BeforeMethod
-    public void onNativeOnly() {
-        skipIfNotNativeRepository();
+    @Override
+    protected boolean requiresNativeRepository() {
+        return true;
     }
 
     private static DummyTestResource createDmsResource(String fileName) {

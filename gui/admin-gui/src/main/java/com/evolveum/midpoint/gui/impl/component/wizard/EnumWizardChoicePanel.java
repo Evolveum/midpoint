@@ -58,7 +58,7 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
                 for (T type : tileTypeClass.getEnumConstants()) {
                     Tile tile = new Tile(type.getIcon(), getString((Enum) type));
                     tile.setValue(type);
-                    tile.setDescription(type.getDescription());
+                    tile.setDescription(getDescriptionForTile(type));
                     list.add(tile);
                 }
                 addDefaultTile(list);
@@ -66,6 +66,10 @@ public abstract class EnumWizardChoicePanel<T extends TileEnum, AHD extends Assi
                 return list;
             }
         };
+    }
+
+    protected String getDescriptionForTile(T type) {
+        return type.getDescription();
     }
 
     protected void addDefaultTile(List<Tile<T>> list) {
