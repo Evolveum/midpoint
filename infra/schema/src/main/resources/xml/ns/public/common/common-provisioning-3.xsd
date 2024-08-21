@@ -1127,6 +1127,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9</a:since>
+                <a:naturalKey>markRef</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2866,6 +2867,7 @@
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
                 <a:container/>
+                <a:naturalKey>filter</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

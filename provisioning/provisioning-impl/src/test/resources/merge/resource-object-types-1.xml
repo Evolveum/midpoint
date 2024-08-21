@@ -59,22 +59,25 @@
                 <ref>group</ref> <!-- Intentionally without the namespace, expecting to match ri:group -->
                 <explicitReferentialIntegrity>false</explicitReferentialIntegrity> <!-- Overriding the default value -->
             </association>
-            <protected> <!-- The same as in parent... should be present in the merged version only once -->
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/name</q:path>
-                        <q:value>root</q:value>
-                    </q:equal>
-                </filter>
-            </protected>
-            <protected> <!-- Extra protected filter -->
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/name</q:path>
-                        <q:value>extra</q:value>
-                    </q:equal>
-                </filter>
-            </protected>
+            <marking>
+                <markRef oid="00000000-0000-0000-0000-000000000800"/>
+                <pattern> <!-- The same as in parent... should be present in the merged version only once -->
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/name</q:path>
+                            <q:value>root</q:value>
+                        </q:equal>
+                    </filter>
+                </pattern>
+                <pattern> <!-- Extra protected filter -->
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/name</q:path>
+                            <q:value>extra</q:value>
+                        </q:equal>
+                    </filter>
+                </pattern>
+            </marking>
             <configuredCapabilities>
                 <cap:pagedSearch/>
                 <cap:read>

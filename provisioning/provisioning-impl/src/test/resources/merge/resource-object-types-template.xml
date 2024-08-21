@@ -115,22 +115,25 @@
                 <associationAttribute>ri:privileges</associationAttribute>
                 <valueAttribute>icfs:name</valueAttribute>
             </association>
-            <protected>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/name</q:path>
-                        <q:value>root</q:value>
-                    </q:equal>
-                </filter>
-            </protected>
-            <protected>
-                <filter>
-                    <q:equal>
-                        <q:path>attributes/icfs:name</q:path>
-                        <q:value>daemon</q:value>
-                    </q:equal>
-                </filter>
-            </protected>
+            <marking>
+                <markRef oid="00000000-0000-0000-0000-000000000800"/>
+                <pattern>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/name</q:path>
+                            <q:value>root</q:value>
+                        </q:equal>
+                    </filter>
+                </pattern>
+                <pattern>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/icfs:name</q:path>
+                            <q:value>daemon</q:value>
+                        </q:equal>
+                    </filter>
+                </pattern>
+            </marking>
             <configuredCapabilities>
                 <cap:asyncUpdate/>
             </configuredCapabilities>
