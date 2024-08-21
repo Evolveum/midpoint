@@ -821,6 +821,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(userWillOid, task, result);
 
@@ -870,6 +871,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountWillOid);
         recomputeUser(userWillOid, task, result);
 
         // THEN

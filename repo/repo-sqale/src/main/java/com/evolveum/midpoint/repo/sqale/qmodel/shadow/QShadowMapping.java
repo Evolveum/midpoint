@@ -12,18 +12,10 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.PathSet;
-
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.sqale.SqaleUtils;
-import com.evolveum.midpoint.repo.sqale.delta.item.RefTableItemDeltaProcessor;
-import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
-import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.google.common.base.Preconditions;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
@@ -109,6 +101,11 @@ public class QShadowMapping
                 .addItemMapping(ShadowCorrelationStateType.F_SITUATION,
                         enumMapper(q -> q.correlationSituation));
 
+        addNestedMapping(F_ACTIVATION, ActivationType.class)
+                .addItemMapping(ActivationType.F_DISABLE_REASON, uriMapper(q -> q.disableReasonId))
+                .addItemMapping(ActivationType.F_ENABLE_TIMESTAMP,timestampMapper(q -> q.enableTimestamp))
+                .addItemMapping(ActivationType.F_DISABLE_TIMESTAMP, timestampMapper(q -> q.disableTimestamp))
+        ;
         // Item mapping to update the count, relation resolver for query with EXISTS filter.
         addItemMapping(F_PENDING_OPERATION, new SqaleItemSqlMapper<>(
                 ctx -> new CountItemDeltaProcessor<>(ctx, q -> q.pendingOperationCount)));
@@ -168,6 +165,12 @@ public class QShadowMapping
             row.correlationCaseOpenTimestamp = MiscUtil.asInstant(correlation.getCorrelationCaseOpenTimestamp());
             row.correlationCaseCloseTimestamp = MiscUtil.asInstant(correlation.getCorrelationCaseCloseTimestamp());
             row.correlationSituation = correlation.getSituation();
+        }
+        var activation = shadow.getActivation();
+        if (activation != null) {
+            row.disableReasonId = processCacheableUri(activation.getDisableReason());
+            row.enableTimestamp = MiscUtil.asInstant(activation.getEnableTimestamp());
+            row.disableTimestamp = MiscUtil.asInstant(activation.getDisableTimestamp());
         }
         return row;
     }

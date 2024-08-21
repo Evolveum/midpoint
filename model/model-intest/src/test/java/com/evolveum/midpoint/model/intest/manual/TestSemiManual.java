@@ -231,6 +231,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 
         // WHEN
         when();
+        refreshShadowIfNeeded(accountJackOid);
         // We need reconcile and not recompute here. We need to fetch the updated case status.
         reconcileUser(USER_JACK_OID, task, result);
 

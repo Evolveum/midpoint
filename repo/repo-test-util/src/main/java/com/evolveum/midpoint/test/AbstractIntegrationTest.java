@@ -1458,6 +1458,18 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
     }
 
+    protected void assertSteadyResourcesAfterInvalidation() {
+        var invalidated = InternalsConfig.isShadowCachingOnByDefault();
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, invalidated ? 1 : 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, invalidated ? 1 : 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+    }
+
     protected void rememberSteadyResources() {
         rememberCounter(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT);
         rememberCounter(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
