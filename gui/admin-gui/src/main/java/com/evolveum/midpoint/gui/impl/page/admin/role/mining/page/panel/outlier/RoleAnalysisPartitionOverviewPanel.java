@@ -191,7 +191,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
 
                     @Override
                     protected String replaceValueCssClass() {
-                        return "pt-3 pb-1 mt-4";
+                        return "pt-3 pb-1 mt-auto";
                     }
 
                     @Override

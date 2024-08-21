@@ -589,7 +589,7 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
 
                     @Override
                     protected String replaceValueCssClass() {
-                        return "pt-3 pb-1 mt-4";
+                        return "pt-3 pb-1 mt-auto";
                     }
 
                 }

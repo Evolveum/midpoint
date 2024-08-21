@@ -677,7 +677,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
 
                     @Override
                     protected String replaceValueCssClass() {
-                        return "pt-3 pb-1 mt-4";
+                        return "pt-3 pb-1 mt-auto";
                     }
 
                 },
@@ -712,7 +712,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
 
                     @Override
                     protected String replaceValueCssClass() {
-                        return "pt-3 pb-1 mt-4";
+                        return "pt-3 pb-1 mt-auto";
                     }
 
                 },
