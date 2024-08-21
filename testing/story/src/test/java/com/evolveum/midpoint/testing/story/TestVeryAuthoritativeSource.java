@@ -120,6 +120,7 @@ public class TestVeryAuthoritativeSource extends AbstractStoryTest {
 
         when("source account is deleted");
         RESOURCE_SOURCE.controller.deleteAccount("jim");
+        invalidateShadowCacheIfNeeded(RESOURCE_SOURCE.oid);
 
         and("user is reconciled (on foreground)");
         reconcileUser(jim.getOid(), null, task, result);

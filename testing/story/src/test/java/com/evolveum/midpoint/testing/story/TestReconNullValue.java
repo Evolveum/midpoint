@@ -270,6 +270,7 @@ public class TestReconNullValue extends AbstractStoryTest {
 
         // WHEN
         when();
+        refreshShadowIfNeeded(getSingleLiveLinkOid(userBefore));
         modelService.recompute(UserType.class, userBefore.getOid(), null, task, result);
 
         display("LDAP after reconcile");
@@ -323,6 +324,7 @@ public class TestReconNullValue extends AbstractStoryTest {
 
         // WHEN
         when();
+        refreshShadowIfNeeded(getSingleLiveLinkOid(userBefore));
         modelService.recompute(UserType.class, userBefore.getOid(), null, task, result);
 
         display("LDAP after reconcile");
@@ -372,6 +374,7 @@ public class TestReconNullValue extends AbstractStoryTest {
 
         // WHEN
         when();
+        refreshShadowIfNeeded(getSingleLiveLinkOid(userBefore));
         modifyUserReplace(userBefore.getOid(), UserType.F_GIVEN_NAME, task, result /* no value */);
 
         display("LDAP after reconcile");
@@ -395,7 +398,6 @@ public class TestReconNullValue extends AbstractStoryTest {
         display("accountModel after attribute addition", accountModel);
 
         PrismAsserts.assertNoItem(accountModel, openDJController.getAttributePath(ACCOUNT_ATTRIBUTE_GIVENNAME));
-
     }
 
     private void dumpLdap() throws DirectoryException {
