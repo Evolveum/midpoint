@@ -1432,6 +1432,20 @@ public interface MidpointFunctions {
 
     <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
 
+    /**
+     * Returns {@code true} if the specified object has an effective mark with the specified OID.
+     *
+     * Use only in situations where you know the provided object has effective marks computed.
+     */
+    default boolean hasEffectiveMark(@Nullable ObjectType object, @NotNull String markOid) {
+        if (object == null) {
+            return false;
+        } else {
+            return object.getEffectiveMarkRef().stream()
+                    .anyMatch(ref -> markOid.equals(ref.getOid()));
+        }
+    }
+
     default <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {
         return getArchetypeOids(object).contains(archetypeOid);
     }
