@@ -7760,4 +7760,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .add(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
     }
+
+    protected void refreshShadowIfNeeded(@NotNull String shadowOid) throws CommonException {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            provisioningService.getShadow(shadowOid, null, getTestTask(), getTestOperationResult());
+        }
+    }
 }

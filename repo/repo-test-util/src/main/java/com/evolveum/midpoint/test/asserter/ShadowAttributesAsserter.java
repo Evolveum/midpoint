@@ -255,6 +255,14 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
         return this;
     }
 
+    public <T> ShadowAttributesAsserter<R> assertNoSimpleAttributeIfNotCached(QName attrName) {
+        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            PrismProperty<T> property = findSimpleAttribute(attrName);
+            assertNull("Unexpected attribute "+attrName+" in "+desc()+": "+property, property);
+        }
+        return this;
+    }
+
     private <T> PrismProperty<T> findSimpleAttribute(QName attrName) {
         return getAttributes().findProperty(ItemName.fromQName(attrName));
     }
