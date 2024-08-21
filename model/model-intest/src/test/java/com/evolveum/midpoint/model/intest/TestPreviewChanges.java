@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -51,6 +50,7 @@ import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECT
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.isShadowCachingOnByDefault;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 import static com.evolveum.midpoint.test.DummyResourceContoller.*;
@@ -819,6 +819,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         DummyAccount dummyAccount = assertDummyAccount(null, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Dummy account after", dummyAccount);
         dummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Great Pirate");
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
     }
 
     /**
@@ -862,7 +863,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         assertAccountDefaultDummyAttributeModify(accContext.getPrimaryDelta(),
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
-                null, // old
+                // Note: the fullName mapping is not strong
+                isShadowCachingOnByDefault() ? new String[] { "Guybrush Threepwood" } : null, // old
                 null, // add
                 null, // delete
                 new String[] { "Mighty Pirate Guybrush Threepwood" });  // replace
@@ -1187,6 +1189,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_RELATIVE_NAME, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         displayDumpable("Dummy account after", dummyAccount);
         dummyAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Great Pirate");
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_RELATIVE_OID);
     }
 
     /**
@@ -1234,7 +1237,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         assertAccountDummyAttributeModify(accountSecondaryDelta,
                 RESOURCE_DUMMY_RELATIVE_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME,
-                null, // old
+                isShadowCachingOnByDefault() ? new String[] { "tongue" } : null, // old
                 new String[] { ROLE_PIRATE_WEAPON }, // add
                 null, // delete
                 null);  // replace

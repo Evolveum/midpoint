@@ -107,8 +107,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
             protected @NotNull ItemVisibilityHandler getVisibilityHandler() {
 
                 LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
-                RoleAnalysisSessionType session = objectWrapperModel.getObject().getObject().asObjectable();
-                RoleAnalysisOptionType option = session.getAnalysisOption();
+                RoleAnalysisOptionType option = resolveSessionAnalysisOption(objectWrapperModel);
                 RoleAnalysisCategoryType analysisCategory = option.getAnalysisCategory();
 
                 return wrapper -> {
@@ -141,8 +140,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
             @Override
             public @NotNull IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getContainerFormModel() {
                 LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
-                RoleAnalysisSessionType session = objectWrapperModel.getObject().getObject().asObjectable();
-                RoleAnalysisOptionType processModeObject = session.getAnalysisOption();
+                RoleAnalysisOptionType processModeObject = resolveSessionAnalysisOption(objectWrapperModel);
                 RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
 
                 PrismContainerWrapperModel<?, AbstractAnalysisSessionOptionType> containerWrapperModel;
@@ -182,16 +180,15 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                         return ItemVisibility.HIDDEN;
                     }
 
-//                    if (itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
-//                            || itemName.equals(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)) {
-//                        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
-//                        RoleAnalysisSessionType session = objectWrapperModel.getObject().getObject().asObjectable();
-//                        RoleAnalysisOptionType processModeObject = session.getAnalysisOption();
-//                        RoleAnalysisCategoryType analysisCategory = processModeObject.getAnalysisCategory();
-//                        if (analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)) {
-//                            return ItemVisibility.HIDDEN;
-//                        }
-//                    }
+                    if (itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)) {
+                        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
+                        RoleAnalysisOptionType processModeObject = resolveSessionAnalysisOption(objectWrapperModel);
+                        if (processModeObject.getAnalysisCategory() != RoleAnalysisCategoryType.OUTLIERS) {
+                            return ItemVisibility.HIDDEN;
+                        }
+                        return ItemVisibility.AUTO;
+                    }
+
                     return ItemVisibility.AUTO;
                 };
             }
@@ -205,6 +202,12 @@ public class RoleAnalysisReconfigureSessionPopupPanel
         items.add(containerPanelAnalysisOptions);
     }
 
+    private static RoleAnalysisOptionType resolveSessionAnalysisOption(
+            @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel) {
+        RoleAnalysisSessionType session = objectWrapperModel.getObject().getObject().asObjectable();
+        return session.getAnalysisOption();
+    }
+
     private LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> getObjectWrapperModel() {
         return RoleAnalysisReconfigureSessionPopupPanel.this.getModelObject().getObjectWrapperModel();
     }
@@ -216,8 +219,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
             @Override
             public @NotNull IModel<? extends PrismContainerWrapper<?>> getContainerFormModel() {
                 LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
-                RoleAnalysisSessionType session = objectWrapperModel.getObject().getObject().asObjectable();
-                RoleAnalysisOptionType processModeObject = session.getAnalysisOption();
+                RoleAnalysisOptionType processModeObject = resolveSessionAnalysisOption(objectWrapperModel);
                 RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
                 PrismContainerWrapperModel<RoleAnalysisSessionType, Containerable> containerWrapperModel;
                 if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
@@ -255,8 +257,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
 
                     if (itemName.equals(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)) {
                         LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
-                        RoleAnalysisSessionType session = objectWrapperModel.getObject().getObject().asObjectable();
-                        RoleAnalysisOptionType option = session.getAnalysisOption();
+                        RoleAnalysisOptionType option = resolveSessionAnalysisOption(objectWrapperModel);
                         RoleAnalysisProcessModeType processMode = option.getProcessMode();
                         if (!processMode.equals(RoleAnalysisProcessModeType.USER)) {
                             return ItemVisibility.HIDDEN;

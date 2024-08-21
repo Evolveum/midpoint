@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestScience  extends AbstractStoryTest {
+public class TestScience extends AbstractStoryTest {
 
     private static final String TEST_DIR = "src/test/resources/science";
 

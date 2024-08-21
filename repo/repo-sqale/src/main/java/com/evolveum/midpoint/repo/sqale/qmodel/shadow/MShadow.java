@@ -42,4 +42,8 @@ public class MShadow extends MObject {
     public Instant correlationCaseOpenTimestamp;
     public Instant correlationCaseCloseTimestamp;
     public CorrelationSituationType correlationSituation;
+
+    public Integer disableReasonId;
+    public Instant enableTimestamp;
+    public Instant disableTimestamp;
 }

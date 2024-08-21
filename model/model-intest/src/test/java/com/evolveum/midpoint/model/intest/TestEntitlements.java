@@ -6,13 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_QNAME;
-
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_RELATED;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_QNAME;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,15 +22,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.schema.processor.*;
-
-import com.evolveum.midpoint.schema.util.AbstractShadow;
-import com.evolveum.midpoint.schema.util.RawRepoShadow;
-import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.test.*;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,6 +31,7 @@ import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -48,9 +39,17 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
+import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -1379,7 +1378,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
-        assertSteadyResources();
+        assertSteadyResourcesAfterInvalidation();
     }
 
     /**
@@ -1712,7 +1711,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
         assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
-        assertSteadyResources();
+        assertSteadyResourcesAfterInvalidation();
     }
 
     @Test

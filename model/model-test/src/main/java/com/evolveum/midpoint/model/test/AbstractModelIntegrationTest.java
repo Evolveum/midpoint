@@ -7760,4 +7760,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .add(assocDef.createValueFromFullDefaultObject(object))
                 .asObjectDelta(subjectOid);
     }
+
+    protected void refreshShadowIfNeeded(@NotNull String shadowOid) throws CommonException {
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            provisioningService.getShadow(shadowOid, null, getTestTask(), getTestOperationResult());
+        }
+    }
+
+    protected void refreshAllShadowsIfNeeded(@NotNull String resourceOid, @NotNull ResourceObjectTypeIdentification type)
+            throws CommonException {
+        if (!InternalsConfig.isShadowCachingOnByDefault()) {
+            return;
+        }
+        provisioningService.searchShadows(
+                prismContext.queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+                        .and().item(ShadowType.F_KIND).eq(type.getKind())
+                        .and().item(ShadowType.F_INTENT).eq(type.getIntent())
+                        .build(),
+                null, getTestTask(), getTestOperationResult());
+    }
 }

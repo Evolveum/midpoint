@@ -15,6 +15,10 @@ $red: #dc3545 !default;
 $purple: #605CA8 !default;
 $blue: #0069d9 !default;
 
+$text-color: #495057 !default;
+$text-toned-color: #5B656F !default;
+$white: #fff !default;
+
 $midpoint-secondary: #627383 !default; // previous value #818D98
 
 // override bootstrap defaults where necessary
@@ -26,3 +30,4 @@ $warning: $yellow;
 $danger: $red;
 
 $body-color: $gray-700;
+

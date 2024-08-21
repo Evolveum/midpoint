@@ -29,6 +29,7 @@ public abstract class MiningBaseTypeChunk implements Serializable {
     protected final String chunkName;
     protected FrequencyItem frequency;
     protected RoleAnalysisObjectStatus objectStatus;
+    private String iconColor;
 
     public MiningBaseTypeChunk(
             @NotNull List<String> roles,
@@ -105,5 +106,13 @@ public abstract class MiningBaseTypeChunk implements Serializable {
             return objectStatus.getContainerId();
         }
         return null;
+    }
+
+    public String getIconColor() {
+        return iconColor;
+    }
+
+    public void setIconColor(String iconColor) {
+        this.iconColor = iconColor;
     }
 }

@@ -33,18 +33,16 @@ public class AttributeAnalysisStructure implements Serializable {
     boolean isMultiValue;
     QName complexType;
 
-    public AttributeAnalysisStructure(int uniqueValues, int objectCount, int totalValues, String itemPath) {
+
+    public AttributeAnalysisStructure(int uniqueValues, int objectCount, int totalValues, String itemPath, QName complexType) {
         this.uniqueValues = uniqueValues;
         this.totalValues = totalValues;
         int possibleRelations = uniqueValues * objectCount;
         this.density = calculateDensity(totalValues, possibleRelations);
         this.itemPath = itemPath;
+        this.complexType = complexType;
     }
 
-    public AttributeAnalysisStructure(double density, String itemPath) {
-        this.density = density;
-        this.itemPath = itemPath;
-    }
 
     public AttributeAnalysisStructure(double density, String itemPath, QName complexType) {
         this.density = density;
@@ -151,7 +149,4 @@ public class AttributeAnalysisStructure implements Serializable {
         return complexType;
     }
 
-    public void setComplexType(QName complexType) {
-        this.complexType = complexType;
-    }
 }

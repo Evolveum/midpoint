@@ -80,10 +80,7 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
                 onChevronClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
             }
         };
-        chevronLink.add(new VisibleBehaviour(() -> {
-            ListGroupMenuItem item = getModelObject();
-            return StringUtils.isEmpty(item.getBadge()) && !item.isEmpty();
-        }));
+        chevronLink.add(new VisibleBehaviour(this::isChevronLinkVisible));
         add(chevronLink);
 
         WebMarkupContainer chevron = new WebMarkupContainer(ID_CHEVRON);
@@ -91,6 +88,11 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
                 () -> getModelObject().isOpen() ? "fa fa-chevron-down" : "fa fa-chevron-left"));
 
         chevronLink.add(chevron);
+    }
+
+    protected boolean isChevronLinkVisible() {
+        ListGroupMenuItem<T> item = getModelObject();
+        return StringUtils.isEmpty(item.getBadge()) && !item.isEmpty();
     }
 
     private IModel<String> createLabelModel() {

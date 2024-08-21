@@ -12,6 +12,7 @@ import java.net.ConnectException;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification.ACCOUNT_DEFAULT;
 
 /**
  * Test for various exotic mapping-related configurations.
@@ -140,6 +143,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         // WHEN
         when();
 
+        refreshAllShadowsIfNeeded();
         modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, task, result, PolyString.fromOrig(JACK_TITLE_CAPTAIN));
 
         // THEN
@@ -339,6 +343,7 @@ public class TestMappingMadness extends AbstractStoryTest {
         // WHEN
         when();
 
+        refreshAllShadowsIfNeeded();
         reconcileUser(USER_JACK_OID, null, task, result);
 
         // THEN
@@ -581,5 +586,12 @@ public class TestMappingMadness extends AbstractStoryTest {
 
     private String drinkize(String title) {
         return "Drink like a " + title;
+    }
+
+    private void refreshAllShadowsIfNeeded() throws CommonException {
+        refreshAllShadowsIfNeeded(RESOURCE_DUMMY_TOLERANT_OID, ACCOUNT_DEFAULT);
+        refreshAllShadowsIfNeeded(RESOURCE_DUMMY_TOLERANT_RANGE_OID, ACCOUNT_DEFAULT);
+        refreshAllShadowsIfNeeded(RESOURCE_DUMMY_SMART_RANGE_OID, ACCOUNT_DEFAULT);
+        refreshAllShadowsIfNeeded(RESOURCE_DUMMY_NONTOLERANT_OID, ACCOUNT_DEFAULT);
     }
 }

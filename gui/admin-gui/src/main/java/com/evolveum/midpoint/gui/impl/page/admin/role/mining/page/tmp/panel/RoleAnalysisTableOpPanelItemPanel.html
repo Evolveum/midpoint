@@ -8,31 +8,33 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div wicket:id="container" class="col h-100 bg-white rounded-left border border-light d-flex flex-column" style="min-width:70px">
-        <div class="row d-flex flex-column align-items-start pl-2 pr-2 pb-1 gap-0 justify-content-center alight-items-center"
+    <div wicket:id="container" class="d-flex flex-column col h-100 bg-white rounded-left border border-light p-0" style="min-width:70px">
+        <div class="d-flex flex-column justify-content-center  p-1 gap-2"
                 style="height: 60px;" wicket:id="header">
-            <div wicket:id="header-item"></div>
+            <div wicket:id="header-item" class="btn btn-outline-dark border-0 d-flex align-self-stretch p-1"></div>
         </div>
 
         <hr width="100%" class="m-0 bg-light"/>
 
-        <div class="row d-flex flex-column align-items-start p-2 gap-2" wicket:id="sub-header">
-            <div wicket:id="sub-header-item"></div>
+        <div class="d-flex flex-column justify-content-center gap-2 p-1" wicket:id="sub-header">
+            <div wicket:id="sub-header-item" class="btn btn-outline-dark border-0 d-flex align-self-stretch p-1"></div>
         </div>
 
         <hr width="100%" class="m-0 bg-light"/>
 
-        <div style=" height:100%; overflow-y: scroll; overflow-x: hidden; -ms-overflow-style: none; scrollbar-width: none; ">
-            <div class="row d-flex flex-column align-items-start p-2 gap-2" wicket:id="body">
-                <div wicket:id="body-item"></div>
+        <div style="height:100%; overflow-y: scroll; overflow-x: hidden; -ms-overflow-style: none; scrollbar-width: none; ">
+            <div class="d-flex flex-column justify-content-center gap-2 p-1" wicket:id="body">
+                <div wicket:id="patterns">
+                    <div wicket:id="pattern"></div>
+                </div>
             </div>
         </div>
 
         <hr width="100%" class="m-0 bg-light"/>
 
-        <div class="row d-flex flex-column align-items-start pl-2 pr-2 pt-1 pb-1 gap-0 justify-content-center alight-items-center"
+        <div class="d-flex flex-column justify-content-center gap-2 p-1"
                 style="height: 60px;" wicket:id="footer">
-            <div wicket:id="footer-item"></div>
+            <div wicket:id="footer-item" class="btn btn-outline-dark border-0 d-flex align-self-stretch p-1"></div>
         </div>
     </div>
 

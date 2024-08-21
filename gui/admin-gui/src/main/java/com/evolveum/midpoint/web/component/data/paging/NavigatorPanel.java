@@ -24,6 +24,8 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * @author lazyman
  */
@@ -46,7 +48,7 @@ public class NavigatorPanel extends Panel {
     private final IPageable pageable;
     private final IModel<Boolean> showPageListingModel;
 
-    public NavigatorPanel(String id, IPageable pageable, final boolean showPageListing) {
+    public NavigatorPanel(String id, @Nullable IPageable pageable, final boolean showPageListing) {
         this(id, pageable, () -> showPageListing);
     }
 
@@ -56,7 +58,7 @@ public class NavigatorPanel extends Panel {
         this.showPageListingModel = showPageListingModel;
 
         setOutputMarkupId(true);
-        add(new VisibleBehaviour(() -> NavigatorPanel.this.pageable.getPageCount() > 0));
+        add(new VisibleBehaviour(() -> NavigatorPanel.this.getPageCount() > 0));
 
         initLayout();
     }
@@ -119,7 +121,7 @@ public class NavigatorPanel extends Panel {
 
     private void initNavigation(WebMarkupContainer pagination) {
         IModel<Integer> model = () -> {
-            int count = (int) pageable.getPageCount();
+            int count = (int) getPageCount();
             if (count < PAGING_SIZE) {
                 return count;
             }
@@ -141,7 +143,7 @@ public class NavigatorPanel extends Panel {
                 };
                 item.add(pageLink);
 
-                item.add(AttributeAppender.append("class", (IModel<String>) () -> pageable.getCurrentPage() == pageLink.getPageNumber() ? "active" : ""));
+                item.add(AttributeAppender.append("class", (IModel<String>) () -> getCurrentPage() == pageLink.getPageNumber() ? "active" : ""));
             }
         };
         navigation.add(new VisibleBehaviour(() -> BooleanUtils.isTrue(showPageListingModel.getObject())));
@@ -149,8 +151,8 @@ public class NavigatorPanel extends Panel {
     }
 
     private long computePageNumber(int loopIndex) {
-        long current = pageable.getCurrentPage();
-        long count = pageable.getPageCount();
+        long current = getCurrentPage();
+        long count = getPageCount();
 
         final long half = PAGING_SIZE / 2;
 
@@ -214,23 +216,23 @@ public class NavigatorPanel extends Panel {
     }
 
     private boolean isPreviousEnabled() {
-        return pageable.getCurrentPage() > 0;
+        return getCurrentPage() > 0;
     }
 
     private boolean isNextEnabled() {
-        return pageable.getCurrentPage() + 1 < pageable.getPageCount();
+        return getCurrentPage() + 1 < getPageCount();
     }
 
     private boolean isFirstEnabled() {
-        return pageable.getCurrentPage() > 0;
+        return getCurrentPage() > 0;
     }
 
     private boolean isLastEnabled() {
-        return pageable.getCurrentPage() + 1 < pageable.getPageCount();
+        return getCurrentPage() + 1 < getPageCount();
     }
 
     private void previousPerformed(AjaxRequestTarget target) {
-        changeCurrentPage(target, pageable.getCurrentPage() - 1);
+        changeCurrentPage(target, getCurrentPage() - 1);
     }
 
     private void firstPerformed(AjaxRequestTarget target) {
@@ -238,22 +240,26 @@ public class NavigatorPanel extends Panel {
     }
 
     private void lastPerformed(AjaxRequestTarget target) {
-        changeCurrentPage(target, pageable.getPageCount() - 1);
+        changeCurrentPage(target, getPageCount() - 1);
     }
 
     private void nextPerformed(AjaxRequestTarget target) {
-        changeCurrentPage(target, pageable.getCurrentPage() + 1);
+        changeCurrentPage(target, getCurrentPage() + 1);
     }
 
     private void changeCurrentPage(AjaxRequestTarget target, long page) {
-        pageable.setCurrentPage(page);
+        if (pageable != null) {
+            pageable.setCurrentPage(page);
+        }
 
         if (isComponent()) {
             Component container = ((Component) pageable);
             while (container instanceof AbstractRepeater) {
                 container = container.getParent();
             }
-            target.add(container);
+            if (container != null) {
+                target.add(container);
+            }
         }
         target.add(this);
 
@@ -273,5 +279,13 @@ public class NavigatorPanel extends Panel {
 
     protected boolean isCountingDisabled() {
         return false;
+    }
+
+    protected long getCurrentPage() {
+        return pageable.getCurrentPage();
+    }
+
+    protected long getPageCount() {
+        return pageable.getPageCount();
     }
 }

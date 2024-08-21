@@ -9,46 +9,53 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model;
 import java.io.Serializable;
 import java.util.*;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 
 public class OperationPanelModel implements Serializable {
 
-    @NotNull List<DetectedPattern> selectedPatterns = new ArrayList<>();
-    Map<String, String> palletColors = new HashMap<>();
-    String patternIconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " fa-2x text-primary";
-    String candidateRoleIconClass = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " fa-2x text-success";
-    String bgIconClass;
-    List<DetectedPattern> patterns = new ArrayList<>();
-    String selectedButtonColor = "#627383";
-    List<DetectedPattern> candidatesRoles = new ArrayList<>();
-    boolean isCompareMode = false;
-    boolean isCandidateRoleView = false;
-    DisplayValueOption displayValueOption;
+    public static final String F_PALLET_COLORS = "palletColors";
+
+    private Map<String, String> palletColors = new HashMap<>();
+    private String patternIconClass = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON + " fa-2x text-primary";
+    private String candidateRoleIconClass = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON + " fa-2x text-success";
+    private String bgIconClass;
+    private String selectedButtonColor = "#627383";
+
+    private List<DetectedPattern> patterns = new ArrayList<>();
+    private List<DetectedPattern> candidatesRoles = new ArrayList<>();
+    private List<DetectedPattern> outlierPatterns = new ArrayList<>();
+
+    private boolean isCompareMode = false;
+    private boolean isCandidateRoleView = false;
+
+    List<DetectedPattern> allPatterns = new ArrayList<>();
+
+
+    private boolean isPanelExpanded = false;
+    private boolean showAsExpandCard = false;
 
     public OperationPanelModel() {
-    }
-
-    public void removeSelectedPattern(DetectedPattern pattern) {
-        this.selectedPatterns.remove(pattern);
-    }
-
-    public void clearSelectedPatterns() {
-        this.selectedPatterns.clear();
     }
 
     public void createDetectedPatternModel(List<DetectedPattern> patterns) {
         this.patterns = patterns;
         this.bgIconClass = "bg-secondary";
+        this.allPatterns.addAll(patterns);
     }
 
     public void createCandidatesRolesRoleModel(List<DetectedPattern> candidatesRoles) {
         this.candidatesRoles = candidatesRoles;
         this.bgIconClass = "bg-light";
+        this.allPatterns.addAll(candidatesRoles);
+    }
+
+    public void createOutlierPatternModel(List<DetectedPattern> outlierPatterns) {
+        this.outlierPatterns = outlierPatterns;
+        this.bgIconClass = "bg-danger";
+        this.allPatterns.addAll(outlierPatterns);
     }
 
     public String getBgIconClass() {
@@ -68,73 +75,10 @@ public class OperationPanelModel implements Serializable {
     }
 
     public @NotNull List<DetectedPattern> getSelectedPatterns() {
+        List<DetectedPattern> selectedPatterns = allPatterns.stream().filter(pattern -> pattern.isPatternSelected())
+                .toList();
+        this.palletColors = generateObjectColors(selectedPatterns); //TODO generate properly
         return selectedPatterns;
-    }
-
-    public void setSelectedPatterns(@NotNull List<DetectedPattern> selectedPatterns) {
-        this.selectedPatterns = selectedPatterns;
-    }
-
-    public String getSelectedButtonColor() {
-        return selectedButtonColor;
-    }
-
-    public void setSelectedButtonColor(String selectedButtonColor) {
-        this.selectedButtonColor = selectedButtonColor;
-    }
-
-    public void addSelectedPattern(DetectedPattern pattern) {
-        if (pattern == null) {
-            return;
-        }
-
-        for (DetectedPattern selectedPattern : this.selectedPatterns) {
-            String identifier = selectedPattern.getIdentifier();
-            if (identifier.equals(pattern.getIdentifier())) {
-                removeSelectedPattern(selectedPattern);
-                return;
-            }
-        }
-
-        this.selectedPatterns.add(pattern);
-
-        this.palletColors = generateObjectColors(this.selectedPatterns);
-    }
-
-    public void addSelectedPatternSingleAllowed(DetectedPattern pattern) {
-        if (pattern == null) {
-            return;
-        }
-
-        for (DetectedPattern selectedPattern : this.selectedPatterns) {
-            String identifier = selectedPattern.getIdentifier();
-            if (identifier == null || identifier.isEmpty() || identifier.equals(pattern.getIdentifier())) {
-                removeSelectedPattern(selectedPattern);
-                return;
-            }
-        }
-        if (!this.selectedPatterns.isEmpty()) {
-            this.selectedPatterns.clear();
-        }
-
-        this.selectedPatterns.add(pattern);
-
-        this.palletColors = generateObjectColors(this.selectedPatterns);
-    }
-
-    public void addSelectedPattern(List<DetectedPattern> patterns) {
-        if (patterns == null) {
-            return;
-        }
-
-        for (DetectedPattern pattern : patterns) {
-            if (this.selectedPatterns.contains(pattern)) {
-                removeSelectedPattern(pattern);
-            }
-            this.selectedPatterns.add(pattern);
-        }
-
-        this.palletColors = generateObjectColors(this.selectedPatterns);
     }
 
     public boolean isCompareMode() {
@@ -147,6 +91,14 @@ public class OperationPanelModel implements Serializable {
 
     public boolean isCandidateRoleView() {
         return isCandidateRoleView;
+    }
+
+    public boolean isOutlierView() {
+        return !outlierPatterns.isEmpty();
+    } //TODO fix this properly
+
+    public List<DetectedPattern> getOutlierPatterns() {
+        return outlierPatterns;
     }
 
     public void setCandidateRoleView(boolean candidateRoleView) {
@@ -220,11 +172,32 @@ public class OperationPanelModel implements Serializable {
         return objectColorMap;
     }
 
-    public DisplayValueOption getDisplayValueOption() {
-        return displayValueOption;
+    public boolean isPanelExpanded() {
+        return isPanelExpanded;
     }
 
-    public void setDisplayValueOption(DisplayValueOption displayValueOption) {
-        this.displayValueOption = displayValueOption;
+    public void setPanelExpanded(boolean panelExpanded) {
+        isPanelExpanded = panelExpanded;
+    }
+
+    public boolean isShowAsExpandCard() {
+        return showAsExpandCard;
+    }
+
+    public void setShowAsExpandCard(boolean showAsExpandCard) {
+        this.showAsExpandCard = showAsExpandCard;
+    }
+
+    public void clearSelectedPatterns() {
+        for (DetectedPattern pattern : allPatterns) {
+            pattern.setPatternSelected(false);
+            pattern.setAssociatedColor(null);
+        }
+        palletColors = new HashMap<>();
+    }
+
+    public void removeFromPalette(DetectedPattern detectedPattern) {
+        detectedPattern.setAssociatedColor(null);
+        palletColors.remove(detectedPattern.getIdentifier());
     }
 }

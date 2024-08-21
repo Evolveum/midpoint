@@ -13,9 +13,12 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -28,14 +31,15 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.panel.RoleAnalysisDetectedPatternTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedPatternTable;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisDetectedPatternTileTable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
+
+import org.jetbrains.annotations.Nullable;
 
 @PanelType(name = "detectedPattern")
 @PanelInstance(
@@ -76,7 +80,7 @@ public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisCl
                 new LoadableDetachableModel<>() {
                     @Override
                     protected List<DetectedPattern> load() {
-                        return transformDefaultPattern(getObjectDetailsModels().getObjectType());
+                        return transformDefaultPattern(getObjectDetailsModels().getObjectType(), loadPatternSession());
                     }
                 }) {
 
@@ -106,6 +110,19 @@ public class DetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysisCl
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisClusterType.class);
         getPageBase().navigateToNext(detailsPageClass, parameters);
+    }
+
+    private @Nullable RoleAnalysisSessionType loadPatternSession() {
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+        RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
+        Task task = getPageBase().createSimpleTask("Load pattern session");
+        OperationResult result = task.getResult();
+        PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService.getSessionTypeObject(
+                cluster.getRoleAnalysisSessionRef().getOid(), task, result);
+        if (sessionTypeObject != null) {
+            return sessionTypeObject.asObjectable();
+        }
+        return null;
     }
 
     private void updatePatternIfRequired() {

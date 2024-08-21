@@ -12,6 +12,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOptionsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisRoleSessionOptions;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisUserSessionOptions;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
@@ -97,14 +100,6 @@ public class RoleAnalysisBasicPanel<AH extends AssignmentHolderType> extends Abs
         }
 
         if (RoleAnalysisOutlierType.F_TARGET_OBJECT_REF.equivalent(path)) {
-            return ItemVisibility.AUTO;
-        }
-
-        if (RoleAnalysisOutlierType.F_TARGET_CLUSTER_REF.equivalent(path)) {
-            return ItemVisibility.AUTO;
-        }
-
-        if (RoleAnalysisOutlierType.F_TARGET_SESSION_REF.equivalent(path)) {
             return ItemVisibility.AUTO;
         }
 

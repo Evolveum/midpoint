@@ -80,9 +80,8 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
         RoleAnalysisSessionType session = getModelWrapperObject().getObjectOld().asObjectable();
         String sessionOid = session.getOid();
-
         roleAnalysisService
-                .deleteSessionClustersMembers(sessionOid, task, result);
+                .deleteSessionClustersMembers(sessionOid, task, result, false);
     }
 
     @Override
@@ -162,6 +161,16 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     }
 
     @Override
+    protected String getMainPanelCssClass() {
+        return "col p-0 rounded";
+    }
+
+    @Override
+    protected String getMainPanelCssStyle() {
+        return "align-items: stretch; overflow: visible";
+    }
+
+    @Override
     protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> createObjectDetailsModels(PrismObject<RoleAnalysisSessionType> object) {
         return super.createObjectDetailsModels(object);
     }
@@ -189,6 +198,13 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
             if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")) {
                 if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                    continue;
+                }
+            }
+
+            if (containerPanelConfigurationType.getIdentifier().equals("topOutlierPanel")) {
+                if (!RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
                     containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                     continue;
                 }

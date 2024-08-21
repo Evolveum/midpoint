@@ -13,6 +13,8 @@ import java.util.Set;
 
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -196,7 +198,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                     itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
                     userPath.add(itemDescription.toLowerCase());
                 }
-                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON + " object-user-color";
+                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON;
 
                 int badge = analysis.getAttributeStatistics().size();
                 initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge);
@@ -210,7 +212,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                     itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
                     rolePath.add(itemDescription.toLowerCase());
                 }
-                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " object-role-color";
+                String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
 
                 int badge = analysis.getAttributeStatistics().size();
                 initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge);
@@ -238,7 +240,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                         : getButtonCssClass()));
 
                 if (this.isClicked()) {
-                    if (this.getIconCssClass().contains("user")) {
+                    if (classObjectIcon.contains("user")) {
                         userPath.add(this.getModelObject().toLowerCase());
                     } else {
                         rolePath.add(this.getModelObject().toLowerCase());
@@ -252,13 +254,13 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                 isClicked = !tmp;
 
                 if (this.isClicked()) {
-                    if (this.getIconCssClass().contains("user")) {
+                    if (classObjectIcon.contains("user")) {
                         userPath.add(this.getModelObject().toLowerCase());
                     } else {
                         rolePath.add(this.getModelObject().toLowerCase());
                     }
                 } else {
-                    if (this.getIconCssClass().contains("user")) {
+                    if (classObjectIcon.contains("user")) {
                         userPath.remove(this.getModelObject().toLowerCase());
                     } else {
                         rolePath.remove(this.getModelObject().toLowerCase());
@@ -294,22 +296,37 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             }
 
             @Override
-            public Integer getBadgeValue() {
-                return badge;
+            public String getBadgeValue() {
+                return "(" + badge + ")";
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getBadgeCssClass() {
+                return "ml-auto mr-1";
             }
 
             @Override
-            public String getIconCssClass() {
-                return classObjectIcon;
+            public @NotNull String getIconCssClass() {
+                if (this.isClicked()) {
+                    return "fa fa-check ml-1";
+                } else {
+                    return classObjectIcon + " ml-1";
+                }
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getLabelCssClass() {
+                return " pill-label";
             }
 
         };
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", getButtonCssClass()));
         repeatingView.add(button);
     }
 
-    private void initOveralResultButton(RepeatingView repeatingView,
+    private void initOveralResultButton(@NotNull RepeatingView repeatingView,
             List<String> userPath,
             List<String> rolePath) {
 
@@ -358,18 +375,29 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             }
 
             @Override
-            public Integer getBadgeValue() {
-                return userPath.size() + rolePath.size();
+            public @NotNull String getBadgeValue() {
+                int count = userPath.size() + rolePath.size();
+                return "(" + count + ")";
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getBadgeCssClass() {
+                return "ml-auto";
             }
 
             @Override
             public String getIconCssClass() {
-                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON;
+                if (this.isClicked()) {
+                    return "fa fa-check ml-1";
+                } else {
+                    return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON + " ml-1";
+                }
             }
 
         };
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.append("class", getButtonCssClass()));
+        button.add(AttributeAppender.replace("class", getButtonCssClass()));
         repeatingView.add(button);
     }
 
@@ -387,8 +415,14 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         target.add(RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_CONTAINER, ID_CARD_BODY, ID_CARD_BODY_COMPONENT)).getParent());
     }
 
-    private void initCardHeaderTitle(WebMarkupContainer cardContainer) {
-        Label label = new Label(ID_CARD_HEADER_TITLE, getModel());
+    private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
+        IconWithLabel label = new IconWithLabel(ID_CARD_HEADER_TITLE, getModel()) {
+            @Override
+            protected String getIconCssClass() {
+                return "fa fa-area-chart";
+            }
+        };
+        label.add(new VisibleBehaviour(this::isCardTitleVisible));
         label.setOutputMarkupId(true);
         cardContainer.add(label);
     }
@@ -398,7 +432,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     public String getButtonCssClass() {
-        return "d-flex align-items-center gap-2 btn btn-sm btn-outline-primary rounded-pill";
+        return "d-flex align-items-center gap-1 btn btn-sm btn-pill rounded-pill";
     }
 
     @Contract(pure = true)
@@ -435,4 +469,9 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     public Component getContent() {
         return this;
     }
+
+    protected boolean isCardTitleVisible() {
+        return true;
+    }
+
 }

@@ -7,57 +7,71 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applyTableScaleScript;
-
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import org.apache.wicket.AttributeModifier;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
+import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.common.mining.objects.chunk.DisplayValueOption;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.RoleAnalysisTablePageable;
+import com.evolveum.midpoint.web.component.data.column.RoleAnalysisIntersectionColumn;
+import com.evolveum.midpoint.web.component.data.column.RoleAnalysisObjectColumn;
+import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisPaginRows;
+import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisPagingColumns;
+import com.evolveum.midpoint.web.component.util.RoleMiningProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.object.RoleAnalysisObjectUtils.executeChangesOnCandidateRole;
+
+public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> extends BasePanel<RoleAnalysisObjectDto> implements Table {
 
     @Serial private static final long serialVersionUID = 1L;
+    private static final String DOT_CLASS = RoleAnalysisTable.class.getName() + ".";
+    private static final String OP_PROCESS_CANDIDATE_ROLE = DOT_CLASS + "processCandidate";
+
+    public static final String PARAM_CANDIDATE_ROLE_ID = "candidateRoleId";
+    public static final String PARAM_TABLE_SETTING = "tableSetting";
 
     private static final String ID_HEADER_FOOTER = "headerFooter";
     private static final String ID_HEADER_PAGING = "pagingFooterHeader";
@@ -67,30 +81,20 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
     private static final String ID_TABLE_CONTAINER = "tableContainer";
 
     private static final String ID_PAGING_FOOTER = "pagingFooter";
-    private static final String ID_PAGING = "paging";
-    private static final String ID_COUNT = "count";
-    private static final String ID_PAGE_SIZE = "pageSize";
-    private static final String ID_FOOTER_CONTAINER = "footerContainer";
-    private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
-    private static final String ID_FORM = "form";
-    private final boolean showAsCard = true;
-    private final UserProfileStorage.TableId tableId;
+
     private String additionalBoxCssClasses = null;
-    int columnCount;
-    static boolean isRoleMining = false;
 
-    LoadableDetachableModel<DisplayValueOption> displayValueOptionModel;
+    //TODO what is this?
+    boolean isRelationSelected = false;
 
-    public RoleAnalysisTable(String id, ISortableDataProvider<T, ?> provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, boolean isRoleMining, int columnCount,
-            LoadableDetachableModel<DisplayValueOption> displayValueOptionModel) {
-        super(id);
-        this.tableId = tableId;
-        RoleAnalysisTable.isRoleMining = isRoleMining;
-        this.columnCount = columnCount;
-        this.displayValueOptionModel = displayValueOptionModel;
+    public RoleAnalysisTable(String id, LoadableModel<RoleAnalysisObjectDto> miningOperationChunk) {
+        super(id, miningOperationChunk);
+    }
 
-        initLayout(columns, provider, columnCount);
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
     @Override
@@ -99,62 +103,146 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
                 .forScript("MidPointTheme.initResponsiveTable(); MidPointTheme.initScaleResize('#tableScaleContainer');"));
     }
 
-    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider<T, ?> provider, int colSize) {
+    private void initLayout() {
         setOutputMarkupId(true);
-        add(AttributeAppender.prepend("class", () -> showAsCard ? "card" : ""));
-        add(AttributeAppender.append("class", this::getAdditionalBoxCssClasses));
 
         WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
         tableContainer.setOutputMarkupId(true);
 
-        int pageSize = getItemsPerPage(tableId);
-        DataTable<T, String> table = new SelectableDataTable<>(ID_TABLE, columns, provider, pageSize) {
+        RoleMiningProvider<A> provider = createRoleMiningProvider();
+
+        DataTable<A, String> table = new SelectableDataTable<>(ID_TABLE, initColumns(), provider, getItemsPerPage(null)) { //TODO tableId
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {
-                Item<T> item = super.newRowItem(id, index, rowModel);
+            protected Item<A> newRowItem(String id, int index, IModel<A> rowModel) {
+                Item<A> item = super.newRowItem(id, index, rowModel);
                 return customizeNewRowItem(item);
             }
+
         };
         table.setOutputMarkupId(true);
         tableContainer.add(table);
         add(tableContainer);
 
-        if (!isRoleMining) {
-            TableHeadersToolbar<?> headersTop = new TableHeadersToolbar<>(table, provider) {
+        addHeaderToolbar(table, provider);
 
-                @Override
-                protected void refreshTable(AjaxRequestTarget target) {
-                    super.refreshTable(target);
-                    target.add(getFooter());
-                }
-            };
-
-            headersTop.setOutputMarkupId(true);
-            table.addTopToolbar(headersTop);
-        } else {
-            RoleAnalysisTableHeadersToolbar<?> headersTop = new RoleAnalysisTableHeadersToolbar<>(table, provider) {
-
-                @Override
-                protected void refreshTable(AjaxRequestTarget target) {
-                    super.refreshTable(target);
-                    target.add(getFooter());
-                }
-            };
-
-            headersTop.setOutputMarkupId(true);
-            table.addTopToolbar(headersTop);
-
-        }
         add(createHeader(ID_HEADER));
-        WebMarkupContainer footer = createFooter();
-        footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));
-
-        WebMarkupContainer footer2 = createHeaderPaging();
-        footer2.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || colSize > pageSize));
-        add(footer2);
+        WebMarkupContainer footer = createRowsNavigation();
+        footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > getItemsPerPage()));
         add(footer);
+
+        WebMarkupContainer footer2 = createColumnsNavigation(table);
+        add(footer2);
+    }
+
+    private @NotNull RoleMiningProvider<A> createRoleMiningProvider() {
+
+        ListModel<A> model = new ListModel<>() {
+
+            @Override
+            public List<A> getObject() {
+                return getModelObject().getAdditionalMiningChunk();
+            }
+        };
+
+        return new RoleMiningProvider<>(this, model, false);
+    }
+
+    private List<IColumn<A, String>> initColumns() {
+        List<B> mainChunk = getModelObject().getMainMiningChunk();
+        return initColumns(1, mainChunk.size());
+    }
+
+    public List<IColumn<A, String>> initColumns(int fromCol, long toCol) {
+        List<IColumn<A, String>> columns = new ArrayList<>();
+        columns.add(new RoleAnalysisObjectColumn<>(getModel(), getPageBase()) {
+
+            @Override
+            protected void setRelationSelected(boolean isRelationSelected) {
+                RoleAnalysisTable.this.isRelationSelected = isRelationSelected;
+            }
+
+            @Override
+            protected List<DetectedPattern> getSelectedPatterns() {
+                return RoleAnalysisTable.this.getSelectedPatterns();
+            }
+
+            @Override
+            protected void resetTable(AjaxRequestTarget target) {
+                getModelObject().recomputeChunks(RoleAnalysisTable.this.getSelectedPatterns(), getPageBase());
+                RoleAnalysisTable.this.refreshTable(target);
+            }
+
+            @Override
+            protected void refreshTable(AjaxRequestTarget target) {
+                RoleAnalysisTable.this.refreshTable(target);
+            }
+        });
+
+        IColumn<A, String> column;
+        List<B> mainChunk = getModelObject().getMainMiningChunk();
+        for (int i = fromCol - 1; i < toCol; i++) {
+
+            B colChunk = mainChunk.get(i);
+
+            column = new RoleAnalysisIntersectionColumn<>(colChunk, getModel(), getPageBase()) {
+
+//                @Override
+//                protected Set<String> getMarkPropertyObjects() {
+//                    return RoleAnalysisTable.this.getMarkPropertyObjects();
+//                }
+
+                @Override
+                protected void onUniquePatternDetectionPerform(AjaxRequestTarget target) {
+                    RoleAnalysisTable.this.onUniquePatternDetectionPerform(target);
+                }
+
+                @Override
+                protected void refreshTable(AjaxRequestTarget target) {
+                    RoleAnalysisTable.this.refreshTable(target);
+                }
+
+                @Override
+                protected void loadDetectedPattern(AjaxRequestTarget target) {
+                    RoleAnalysisTable.this.loadDetectedPattern(target);
+                }
+
+                @Override
+                protected void setRelationSelected(boolean isRelationSelected) {
+                    RoleAnalysisTable.this.isRelationSelected = isRelationSelected;
+                }
+
+                @Override
+                protected IModel<Map<String, String>> getColorPaletteModel() {
+                    return RoleAnalysisTable.this.getColorPaletteModel();
+                }
+
+                @Override
+                protected List<DetectedPattern> getSelectedPatterns() {
+                    return RoleAnalysisTable.this.getSelectedPatterns();
+                }
+            };
+
+            columns.add(column);
+        }
+
+        return columns;
+    }
+
+    private void addHeaderToolbar(DataTable<A, String> table, ISortableDataProvider<A, ?> provider) {
+        RoleAnalysisTableHeadersToolbar<?> headersTop = new RoleAnalysisTableHeadersToolbar<>(table, provider) {
+
+            @Override
+            protected void refreshTable(AjaxRequestTarget target) {
+                refreshTableRows(target);
+            }
+        };
+
+        headersTop.setOutputMarkupId(true);
+        table.addTopToolbar(headersTop);
+
+//        }
     }
 
     public String getAdditionalBoxCssClasses() {
@@ -165,7 +253,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         this.additionalBoxCssClasses = boxCssClasses;
     }
 
-    protected Item<T> customizeNewRowItem(Item<T> item) {
+    protected Item<A> customizeNewRowItem(Item<A> item) {
         return item;
     }
 
@@ -178,13 +266,10 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         return (DataTable<?, ?>) get(ID_TABLE_CONTAINER).get(ID_TABLE);
     }
 
-    public Component getHeaderFooter() {
-        return get("headerFooter");
-    }
-
     @Override
     public UserProfileStorage.TableId getTableId() {
-        return tableId;
+        //TODO  return UserProfileStorage.ROL;
+        return null;
     }
 
     @Override
@@ -217,7 +302,7 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
             setItemsPerPage(Integer.MAX_VALUE);
         } else {
             setItemsPerPage(UserProfileStorage.DEFAULT_PAGING_SIZE);
-            if (isRoleMining) {
+            if (!getModelObject().isOutlierDetection()) {
                 setItemsPerPage(100);
             }
         }
@@ -238,34 +323,180 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         return header;
     }
 
-    protected WebMarkupContainer createFooter() {
-        return new PagingFooter(RoleAnalysisTable.ID_FOOTER, ID_PAGING_FOOTER, this, this) {
-
-            @Override
-            protected String getPaginationCssClass() {
-                return RoleAnalysisTable.this.getPaginationCssClass();
-            }
+    protected WebMarkupContainer createRowsNavigation() {
+        return new RoleAnalysisPaginRows(RoleAnalysisTable.ID_FOOTER, ID_PAGING_FOOTER, this, new PropertyModel<>(getModel(), RoleAnalysisObjectDto.F_DISPLAY_VALUE_OPTION), getDataTable()) {
 
             @Override
             protected boolean isPagingVisible() {
                 return RoleAnalysisTable.this.isPagingVisible();
+            }
+
+            @Override
+            protected void refreshTableRows(AjaxRequestTarget target) {
+                RoleAnalysisTable.this.refreshTableRows(target);
+            }
+
+            @Override
+            protected void resetTable(AjaxRequestTarget target) {
+                RoleAnalysisTable.this.resetTable(target);
             }
         };
     }
 
-    protected WebMarkupContainer createHeaderPaging() {
-        return new PagingFooterColumn(RoleAnalysisTable.ID_HEADER_FOOTER, ID_HEADER_PAGING, this) {
-
-            @Override
-            protected String getPaginationCssClass() {
-                return RoleAnalysisTable.this.getPaginationCssClass();
-            }
+    protected WebMarkupContainer createColumnsNavigation(DataTable<A, String> table) {
+        return new RoleAnalysisPagingColumns(RoleAnalysisTable.ID_HEADER_FOOTER, ID_HEADER_PAGING, table, this) {
 
             @Override
             protected boolean isPagingVisible() {
                 return RoleAnalysisTable.this.isPagingVisible();
             }
+
+            @Override
+            protected boolean getMigrationButtonVisibility() {
+                return RoleAnalysisTable.this.getMigrationButtonVisibility();
+            }
+
+            @Override
+            protected void refreshTable(long fromCol, long toCol, AjaxRequestTarget target) {
+                RoleAnalysisTable.this.refreshTable(target);
+            }
+
+            @Override
+            protected void onSubmitEditButton(AjaxRequestTarget target) {
+                RoleAnalysisTable.this.processCandidateRole(target);
+            }
+
+            @Override
+            protected @Nullable List<DetectedPattern> getSelectedPatterns() {
+                return RoleAnalysisTable.this.getSelectedPatterns();
+            }
+
+            protected int getColumnCount() {
+                return getModelObject().getMainMiningChunk().size();
+            }
         };
+    }
+
+    private void processCandidateRole(AjaxRequestTarget target) {
+        RoleAnalysisObjectDto modelObject = getModelObject();
+        MiningOperationChunk chunk = modelObject.getMininingOperationChunk();
+        if (chunk == null) {
+            warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        Task task = getPageBase().createSimpleTask(OP_PROCESS_CANDIDATE_ROLE);
+        OperationResult result = task.getResult();
+
+//        MiningOperationChunk chunk = miningOperationChunk.getObject();
+
+        Set<PrismObject<RoleType>> candidateInducements = new HashSet<>();
+        fillCandidateList(RoleType.class, candidateInducements, chunk.getMiningRoleTypeChunks(), task, result);
+
+        Set<PrismObject<UserType>> candidateMembers = new HashSet<>();
+        fillCandidateList(UserType.class, candidateMembers, chunk.getMiningUserTypeChunks(), task, result);
+
+        RoleAnalysisClusterType cluster = modelObject.getCluster();
+        Set<RoleAnalysisCandidateRoleType> candidateRoleToPerform = getCandidateRoleToPerform(cluster);
+        if (candidateRoleToPerform != null) {
+            @Nullable List<RoleAnalysisCandidateRoleType> candidateRole = new ArrayList<>(candidateRoleToPerform);
+            if (candidateRole.size() == 1) {
+                PageBase pageBase = getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+
+                Set<AssignmentType> assignmentTypeSet = candidateInducements.stream()
+                        .map(candidateInducement -> ObjectTypeUtil.createAssignmentTo(candidateInducement.getOid(), ObjectTypes.ROLE))
+                        .collect(Collectors.toSet());
+
+                executeChangesOnCandidateRole(roleAnalysisService, pageBase, target,
+                        cluster.asPrismObject(),
+                        candidateRole,
+                        candidateMembers,
+                        assignmentTypeSet,
+                        task,
+                        result
+                );
+
+                result.computeStatus();
+                getPageBase().showResult(result);
+                navigateToClusterCandidateRolePanel(cluster);
+                return;
+            }
+        }
+
+        PrismObject<RoleType> businessRole = new RoleType().asPrismObject();
+
+        List<BusinessRoleDto> roleApplicationDtos = new ArrayList<>();
+
+        for (PrismObject<UserType> member : candidateMembers) {
+            BusinessRoleDto businessRoleDto = new BusinessRoleDto(member,
+                    businessRole, candidateInducements, getPageBase());
+            roleApplicationDtos.add(businessRoleDto);
+        }
+
+        BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
+                cluster.asPrismObject(), businessRole, roleApplicationDtos, candidateInducements);
+
+        if (!getSelectedPatterns().isEmpty() && getSelectedPatterns().get(0).getId() != null) {
+            operationData.setPatternId(getSelectedPatterns().get(0).getId());
+        }
+
+        List<BusinessRoleDto> businessRoleDtos = operationData.getBusinessRoleDtos();
+        Set<PrismObject<RoleType>> inducement = operationData.getCandidateRoles();
+        if (!inducement.isEmpty() && !businessRoleDtos.isEmpty()) {
+            PrismObject<RoleType> roleToCreate = operationData.getBusinessRole();
+            PageRole pageRole = new PageRole(roleToCreate, operationData);
+            setResponsePage(pageRole);
+        } else {
+            warn(createStringResource("RoleAnalysis.candidate.not.selected").getString());
+            target.add(getPageBase().getFeedbackPanel());
+        }
+    }
+
+    private @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleToPerform(RoleAnalysisClusterType cluster) {
+        if (getSelectedPatterns().size() > 1) {
+            return null;
+        } else if (getSelectedPatterns().size() == 1) {
+            DetectedPattern detectedPattern = getSelectedPatterns().get(0);
+            Long id = detectedPattern.getId();
+            List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
+            for (RoleAnalysisCandidateRoleType candidateRole : candidateRoles) {
+                if (candidateRole.getId().equals(id)) {
+                    return Collections.singleton(candidateRole);
+                }
+            }
+        }
+
+        return getCandidateRole();
+    }
+
+    private <F extends FocusType, CH extends MiningBaseTypeChunk> void fillCandidateList(Class<F> type,
+            Set<PrismObject<F>> candidateList,
+            List<CH> miningSimpleChunk,
+            Task task,
+            OperationResult result) {
+        for (CH chunk : miningSimpleChunk) {
+            if (!chunk.getStatus().equals(RoleAnalysisOperationMode.INCLUDE)) {
+                continue;
+            }
+            List<String> members = RoleType.class.equals(type) ? chunk.getRoles() : chunk.getUsers();
+            for (String memberOid : members) {
+                PrismObject<F> roleObject = WebModelServiceUtils.loadObject(type, memberOid, getPageBase(), task, result);
+                if (roleObject != null) {
+                    candidateList.add(roleObject);
+                }
+            }
+        }
+    }
+
+    private void navigateToClusterCandidateRolePanel(@NotNull RoleAnalysisClusterType cluster) {
+        PageParameters parameters = new PageParameters();
+        String clusterOid = cluster.getOid();
+        parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+        parameters.add("panelId", "candidateRoles");
+        Class<? extends PageBase> detailsPageClass = DetailsPageUtil.getObjectDetailsPage(RoleAnalysisClusterType.class);
+        getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
     protected boolean isPagingVisible() {
@@ -286,282 +517,102 @@ public class RoleAnalysisTable<T> extends BasePanel<T> implements Table {
         getDataTable().setCurrentPage(page);
     }
 
-    protected WebMarkupContainer createButtonToolbar(String id) {
-        return new WebMarkupContainer(id);
+    protected void resetTable(AjaxRequestTarget target) {
+        //getModel().reset(); //TODO
+        getModelObject().recomputeChunks(getSelectedPatterns(), getPageBase());
+        refreshTable(target);
     }
 
-    private static class PagingFooter extends Fragment {
-
-        public PagingFooter(String id, String markupId, RoleAnalysisTable markupProvider, Table table) {
-            super(id, markupId, markupProvider);
-            setOutputMarkupId(true);
-
-            initLayout(markupProvider, table);
-        }
-
-        private void initLayout(final RoleAnalysisTable<?> boxedTablePanel, final Table table) {
-            WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
-            add(buttonToolbar);
-
-            final DataTable<?, ?> dataTable = table.getDataTable();
-            WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-            footerContainer.setOutputMarkupId(true);
-            footerContainer.add(new VisibleBehaviour(this::isPagingVisible));
-
-            final Label count = new Label(ID_COUNT, () -> CountToolbar.createCountString(dataTable));
-            count.setOutputMarkupId(true);
-            footerContainer.add(count);
-
-            NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, dataTable, true) {
-
-                @Override
-                protected void onPageChanged(AjaxRequestTarget target, long page) {
-                    target.add(count);
-                    target.appendJavaScript(applyTableScaleScript());
-
-                }
-
-                @Override
-                protected boolean isCountingDisabled() {
-                    if (dataTable.getDataProvider() instanceof SelectableBeanContainerDataProvider) {
-                        return !((SelectableBeanContainerDataProvider<?>) dataTable.getDataProvider()).isUseObjectCounting();
-                    }
-                    return super.isCountingDisabled();
-                }
-
-                @Override
-                protected String getPaginationCssClass() {
-                    return RoleAnalysisTable.PagingFooter.this.getPaginationCssClass();
-                }
-            };
-            footerContainer.add(nb2);
-
-            Form<?> form = new MidpointForm<>(ID_FORM);
-            footerContainer.add(form);
-            PagingSizePanel menu = new PagingSizePanel(ID_PAGE_SIZE) {
-
-                @Override
-                protected List<Integer> getPagingSizes() {
-
-                    if (isRoleMining) {
-                        return List.of(new Integer[] { 50, 100, 150, 200 });
-                    }
-                    return super.getPagingSizes();
-                }
-
-                @Override
-                protected void onPageSizeChangePerformed(Integer newValue, AjaxRequestTarget target) {
-                    Table table = findParent(Table.class);
-                    UserProfileStorage.TableId tableId = table.getTableId();
-
-                    if (tableId != null && table.enableSavePageSize()) {
-//                        int pageSize = (int) getPageBase().getItemsPerPage(tableId);
-
-                        table.setItemsPerPage(newValue);
-                    }
-                    target.appendJavaScript(applyTableScaleScript());
-                    target.add(findParent(RoleAnalysisTable.PagingFooter.class));
-                    target.add((Component) table);
-                }
-            };
-            // todo nasty hack, we should decide whether paging should be normal or "small"
-            menu.setSmall(getPaginationCssClass() != null);
-            form.add(menu);
-            add(footerContainer);
-        }
-
-        protected String getPaginationCssClass() {
-            return "pagination-sm";
-        }
-
-        protected boolean isPagingVisible() {
-            return true;
-        }
+    protected void refreshTableRows(AjaxRequestTarget target) {
+        target.add(RoleAnalysisTable.this);
     }
 
-    private class PagingFooterColumn extends Fragment {
-
-        public PagingFooterColumn(String id, String markupId, RoleAnalysisTable markupProvider) {
-            super(id, markupId, markupProvider);
-            setOutputMarkupId(true);
-
-            initLayout(markupProvider);
-        }
-
-        int pagingSize = getColumnPageCount();
-        long pages = 0;
-
-        private void initLayout(final RoleAnalysisTable<?> boxedTablePanel) {
-
-
-            WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-            footerContainer.setOutputMarkupId(true);
-            footerContainer.add(new VisibleBehaviour(this::isPagingVisible));
-
-            Form<?> form = new MidpointForm<>(ID_FORM);
-            footerContainer.add(form);
-
-            Form<?> formBsProcess = new MidpointForm<>("form_bs_process");
-            footerContainer.add(formBsProcess);
-
-            CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE,
-                    LayeredIconCssStyle.IN_ROW_STYLE);
-
-            AjaxCompositedIconSubmitButton editButton = new AjaxCompositedIconSubmitButton("process_selections_id",
-                    iconBuilder.build(), new LoadableModel<>() {
-                @Override
-                protected String load() {
-                    @Nullable Set<RoleAnalysisCandidateRoleType> candidateRoleContainers = getCandidateRoleContainer();
-                    if (candidateRoleContainers != null) {
-                        List<RoleAnalysisCandidateRoleType> candidateRoleTypes = new ArrayList<>(candidateRoleContainers);
-                        if (candidateRoleTypes.size() == 1) {
-                            PolyStringType targetName = candidateRoleTypes.get(0).getCandidateRoleRef().getTargetName();
-                            return createStringResource("RoleMining.button.title.edit.candidate",
-                                    targetName).getString();
-                        } else {
-                            return createStringResource("RoleMining.button.title.edit.candidate").getString();
-                        }
-                    } else {
-                        return createStringResource("RoleMining.button.title.candidate").getString();
-                    }
-                }
-            }) {
-                @Serial private static final long serialVersionUID = 1L;
-
-                @Override
-                protected void onSubmit(AjaxRequestTarget target) {
-                    onSubmitEditButton(target);
-                }
-
-                @Override
-                protected void onError(AjaxRequestTarget target) {
-                    target.add(((PageBase) getPage()).getFeedbackPanel());
-                }
-            };
-            editButton.add(new AttributeModifier("style", "min-width: 150px;"));
-            editButton.add(new VisibleBehaviour(RoleAnalysisTable.this::getMigrationButtonVisibility));
-            editButton.titleAsLabel(true);
-            editButton.setOutputMarkupId(true);
-            editButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-
-            formBsProcess.add(editButton);
-
-            List<Integer> integers = List.of(new Integer[] { 100, 200, 400 });
-            DropDownChoice<Integer> colPerPage = new DropDownChoice<>("colCountOnPage",
-                    new Model<>(getColumnPageCount()), integers);
-            colPerPage.add(new AjaxFormComponentUpdatingBehavior("change") {
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    onChangeSize(colPerPage.getModelObject(), target);
-                }
-            });
-            colPerPage.setOutputMarkupId(true);
-            form.add(colPerPage);
-
-            Label colPerPageLabel = new Label("label_dropdown", Model.of("Cols per page"));
-            colPerPageLabel.setOutputMarkupId(true);
-            footerContainer.add(colPerPageLabel);
-
-            int from = 1;
-            int to = getColumnPageCount();
-            pagingSize = getColumnPageCount();
-            String separator = " - ";
-            List<String> navigation = new ArrayList<>();
-
-            if (columnCount <= to) {
-                navigation.add(from + separator + columnCount);
-            } else {
-                while (columnCount > to) {
-                    navigation.add(from + separator + to);
-                    from += pagingSize;
-                    to += pagingSize;
-                }
-                navigation.add(from + separator + columnCount);
-            }
-
-            String[] rangeParts = getColumnPagingTitle().split(" - ");
-            String title = (Integer.parseInt(rangeParts[0]) + 1) + " to "
-                    + Integer.parseInt(rangeParts[1])
-                    + " of "
-                    + columnCount;
-
-            Label count = new Label(ID_COUNT, Model.of(title));
-            count.setOutputMarkupId(true);
-            footerContainer.add(count);
-
-            RoleAnalysisTablePageable<?> roleAnalysisTablePageable = new RoleAnalysisTablePageable<>(navigation.size(),
-                    getCurrentPage());
-
-            NavigatorPanel colNavigator = new NavigatorPanel(ID_PAGING, roleAnalysisTablePageable, true) {
-
-                @Override
-                protected boolean isComponent() {
-                    return false;
-                }
-
-                @Override
-                protected void onPageChanged(AjaxRequestTarget target, long page) {
-                    pages = page;
-                    String newPageRange = navigation.get((int) page);
-                    target.add(this);
-                    onChange(newPageRange, target, (int) page);
-                }
-
-                @Override
-                protected boolean isCountingDisabled() {
-                    return super.isCountingDisabled();
-                }
-
-                @Override
-                protected String getPaginationCssClass() {
-                    return RoleAnalysisTable.PagingFooterColumn.this.getPaginationCssClass();
-                }
-            };
-            footerContainer.add(colNavigator);
-
-            add(footerContainer);
-        }
-
-        protected String getPaginationCssClass() {
-            return "pagination-sm";
-        }
-
-        protected boolean isPagingVisible() {
-            return true;
-        }
+    protected void refreshTable(AjaxRequestTarget target) {
+        var columns = initColumns();
+        refresh(columns, target);
     }
 
-    public void onChange(String value, AjaxRequestTarget target, int currentPage) {
+    protected void refreshTable(int fromCol, int toCol, AjaxRequestTarget target) {
+        var columns = initColumns(fromCol, toCol);
+        refresh(columns, target);
     }
 
-    protected void onChangeSize(int value, AjaxRequestTarget target) {
-    }
-
-    protected String getColumnPagingTitle() {
-        if (columnCount < getColumnPageCount()) {
-            return "0 - " + columnCount;
-        }
-        return "0 - " + getColumnPageCount();
-    }
-
-    protected int getCurrentPage() {
-        return 0;
-    }
-
-    protected int getColumnPageCount() {
-        return 100;
-    }
-
-    protected void onSubmitEditButton(AjaxRequestTarget target) {
-
-    }
-
-    protected @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRoleContainer() {
-        return null;
+    private void refresh(List<IColumn<A, String>> columns, AjaxRequestTarget target) {
+        getDataTable().getColumns().clear();
+        getDataTable().getColumns().addAll((List) columns);
+        target.add(RoleAnalysisTable.this);
     }
 
     protected boolean getMigrationButtonVisibility() {
-        return true;
+        Set<RoleAnalysisCandidateRoleType> candidateRole = getCandidateRole();
+        if (candidateRole != null) {
+            if (candidateRole.size() > 1) {
+                return false;
+            }
+        }
+        if (getSelectedPatterns().size() > 1) {
+            return false;
+        }
+
+        return isRelationSelected;
+    }
+
+    private @Nullable Set<RoleAnalysisCandidateRoleType> getCandidateRole() {
+        List<String> candidateRoleContainerId = getCandidateRoleContainerId();
+
+        Set<RoleAnalysisCandidateRoleType> candidateRoleTypes = new HashSet<>();
+        if (candidateRoleContainerId != null && !candidateRoleContainerId.isEmpty()) {
+            RoleAnalysisClusterType clusterType = getModelObject().getCluster();
+            List<RoleAnalysisCandidateRoleType> candidateRoles = clusterType.getCandidateRoles();
+
+            for (RoleAnalysisCandidateRoleType candidateRole : candidateRoles) {
+                if (candidateRoleContainerId.contains(candidateRole.getId().toString())) {
+                    candidateRoleTypes.add(candidateRole);
+                }
+            }
+            if (!candidateRoleTypes.isEmpty()) {
+                return candidateRoleTypes;
+            }
+            return null;
+        }
+        return null;
+
+    }
+
+    public List<String> getCandidateRoleContainerId() {
+        StringValue stringValue = getPageBase().getPageParameters().get(PARAM_CANDIDATE_ROLE_ID);
+        if (!stringValue.isNull()) {
+            String[] split = stringValue.toString().split(",");
+            return Arrays.asList(split);
+        }
+        return null;
+    }
+
+    protected List<DetectedPattern> getSelectedPatterns() {
+        return new ArrayList<>();
+    }
+
+    protected IModel<Map<String, String>> getColorPaletteModel() {
+        return new LoadableModel<>(false) {
+
+            @Override
+            protected Map<String, String> load() {
+                return new HashMap<>();
+            }
+        };
+    }
+
+//    protected Set<String> getMarkPropertyObjects(){
+//        return null;
+//    }
+
+    protected void loadDetectedPattern(AjaxRequestTarget target) {
+    }
+
+    //TODO check. When pattern is detected during user-permission table manipulation,
+    // it is necessary to refresh operation panel, because new discovered
+    // pattern is not part of the current operation panel model (TBD include or not).
+    protected void onUniquePatternDetectionPerform(AjaxRequestTarget target) {
     }
 
 }

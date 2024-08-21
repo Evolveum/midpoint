@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -418,7 +419,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         reconcileUser(USER_JIM.oid, task, reconciliationResult);
 
         then("operation should be in progress (no error there)");
-        assertInProgress(reconciliationResult);
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            assertSuccess(reconciliationResult);
+        } else {
+            assertInProgress(reconciliationResult);
+        }
 
         // @formatter:off
         assertUser(USER_JIM.oid, "after reconciliation")
@@ -463,6 +468,8 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
                 .addAttributeValue(DummyAccount.ATTR_DESCRIPTION_NAME, "from dummy")
                 .addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "dummy");
         dummyResource.setBreakMode(BreakMode.NETWORK);
+
+        invalidateShadowCacheIfNeeded(RESOURCE_MAPPING_STRENGTHS.oid);
 
         when("respective properties are set in midPoint (to values different from the above ones)");
         executeChanges(
@@ -557,6 +564,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
         when("account on source system is deleted and the user is reconciled");
         dummyAuditService.clear();
         RESOURCE_SOURCE.controller.deleteAccount(userName);
+        invalidateShadowCacheIfNeeded(RESOURCE_SOURCE.oid);
         reconcileUser(userOid, task, result);
 
         then("the user exists and is disabled");

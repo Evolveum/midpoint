@@ -714,6 +714,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 }
 
                 @Override
+                protected String getInlineMenuItemCssClass() {
+                    return ContainerableListPanel.this.getInlineMenuItemCssClass();
+                }
+
+                @Override
                 protected boolean isButtonMenuItemEnabled(IModel<PO> rowModel) {
                     return isMenuItemVisible(rowModel);
                 }
@@ -1482,4 +1487,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
     protected LoadableModel<PageParameters> getNavigationParametersModel() {
         return null;
     }
+
+    protected String getInlineMenuItemCssClass() {
+        return "btn btn-default btn-xs";
+    }
+
 }

@@ -8,24 +8,29 @@
 package com.evolveum.midpoint.gui.impl.component.tile.mining.candidate;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_CANDIDATE_ROLE_ID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.confidenceBasedTwoColor;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -37,7 +42,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarNew;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -46,6 +54,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -57,17 +66,14 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_OBJECT_TITLE = "objectTitle";
-    private static final String ID_ICON = "icon";
-    private static final String ID_TITLE = "title";
-    private static final String ID_DESCRIPTION = "description";
-    private static final String ID_EXPLORE_PATTERN_BUTTON = "explorePatternButton";
-    private static final String ID_MIGRATION_BUTTON = "migrationButton";
-    private static final String ID_PROCESS_MODE = "mode";
-    private static final String ID_USER_COUNT = "users-count";
-    private static final String ID_ROLE_COUNT = "roles-count";
+    private static final String ID_TITLE = "objectTitle";
     private static final String ID_STATUS_BAR = "status";
     private static final String ID_BUTTON_BAR = "buttonBar";
+    private static final String ID_PROGRESS_BAR = "progress-bar";
+    private static final String ID_USER_COUNT = "users-count";
+    private static final String ID_ROLE_COUNT = "roles-count";
+    private static final String ID_LOCATION = "location";
+    private static final String ID_MIGRATION_BUTTON = "migration-button";
 
     public RoleAnalysisCandidateTilePanel(String id, IModel<RoleAnalysisCandidateTileModel<T>> model) {
         super(id, model);
@@ -75,7 +81,6 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
     }
 
     protected void initLayout() {
-        RoleAnalysisCandidateTileModel<T> modelObject = getModelObject();
 
         initDefaultStyle();
 
@@ -83,15 +88,13 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
 
         initButtonToolBarPanel();
 
-        initNamePanel(modelObject);
+        initNamePanel();
 
-        initDescriptionPanel();
+        initProgressBar();
 
-        buildExploreButton();
+        initLocationButtons();
 
         initMigrationButton();
-
-        initProcessModePanel();
 
         initFirstCountPanel();
 
@@ -99,84 +102,198 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
 
     }
 
-    private void initSecondCountPanel() {
-        IconWithLabel processedObjectCount = new IconWithLabel(ID_ROLE_COUNT, () -> getModelObject().getInducementsCount()) {
+    private void initLocationButtons() {
+        ObjectReferenceType clusterRef = getModelObject().getClusterRef();
+        ObjectReferenceType sessionRef = getModelObject().getSessionRef();
+
+        MetricValuePanel panel = new MetricValuePanel(ID_LOCATION) {
             @Override
-            public String getIconCssClass() {
-                return "fe fe-assignment";
+            protected @NotNull Component getTitleComponent(String id) {
+                Label label = new Label(id, createStringResource("RoleAnalysis.title.panel.location"));
+                label.setOutputMarkupId(true);
+                label.add(AttributeAppender.append("class", "text-muted"));
+                return label;
+            }
+
+            @Override
+            protected Component getValueComponent(String id) {
+                RepeatingView view = new RepeatingView(id);
+                view.setOutputMarkupId(true);
+                AjaxLinkPanel sessionLink = new AjaxLinkPanel(view.newChildId(), Model.of(sessionRef.getTargetName().getOrig())) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, sessionRef.getOid());
+                        getPageBase().navigateToNext(PageRoleAnalysisSession.class, parameters);
+                    }
+                };
+
+                sessionLink.setOutputMarkupId(true);
+                view.add(sessionLink);
+
+                Label separator = new Label(view.newChildId(), "/");
+                separator.setOutputMarkupId(true);
+                view.add(separator);
+
+                AjaxLinkPanel clusterLink = new AjaxLinkPanel(view.newChildId(), Model.of(clusterRef.getTargetName().getOrig())) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, clusterRef.getOid());
+                        getPageBase().navigateToNext(PageRoleAnalysisCluster.class, parameters);
+                    }
+                };
+                clusterLink.setOutputMarkupId(true);
+                view.add(clusterLink);
+                return view;
             }
         };
-        processedObjectCount.setOutputMarkupId(true);
-        processedObjectCount.add(AttributeAppender.replace("title", () -> "Inducements count: " +
-                getModelObject().getInducementsCount()));
-        processedObjectCount.add(new TooltipBehavior());
-        add(processedObjectCount);
+
+        panel.setOutputMarkupId(true);
+        add(panel);
+
+    }
+
+    private void initProgressBar() {
+        RoleAnalysisCandidateTileModel<T> modelObject = getModelObject();
+        RoleAnalysisCandidateRoleType candidateRole = modelObject.getCandidateRole();
+        String clusterOid = modelObject.getClusterRef().getOid();
+        PageBase pageBase = getModelObject().getPageBase();
+        Task task = pageBase.createSimpleTask("Migration process");
+        OperationResult result = task.getResult();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
+        if (clusterPrism == null) {
+            add(new EmptyPanel("buttonBar"));
+            return;
+        }
+
+        RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
+
+        int[] taskProgressIfExist = roleAnalysisService.getTaskProgressIfExist(operationStatus, result);
+
+        int actualProgress = taskProgressIfExist[0];
+        int expectedProgress = taskProgressIfExist[1];
+        double progressInPercent = 0;
+
+        if (actualProgress != 0 && expectedProgress != 0) {
+            progressInPercent = ((double) actualProgress / expectedProgress) * 100;
+        }
+
+        BigDecimal bd = new BigDecimal(progressInPercent);
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        double finalProgress = bd.doubleValue();
+
+        String colorClass = confidenceBasedTwoColor(finalProgress);
+
+        ProgressBarNew progressBar = new ProgressBarNew(ID_PROGRESS_BAR) {
+
+            @Override
+            public double getActualValue() {
+                return finalProgress;
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getProgressBarContainerCssStyle() {
+                return "border-radius: 3px; height:13px;";
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getProgressBarContainerCssClass() {
+                return "col-12 pl-0 pr-0";
+            }
+
+            @Override
+            public String getProgressBarColor() {
+                return colorClass;
+            }
+
+            @Contract(pure = true)
+            @Override
+            public @NotNull String getBarTitle() {
+                return "Migration status";
+            }
+        };
+        progressBar.setOutputMarkupId(true);
+        progressBar.add(AttributeModifier.replace("title", () -> "Attribute confidence: " + finalProgress + "%"));
+        progressBar.add(new TooltipBehavior());
+        add(progressBar);
+    }
+
+    private void initSecondCountPanel() {
+        MetricValuePanel panel = new MetricValuePanel(ID_ROLE_COUNT) {
+            @Override
+            protected @NotNull Component getTitleComponent(String id) {
+                Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.induced.roles"));
+                label.setOutputMarkupId(true);
+                label.add(AttributeAppender.append("class", "text-muted"));
+                label.add(AttributeAppender.append("style", "font-size: 16px"));
+                return label;
+            }
+
+            @Override
+            protected @NotNull Component getValueComponent(String id) {
+                String inducementsCount = RoleAnalysisCandidateTilePanel.this.getModelObject().getInducementsCount();
+                Label inducementPanel = new Label(id, () -> inducementsCount) {
+                };
+
+                inducementPanel.setOutputMarkupId(true);
+                inducementPanel.add(AttributeAppender.replace("title", () -> "Induced roles count: " + inducementsCount));
+                inducementPanel.add(new TooltipBehavior());
+                return inducementPanel;
+            }
+        };
+        panel.setOutputMarkupId(true);
+        add(panel);
     }
 
     private void initFirstCountPanel() {
-        IconWithLabel clusterCount = new IconWithLabel(ID_USER_COUNT, () -> getModelObject().getMembersCount()) {
+        MetricValuePanel panel = new MetricValuePanel(ID_USER_COUNT) {
             @Override
-            public String getIconCssClass() {
-                return "fa fa-users";
+            protected @NotNull Component getTitleComponent(String id) {
+                Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.user.members"));
+                label.setOutputMarkupId(true);
+                label.add(AttributeAppender.append("class", "text-muted"));
+                label.add(AttributeAppender.append("style", "font-size: 16px"));
+
+                return label;
+            }
+
+            @Override
+            protected @NotNull Component getValueComponent(String id) {
+                String membersCount = RoleAnalysisCandidateTilePanel.this.getModelObject().getMembersCount();
+                Label memberPanel = new Label(id, () -> membersCount) {
+                };
+
+                memberPanel.setOutputMarkupId(true);
+                memberPanel.add(AttributeAppender.replace("title", () -> "User members count: " + membersCount));
+                memberPanel.add(new TooltipBehavior());
+                return memberPanel;
             }
         };
-
-        clusterCount.setOutputMarkupId(true);
-        clusterCount.add(AttributeAppender.replace("title", () -> "User count: " +
-                getModelObject().getMembersCount()));
-        clusterCount.add(new TooltipBehavior());
-        add(clusterCount);
-    }
-
-    private void initProcessModePanel() {
-        String processModeTitle = getModelObject().getProcessMode();
-        IconWithLabel mode = new IconWithLabel(ID_PROCESS_MODE, () -> processModeTitle) {
-            @Override
-            public String getIconCssClass() {
-                return "fa fa-cogs";
-            }
-        };
-        mode.add(AttributeAppender.replace("title", () -> "Process mode: " + processModeTitle));
-        mode.add(new TooltipBehavior());
-        mode.setOutputMarkupId(true);
-        add(mode);
+        panel.setOutputMarkupId(true);
+        add(panel);
     }
 
     private void initDefaultStyle() {
         setOutputMarkupId(true);
         add(AttributeAppender.append("class",
-                "catalog-tile-panel d-flex flex-column align-items-center border w-100 h-100 p-3"));
-        add(AttributeAppender.append("style", "width:25%"));
+                "bg-white d-flex flex-column align-items-center elevation-1 rounded w-100 h-100 p-0"));
     }
 
-    private void initDescriptionPanel() {
-        Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getCreateDate());
-        description.add(AttributeAppender.replace("title", () -> getModelObject().getCreateDate()));
-        description.add(new TooltipBehavior());
-        add(description);
-    }
-
-    private void initNamePanel(RoleAnalysisCandidateTileModel<T> modelObject) {
-        IconWithLabel objectTitle = new IconWithLabel(ID_OBJECT_TITLE, () -> getModelObject().getName()) {
+    private void initNamePanel() {
+        AjaxLinkPanel objectTitle = new AjaxLinkPanel(ID_TITLE, () -> getModelObject().getName()) {
             @Override
-            public String getIconCssClass() {
-                return RoleAnalysisCandidateTilePanel.this.getModelObject().getIcon();
-            }
-
-            @Override
-            protected boolean isLink() {
-                return true;
-            }
-
-            @Override
-            protected void onClickPerform(AjaxRequestTarget target) {
+            public void onClick(AjaxRequestTarget target) {
+                RoleAnalysisCandidateTileModel<T> modelObject = RoleAnalysisCandidateTilePanel.this.getModelObject();
                 String oid = modelObject.getRole().getOid();
                 dispatchToObjectDetailsPage(RoleType.class, oid, getPageBase(), true);
             }
-
         };
         objectTitle.setOutputMarkupId(true);
-        objectTitle.add(AttributeAppender.replace("style", "font-size:20px"));
+        objectTitle.add(AttributeAppender.replace("style", "font-size:18px"));
         objectTitle.add(AttributeAppender.replace("title", () -> getModelObject().getName()));
         objectTitle.add(new TooltipBehavior());
         add(objectTitle);
@@ -210,7 +327,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         getPageBase().clearBreadcrumbs();
 
         PageParameters parameters = new PageParameters();
-        String clusterOid = getModelObject().getClusterOid();
+        String clusterOid = getModelObject().getClusterRef().getOid();
         parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
         parameters.add("panelId", "clusterDetails");
         parameters.add(PARAM_CANDIDATE_ROLE_ID, stringBuilder.toString());
@@ -220,63 +337,24 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
 
     }
 
-    protected Label getTitle() {
-        return (Label) get(ID_TITLE);
-    }
-
-    protected WebMarkupContainer getIcon() {
-        return (WebMarkupContainer) get(ID_ICON);
-    }
-
     public void initStatusBar() {
         RoleAnalysisCandidateTileModel<T> modelObject = getModelObject();
         String status = modelObject.getStatus();
 
         Label statusBar = new Label(ID_STATUS_BAR, Model.of(status));
         statusBar.add(AttributeAppender.append("class",
-                "badge-pill badge " + DisplayForLifecycleState.valueOfOrDefault(status).getCssClass()));
+                "badge " + DisplayForLifecycleState.valueOfOrDefault(status).getCssClass()));
         statusBar.add(AttributeAppender.append("style", "width: 80px"));
         statusBar.setOutputMarkupId(true);
         add(statusBar);
     }
 
-    private void buildExploreButton() {
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
-
-        RoleAnalysisCandidateTileModel<T> modelObject = getModelObject();
-        RoleAnalysisCandidateRoleType candidateRole = modelObject.getCandidateRole();
-        RoleAnalysisOperationStatus operationStatus = candidateRole.getOperationStatus();
-        boolean isButtonEnable = operationStatus == null
-                || operationStatus.getOperationChannel() == null
-                || !operationStatus.getOperationChannel().equals(RoleAnalysisOperation.MIGRATION);
-        AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(
-                RoleAnalysisCandidateTilePanel.ID_EXPLORE_PATTERN_BUTTON,
-                iconBuilder.build(),
-                createStringResource("Explore candidate role")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                exploreRolePerform();
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(((PageBase) getPage()).getFeedbackPanel());
-            }
-        };
-        migrationButton.titleAsLabel(true);
-        migrationButton.setOutputMarkupId(true);
-        migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
-        migrationButton.setOutputMarkupId(true);
-        migrationButton.setEnabled(isButtonEnable);
-        add(migrationButton);
-    }
-
     public List<InlineMenuItem> createMenuItems() {
         List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new InlineMenuItem(createStringResource("Explore in the cluster")) {
+
+        RoleAnalysisCandidateTileModel<T> modelObject = getModelObject();
+
+        items.add(new InlineMenuItem(createStringResource("RoleAnalysis.title.panel.explore.in.cluster")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -287,7 +365,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         PageParameters parameters = new PageParameters();
-                        parameters.add(OnePageParameterEncoder.PARAMETER, createModel().getObject().getClusterOid());
+                        parameters.add(OnePageParameterEncoder.PARAMETER, modelObject.getClusterRef().getOid());
                         parameters.add("panelId", "clusterDetails");
 
                         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
@@ -299,7 +377,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
 
         });
 
-        items.add(new InlineMenuItem(createStringResource("Details view")) {
+        items.add(new InlineMenuItem(createStringResource("RoleAnalysis.tile.panel.details.view")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -324,7 +402,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         RoleAnalysisCandidateTileModel<T> modelObject = getModelObject();
         RoleType role = modelObject.getRole();
         RoleAnalysisCandidateRoleType candidateRole = modelObject.getCandidateRole();
-        String clusterOid = modelObject.getClusterOid();
+        String clusterOid = modelObject.getClusterRef().getOid();
         PageBase pageBase = getModelObject().getPageBase();
         Task task = pageBase.createSimpleTask("Migration process");
         OperationResult result = task.getResult();
@@ -350,7 +428,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             add(taskPanel);
         } else {
             CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                    GuiStyleConstants.CLASS_PLUS_CIRCLE, LayeredIconCssStyle.IN_ROW_STYLE);
+                    "fa fa-bolt", LayeredIconCssStyle.IN_ROW_STYLE);
             AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(ID_MIGRATION_BUTTON,
                     iconBuilder.build(),
                     createStringResource("RoleMining.button.title.execute.migration")) {
@@ -408,7 +486,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             };
             migrationButton.titleAsLabel(true);
             migrationButton.setOutputMarkupId(true);
-            migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
+            migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
 
             add(migrationButton);
         }

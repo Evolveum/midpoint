@@ -7,23 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
-import java.io.Serial;
 import java.util.Objects;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 
 public class OutlierItemResultPanel extends BasePanel<IModel<OutlierItemModel>> {
 
@@ -43,8 +35,12 @@ public class OutlierItemResultPanel extends BasePanel<IModel<OutlierItemModel>> 
 
     private void initLayout() {
 
+        add(AttributeModifier.append("class", getInitialCssClass()));
+
         WebMarkupContainer itemBox = new WebMarkupContainer(ID_ITEM_BOX);
         itemBox.setOutputMarkupId(true);
+        itemBox.add(AttributeModifier.append("style", getItemBoxCssStyle()));
+        itemBox.add(AttributeModifier.append("class", getItemBocCssClass()));
         add(itemBox);
 
         Label value = new Label(ID_VALUE, getValue());
@@ -59,26 +55,10 @@ public class OutlierItemResultPanel extends BasePanel<IModel<OutlierItemModel>> 
         iconContainer.setOutputMarkupId(true);
         itemBox.add(iconContainer);
 
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon("fa fa-arrow-right",
-                LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton linkButton = new AjaxCompositedIconSubmitButton(ID_LINK,
-                iconBuilder.build(), Model.of("More info ")) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(((PageBase) getPage()).getFeedbackPanel());
-            }
-        };
-        linkButton.titleAsLabel(true);
-        linkButton.setOutputMarkupId(true);
-        linkButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
-        itemBox.add(linkButton);
+        WebMarkupContainer link = new WebMarkupContainer(ID_LINK);
+        link.setOutputMarkupId(true);
+        link.add(AttributeModifier.replace("class", getLinkCssClass()));
+        itemBox.add(link);
     }
 
     private @NotNull WebMarkupContainer createIconContainer(String componentId) {
@@ -108,5 +88,21 @@ public class OutlierItemResultPanel extends BasePanel<IModel<OutlierItemModel>> 
             return icon;
         }
         return "fa fa-question";
+    }
+
+    protected String getItemBoxCssStyle() {
+        return null;
+    }
+
+    protected String getItemBocCssClass() {
+        return "small-box bg-primary";
+    }
+
+    protected String getLinkCssClass() {
+        return "small-box-footer";
+    }
+
+    protected String getInitialCssClass() {
+        return "col-xl-6";
     }
 }
