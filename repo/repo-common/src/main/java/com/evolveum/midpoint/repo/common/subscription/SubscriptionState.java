@@ -151,19 +151,11 @@ public class SubscriptionState implements DebugDumpable, Serializable {
 
     /** Should we allow clustering? In production environments ONLY with an active subscription. */
     public boolean isClusteringAvailable() {
-        return (isActive() || !isProductionEnvironment()) && !noFeatureSubscriptionType();
-    }
-
-    public boolean noFeatureSubscriptionType() {
-        return subscriptionId.isWellFormed() && (subscriptionId.getType() == SubscriptionId.Type.CONSULTING_PLATFORM
-                || subscriptionId.getType() == SubscriptionId.Type.PRODUCT_SUPPORT_JP_MODEL
-                || subscriptionId.getType() == SubscriptionId.Type.PRODUCT_SUPPORT_SAAS);
+        return isActive() || !isProductionEnvironment();
     }
 
     public boolean isFooterVisible() {
-        return isInactiveOrDemo()
-                || isInGracePeriod()
-                || noFeatureSubscriptionType();
+        return isInactiveOrDemo() || isInGracePeriod();
     }
 
     public @NotNull SystemFeatures getSystemFeatures() {
