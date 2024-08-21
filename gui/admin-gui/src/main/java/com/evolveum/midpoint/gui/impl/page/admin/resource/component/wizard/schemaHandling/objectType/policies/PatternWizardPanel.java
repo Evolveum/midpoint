@@ -52,12 +52,6 @@ public class PatternWizardPanel extends AbstractWizardPanel<ShadowMarkingConfigu
             protected void onExitPerformed(AjaxRequestTarget target) {
                 PatternWizardPanel.this.onExitPerformed(target);
             }
-
-            @Override
-            public boolean onBackPerformed(AjaxRequestTarget target) {
-                onExitPerformed(target);
-                return false;
-            }
         });
 
         return steps;

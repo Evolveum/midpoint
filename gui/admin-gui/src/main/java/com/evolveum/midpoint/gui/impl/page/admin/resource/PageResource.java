@@ -149,7 +149,12 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                                 ResourceType.F_SCHEMA_HANDLING,
                                 SchemaHandlingType.F_OBJECT_TYPE,
                                 ResourceObjectTypeDefinitionType.F_FOCUS,
-                                ResourceObjectFocusSpecificationType.F_ARCHETYPE_REF)).resolve();
+                                ResourceObjectFocusSpecificationType.F_ARCHETYPE_REF)).resolve()
+                .item(
+                        ItemPath.create(
+                                ResourceType.F_SCHEMA_HANDLING,
+                                SchemaHandlingType.F_OBJECT_TYPE,
+                                ResourceObjectTypeDefinitionType.F_DEFAULT_OPERATION_POLICY_REF)).resolve();
 
         if (useNoFetchOption()) {
             builder.noFetch();
