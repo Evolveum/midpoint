@@ -7,34 +7,10 @@
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
-    <div class="row gap-2 pb-3">
-        <div class="card card-light col p-0" id="chartScaleContainer">
-            <div class="card-header bg-white">
-                <h3 class="card-title" wicket:id="cardTitle"></h3>
-                <div class="card-tools">
-                    <form wicket:id="toolForm">
-
-                        <button wicket:id="settingPanel" type="button" class="btn btn-tool" id="settingPanel"></button>
-
-                        <button wicket:id="exportButton" type="button" class="btn btn-tool" id="export"></button>
-
-                        <button type="button" class="btn btn-tool" title="Collapse/Expand card" data-toggle="tooltip" data-card-widget="collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                    </form>
-
-                </div>
-            </div>
-            <div class="card-body">
-                <div wicket:id="container" class="overflow-auto" style="height:28vh;">
-                    <canvas wicket:id="chart"></canvas>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="col-3 pr-0" wicket:id="patternPanel"></div>
-        <div class="col-3 pr-0" wicket:id="outlierPanel"></div>
-
+    <div class="d-flex gap-1">
+        <div class="col-4 pr-0" wicket:id="distributionPanel"></div>
+        <div class="col-4 pr-0" wicket:id="patternPanel"></div>
+        <div class="col-4 pr-0" wicket:id="outlierPanel"></div>
     </div>
+
 </wicket:panel>
