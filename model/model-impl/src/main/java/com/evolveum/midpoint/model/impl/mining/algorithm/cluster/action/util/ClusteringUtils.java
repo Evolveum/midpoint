@@ -61,7 +61,7 @@ public class ClusteringUtils {
      * @return A set of existing role OIDs.
      */
     @NotNull
-    private static Set<String> getExistingActiveRolesOidsSet(@NotNull ModelService modelService,
+    public static Set<String> getExistingActiveRolesOidsSet(@NotNull ModelService modelService,
             @NotNull Task task,
             @NotNull OperationResult result) {
         Set<String> existingRolesOidsSet = new HashSet<>();
@@ -155,7 +155,7 @@ public class ClusteringUtils {
      * @return A list multimap mapping role to users.
      */
     @NotNull
-    private static ListMultimap<String, String> getRoleBasedRoleToUserMap(@NotNull ModelService modelService,
+    public static ListMultimap<String, String> getRoleBasedRoleToUserMap(@NotNull ModelService modelService,
             @Nullable SearchFilterType userQuery,
             @NotNull Set<String> existingRolesOidsSet,
             @NotNull Task task,

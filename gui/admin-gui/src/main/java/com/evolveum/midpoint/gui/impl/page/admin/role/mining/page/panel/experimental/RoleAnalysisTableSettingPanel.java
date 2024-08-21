@@ -52,7 +52,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
     private static final String ID_ACTION_MODE_LABEL = "actionModeLabel";
     private static final String ID_ACTION_MODE_SELECTOR = "actionModeSelector";
 
-    LoadableDetachableModel<DisplayValueOption> option;
+    IModel<DisplayValueOption> option;
     RoleAnalysisSortMode sortMode;
     RoleAnalysisChunkMode selectedTableMode;
 
@@ -82,7 +82,7 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
     public RoleAnalysisTableSettingPanel(
             @NotNull String id,
             @NotNull IModel<String> messageModel,
-            @NotNull LoadableDetachableModel<DisplayValueOption> option) {
+            @NotNull IModel<DisplayValueOption> option) {
         super(id, messageModel);
         this.option = option;
 
@@ -149,9 +149,10 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                option.getObject().setSortMode(sortMode);
-                option.getObject().setChunkMode(selectedTableMode);
-                option.getObject().setChunkAction(chunkAction);
+                DisplayValueOption displayOption = option.getObject();
+                displayOption.setSortMode(sortMode);
+                displayOption.setChunkMode(selectedTableMode);
+                displayOption.setChunkAction(chunkAction);
                 performAfterFinish(target);
                 onClose(target);
             }

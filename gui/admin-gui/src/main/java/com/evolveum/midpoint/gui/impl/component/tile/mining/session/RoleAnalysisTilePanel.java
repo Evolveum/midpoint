@@ -43,6 +43,8 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisSessionTile<T>> {
 
     @Serial private static final long serialVersionUID = 1L;
@@ -190,7 +192,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     private void initDefaultCssStyle() {
         setOutputMarkupId(true);
 
-        add(AttributeAppender.append("class", "catalog-tile-panel "
+        add(AttributeAppender.append("class", "bg-white "
                 + "d-flex flex-column align-items-center"
                 + " bordered w-100 h-100 p-3 elevation-1"));
 
@@ -244,8 +246,20 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
     public void initStatusBar() {
 
+        String state;
+        RoleAnalysisOperationStatus status;
+        ObjectReferenceType taskRef;
+        if (getModelObject() != null) {
+            state = getModelObject().getStateString();
+            status = getModelObject().getStatus();
+            taskRef = getModelObject().getTaskRef();
+        } else {
+            state = "unknown";
+            status = null;
+            taskRef = null;
+        }
         ObjectReferenceType finalTaskRef = getModelObject().getTaskRef();
-        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(ID_STATUS_BAR, Model.of(getModelObject().getStateString())) {
+        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(ID_STATUS_BAR, Model.of(state)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 super.onClick(target);
@@ -255,25 +269,30 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
                 }
             }
         };
-        ajaxLinkPanel.add(AttributeModifier.replace("title", () -> getModelObject().getStateString()));
+        ajaxLinkPanel.add(AttributeModifier.replace("title", () -> state));
         ajaxLinkPanel.add(new TooltipBehavior());
-        String buttonClass = resolveButtonClass(getModelObject().getStatus());
+        String buttonClass = resolveButtonClass(status);
 
         ajaxLinkPanel.add(AttributeModifier.replace("class", "rounded-pill align-items-center"
                 + " d-flex flex-column justify-content-center btn btn-sm " + buttonClass));
         ajaxLinkPanel.add(AttributeModifier.replace("style", "height: 25px;"));
-        ajaxLinkPanel.setEnabled(getModelObject().getTaskRef() != null);
+        ajaxLinkPanel.setEnabled(taskRef != null);
         ajaxLinkPanel.setOutputMarkupId(true);
         add(ajaxLinkPanel);
     }
 
     @NotNull
-    private static String resolveButtonClass(@NotNull RoleAnalysisOperationStatus operationStatus) {
+    private static String resolveButtonClass(@Nullable RoleAnalysisOperationStatus operationStatus) {
+        if (operationStatus == null) {
+            return "btn-outline-secondary";
+        }
+
         OperationResultStatusType status = operationStatus.getStatus();
         String message = operationStatus.getMessage();
         if (status == null) {
             return "btn-outline-secondary";
         }
+
         String buttonClass = "btn-outline-secondary ";
         if (status.equals(OperationResultStatusType.IN_PROGRESS)) {
             buttonClass = "btn-outline-warning ";
@@ -285,6 +304,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         } else if (status.equals(OperationResultStatusType.SUCCESS)) {
             buttonClass = "btn-outline-primary";
         }
+
         return buttonClass;
     }
 

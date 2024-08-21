@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author skublik

@@ -109,6 +109,9 @@ public class RoleAnalysisClusteringActivityHandler
                 throw t;
             } finally {
                 runningTask.setExecutionSupport(null);
+                result.cleanupResultDeeply();
+                result.summarize(true);
+
                 result.close();
             }
 

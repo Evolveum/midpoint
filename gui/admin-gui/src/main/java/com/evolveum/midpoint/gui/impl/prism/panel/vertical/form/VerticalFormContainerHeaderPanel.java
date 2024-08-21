@@ -40,13 +40,15 @@ public abstract class VerticalFormContainerHeaderPanel<C extends Containerable> 
         icon.add(AttributeAppender.append("class", () -> getIcon()));
         add(icon);
 
-        add(new AjaxEventBehavior("click") {
+        if (getModelObject().isSingleValue()) {
+            add(new AjaxEventBehavior("click") {
 
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                onHeaderClick(target);
-            }
-        });
+                @Override
+                protected void onEvent(AjaxRequestTarget target) {
+                    onHeaderClick(target);
+                }
+            });
+        }
     }
 
     protected void onHeaderClick(AjaxRequestTarget target) {

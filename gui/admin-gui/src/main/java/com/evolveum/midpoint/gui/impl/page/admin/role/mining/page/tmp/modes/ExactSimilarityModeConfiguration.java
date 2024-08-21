@@ -40,7 +40,7 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
     @Override
     public void updateConfiguration() {
         RangeType propertyRange = new RangeType()
-                .min(1.0)
+                .min(2.0)
                 .max(Double.valueOf(getMaxPropertyCount()));
 
         updatePrimaryOptions(null,
@@ -50,7 +50,7 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
                 null,
                 100.0,
                 2,
-                1,
+                2,
                 false);
 
         updateDetectionOptions(2,

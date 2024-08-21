@@ -280,11 +280,11 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                 ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.ACTIVATION,
                 "showActivationsWizard"));
 
-        addingAssociationButtonItems(items);
+        items.add(createWizardItemPanel(
+                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.POLICIES,
+                "showPoliciesWizard"));
 
-//        items.add(createWizardItemPanel(
-//                ResourceObjectTypeWizardChoicePanel.ResourceObjectTypePreviewTileType.ASSOCIATIONS,
-//                "showAssociationsWizard"));
+        addingAssociationButtonItems(items);
 
         DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", getString("ResourceObjectsPanel.button.configure"), items);
         DropdownButtonPanel configurationPanel = new DropdownButtonPanel(ID_CONFIGURATION, model) {

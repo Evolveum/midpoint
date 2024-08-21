@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
 import com.evolveum.midpoint.schema.constants.RelationTypes;
@@ -112,10 +113,37 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         return new RoleSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
-    protected boolean canShowWizard(SystemObjectsType archetype) {
-        return !isHistoryPage() && (!isEditObject()) && WebComponentUtil.hasArchetypeAssignment(
-                getObjectDetailsModels().getObjectType(),
-                archetype.value());
+    @Override
+    protected boolean isApplicableTemplate() {
+        if (isCreateFromRoleMining()) {
+            return true;
+        }
+        return super.isApplicableTemplate();
+    }
+
+    @Override
+    protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
+        Collection<CompiledObjectCollectionView> applicableArchetypeViews = super.findAllApplicableArchetypeViews();
+        if (!isCreateFromRoleMining()) {
+            return applicableArchetypeViews;
+        }
+        //TODO restrict to only of business roles?
+        return applicableArchetypeViews.stream()
+                .filter(this::isBusinessRole)
+                .toList();
+//                .forEach(view -> view.getCollection().getCollectionRef().setFilter(null));
+    }
+
+    private boolean isBusinessRole(CompiledObjectCollectionView view) {
+        String archetypeOid = view.getArchetypeOid();
+        if (archetypeOid == null) {
+            return false;
+        }
+        return getModelInteractionService().isSubarchetypeOrArchetype(archetypeOid, SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(), new OperationResult("check archetype"));
+    }
+
+    private boolean isCreateFromRoleMining() {
+        return patternDeltas != null || getObjectDetailsModels().getPatternDeltas() != null;
     }
 
     @Override
@@ -277,6 +305,13 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         result.computeStatus();
         showResult(result);
         super.postProcessResultForWizard(result, executedDeltas, target);
+    }
+
+    @Override
+    protected void reloadObjectDetailsModel(PrismObject<RoleType> prismObject) {
+        BusinessRoleApplicationDto patterns = getObjectDetailsModels().getPatternDeltas();
+        super.reloadObjectDetailsModel(prismObject);
+        getObjectDetailsModels().setPatternDeltas(patterns);
     }
 
     protected ObjectQuery createInOidQuery(List<ObjectType> selectedObjectsList) {

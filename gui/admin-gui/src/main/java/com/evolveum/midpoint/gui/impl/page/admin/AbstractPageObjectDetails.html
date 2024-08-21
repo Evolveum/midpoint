@@ -20,15 +20,15 @@
 
             <div class="row" wicket:id="buttons"></div>
 
-            <div class="row d-flex align-items-start gap-3">
-                <div wicket:id="detailsNavigationPanel" class="px-0 card vertical-navigation-panel">
+            <div class="row d-flex flex-wrap gap-3 flex-md-nowrap flex-lg-nowrap">
+                <div wicket:id="detailsNavigationPanel" class="d-flex flex-fill p-0 overflow-hidden rounded card mb-auto col-md-12 vertical-navigation-panel">
                     <div wicket:id="summary"></div>
                     <wicket:enclosure child="navigation">
                         <div class="card-footer details-panel-navigation p-2" wicket:id="navigation" role="navigation"/>
                     </wicket:enclosure>
                 </div>
 
-                <div class="col p-0 elevation-1 bg-white rounded" style="
+                <div class="flex-row d-flex p-0 flex-grow-1 flex-shrink-1" style="
                 align-items: stretch;
                 overflow: hidden;
                 " wicket:id="mainPanel"

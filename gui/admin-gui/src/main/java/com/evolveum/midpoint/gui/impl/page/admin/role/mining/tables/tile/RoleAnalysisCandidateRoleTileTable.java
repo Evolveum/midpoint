@@ -83,19 +83,31 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
     private static final String ID_DATATABLE = "datatable";
     PageBase pageBase;
     IModel<List<Toggle<ViewToggle>>> items;
-    String processMode;
-    String clusterOid;
+    IModel<ObjectReferenceType> clusterRef;
+    IModel<ObjectReferenceType> sessionRef;
 
     public RoleAnalysisCandidateRoleTileTable(
             @NotNull String id,
             @NotNull PageBase pageBase,
             @NotNull LoadableDetachableModel<List<RoleType>> roles,
             @NotNull HashMap<String, RoleAnalysisCandidateRoleType> cacheCandidate,
-            @NotNull String clusterOid) {
+            @NotNull ObjectReferenceType clusterRef,
+            @NotNull ObjectReferenceType sessionRef) {
         super(id);
         this.pageBase = pageBase;
-        this.clusterOid = clusterOid;
-        this.processMode = extractProcessMode().getObject();
+        this.clusterRef = new LoadableModel<>() {
+            @Override
+            protected ObjectReferenceType load() {
+                return clusterRef;
+            }
+        };
+
+        this.sessionRef = new LoadableModel<>() {
+            @Override
+            protected ObjectReferenceType load() {
+                return sessionRef;
+            }
+        };
         this.items = new LoadableModel<>(false) {
 
             @Override
@@ -247,7 +259,8 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
             @Override
             protected RoleAnalysisCandidateTileModel createTileObject(RoleType role) {
                 RoleAnalysisCandidateRoleType candidateRole = cacheCandidate.get(role.getOid());
-                return new RoleAnalysisCandidateTileModel<>(role, getPageBase(), processMode, clusterOid, candidateRole);
+                return new RoleAnalysisCandidateTileModel<>(
+                        role, getPageBase(), getClusterRef(), getSessionRef(), candidateRole);
             }
 
             @Override
@@ -257,7 +270,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
 
             @Override
             protected String getTileCssClasses() {
-                return "col-3 p-2";
+                return "col-4 pb-3 pl-2 pr-2";
             }
 
             @Override
@@ -454,7 +467,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
                 RoleAnalysisCandidateRoleType candidateRoleType = cacheCandidate.get(role.getOid());
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
-                PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
+                PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService.getClusterTypeObject(getClusterRef().getOid(), task, result);
                 if (clusterPrism == null) {
                     cellItem.add(new EmptyPanel(componentId));
                     return;
@@ -491,7 +504,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
                             RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
                             roleAnalysisService.clusterObjectMigrationRecompute(
-                                    clusterOid, role.getOid(), task, result);
+                                    getClusterRef().getOid(), role.getOid(), task, result);
 
                             ActivityDefinitionType activity = null;
                             try {
@@ -517,7 +530,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
                                             task,
                                             RoleAnalysisOperation.MIGRATION,
                                             user.getFocus());
-                                    navigateToRoleAnalysisCluster(clusterOid);
+                                    navigateToRoleAnalysisCluster(getClusterRef().getOid());
                                 }
                             }
 
@@ -602,7 +615,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
                 getPageBase().clearBreadcrumbs();
 
                 PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
+                parameters.add(OnePageParameterEncoder.PARAMETER, clusterRef);
                 parameters.add("panelId", "clusterDetails");
                 parameters.add(PARAM_CANDIDATE_ROLE_ID, stringBuilder.toString());
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
@@ -635,7 +648,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
         Task task = pageBase.createSimpleTask("getClusterOptionType");
         OperationResult result = task.getResult();
         PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService
-                .getClusterTypeObject(clusterOid, task, result);
+                .getClusterTypeObject(getClusterRef().getOid(), task, result);
         if (clusterPrism == null) {
             return Model.of("");
         } else {
@@ -691,5 +704,21 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
 
     protected void onRefresh(AjaxRequestTarget target) {
 
+    }
+
+    private ObjectReferenceType getClusterRef() {
+        return clusterRef.getObject();
+    }
+
+    private ObjectReferenceType getSessionRef() {
+        return sessionRef.getObject();
+    }
+
+    private IModel<ObjectReferenceType> getClusterRefModel() {
+        return clusterRef;
+    }
+
+    private IModel<ObjectReferenceType> getSessionRefModel() {
+        return sessionRef;
     }
 }

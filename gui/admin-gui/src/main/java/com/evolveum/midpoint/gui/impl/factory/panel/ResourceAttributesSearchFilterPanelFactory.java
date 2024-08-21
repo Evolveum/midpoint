@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.searchfilter.SearchFilterPanelFactory;
@@ -34,12 +35,19 @@ public class ResourceAttributesSearchFilterPanelFactory extends SearchFilterPane
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
         return super.match(wrapper, valueWrapper)
-                && ItemPath.create(
+                && (ItemPath.create(
                         ResourceType.F_SCHEMA_HANDLING,
                         SchemaHandlingType.F_OBJECT_TYPE,
                         ResourceObjectTypeDefinitionType.F_DELINEATION,
                         ResourceObjectTypeDelineationType.F_FILTER)
-                .equivalent(wrapper.getPath().namedSegmentsOnly());
+                .equivalent(wrapper.getPath().namedSegmentsOnly())
+                || ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_OBJECT_TYPE,
+                        ResourceObjectTypeDefinitionType.F_MARKING,
+                        ShadowMarkingConfigurationType.F_PATTERN,
+                        ResourceObjectPatternType.F_FILTER)
+                .equivalent(wrapper.getPath().namedSegmentsOnly()));
     }
 
     @Override
@@ -50,9 +58,15 @@ public class ResourceAttributesSearchFilterPanelFactory extends SearchFilterPane
             protected IModel<String> createQueryModel(IModel model, LoadableModel filterTypeModel, boolean useParsing) {
                 ItemRealValueModel<QName> objectClassModel = new ItemRealValueModel<>((IModel<? extends PrismValueWrapper<QName>>) () -> {
                     try {
-                        PrismPropertyWrapper<QName> objectClass =
-                                getItemModelObject().getParent().findProperty(ResourceObjectTypeDelineationType.F_OBJECT_CLASS);
-                        return objectClass.getValue();
+
+                        PrismContainerValueWrapper parent = getItemModelObject().getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+                        if (parent != null) {
+                            PrismPropertyWrapper<QName> objectClass = parent.findProperty(ItemPath.create(
+                                    ResourceObjectTypeDefinitionType.F_DELINEATION,
+                                    ResourceObjectTypeDelineationType.F_OBJECT_CLASS));
+                            return objectClass.getValue();
+                        }
+                        return null;
 
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't find object class property.");
@@ -60,6 +74,11 @@ public class ResourceAttributesSearchFilterPanelFactory extends SearchFilterPane
                     }
                 });
                 return new ResourceAttributeSearchFilterTypeForQueryModel(model, getPageBase(), useParsing, objectClassModel);
+            }
+
+            @Override
+            protected boolean addEmptyBlumBehaviourToTextField() {
+                return true;
             }
         };
     }

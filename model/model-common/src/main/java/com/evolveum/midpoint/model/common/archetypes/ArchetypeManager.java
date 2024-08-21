@@ -594,6 +594,18 @@ public class ArchetypeManager implements Cache {
         return checkSuperArchetypes(archetypes, archetypeOid, result);
     }
 
+    public boolean isSubArchetypeOrArchetype(String archetypeOid, String parentArchetype, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        if (archetypeOid.equals(parentArchetype)) {
+            return true;
+        }
+        ArchetypeType archetypeType = getArchetype(archetypeOid, result);
+        ObjectReferenceType superArchetype = archetypeType.getSuperArchetypeRef();
+        if (superArchetype == null) {
+            return false;
+        }
+        return isSubArchetypeOrArchetype(superArchetype.getOid(), parentArchetype, result);
+    }
+
     private boolean checkSuperArchetypes(List<ArchetypeType> archetypes, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
         List<ArchetypeType> superArchetypes = new ArrayList<>();
         for (ArchetypeType archetype : archetypes) {

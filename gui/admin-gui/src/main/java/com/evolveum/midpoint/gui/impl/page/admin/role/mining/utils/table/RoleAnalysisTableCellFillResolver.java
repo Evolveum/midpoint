@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ListMultimap;
@@ -67,6 +68,10 @@ public class RoleAnalysisTableCellFillResolver {
             FrequencyItem frequencyItem = object.getFrequencyItem();
             FrequencyItem.Status status = frequencyItem.getStatus();
 
+            if (status == null) {
+                return;
+            }
+
             if (status.equals(FrequencyItem.Status.NEGATIVE_EXCLUDE)) {
                 object.setStatus(RoleAnalysisOperationMode.NEGATIVE_EXCLUDE);
             } else if (status.equals(FrequencyItem.Status.POSITIVE_EXCLUDE)) {
@@ -100,11 +105,11 @@ public class RoleAnalysisTableCellFillResolver {
      * @param rowModel The row model (properties to compare).
      * @param colModel The column model (members to compare).
      */
-    public static <T extends MiningBaseTypeChunk> Status resolveCellTypeUserTable(@NotNull String componentId,
-            Item<ICellPopulator<MiningRoleTypeChunk>> cellItem,
-            @NotNull MiningRoleTypeChunk rowModel,
-            @NotNull MiningUserTypeChunk colModel,
-            @NotNull LoadableDetachableModel<Map<String, String>> colorLoadableMap) {
+    public static <B extends MiningBaseTypeChunk, A extends MiningBaseTypeChunk> Status resolveCellTypeUserTable(@NotNull String componentId,
+            Item<ICellPopulator<A>> cellItem,
+            @NotNull A rowModel,
+            @NotNull B colModel,
+            @NotNull IModel<Map<String, String>> colorLoadableMap) {
         Map<String, String> colorMap = colorLoadableMap.getObject();
         RoleAnalysisObjectStatus rowObjectStatus = rowModel.getObjectStatus();
         RoleAnalysisObjectStatus colObjectStatus = colModel.getObjectStatus();
@@ -288,6 +293,7 @@ public class RoleAnalysisTableCellFillResolver {
      * @param minFrequency The minimum frequency threshold.
      * @param maxFrequency The maximum frequency threshold.
      */
+    //TODO remove
     public static void initUserBasedDetectionPattern(
             @NotNull PageBase pageBase,
             @NotNull List<MiningUserTypeChunk> users,
@@ -354,7 +360,7 @@ public class RoleAnalysisTableCellFillResolver {
                     roleAnalysisService, candidateRoleId, detectedPatternUsers, detectedPatternRoles, users,
                     roles,
                     task,
-                    result);
+                    result, pageBase);
         });
     }
 
@@ -406,6 +412,8 @@ public class RoleAnalysisTableCellFillResolver {
      * @param minFrequency The minimum frequency threshold.
      * @param maxFrequency The maximum frequency threshold.
      */
+
+    //TODO remove
     public static void initRoleBasedDetectionPattern(
             @NotNull PageBase pageBase,
             @NotNull List<MiningUserTypeChunk> users,
@@ -472,7 +480,7 @@ public class RoleAnalysisTableCellFillResolver {
                     roleAnalysisService, candidateRoleId, detectedPatternUsers, detectedPatternRoles, users,
                     roles,
                     task,
-                    result);
+                    result, pageBase);
         });
     }
 
@@ -484,7 +492,7 @@ public class RoleAnalysisTableCellFillResolver {
             @NotNull List<MiningUserTypeChunk> users,
             @NotNull List<MiningRoleTypeChunk> roles,
             @NotNull Task task,
-            @NotNull OperationResult result) {
+            @NotNull OperationResult result, PageBase pageBase) {
 
         RoleAnalysisObjectStatus roleAnalysisObjectStatus = new RoleAnalysisObjectStatus(RoleAnalysisOperationMode.INCLUDE);
         roleAnalysisObjectStatus.setContainerId(Collections.singleton(candidateRoleId));
@@ -520,7 +528,8 @@ public class RoleAnalysisTableCellFillResolver {
 
         if (!detectedPatternUsers.isEmpty()) {
             for (String detectedPatternUser : detectedPatternUsers) {
-                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(detectedPatternUser, task, result);
+                PrismObject<UserType> userTypeObject = WebModelServiceUtils.loadObject(UserType.class, detectedPatternUser, pageBase, task, result);
+//                        roleAnalysisService.getUserTypeObject(detectedPatternUser, task, result);
                 List<String> properties = new ArrayList<>();
                 String chunkName = "Unknown";
                 String iconColor = null;

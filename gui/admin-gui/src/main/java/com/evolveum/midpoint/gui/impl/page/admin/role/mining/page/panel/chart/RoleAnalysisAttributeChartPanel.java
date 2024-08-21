@@ -262,6 +262,8 @@ public class RoleAnalysisAttributeChartPanel extends BasePanel<String> {
             roleAnalysisAttributeAnalysis.setItemPath(attributeAnalysisStructure.getItemPath());
             roleAnalysisAttributeAnalysis.setIsMultiValue(attributeAnalysisStructure.isMultiValue());
             roleAnalysisAttributeAnalysis.setDescription(attributeAnalysisStructure.getDescription());
+            roleAnalysisAttributeAnalysis.setParentType(attributeAnalysisStructure.getComplexType());
+
             List<RoleAnalysisAttributeStatistics> attributeStatistics = attributeAnalysisStructure.getAttributeStatistics();
             for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
                 roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic.clone());
