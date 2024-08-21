@@ -121,8 +121,6 @@ Or you may use the option to xref:/support/subscription-sponsoring/[sponsor] com
 
 === Policy Actions
 
-== Policy Actions
-
 The action part define what to do when the rule is triggered.
 There are several options:
 

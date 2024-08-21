@@ -1,5 +1,5 @@
 ---
-midpoint-feature: gradual-enforcement
+midpoint-feature: gradual-policy-enforcement
 doc-type: config
 compliance:
     iso27001:
