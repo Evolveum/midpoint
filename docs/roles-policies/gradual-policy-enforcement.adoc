@@ -1,0 +1,84 @@
+---
+midpoint-feature: gradual-policy-enforcement
+doc-type: config
+compliance:
+    iso27001:
+        '5.3':
+            description: 'Example of gradual enforcement of SoD policy.'
+---
+= Gradual Enforcement of Policies
+:page-upkeep-status: yellow
+
+WARNING: Work in progress
+
+MidPoint contains powerful mechanism of feature:policy-rule[policy rules] and feature:policy-concept[policy objects], which can be used to enforce various policies, such as xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duty policies].
+However, outright _enforcement_ of new policies can be very inconvenient and disruptive.
+As new policy is applied, it is likely that there are existing violations of the policy.
+If such a policy is immediately enforced, users that are in violations of such policy will be impacted.
+MidPoint takes policy enforcement very seriously.
+MidPoint will deny any operation on such user until the user is brought to the state of policy compliance.
+However, this means that the users are efficiently paralyzed.
+Therefore, it is much better idea to enforce the policy _gradually_ rather than immediately.
+
+== Procedure
+
+Gradual policy enforcement is done in several steps:
+
+. Policy is _defined_, usually in a form of feature:policy-rule[policy rules].
+
+. Action part of the policy rules is set to `record`
+
+. Objects that may be affected by the policy are _recomputed_.
+
+. Recompute process _marks_ all objects that violate the policy using feature:object-mark[object mark].
+
+. Marked objects are analyzed, using feature:reporting[reports], feature:dashboard[dashboards] or simple search in user interface.
+
+. Policy violations are _corrected_.
+This may take quite a long time.
+The policy is not enforced yet, therefore there will be no obstacle to normal system operation.
+
+. When all policy violations are eliminated, policy rule action can be switched to `enforce`.
+
+. MidPoint will not allow any new policy violations, strictly enforcing the policy from now on.
+
+== Example
+
+This example demonstrates gradual application of xref:/midpoint/reference/roles-policies/segregation-of-duties/[segregation of duties (SoD) policy].
+SoD is a very good example as gradual policy enforcement, as it is very likely that there will be existing policy violations, especially in systems with large user base and large number of roles.
+
+First step of gradual application of SoD policy is definition of xref:/midpoint/reference/roles-policies/segregation-of-duties/[SoD policy rule], while setting the action to `record`.
+
+TODO
+
+[source,xml]
+----
+<role>
+    <name>Judge</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType"/>
+        </construction>
+    </inducement>
+    <assignment>
+        <policyRule>
+            <name>excluded-role</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="RoleType"/>
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <record/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>
+----
+
+
+== See Also
+
+* xref:/midpoint/reference/roles-policies/segregation-of-duties/[]
+* xref:/midpoint/reference/roles-policies/policy-rules/[Policy Rules]
+* xref:/midpoint/reference/schema/policy/[]
