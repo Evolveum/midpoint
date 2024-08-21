@@ -31,7 +31,7 @@ import java.io.Serializable;
  */
 @Component
 public class CreateObjectForReferencePanelFactory
-        implements GuiComponentFactory<PrismReferencePanelContext<ObjectReferenceType>>, Serializable {
+        implements GuiComponentFactory<PrismReferencePanelContext<ObjectReferenceType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CreateObjectForReferencePanelFactory.class);
 
@@ -54,18 +54,19 @@ public class CreateObjectForReferencePanelFactory
 
     @Override
     public org.apache.wicket.Component createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
+
+        boolean isHeaderVisible;
+        if (panelCtx.getValueWrapperModel().getObject() instanceof CreateObjectForReferenceValueWrapper<?> createObjectForReferenceWrapper) {
+            isHeaderVisible = createObjectForReferenceWrapper.isHeaderOfCreateObjectVisible();
+        } else {
+            isHeaderVisible = false;
+        }
+
         CreateObjectForReferencePanel panel = new CreateObjectForReferencePanel(
                 panelCtx.getComponentId(),
                 panelCtx.getValueWrapperModel(),
-                createContainerConfiguration(panelCtx.getValueWrapperModel().getObject())) {
-
-            protected boolean isHeaderOfCreateObjectVisible() {
-                if (panelCtx.getValueWrapperModel().getObject() instanceof CreateObjectForReferenceValueWrapper<?> createObjectForReferenceWrapper) {
-                    return createObjectForReferenceWrapper.isHeaderOfCreateObjectVisible();
-                }
-                return false;
-            }
-        };
+                createContainerConfiguration(panelCtx.getValueWrapperModel().getObject()),
+                isHeaderVisible);
 
         panel.setFeedback(panelCtx.getFeedback());
         panel.setOutputMarkupId(true);

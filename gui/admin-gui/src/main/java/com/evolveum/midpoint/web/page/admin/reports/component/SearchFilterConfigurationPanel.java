@@ -10,6 +10,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -114,6 +116,9 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
         TextPanel textPanel = new TextPanel(ID_TEXT_FIELD, createQueryModel(getModel(), filterTypeModel, containerWrapper != null));
         textPanel.add(new VisibleBehaviour(() -> FieldType.QUERY.equals(fieldType)));
+        if (addEmptyBlumBehaviourToTextField()) {
+            textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        }
         container.add(textPanel);
 
         AjaxButton searchConfigurationButton = new AjaxButton(ID_CONFIGURE_BUTTON) {
@@ -156,6 +161,10 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         fieldTypeButton.add(buttonLabel);
         fieldTypeButton.add(new VisibleBehaviour(() -> FieldType.XML.equals(fieldType)));
         add(fieldTypeButton);
+    }
+
+    protected boolean addEmptyBlumBehaviourToTextField() {
+        return false;
     }
 
     protected IModel<String> createQueryModel(IModel<SearchFilterType> model, LoadableModel<Class<O>> filterTypeModel, boolean useParsing) {
