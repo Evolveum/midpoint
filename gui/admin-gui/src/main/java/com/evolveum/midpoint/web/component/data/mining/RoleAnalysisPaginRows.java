@@ -16,10 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.experimental.RoleAnalysisTableSettingPanel;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.component.data.CountToolbar;
-import com.evolveum.midpoint.web.component.data.PagingSizePanel;
-import com.evolveum.midpoint.web.component.data.RoleAnalysisTable;
-import com.evolveum.midpoint.web.component.data.Table;
+import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -111,25 +108,17 @@ public class RoleAnalysisPaginRows extends Fragment {
             @Override
             protected List<Integer> getPagingSizes() {
                 return List.of(new Integer[] { 50, 100, 150, 200 });
-//                if (isRoleMining) {
-//
-//                }
-//                return super.getPagingSizes();
             }
 
             @Override
-            protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
+            protected void onPageSizeChangePerformed(Integer newValue, AjaxRequestTarget target) {
                 Table table = findParent(Table.class);
                 UserProfileStorage.TableId tableId = table.getTableId();
 
                 if (tableId != null && table.enableSavePageSize()) {
-                    int pageSize = (int) getPageBase().getItemsPerPage(tableId);
-
-                    table.setItemsPerPage(pageSize);
+                    table.setItemsPerPage(newValue);
                 }
-//                target.appendJavaScript(applyTableScaleScript());
-//                target.add(findParent(RoleAnalysisTable.PagingFooter.class));
-//                target.add((Component) table);
+
                 refreshTableRows(target);
             }
         };
