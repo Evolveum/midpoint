@@ -8,13 +8,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.component;
 
 import java.io.Serial;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -27,6 +20,12 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extends OperationalButtonsPanel<O> {
     @Serial private static final long serialVersionUID = 1L;
@@ -78,8 +77,9 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
 
     @Override
     protected String getBackCssClass() {
-        return "btn btn-link"; /* btn btn-link */
+        return "btn btn-link";
     }
+
 
     private void applyWcagRules(RepeatingView repeatingView) {
         repeatingView.streamChildren()
@@ -150,5 +150,10 @@ public abstract class InlineOperationalButtonsPanel<O extends ObjectType> extend
 
     protected IModel<String> getTitle() {
         return Model.of("");
+    }
+
+    @Override
+    protected String getSaveButtonAdditionalCssClass() {
+        return "btn btn-success";
     }
 }
