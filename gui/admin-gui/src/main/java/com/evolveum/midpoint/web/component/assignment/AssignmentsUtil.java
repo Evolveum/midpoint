@@ -370,22 +370,28 @@ public class AssignmentsUtil {
             return "";
         }
 
+        String resourceName = WebComponentUtil.getName(resource);
+
         ResourceObjectTypeDefinitionType objectType =
                 ResourceTypeUtil.findObjectTypeDefinition(resource, construction.getKind(), construction.getIntent());
         if (objectType == null) {
-            return WebComponentUtil.getName(resource);
+            return resourceName + ": " + getNameForKindIntent(construction.getKind(), construction.getIntent());
         }
 
         if (objectType.getDisplayName() != null){
-            return objectType.getDisplayName();
+            return resourceName + ": " + objectType.getDisplayName();
         }
 
-        String kind = LocalizationUtil.translateEnum(objectType.getKind());
-        if (objectType.getIntent() == null) {
+        return resourceName + ": " + getNameForKindIntent(objectType.getKind(), objectType.getIntent());
+    }
+
+    private static String getNameForKindIntent(ShadowKindType shadowKind, String intent) {
+        String kind = shadowKind != null ? LocalizationUtil.translateEnum(shadowKind) : "";
+        if (intent == null) {
             return kind;
         }
 
-        return kind + "/" + objectType.getIntent();
+        return kind + "/" + intent;
     }
 
     private static boolean isNotEmptyRef(ObjectReferenceType ref) {
