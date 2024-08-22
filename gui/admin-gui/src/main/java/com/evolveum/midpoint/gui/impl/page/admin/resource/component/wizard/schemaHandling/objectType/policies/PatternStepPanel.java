@@ -14,9 +14,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -82,5 +84,20 @@ public class PatternStepPanel extends AbstractFormWizardStepPanel<ResourceDetail
     @Override
     public String getStepId() {
         return PANEL_TYPE;
+    }
+
+    @Override
+    public VisibleEnableBehaviour getBackBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+    }
+
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        return createStringResource("OnePanelPopupPanel.button.done");
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
     }
 }

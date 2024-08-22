@@ -21,6 +21,12 @@
     <name>midPoint Infrastructure - common</name>
 
     <dependencies>
+        <!--TODO Check it-->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.evolveum.commons</groupId>
             <artifactId>util</artifactId>

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCandidateRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
@@ -30,11 +31,11 @@ public class RoleAnalysisCandidateTileModel<T extends Serializable> extends Tile
     String createDate;
     String inducementsCount;
     String membersCount;
-    String processMode;
     PageBase pageBase;
     String status;
     RoleType role;
-    String clusterOid;
+    ObjectReferenceType clusterRef;
+    ObjectReferenceType sessionRef;
     RoleAnalysisCandidateRoleType candidateRole;
     Long id;
 
@@ -45,18 +46,18 @@ public class RoleAnalysisCandidateTileModel<T extends Serializable> extends Tile
     public RoleAnalysisCandidateTileModel(
             @NotNull RoleType role,
             @NotNull PageBase pageBase,
-            @NotNull String processMode,
-            @NotNull String clusterOid,
+            @NotNull ObjectReferenceType clusterRef,
+            @NotNull ObjectReferenceType sessionOid,
             @NotNull RoleAnalysisCandidateRoleType candidateRole) {
         this.icon = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON;
         this.name = role.getName().getOrig();
-        this.clusterOid = clusterOid;
+        this.clusterRef = clusterRef;
+        this.sessionRef = sessionOid;
         this.role = role;
         this.pageBase = pageBase;
         this.createDate = resolveDateAndTime(role);
         this.inducementsCount = getRoleInducementsCount(role);
         this.membersCount = getRoleAssignmentCount(role, pageBase);
-        this.processMode = processMode;
         this.status = resolveStatus(role);
         this.candidateRole = candidateRole;
         this.id = candidateRole.getId();
@@ -86,7 +87,7 @@ public class RoleAnalysisCandidateTileModel<T extends Serializable> extends Tile
 
     public @NotNull String resolveDateAndTime(@NotNull RoleType role) {
 
-        if(role.getMetadata() == null || role.getMetadata().getCreateTimestamp() == null){
+        if (role.getMetadata() == null || role.getMetadata().getCreateTimestamp() == null) {
             return "";
         }
 
@@ -130,10 +131,6 @@ public class RoleAnalysisCandidateTileModel<T extends Serializable> extends Tile
         return membersCount;
     }
 
-    public String getProcessMode() {
-        return processMode;
-    }
-
     public PageBase getPageBase() {
         return pageBase;
     }
@@ -146,8 +143,12 @@ public class RoleAnalysisCandidateTileModel<T extends Serializable> extends Tile
         return role;
     }
 
-    public String getClusterOid() {
-        return clusterOid;
+    public ObjectReferenceType getClusterRef() {
+        return clusterRef;
+    }
+
+    public ObjectReferenceType getSessionRef() {
+        return sessionRef;
     }
 
     public Long getId() {

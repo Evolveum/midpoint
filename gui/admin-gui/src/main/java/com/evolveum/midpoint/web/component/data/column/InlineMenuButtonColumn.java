@@ -135,7 +135,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                     }
                 };
 
-                btn.add(AttributeAppender.append("class", "btn btn-default btn-xs"));
+                btn.add(AttributeAppender.append("class", getInlineMenuItemCssClass()));
                 btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
                 btn.titleAsLabel(showButtonLabel(index, buttonMenuItems));
                 return btn;
@@ -255,5 +255,9 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             return false;
         }
         return buttonMenuItems.get(id).isLabelVisible();
+    }
+
+    protected String getInlineMenuItemCssClass() {
+        return "btn btn-default btn-xs";
     }
 }

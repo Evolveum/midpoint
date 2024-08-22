@@ -47,14 +47,14 @@ public class SimulatedAssociationClassParticipantDefinition implements Serializa
         this.auxiliaryObjectClassName = auxiliaryObjectClassName;
     }
 
-    static SimulatedAssociationClassParticipantDefinition fromObjectTypeDefinition(
-            @NotNull ResourceObjectTypeDefinition typeDefinition,
+    static SimulatedAssociationClassParticipantDefinition fromObjectDefinition(
+            @NotNull ResourceObjectDefinition definition,
             @Nullable QName auxiliaryObjectClassName) {
         return new SimulatedAssociationClassParticipantDefinition(
-                typeDefinition.getTypeName(),
-                typeDefinition.getDelineation().getBaseContext(),
-                typeDefinition.getDelineation().getSearchHierarchyScope(),
-                ShadowRelationParticipantType.forObjectType(typeDefinition),
+                definition.getTypeName(),
+                definition.getDelineation().getBaseContext(),
+                definition.getDelineation().getSearchHierarchyScope(),
+                ShadowRelationParticipantType.forObjectDefinition(definition),
                 auxiliaryObjectClassName);
     }
 

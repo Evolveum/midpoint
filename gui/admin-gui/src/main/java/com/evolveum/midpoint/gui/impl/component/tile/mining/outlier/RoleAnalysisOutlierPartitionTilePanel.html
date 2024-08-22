@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright (c) 2010-2024 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <div class="d-flex justify-content-between border-bottom w-100 p-3">
+        <div class="pl-2 row gap-3 d-flex align-items-center justify-content-center">
+            <div wicket:id="title"></div>
+            <div wicket:id="leftBatch"></div>
+        </div>
+
+        <div class="col-auto">
+            <div class="row gap-3 d-flex align-items-center justify-content-center">
+                <div wicket:id="rightBatch"></div>
+                <div wicket:id="buttonBar"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="gap-1 d-flex flex-column justify-content-center w-100">
+
+
+        <div class="d-flex justify-content-between gap-3 p-3">
+            <div class="justify-content-center pt-2" wicket:id="items"></div>
+        </div>
+
+        <div class="d-flex gap-3 p-2 alight-items-center justify-content-between border-top align-items-center">
+            <div class="col-auto">
+                <div wicket:id="examine"></div>
+            </div>
+            <div class="col-auto">
+                <div class="row gap-3">
+                    <div style="font-size:14px" wicket:id="confidence"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

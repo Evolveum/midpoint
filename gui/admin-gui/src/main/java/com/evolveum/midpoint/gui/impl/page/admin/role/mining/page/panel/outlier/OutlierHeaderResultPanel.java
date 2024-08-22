@@ -7,9 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +28,7 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
     private static final String ID_PROGRESS_VALUE_LABEL = "progress-label";
     private static final String ID_ICON = "icon";
     private static final String ID_TIMESTAMP = "timestamp";
+    private static final String ID_ACTION = "action";
 
     String value;
     String valueDescription;
@@ -51,9 +56,36 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
 //        iconContainer.setOutputMarkupId(true);
 //        itemBox.add(iconContainer);
 
-        Label value = new Label(ID_VALUE, Model.of(getValue()));
-        value.setOutputMarkupId(true);
-        itemBox.add(value);
+        if (isViewAnalyzedClusterEnable()) {
+            AjaxLinkPanel actionPanel = new AjaxLinkPanel(ID_ACTION, Model.of("View analyzed cluster")) {
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    performOnAction(target);
+                }
+            };
+
+            actionPanel.setOutputMarkupId(true);
+            itemBox.add(actionPanel);
+        } else {
+            EmptyPanel actionPanel = new EmptyPanel(ID_ACTION);
+            itemBox.add(actionPanel);
+        }
+
+        if (isLink()) {
+            AjaxLinkPanel namePanel = new AjaxLinkPanel(ID_VALUE, Model.of(getValue())) {
+                @Override
+                public void onClick(AjaxRequestTarget target) {
+                    performOnClick(target);
+                }
+            };
+            namePanel.setOutputMarkupId(true);
+            itemBox.add(namePanel);
+
+        } else {
+            Label namePanel = new Label(ID_VALUE, Model.of(getValue()));
+            namePanel.setOutputMarkupId(true);
+            itemBox.add(namePanel);
+        }
 
         Label timestamp = new Label(ID_TIMESTAMP, Model.of(this.timestamp));
         timestamp.setOutputMarkupId(true);
@@ -98,6 +130,22 @@ public class OutlierHeaderResultPanel extends BasePanel<String> {
         WebMarkupContainer iconContainer = new WebMarkupContainer(componentId);
         iconContainer.add(AttributeModifier.replace("class", getIcon()));
         return iconContainer;
+    }
+
+    protected boolean isLink() {
+        return false;
+    }
+
+    protected void performOnClick(AjaxRequestTarget target) {
+
+    }
+
+    protected void performOnAction(AjaxRequestTarget target) {
+
+    }
+
+    protected boolean isViewAnalyzedClusterEnable() {
+        return false;
     }
 
     public String getIcon() {

@@ -465,7 +465,6 @@ public class DummyResourceContoller extends AbstractResourceController {
     public DummyGroup addGroup(String name)
             throws ObjectAlreadyExistsException, SchemaViolationException, ConnectException, FileNotFoundException,
             ConflictException, InterruptedException, ObjectDoesNotExistException {
-        assertExtendedSchema();
         DummyGroup group = new DummyGroup(name);
         group.setEnabled(true);
         dummyResource.addGroup(group);

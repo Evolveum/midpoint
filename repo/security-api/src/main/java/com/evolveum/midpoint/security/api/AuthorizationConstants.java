@@ -391,9 +391,9 @@ public class AuthorizationConstants {
     public static final String AUTZ_UI_CERTIFICATION_CAMPAIGNS_URL = NS_AUTHORIZATION_UI + "#certificationCampaigns";
     public static final String AUTZ_UI_CERTIFICATION_CAMPAIGN_URL = NS_AUTHORIZATION_UI + "#certificationCampaign";
     public static final String AUTZ_UI_CERTIFICATION_DECISIONS_URL = NS_AUTHORIZATION_UI + "#certificationDecisions";
-    public static final String AUTZ_UI_CERTIFICATION_CAMPAIGN_DECISIONS_URL = NS_AUTHORIZATION_UI + "#certificationCampaignDecisions";
+    public static final String AUTZ_UI_ACTIVE_CERT_CAMPAIGNS_URL = NS_AUTHORIZATION_UI + "#activeCertCampaigns";
     public static final String AUTZ_UI_MY_CERTIFICATION_DECISIONS_URL = NS_AUTHORIZATION_UI + "#myCertificationDecisions";
-    public static final String AUTZ_UI_MY_CERTIFICATION_CAMPAIGN_DECISIONS_URL = NS_AUTHORIZATION_UI + "#myCertificationCampaignDecisions";
+    public static final String AUTZ_UI_MY_ACTIVE_CERT_CAMPAIGNS_URL = NS_AUTHORIZATION_UI + "#myActiveCertCampaigns";
 
     public static final QName AUTZ_UI_CERTIFICATION_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "certificationAll");
     public static final String AUTZ_UI_CERTIFICATION_ALL_URL = NS_AUTHORIZATION_UI + "#certificationAll";
@@ -623,6 +623,15 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_ACTUATOR_METRICS_QNAME = new QName(NS_AUTHORIZATION_ACTUATOR, "metrics");
     public static final String AUTZ_ACTUATOR_METRICS_URL = QNameUtil.qNameToUri(AUTZ_ACTUATOR_METRICS_QNAME);
+
+    public static final QName AUTZ_UI_OUTLIERS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "outliersAll");
+    public static final String AUTZ_UI_OUTLIERS_ALL_URL = NS_AUTHORIZATION_UI + "#outliersAll";
+
+    public static final QName AUTZ_UI_OUTLIERS_QNAME = new QName(NS_AUTHORIZATION_UI, "outliers");
+    public static final String AUTZ_UI_OUTLIERS_URL = NS_AUTHORIZATION_UI + "#outliers";
+
+    public static final QName AUTZ_UI_OUTLIERS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "outliersView");
+    public static final String AUTZ_UI_OUTLIERS_VIEW_URL = NS_AUTHORIZATION_UI + "#outliersView";
 
     /**
      * Those are the items that midPoint logic controls directly. They have exception from execution-phase

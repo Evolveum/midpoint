@@ -27,11 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.config.*;
@@ -46,7 +43,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReferencesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Creates refined class and object type definitions in {@link ResourceSchemaImpl} objects.
@@ -773,21 +769,18 @@ class ResourceSchemaParser {
         @NotNull private final ResourceObjectAssociationConfigItem.Legacy associationDefCI;
 
         /** This one is being built. */
-        @NotNull private final ResourceObjectTypeDefinition subjectTypeDefinition;
+        @NotNull private final ResourceObjectDefinition subjectDefinition;
 
         LegacyAssociationParser(
                 @NotNull ResourceObjectAssociationConfigItem.Legacy associationDefCI,
-                @NotNull AbstractResourceObjectDefinitionImpl subjectDefinition) throws ConfigurationException {
+                @NotNull AbstractResourceObjectDefinitionImpl subjectDefinition) {
             this.associationDefCI = associationDefCI;
-            if (!(subjectDefinition instanceof ResourceObjectTypeDefinition _subjectTypeDefinition)) {
-                throw new ConfigurationException("Associations cannot be defined on object classes: " + subjectDefinition);
-            }
-            this.subjectTypeDefinition = _subjectTypeDefinition;
+            this.subjectDefinition = subjectDefinition;
         }
 
         @NotNull ShadowAssociationDefinitionImpl parse() throws ConfigurationException {
             return ShadowAssociationDefinitionImpl.parseLegacy(
-                    associationDefCI, resourceSchema, subjectTypeDefinition, getObjectTypeDefinitions());
+                    associationDefCI, resourceSchema, subjectDefinition, getObjectTypeDefinitions());
         }
 
         /**

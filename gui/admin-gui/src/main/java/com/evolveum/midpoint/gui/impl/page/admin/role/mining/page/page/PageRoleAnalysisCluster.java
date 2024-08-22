@@ -49,8 +49,6 @@ import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 //TODO correct authorizations
 @PageDescriptor(
         urls = {
@@ -72,7 +70,20 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
     private static final String OP_RECOMPUTE_SESSION_STAT = DOT_CLASS + "recomputeSessionStatistic";
 
     @Override
-    protected AssignmentHolderOperationalButtonsPanel<RoleAnalysisClusterType> createButtonsPanel(String id, LoadableModel<PrismObjectWrapper<RoleAnalysisClusterType>> wrapperModel) {
+    protected String getMainPanelCssClass() {
+        return "col p-0 rounded";
+    }
+
+    @Override
+    protected String getMainPanelCssStyle() {
+        //TODO it make trouble on overview pages (borders are not visible)
+        return "align-items: stretch; overflow: hidden";
+    }
+
+    @Override
+    protected AssignmentHolderOperationalButtonsPanel<RoleAnalysisClusterType> createButtonsPanel(
+            String id,
+            LoadableModel<PrismObjectWrapper<RoleAnalysisClusterType>> wrapperModel) {
         return super.createButtonsPanel(id, wrapperModel);
     }
 
@@ -89,8 +100,30 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
 
     @Override
     public void addAdditionalButtons(RepeatingView repeatingView) {
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
-        AjaxCompositedIconSubmitButton detection = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
+
+        RoleAnalysisClusterType cluster = getModelWrapperObject().getObjectOld().asObjectable();
+        ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
+        PageBase pageBase = (PageBase) getPage();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        Task task = pageBase.createSimpleTask("Resolving cluster option type");
+        OperationResult result = task.getResult();
+        PrismObject<RoleAnalysisSessionType> session = roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, result);
+
+        if (session == null) {
+            return;
+        }
+
+        RoleAnalysisOptionType analysisOption = session.asObjectable().getAnalysisOption();
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            return;
+        }
+
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
+                GuiStyleConstants.CLASS_OBJECT_TASK_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton detection = new AjaxCompositedIconSubmitButton(
+                repeatingView.newChildId(),
+                iconBuilder.build(),
                 setDetectionButtonTitle()) {
             @Serial private static final long serialVersionUID = 1L;
 
@@ -175,6 +208,18 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         ObjectReferenceType roleAnalysisSessionRef = cluster.getRoleAnalysisSessionRef();
         roleAnalysisService.recomputeSessionStatics(
                 roleAnalysisSessionRef.getOid(), cluster, task, result);
+
+        PrismObject<RoleAnalysisSessionType> session = roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, result);
+
+        if (session == null) {
+            return;
+        }
+
+        RoleAnalysisOptionType analysisOption = session.asObjectable().getAnalysisOption();
+        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            roleAnalysisService.deleteClusterOutlierOrPartition(cluster, task, result);
+        }
     }
 
     public PageRoleAnalysisCluster() {
@@ -229,9 +274,18 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
-            if (containerPanelConfigurationType.getIdentifier().equals("outlierPanel")) {
-                if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            if (containerPanelConfigurationType.getIdentifier().equals("actions")) {
+                List<ContainerPanelConfigurationType> panel = containerPanelConfigurationType.getPanel();
+                for (ContainerPanelConfigurationType panelType : panel) {
+                    if (panelType.getIdentifier().equals("outlierPanel")) {
+                        if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                            panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                        }
+                    } else if (!panelType.getIdentifier().equals("outlierPanel")) {
+                        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                            panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                        }
+                    }
                 }
             } else if (containerPanelConfigurationType.getIdentifier().equals("detectedPattern")) {
                 if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {

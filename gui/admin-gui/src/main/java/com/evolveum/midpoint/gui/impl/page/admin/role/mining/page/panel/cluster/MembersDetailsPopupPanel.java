@@ -96,6 +96,11 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
             }
 
             @Override
+            protected boolean showTableAsCard() {
+                return MembersDetailsPopupPanel.this.showTableAsCard();
+            }
+
+            @Override
             protected List<IColumn<SelectableBean<FocusType>, String>> createDefaultColumns() {
                 List<IColumn<SelectableBean<FocusType>, String>> defaultColumns = super.createDefaultColumns();
 
@@ -219,5 +224,9 @@ public class MembersDetailsPopupPanel extends BasePanel<String> implements Popup
 
     public void setMap(@Nullable Map<String, RoleAnalysisAttributeStatistics> map) {
         this.map = map;
+    }
+
+    protected boolean showTableAsCard() {
+        return true;
     }
 }

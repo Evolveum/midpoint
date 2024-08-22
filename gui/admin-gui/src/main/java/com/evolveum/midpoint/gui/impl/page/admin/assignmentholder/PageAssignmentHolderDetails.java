@@ -202,12 +202,15 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     private void applyTemplate(CompiledObjectCollectionView collectionViews) {
-        PrismObject<AH> assignmentHolder;
-        try {
-            assignmentHolder = getPrismContext().createObject(PageAssignmentHolderDetails.this.getType());
-        } catch (Throwable e) {
-            LOGGER.error("Cannot create prism object for {}. Using object from page model.", PageAssignmentHolderDetails.this.getType());
-            assignmentHolder = getObjectDetailsModels().getObjectWrapperModel().getObject().getObjectOld().clone();
+        PrismObject<AH> assignmentHolder = getObjectDetailsModels().getObjectWrapper().getObjectOld();
+//        PrismObject<AH> assignmentHolder;
+        if (assignmentHolder == null) {
+            try {
+                assignmentHolder = getPrismContext().createObject(PageAssignmentHolderDetails.this.getType());
+            } catch (Throwable e) {
+                LOGGER.error("Cannot create prism object for {}. Using object from page model.", PageAssignmentHolderDetails.this.getType());
+                assignmentHolder = getObjectDetailsModels().getObjectWrapperModel().getObject().getObjectOld().clone();
+            }
         }
         List<ObjectReferenceType> archetypeRef = PageAssignmentHolderDetails.this.getArchetypeReferencesList(collectionViews);
         if (archetypeRef != null) {

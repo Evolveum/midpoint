@@ -1541,9 +1541,16 @@ CREATE TRIGGER m_role_analysis_session_oid_delete_tr AFTER DELETE ON m_role_anal
 CREATE TABLE m_role_analysis_outlier (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('ROLE_ANALYSIS_OUTLIER') STORED
-        CHECK (objectType = 'ROLE_ANALYSIS_OUTLIER')
+        CHECK (objectType = 'ROLE_ANALYSIS_OUTLIER'),
+        targetObjectRefTargetOid UUID,
+        targetObjectRefTargetType ObjectType,
+        targetObjectRefRelationId INTEGER REFERENCES m_uri(id)
 )
     INHERITS (m_assignment_holder);
+
+CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetOid_idx ON m_role_analysis_outlier (targetObjectRefTargetOid);
+CREATE INDEX m_role_analysis_outlier_targetObjectRefTargetType_idx ON m_role_analysis_outlier (targetObjectRefTargetType);
+CREATE INDEX m_role_analysis_outlier_targetObjectRefRelationId_idx ON m_role_analysis_outlier (targetObjectRefRelationId);
 
 CREATE TRIGGER m_role_analysis_outlier_oid_insert_tr BEFORE INSERT ON m_role_analysis_outlier
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
@@ -2601,4 +2608,4 @@ END $$;
 -- This is important to avoid applying any change more than once.
 -- Also update SqaleUtils.CURRENT_SCHEMA_CHANGE_NUMBER
 -- repo/repo-sqale/src/main/java/com/evolveum/midpoint/repo/sqale/SqaleUtils.java
-call apply_change(45, $$ SELECT 1 $$, true);
+call apply_change(46, $$ SELECT 1 $$, true);

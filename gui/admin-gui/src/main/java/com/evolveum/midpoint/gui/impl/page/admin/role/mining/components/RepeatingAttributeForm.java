@@ -7,11 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 
-import java.util.*;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -26,11 +24,13 @@ import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 /**
@@ -80,9 +80,9 @@ public class RepeatingAttributeForm extends BasePanel<String> {
 
         WebMarkupContainer containerFirstGroup = createContainer(ID_CONTAINER_FIRST_GROUP);
         if (isHide()) {
-            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body collapse"));
+            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body p-0 collapse"));
         } else {
-            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body collapse show"));
+            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body p-0 collapse show"));
         }
         firstGroupCard.add(containerFirstGroup);
 

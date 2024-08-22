@@ -10,73 +10,79 @@ package com.evolveum.midpoint.gui.impl.component.tile.mining.outlier;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateAssignmentOutlierResultModel;
 
 public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T> {
 
     String icon;
     String name;
-    RoleAnalysisOutlierDescriptionType descriptionType;
-    String processMode;
-    RoleAnalysisOutlierType outlierParent;
-
-    OutlierObjectModel outlierObjectModel;
+    RoleAnalysisOutlierType outlier;
+    RoleAnalysisOutlierPartitionType partition;
+    ObjectReferenceType clusterRef;
+    ObjectReferenceType sessionRef;
+    String status = "TBD";
+    PageBase pageBase;
 
     public RoleAnalysisOutlierTileModel(String icon, String title) {
         super(icon, title);
     }
 
     public RoleAnalysisOutlierTileModel(
-            @NotNull RoleAnalysisOutlierDescriptionType descriptionType,
-            @NotNull String name,
-            @NotNull String processMode,
-            @NotNull RoleAnalysisOutlierType outlierParent,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull RoleAnalysisOutlierType outlier,
             @NotNull PageBase pageBase) {
+        this.partition = partition;
         this.icon = GuiStyleConstants.CLASS_ICON_OUTLIER;
-        this.name = name;
-        this.descriptionType = descriptionType;
-        this.processMode = processMode;
-        this.outlierParent = outlierParent;
+        this.outlier = outlier;
+        this.name = outlier.getName().getOrig();
+        this.pageBase = pageBase;
+        this.clusterRef = partition.getTargetClusterRef();
+        this.sessionRef = partition.getTargetSessionRef();
+
+        tmpNameRefResolver(clusterRef, sessionRef, pageBase);
+
+    }
+
+    //TODO Temporary solution (remove later) but why is targetName null? it is stored in fullObject.
+    private static void tmpNameRefResolver(
+            @NotNull ObjectReferenceType clusterRef,
+            @NotNull ObjectReferenceType sessionRef,
+            @NotNull PageBase pageBase) {
 
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask("Load object");
-
-        ObjectReferenceType ref = descriptionType.getObject();
-        QName type = ref.getType();
-
-        if (type.equals(UserType.COMPLEX_TYPE)) {
-            //TODO
-            return;
+        Task task = pageBase.createSimpleTask("Load target name");
+        OperationResult result = task.getResult();
+        if (clusterRef.getTargetName() == null) {
+            PrismObject<RoleAnalysisClusterType> prismCluster = roleAnalysisService.getClusterTypeObject(
+                    clusterRef.getOid(), task, result);
+            if (prismCluster != null) {
+                PolyStringType name = prismCluster.asObjectable().getName();
+                clusterRef.setTargetName(name);
+            }
         }
 
-        ObjectReferenceType targetObjectRef = outlierParent.getTargetObjectRef();
-        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
-                targetObjectRef.getOid(), task, task.getResult());
-
-        if (userTypeObject == null) {
-            return;
+        if (sessionRef.getTargetName() == null) {
+            PrismObject<RoleAnalysisSessionType> prismSession = roleAnalysisService.getSessionTypeObject(
+                    sessionRef.getOid(), task, result);
+            if (prismSession != null) {
+                PolyStringType name = prismSession.asObjectable().getName();
+                sessionRef.setTargetName(name);
+            }
         }
-
-        this.outlierObjectModel = generateAssignmentOutlierResultModel(
-                roleAnalysisService, descriptionType, task, task.getResult(), userTypeObject, outlierParent);
     }
 
     @Override
@@ -97,32 +103,27 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         this.name = name;
     }
 
-    public String getProcessMode() {
-        return processMode;
+    public ObjectReferenceType getClusterRef() {
+        return clusterRef;
     }
 
-    public void setProcessMode(String processMode) {
-        this.processMode = processMode;
+    public ObjectReferenceType getSessionRef() {
+        return sessionRef;
     }
 
-    public RoleAnalysisOutlierDescriptionType getDescriptionType() {
-        return descriptionType;
+    public RoleAnalysisOutlierType getOutlier() {
+        return outlier;
     }
 
-    public void setDescriptionType(RoleAnalysisOutlierDescriptionType descriptionType) {
-        this.descriptionType = descriptionType;
+    public void setOutlier(RoleAnalysisOutlierType outlier) {
+        this.outlier = outlier;
     }
 
-    public RoleAnalysisOutlierType getOutlierParent() {
-        return outlierParent;
+    public RoleAnalysisOutlierPartitionType getPartition() {
+        return partition;
     }
 
-    public void setOutlierParent(RoleAnalysisOutlierType outlierParent) {
-        this.outlierParent = outlierParent;
+    public String getStatus() {
+        return status;
     }
-
-    public OutlierObjectModel getOutlierObjectModel() {
-        return outlierObjectModel;
-    }
-
 }

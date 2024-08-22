@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisClusterAction;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisMigrationRoleTileTable;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -81,13 +80,18 @@ public class MigratedRolesPanel extends AbstractObjectMainPanel<RoleAnalysisClus
         container.setOutputMarkupId(true);
         add(container);
 
+        ObjectReferenceType clusterRef = new ObjectReferenceType()
+                .oid(cluster.getOid())
+                .type(RoleAnalysisClusterType.COMPLEX_TYPE)
+                .targetName(cluster.getName());
+
         RoleAnalysisMigrationRoleTileTable roleAnalysisMigrationRoleTileTable = new RoleAnalysisMigrationRoleTileTable(ID_PANEL,
                 getPageBase(), new LoadableDetachableModel<>() {
             @Override
             protected List<RoleType> load() {
                 return roles;
             }
-        }, cluster.getOid()) {
+        }, clusterRef, cluster.getRoleAnalysisSessionRef()) {
             @Override
             protected void onRefresh(AjaxRequestTarget target) {
                 performOnRefresh();

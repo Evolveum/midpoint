@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemMerger;
 import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.config.ShadowAssociationDefinitionConfigItem;
 import com.evolveum.midpoint.schema.config.ShadowAssociationTypeDefinitionConfigItem;
 import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
@@ -108,8 +109,8 @@ public class ShadowAssociationDefinitionImpl
         this.itemName = itemName;
         this.referenceAttributeDefinition = referenceAttributeDefinition;
         this.associationDataObjectDefinition = associationDataObjectDefinition;
-        this.modernAssociationDefinitionBean = modernAssociationDefinitionBean;
-        this.modernAssociationTypeDefinitionBean = modernAssociationTypeDefinitionBean;
+        this.modernAssociationDefinitionBean = CloneUtil.toImmutable(modernAssociationDefinitionBean);
+        this.modernAssociationTypeDefinitionBean = CloneUtil.toImmutable(modernAssociationTypeDefinitionBean);
         this.legacyInformation = legacyInformation;
         this.maxOccurs = maxOccurs;
         this.complexTypeDefinition = createComplexTypeDefinition();
@@ -119,7 +120,7 @@ public class ShadowAssociationDefinitionImpl
     static ShadowAssociationDefinitionImpl parseLegacy(
             @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
             @NotNull ResourceSchemaImpl schemaBeingParsed,
-            @NotNull ResourceObjectTypeDefinition subjectDefinition,
+            @NotNull ResourceObjectDefinition subjectDefinition,
             @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions) throws ConfigurationException {
 
         var legacyInformation = new LegacyAssociationTypeInformation(

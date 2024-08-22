@@ -13,6 +13,7 @@ import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningOperationChunk;
@@ -107,9 +108,16 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
                 return finalRowIcon;
             }
 
+            @Contract(pure = true)
             @Override
-            protected String getIconComponentCssStyle() {
+            protected @NotNull String getIconComponentCssStyle() {
                 return "transform: rotate(90deg);";
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getLabelComponentCssClass() {
+                return "pt-1";
             }
         };
 

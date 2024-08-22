@@ -24,20 +24,13 @@ public class DetectedPattern extends BasePattern implements Serializable {
     public static final String F_TYPE = "searchMode";
     ObjectReferenceType clusterRef;
 
-    public DetectedPattern(Set<String> roles, Set<String> users, Double metric, Long id, String identifier, String associatedColor) {
-        super(roles, users, metric, id, identifier, associatedColor);
-    }
-
-    public DetectedPattern(RoleAnalysisDetectionPatternType detectionPattern) {
-        super(detectionPattern);
-    }
 
     public DetectedPattern(Set<String> roles, Set<String> users, double clusterMetric, Long patternId) {
         super(roles, users, clusterMetric, patternId);
     }
 
-    public DetectedPattern(Set<String> roles, Set<String> users, double clusterMetric, Long patternId, String roleOid) {
-        super(roles, users, clusterMetric, patternId, roleOid);
+    public DetectedPattern(Set<String> roles, Set<String> users, double clusterMetric, Long patternId, String roleOid, PatternType patternType) {
+        super(roles, users, clusterMetric, patternId, roleOid, patternType);
     }
 
     public ObjectReferenceType getClusterRef() {
@@ -47,5 +40,15 @@ public class DetectedPattern extends BasePattern implements Serializable {
     public void setClusterRef(ObjectReferenceType clusterRef) {
         this.clusterRef = clusterRef;
     }
+
+    public void setSessionRef(ObjectReferenceType sessionRef) {
+        this.sessionRef = sessionRef;
+    }
+
+    public ObjectReferenceType getSessionRef() {
+        return sessionRef;
+    }
+
+
 
 }

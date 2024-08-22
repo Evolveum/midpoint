@@ -241,7 +241,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
                     }
 
                     @Override
-                    protected IModel<String> createProcessedMarksContainer() {
+                    protected IModel<String> createSecondaryMarksList() {
                         return () -> createProcessedObjectDescription(model.getObject());
                     }
                 });

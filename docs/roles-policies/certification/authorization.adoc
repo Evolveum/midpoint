@@ -103,6 +103,13 @@ At the GUI level, there are the following action URIs available.
 | <prefix>#certificationDecisions
 |
 
+| My active campaigns
+| <prefix>#myActiveCertCampaigns
+|
+
+| All active campaigns
+| <prefix>#activeCertCampaigns
+|
 
 | All certification-related pages
 | <prefix>#certificationAll

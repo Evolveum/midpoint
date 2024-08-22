@@ -59,6 +59,7 @@
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyNativeAssociations" />
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyComplexAssociations" />
             <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyShadowMarks" />
+            <class name="com.evolveum.midpoint.provisioning.impl.dummy.TestDummyIntents" />
         </classes>
     </test>
     <test name="provisioning-service-csv" parallel="none" verbose="10">

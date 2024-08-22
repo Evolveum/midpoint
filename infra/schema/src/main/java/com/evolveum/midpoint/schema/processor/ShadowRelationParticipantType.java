@@ -57,6 +57,15 @@ public class ShadowRelationParticipantType implements Serializable {
                 .toList();
     }
 
+    static @NotNull ShadowRelationParticipantType forObjectDefinition(@NotNull ResourceObjectDefinition definition) {
+        var typeDef = definition.getTypeDefinition();
+        if (typeDef != null) {
+            return forObjectType(typeDef);
+        } else {
+            return forObjectClass(definition);
+        }
+    }
+
     public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
         return typeIdentification;
     }

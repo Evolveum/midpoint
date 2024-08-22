@@ -61,11 +61,11 @@ $role-mining-static-header-level-5: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
-    transform: rotate(180deg);
     writing-mode: vertical-lr;
-    width: $role-mining-static-header-level-1;
-    height: 150px;
+    transform: rotate(180deg);
+    height: 180px;
     border: 1px solid #f4f4f4;
+    width: $role-mining-static-header-level-1;
 
     &.level-1 {
         width: $role-mining-static-header-level-1;
@@ -113,9 +113,41 @@ $role-mining-static-header-level-5: 100px;
   border: 1px solid #f4f4f4;
 }
 
+.role-mining-header-height {
+  height: 180px;
+}
+
+.role-mining-column-item-rotate{
+  transform:rotate(90deg);
+}
+
 .role-mining-static-row-header {
-  width: 150px;
-  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.25rem !important;
+  width: 230px;
     border-left: none !important;
     border-right: none !important;
+}
+
+.op-panel-collapsed {
+
+  .operation-panel-item {
+    display: none;
+  }
+}
+
+.bg-transparent-red {
+  background-color: rgb(243,219,222);
+ }
+
+ .bg-transparent-blue {
+  background-color: rgb(225,238,245);
+ }
+
+.widget-logo{
+  padding: 0.25rem !important;
+  height:50px;
+  width:50px;
 }
