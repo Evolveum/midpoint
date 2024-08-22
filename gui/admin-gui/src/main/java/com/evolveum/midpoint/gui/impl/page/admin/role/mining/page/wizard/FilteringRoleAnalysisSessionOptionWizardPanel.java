@@ -109,17 +109,17 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.work.filtering.option");
+        return createStringResource("PageRoleAnalysisSession.wizard.step.work.data.selection.option");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.work.filtering.option.text");
+        return createStringResource("PageRoleAnalysisSession.wizard.step.work.data.selection.option.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.work.filtering.option.subText");
+        return createStringResource("PageRoleAnalysisSession.wizard.step.work.data.selection.option.subText");
     }
 
     @Override

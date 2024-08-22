@@ -35,19 +35,19 @@ public class IdentifyWidgetItem implements Serializable {
     transient ComponentType type;
 
     public enum ComponentType {
-        PATTERN, OUTLIER;
+        PATTERN, OUTLIER, STATISTIC;
     }
 
     public IdentifyWidgetItem(
             @NotNull ComponentType type,
             @Nullable IModel<String> image,
             @NotNull IModel<String> title,
-            @NotNull IModel<String> value,
+            @NotNull IModel<String> description,
             @NotNull IModel<String> score,
             @NotNull IModel<String> navigationReference) {
         this.type = type;
         this.image = image;
-        this.value = value;
+        this.value = description;
         this.score = score;
         this.title = title;
         this.navigationReference = navigationReference;
@@ -74,7 +74,7 @@ public class IdentifyWidgetItem implements Serializable {
         Label label = new Label(id,
                 createStringResource("RoleAnalysisIdentifyWidgetPanel.value.title.score"));
         label.setOutputMarkupId(true);
-        label.add(new VisibleBehaviour(() -> getValue() != null));
+        label.add(new VisibleBehaviour(() -> getDescription() != null));
         return label;
     }
 
@@ -96,9 +96,9 @@ public class IdentifyWidgetItem implements Serializable {
 
     }
 
-    public Component createValueComponent(String id) {
-        Label label = new Label(id, getValue());
-        label.add(new VisibleBehaviour(() -> getValue() != null));
+    public Component createDescriptionComponent(String id) {
+        Label label = new Label(id, getDescription());
+        label.add(new VisibleBehaviour(() -> getDescription() != null));
         label.setOutputMarkupId(true);
         return label;
     }
@@ -107,6 +107,7 @@ public class IdentifyWidgetItem implements Serializable {
         Label label = new Label(id, getScore());
         label.add(new VisibleBehaviour(() -> getScore() != null));
         label.setOutputMarkupId(true);
+        label.add(AttributeModifier.append("class", "text-danger"));
         return label;
     }
 
@@ -118,7 +119,7 @@ public class IdentifyWidgetItem implements Serializable {
         return image;
     }
 
-    public IModel<String> getValue() {
+    public IModel<String> getDescription() {
         return value;
     }
 

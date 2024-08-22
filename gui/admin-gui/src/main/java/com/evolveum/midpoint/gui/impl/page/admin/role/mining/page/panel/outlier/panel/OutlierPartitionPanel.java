@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierPartitionTileTable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

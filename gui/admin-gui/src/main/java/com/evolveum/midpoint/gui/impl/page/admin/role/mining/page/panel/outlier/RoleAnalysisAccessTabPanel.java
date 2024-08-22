@@ -8,9 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier
 
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -25,26 +23,25 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPopupPanel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
-public class RoleAnalysisAccessTabPanel extends BasePanel<RoleAnalysisOutlierPartitionType> {
+public class RoleAnalysisAccessTabPanel extends BasePanel<UserAccessDistribution> {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
-    IModel<RoleAnalysisOutlierType> outlierModel;
 
     public RoleAnalysisAccessTabPanel(
             @NotNull String id,
-            @NotNull IModel<RoleAnalysisOutlierPartitionType> partitionModel,
-            @NotNull IModel<RoleAnalysisOutlierType> outlierModel) {
-        super(id, partitionModel);
-        this.outlierModel = outlierModel;
+            @NotNull IModel<UserAccessDistribution> userAccessDistributionIModel) {
+        super(id, userAccessDistributionIModel);
     }
 
     @Override
@@ -81,6 +78,7 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<RoleAnalysisOutlierPar
                         if (target != null) {
                             target.add(findParent(TabbedPanel.class));
                         }
+                        assert target != null;
                         target.add(getPageBase().getFeedbackPanel());
                     }
 
@@ -89,19 +87,16 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<RoleAnalysisOutlierPar
         };
         tabPanel.setOutputMarkupId(true);
         tabPanel.setOutputMarkupPlaceholderTag(true);
-        tabPanel.add(AttributeAppender.append("class", "p-0 pl-2 m-0"));
+        tabPanel.add(AttributeAppender.append("class", "p-0 m-0"));
         container.add(tabPanel);
     }
 
     protected List<ITab> createTabs() {
-        RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
         Task simpleTask = getPageBase().createSimpleTask("loadOutlierDetails");
         OperationResult result = simpleTask.getResult();
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(outlier.getTargetObjectRef().getOid(),
-                simpleTask, result);
 
-        if (userTypeObject == null) {
+        if (getAccessDistributionModel() == null || getAccessDistributionModel().getObject() == null) {
             return new ArrayList<>();
         }
 
@@ -112,22 +107,12 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<RoleAnalysisOutlierPar
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                List<PrismObject<FocusType>> members = new ArrayList<>();
-                UserType user = userTypeObject.asObjectable();
-                List<AssignmentType> assignment = user.getAssignment();
-                for (AssignmentType assignmentType : assignment) {
-                    if (assignmentType.getTargetRef() != null
-                            && assignmentType.getTargetRef().getType() != null
-                            && assignmentType.getTargetRef().getType().equals(RoleType.COMPLEX_TYPE)) {
-                        String oid = assignmentType.getTargetRef().getOid();
-                        PrismObject<FocusType> role = roleAnalysisService.getFocusTypeObject(oid,
-                                simpleTask, result);
-                        members.add(role);
-                    }
-                }
+                UserAccessDistribution object = getAccessDistributionModel().getObject();
+                List<PrismObject<FocusType>> directAssignmentsAsFocusObjects = roleAnalysisService.getAsFocusObjects(
+                        object.getDirectAssignments(), simpleTask, result);
 
                 MembersDetailsPopupPanel membersDetailsPopupPanel = new MembersDetailsPopupPanel(panelId, Model.of("TODO"),
-                        members, RoleAnalysisProcessModeType.ROLE){
+                        directAssignmentsAsFocusObjects, RoleAnalysisProcessModeType.ROLE) {
                     @Override
                     protected boolean showTableAsCard() {
                         return false;
@@ -144,34 +129,11 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<RoleAnalysisOutlierPar
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                List<PrismObject<FocusType>> members = new ArrayList<>();
-                UserType user = userTypeObject.asObjectable();
-                List<AssignmentType> assignment = user.getAssignment();
-                Set<String> assignmentOids = new HashSet<>();
-                for (AssignmentType assignmentType : assignment) {
-                    if (assignmentType.getTargetRef() != null
-                            && assignmentType.getTargetRef().getType() != null
-                            && assignmentType.getTargetRef().getType().equals(RoleType.COMPLEX_TYPE)) {
-                        assignmentOids.add(assignmentType.getTargetRef().getOid());
-                    }
-                }
-                List<ObjectReferenceType> membershipRef = user.getRoleMembershipRef();
-                for (ObjectReferenceType ref : membershipRef) {
-                    if (ref != null
-                            && ref.getType() != null
-                            && ref.getType().equals(RoleType.COMPLEX_TYPE)) {
-                        String oid = ref.getOid();
-                        if (assignmentOids.contains(oid)) {
-                            continue;
-                        }
-                        PrismObject<FocusType> role = roleAnalysisService.getFocusTypeObject(oid,
-                                simpleTask, result);
-                        members.add(role);
-                    }
-                }
-
+                UserAccessDistribution object = getAccessDistributionModel().getObject();
+                List<PrismObject<FocusType>> members = roleAnalysisService.getAsFocusObjects(
+                        object.getIndirectAssignments(), simpleTask, result);
                 MembersDetailsPopupPanel membersDetailsPopupPanel = new MembersDetailsPopupPanel(panelId, Model.of("TODO"),
-                        members, RoleAnalysisProcessModeType.ROLE){
+                        members, RoleAnalysisProcessModeType.ROLE) {
                     @Override
                     protected boolean showTableAsCard() {
                         return false;
@@ -188,26 +150,11 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<RoleAnalysisOutlierPar
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                List<PrismObject<FocusType>> members = new ArrayList<>();
-                RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
-                List<ObjectReferenceType> duplicatedRoleAssignment = outlier.getDuplicatedRoleAssignment();
-                Set<String> duplicatedRoleAssignmentOids = new HashSet<>();
-                for (ObjectReferenceType ref : duplicatedRoleAssignment) {
-                    duplicatedRoleAssignmentOids.add(ref.getOid());
-                }
-
-                RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
-                List<DetectedAnomalyResult> detectedAnomalyResult = partition.getDetectedAnomalyResult();
-                for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
-                    String oid = detectedAnomaly.getTargetObjectRef().getOid();
-                    if (duplicatedRoleAssignmentOids.contains(oid)) {
-                        PrismObject<FocusType> focusTypeObject = roleAnalysisService.getFocusTypeObject(oid, simpleTask, result);
-                        members.add(focusTypeObject);
-                    }
-                }
-
+                UserAccessDistribution object = getAccessDistributionModel().getObject();
+                List<PrismObject<FocusType>> members = roleAnalysisService.getAsFocusObjects(
+                        object.getDuplicates(), simpleTask, result);
                 MembersDetailsPopupPanel membersDetailsPopupPanel = new MembersDetailsPopupPanel(panelId, Model.of("TODO"),
-                        members, RoleAnalysisProcessModeType.ROLE){
+                        members, RoleAnalysisProcessModeType.ROLE) {
                     @Override
                     protected boolean showTableAsCard() {
                         return false;
@@ -221,11 +168,8 @@ public class RoleAnalysisAccessTabPanel extends BasePanel<RoleAnalysisOutlierPar
         return tabs;
     }
 
-    public IModel<RoleAnalysisOutlierType> getOutlierModel() {
-        return outlierModel;
-    }
-
-    private IModel<RoleAnalysisOutlierPartitionType> getPartitionModel() {
+    public IModel<UserAccessDistribution> getAccessDistributionModel() {
         return getModel();
     }
+
 }

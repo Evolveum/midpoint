@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType.SCATTER;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType.getNextChartType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType.SCATTER;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType.getNextChartType;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
@@ -48,8 +48,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.RoleAnalysisAggregateChartModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
@@ -68,6 +68,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -81,7 +82,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
 
-public class RoleAnalysisChartPanel extends BasePanel<String> {
+public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisChartPanel.class);
     private static final String ID_TOOL_FORM = "toolForm";
@@ -145,34 +146,52 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
         toolForm.setOutputMarkupId(true);
         add(toolForm);
 
-        IModel<List<DetailsTableItem>> listIModel = loadDetailsModel(roleAnalysisChart);
+//        IModel<List<DetailsTableItem>> listIModel = loadDetailsModel(roleAnalysisChart);
 
-        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON,
-                LayeredIconCssStyle.IN_ROW_STYLE);
 
-        AjaxCompositedIconSubmitButton settingPanel = new AjaxCompositedIconSubmitButton(ID_SETTING_PANEL, iconBuilder.build(),
-                createStringResource("PageRoleAnalysis.chart.setting.button.title")) {
-            @Serial
-            private static final long serialVersionUID = 1L;
+        AjaxCompositedIconSubmitButton components1 = buildModeButton("settingPanel1", roleAnalysisChart);
+        toolForm.add(components1);
 
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                RoleAnalysisChartSettingPanel roleAnalysisChartSettingPanel = new RoleAnalysisChartSettingPanel(
-                        ((PageBase) getPage()).getMainPopupBodyId(), null, listIModel);
-                ((PageBase) getPage()).showMainPopup(roleAnalysisChartSettingPanel, target);
-            }
+        AjaxCompositedIconSubmitButton components2 = buildScaleButton("settingPanel2", roleAnalysisChart);
+        toolForm.add(components2);
 
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(((PageBase) getPage()).getFeedbackPanel());
-            }
-        };
-        settingPanel.titleAsLabel(true);
-        settingPanel.setOutputMarkupId(true);
-        settingPanel.add(AttributeAppender.append("class", "btn btn-tool"));
-        settingPanel.add(AttributeModifier.replace("title", createStringResource("PageRoleAnalysis.export.button.title")));
-        settingPanel.add(new TooltipBehavior());
-        toolForm.add(settingPanel);
+        AjaxCompositedIconSubmitButton components3 = buildSortButton("settingPanel3", roleAnalysisChart);
+        toolForm.add(components3);
+
+        AjaxCompositedIconSubmitButton components4 = buildChartTypeButton("settingPanel4", roleAnalysisChart);
+        toolForm.add(components4);
+
+//        RoleAnalysisChartSettingPanel roleAnalysisChartSettingPanel = new RoleAnalysisChartSettingPanel(
+//                ID_SETTING_PANEL, null, listIModel);
+//        roleAnalysisChartSettingPanel.setOutputMarkupId(true);
+//        add(roleAnalysisChartSettingPanel);
+
+//        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON,
+//                LayeredIconCssStyle.IN_ROW_STYLE);
+
+//        AjaxCompositedIconSubmitButton settingPanel = new AjaxCompositedIconSubmitButton(ID_SETTING_PANEL, iconBuilder.build(),
+//                createStringResource("PageRoleAnalysis.chart.setting.button.title")) {
+//            @Serial
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void onSubmit(AjaxRequestTarget target) {
+//                RoleAnalysisChartSettingPanel roleAnalysisChartSettingPanel = new RoleAnalysisChartSettingPanel(
+//                        ((PageBase) getPage()).getMainPopupBodyId(), null, listIModel);
+//                ((PageBase) getPage()).showMainPopup(roleAnalysisChartSettingPanel, target);
+//            }
+//
+//            @Override
+//            protected void onError(AjaxRequestTarget target) {
+//                target.add(((PageBase) getPage()).getFeedbackPanel());
+//            }
+//        };
+//        settingPanel.titleAsLabel(true);
+//        settingPanel.setOutputMarkupId(true);
+//        settingPanel.add(AttributeAppender.append("class", "btn btn-tool"));
+//        settingPanel.add(AttributeModifier.replace("title", createStringResource("PageRoleAnalysis.export.button.title")));
+//        settingPanel.add(new TooltipBehavior());
+//        toolForm.add(settingPanel);
 
         initExportButton(toolForm);
 
@@ -676,4 +695,36 @@ public class RoleAnalysisChartPanel extends BasePanel<String> {
 
         return Model.ofList(detailsModel);
     }
+
+    @Override
+    public int getWidth() {
+        return 80;
+    }
+
+    @Override
+    public int getHeight() {
+        return 80;
+    }
+
+    @Override
+    public String getWidthUnit() {
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit() {
+        return "%";
+    }
+
+    @Override
+    public IModel<String> getTitle() {
+        return null;
+    }
+
+    @Override
+    public Component getContent() {
+        return this;
+    }
+
+
 }
