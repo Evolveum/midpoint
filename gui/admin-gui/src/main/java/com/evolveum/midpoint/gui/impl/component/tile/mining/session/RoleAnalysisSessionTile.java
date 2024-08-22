@@ -38,6 +38,8 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
     ObjectReferenceType taskRef;
     String stateString;
 
+    private double possibleReductionPercentage;
+
     public RoleAnalysisSessionTile(String icon, String title) {
         super(icon, title);
     }
@@ -89,6 +91,17 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
 
         resolveStatus(pageBase);
 
+        calculatePossibleReduction(session, pageBase);
+
+    }
+
+    private void calculatePossibleReduction(@NotNull RoleAnalysisSessionType session, @NotNull PageBase pageBase) {
+        if(category != RoleAnalysisCategoryType.OUTLIERS){
+            RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+            Task task = pageBase.createSimpleTask("calculatePossibleAssignmentReduction");
+            OperationResult result = task.getResult();
+            this.possibleReductionPercentage = roleAnalysisService.calculatePossibleAssignmentReduction(session, task, result);
+        }
     }
 
     private void resolveStatus(@NotNull PageBase pageBase) {
@@ -211,6 +224,10 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
 
     public void setStateString(String stateString) {
         this.stateString = stateString;
+    }
+
+    public double getPossibleReductionPercentage() {
+        return possibleReductionPercentage;
     }
 
 }

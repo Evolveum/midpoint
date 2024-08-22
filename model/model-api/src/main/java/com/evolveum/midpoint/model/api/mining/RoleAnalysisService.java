@@ -1095,4 +1095,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
+    double calculatePossibleAssignmentReduction(RoleAnalysisSessionType session,Task task, OperationResult result);
+
 }

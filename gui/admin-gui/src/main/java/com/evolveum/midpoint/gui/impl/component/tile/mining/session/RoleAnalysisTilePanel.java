@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.tile.mining.session;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.reductionBasedColor;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
 import java.io.Serial;
@@ -81,7 +82,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
         initDescriptionPanel();
 
-        initDensityProgressPanel(getModelObject().getDensity());
+        initDensityProgressPanel();
 
         initProcessModePanel();
 
@@ -211,21 +212,28 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         return (WebMarkupContainer) get(ID_ICON);
     }
 
-    private void initDensityProgressPanel(Double meanDensity) {
-        if (meanDensity == null) {
-            WebMarkupContainer progressBar = new WebMarkupContainer(RoleAnalysisTilePanel.ID_DENSITY);
-            progressBar.setVisible(false);
-            add(progressBar);
-            return;
+    private void initDensityProgressPanel() {
+
+        double meanDensity;
+        String colorClass;
+        String title;
+        RoleAnalysisCategoryType category = getModelObject().getCategory();
+        if (!category.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            title = "Possible reduction";
+            meanDensity = getModelObject().getPossibleReductionPercentage();
+            colorClass = reductionBasedColor(meanDensity);
+        } else {
+            title = "Density";
+            meanDensity = getModelObject().getDensity();
+            colorClass = densityBasedColor(meanDensity);
         }
 
-        String colorClass = densityBasedColor(meanDensity);
-
+        double finalMeanDensity = meanDensity;
         ProgressBar progressBar = new ProgressBar(RoleAnalysisTilePanel.ID_DENSITY) {
 
             @Override
             public double getActualValue() {
-                return meanDensity;
+                return finalMeanDensity;
             }
 
             @Override
@@ -235,11 +243,11 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
             @Override
             public String getBarTitle() {
-                return "Density";
+                return title;
             }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace("title", () -> "Density: " + meanDensity));
+        progressBar.add(AttributeModifier.replace("title", () -> "Density: " + finalMeanDensity));
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }
