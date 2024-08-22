@@ -24,6 +24,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -169,7 +170,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                     return name;
                 };
 
-                return new TitleWithMarks(componentId, title, () -> createRealMarksList(rowModel)) {
+                return new TitleWithMarks(componentId, title, createObjectMarksModel(rowModel)) {
 
                     @Override
                     protected AbstractLink createTitleLinkComponent(String id) {
@@ -189,7 +190,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
                     @Override
                     protected IModel<String> createSecondaryMarksList() {
-                        return () -> createAssignmentMarksList(rowModel);
+                        return createAssignmentMarksModel(rowModel);
                     }
 
                     @Override
@@ -211,35 +212,47 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         };
     }
 
-    private String createAssignmentMarksList(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-        AssignmentType assignment = rowModel.getObject().getRealValue();
-        if (assignment == null) {
-            return "";
-        }
+    private IModel<String> createAssignmentMarksModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+        return new LoadableDetachableModel<>() {
 
-        List<ObjectReferenceType> refs = assignment.getEffectiveMarkRef();
-        return WebComponentUtil.createMarkList(refs, getPageBase());
+            @Override
+            protected String load() {
+                AssignmentType assignment = rowModel.getObject().getRealValue();
+                if (assignment == null) {
+                    return "";
+                }
+
+                List<ObjectReferenceType> refs = assignment.getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
+            }
+        };
     }
 
-    private String createRealMarksList(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-        AssignmentType assignment = rowModel.getObject().getRealValue();
-        if (assignment == null) {
-            return null;
-        }
+    private IModel<String> createObjectMarksModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+        return new LoadableModel<>() {
 
-        if (assignment.getTargetRef() == null) {
-            return null;
-        }
+            @Override
+            protected String load() {
+                AssignmentType assignment = rowModel.getObject().getRealValue();
+                if (assignment == null) {
+                    return null;
+                }
 
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ);
-        PrismObject<? extends ObjectType> target =
-                WebModelServiceUtils.loadObject(assignment.getTargetRef(), true, getPageBase(), task, task.getResult());
-        if (target == null) {
-            return null;
-        }
+                if (assignment.getTargetRef() == null) {
+                    return null;
+                }
 
-        List<ObjectReferenceType> refs = target.asObjectable().getEffectiveMarkRef();
-        return WebComponentUtil.createMarkList(refs, getPageBase());
+                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ);
+                PrismObject<? extends ObjectType> target =
+                        WebModelServiceUtils.loadObject(assignment.getTargetRef(), true, getPageBase(), task, task.getResult());
+                if (target == null) {
+                    return null;
+                }
+
+                List<ObjectReferenceType> refs = target.asObjectable().getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
+            }
+        };
     }
 
     @Override
