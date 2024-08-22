@@ -334,7 +334,7 @@ The widget can be configured in the _systemConfiguration -> adminGuiConfiguratio
 [source,xml]
 ----
             <widget>
-                <identifier>dashboardCertItems</identifier>
+                <identifier>myCertificationItems</identifier>
                 <display>
                     <label>
                         <t:orig>Certification items</t:orig>
@@ -348,7 +348,7 @@ The widget can be configured in the _systemConfiguration -> adminGuiConfiguratio
                     </icon>
                 </display>
                 <displayOrder>50</displayOrder>
-                <panelType>dashboardCertItems</panelType>
+                <panelType>myCertificationItems</panelType>
                 <previewSize>5</previewSize>
                 <action>
                     <identifier>viewAll</identifier>

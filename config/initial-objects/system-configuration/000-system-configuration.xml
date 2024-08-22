@@ -429,6 +429,42 @@
                     </target>
                 </action>
             </widget>
+            <widget id="268">
+                <identifier>myCertificationItems</identifier>
+                <display>
+                    <label>
+                        <orig>Certification items</orig>
+                        <norm>certification items</norm>
+                        <translation>
+                            <key>PageCertItems.title</key>
+                        </translation>
+                    </label>
+                    <icon>
+                        <cssClass>fa fa-certificate</cssClass>
+                    </icon>
+                </display>
+                <displayOrder>50</displayOrder>
+                <panelType>myCertificationItems</panelType>
+                <previewSize>5</previewSize>
+                <action>
+                    <identifier>viewAll</identifier>
+                    <display>
+                        <label>
+                            <orig>View all</orig>
+                            <norm>view all</norm>
+                            <translation>
+                                <key>PageSelfDashboard.button.viewAll</key>
+                            </translation>
+                        </label>
+                        <icon>
+                            <cssClass>fa fa-search</cssClass>
+                        </icon>
+                    </display>
+                    <target>
+                        <targetUrl>/admin/certification/myActiveCampaigns</targetUrl>
+                    </target>
+                </action>
+            </widget>
         </homePage>
         <objectCollectionViews>
             <objectCollectionView id="40">
