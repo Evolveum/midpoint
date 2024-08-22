@@ -73,6 +73,11 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
     }
 
     @Override
+    protected String getDescriptionForTile(@NotNull AnalysisCategory type) {
+        return createStringResource(type.getDescriptionKey()).getString();
+    }
+
+    @Override
     protected void onInitialize() {
         super.onInitialize();
     }
