@@ -499,6 +499,12 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                 return false;
             }
 
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getPanelContainerCssClass() {
+                return "p-0 h-100 border-top w-100";
+            }
+
             @SuppressWarnings("rawtypes")
             @Override
             protected @NotNull Component getPanelComponent(String id) {
@@ -574,7 +580,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                 int finalIndirectAssignment = indirectAssignment;
                 int finalDuplicatedRoleAssignmentCount = duplicatedRoleAssignmentCount;
                 return new RoleAnalysisAccessDistributionPanel(id) { //TODO create model - this overriding is not very good. might be oneliner when the model is properly created
-
                     @Override
                     protected String getCount() {
                         return String.valueOf(allAssignmentCount);
