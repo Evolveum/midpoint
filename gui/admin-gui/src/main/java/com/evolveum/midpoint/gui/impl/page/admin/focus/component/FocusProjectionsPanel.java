@@ -304,7 +304,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
             @Override
             protected Component createComponent(String componentId, IModel<String> labelModel, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                return new TitleWithMarks(componentId, labelModel, () -> createRealMarksList(rowModel)) {
+                return new TitleWithMarks(componentId, labelModel, createRealMarksList(rowModel)) {
 
                     @Override
                     protected AbstractLink createTitleLinkComponent(String id) {
@@ -321,14 +321,20 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         };
     }
 
-    private String createRealMarksList(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-        ShadowType shadow = rowModel.getObject().getRealValue();
-        if (shadow == null) {
-            return "";
-        }
+    private IModel<String> createRealMarksList(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+        return new LoadableDetachableModel<>() {
 
-        List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
-        return WebComponentUtil.createMarkList(refs, getPageBase());
+            @Override
+            protected String load() {
+                ShadowType shadow = rowModel.getObject().getRealValue();
+                if (shadow == null) {
+                    return "";
+                }
+
+                List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
+            }
+        };
     }
 
     private IModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {

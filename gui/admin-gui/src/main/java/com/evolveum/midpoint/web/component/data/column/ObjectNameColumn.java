@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,8 +47,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
 
     @Override
     protected Component createComponent(String componentId, IModel<String> labelModel, IModel<SelectableBean<O>> rowModel) {
-        IModel<String> realMarksModel = () -> createRealMarksList(rowModel.getObject());
-        return new TitleWithMarks(componentId, labelModel, realMarksModel) {
+        return new TitleWithMarks(componentId, labelModel, createRealMarksList(rowModel.getObject())) {
 
             @Override
             protected void onTitleClicked() {
@@ -66,14 +66,20 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
         };
     }
 
-    private String createRealMarksList(SelectableBean<O> bean) {
-        O object = bean.getValue();
-        if (object == null) {
-            return null;
-        }
+    private IModel<String> createRealMarksList(SelectableBean<O> bean) {
+        return new LoadableDetachableModel<>() {
 
-        List<ObjectReferenceType> refs = object.getEffectiveMarkRef();
-        return WebComponentUtil.createMarkList(refs, getPageBase());
+            @Override
+            protected String load() {
+                O object = bean.getValue();
+                if (object == null) {
+                    return null;
+                }
+
+                List<ObjectReferenceType> refs = object.getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
+            }
+        };
     }
 
     protected void onClick(IModel<SelectableBean<O>> rowModel) {
