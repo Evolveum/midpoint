@@ -8,23 +8,20 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import java.io.Serial;
 import java.util.List;
-import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
@@ -38,7 +35,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
     }
 
     public ObjectNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression, PageBase pageBase) {
-        super(displayModel, ObjectType.F_NAME.getLocalPart(),  customColumn, expression, pageBase);
+        super(displayModel, ObjectType.F_NAME.getLocalPart(), customColumn, expression, pageBase);
     }
 
     @Override
@@ -61,20 +58,12 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
             protected boolean isTitleLinkEnabled() {
                 return ObjectNameColumn.this.isClickable(rowModel);
             }
+
+            @Override
+            protected IModel<String> createPrimaryMarksTitle() {
+                return createStringResource("ObjectNameColumn.objectMarks");
+            }
         };
-//        return new LinkPanel(componentId, labelModel) {
-//            @Serial private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick() {
-//                ObjectNameColumn.this.onClick(rowModel);
-//            }
-//
-//            @Override
-//            public boolean isEnabled() {
-//                return ObjectNameColumn.this.isClickable(rowModel);
-//            }
-//        };
     }
 
     private String createRealMarksList(SelectableBean<O> bean) {
@@ -84,13 +73,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractNameColumn<S
         }
 
         List<ObjectReferenceType> refs = object.getEffectiveMarkRef();
-        Object[] marks = refs.stream()
-                .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
-                .filter(Objects::nonNull)
-                .map(WebComponentUtil::getDisplayNameOrName)
-                .toArray();
-
-        return StringUtils.joinWith(", ", marks);
+        return WebComponentUtil.createMarkList(refs, getPageBase());
     }
 
     protected void onClick(IModel<SelectableBean<O>> rowModel) {

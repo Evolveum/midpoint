@@ -14,16 +14,16 @@
             <i wicket:id="icon"/>
         </a>
     </div>
-    <wicket:enclosure child="realMarks">
+    <wicket:enclosure child="primaryMarks">
         <div class="text-sm">
-            <i class="fa-solid fa-tag text-success mr-1" wicket:message="title:TitleWithMarks.realMarks"/>
-            <span class="text-secondary text-truncate" wicket:id="realMarks"/>
+            <i class="fa-solid fa-tag text-success mr-1"/>
+            <span class="text-secondary text-truncate" wicket:id="primaryMarks"/>
         </div>
     </wicket:enclosure>
-    <wicket:enclosure child="processedMarks">
+    <wicket:enclosure child="secondaryMarks">
         <div class="text-sm">
-            <i class="fa-solid fa-tag text-info mr-1" wicket:message="title:TitleWithMarks.processedMarks"/>
-            <span class="text-secondary text-truncate" wicket:id="processedMarks"/>
+            <i class="fa-solid fa-tag text-info mr-1"/>
+            <span class="text-secondary text-truncate" wicket:id="secondaryMarks"/>
         </div>
     </wicket:enclosure>
 </wicket:panel>
