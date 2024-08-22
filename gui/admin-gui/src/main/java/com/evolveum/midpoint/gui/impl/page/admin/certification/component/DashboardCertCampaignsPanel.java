@@ -29,7 +29,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import java.io.Serial;
 import java.util.List;
 
-@PanelType(name = "dashboardCertItems")
+@PanelType(name = "myCertificationItems")
 public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertificationCampaignType> {
 
     @Serial private static final long serialVersionUID = 1L;
