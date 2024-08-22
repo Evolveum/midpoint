@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -290,8 +291,14 @@ public class AssignmentsUtil {
             for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
                 sb.append("Assignment relation");
                 List<QName> holders = assignmentRelation.getHolderType();
+                String[] translated = holders.stream()
+                        .map(q -> {
+                            ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQNameIfKnown(q);
+                            return ot != null ? LocalizationUtil.translateEnum(ot) : q.getLocalPart();
+                        }).toArray(String[]::new);
+
                 if (!holders.isEmpty()) {
-                    sb.append(": ").append(holders.iterator().next());
+                    sb.append(": ").append(StringUtils.joinWith(",", translated));
                 }
 
             }

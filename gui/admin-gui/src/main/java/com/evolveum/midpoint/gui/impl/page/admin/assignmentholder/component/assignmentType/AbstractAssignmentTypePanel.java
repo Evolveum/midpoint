@@ -238,7 +238,8 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                     return null;
                 }
 
-                if (assignment.getTargetRef() == null) {
+                ObjectReferenceType targetRef = assignment.getTargetRef();
+                if (targetRef == null || targetRef.getOid() == null || targetRef.getType() == null) {
                     return null;
                 }
 

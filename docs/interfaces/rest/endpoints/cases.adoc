@@ -67,7 +67,6 @@ User can fill in outcome and other fields. Outcome is mandatory:
 
 * Approve `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#approve`
 * Reject `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#reject`
-* Skip `http://midpoint.evolveum.com/xml/ns/public/model/approval/outcome#skip`
 
 .*Complete work item*
 [source,bash]
