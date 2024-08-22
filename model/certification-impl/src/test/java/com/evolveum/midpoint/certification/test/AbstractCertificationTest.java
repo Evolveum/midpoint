@@ -119,6 +119,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     public static final File ARCHETYPE_CERTIFICATION_REMEDIATION = new File(COMMON_DIR, "archetype-remediation.xml");
     public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE = new File(COMMON_DIR, "archetype-campaign-next-stage.xml");
     public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_START = new File(COMMON_DIR, "archetype-campaign-start-campaign.xml");
+    public static final File ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE = new File(COMMON_DIR, "archetype-campaign-close-current-stage.xml");
 
     // report columns: certification definitions
     static final int C_DEF_NAME = 0;
@@ -209,6 +210,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_REMEDIATION, ArchetypeType.class, initResult);
         repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE, ArchetypeType.class, initResult);
         repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_START, ArchetypeType.class, initResult);
+        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE, ArchetypeType.class, initResult);
 
         // roles
         repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
@@ -840,6 +842,22 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
                         && task.asObjectable().getActivity().getWork().getCertificationRemediation() != null
                         && task.asObjectable().getActivity().getWork().getCertificationRemediation().getCertificationCampaignRef() != null
                         && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationRemediation().getCertificationCampaignRef().getOid())
+        ).toList();
+    }
+
+    protected List<PrismObject<TaskType>> getCloseStageTask(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE_TASK.value(), startTime, campaignOid);
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE_TASK.value(), startTime);
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task ->
+                task.asObjectable().getActivity() != null
+                        && task.asObjectable().getActivity().getWork() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationCloseCurrentStage() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationCloseCurrentStage().getCertificationCampaignRef() != null
+                        && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationCloseCurrentStage().getCertificationCampaignRef().getOid())
         ).toList();
     }
 

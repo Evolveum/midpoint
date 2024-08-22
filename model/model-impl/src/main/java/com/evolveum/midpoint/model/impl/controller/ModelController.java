@@ -2530,7 +2530,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerRequired().closeCurrentStage(campaignOid, task, parentResult);
+        getCertificationManagerRequired().closeCurrentStageTask(campaignOid, task, parentResult);
     }
 
     @Override

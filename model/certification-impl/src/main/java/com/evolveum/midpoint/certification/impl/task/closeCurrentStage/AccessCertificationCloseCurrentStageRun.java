@@ -5,7 +5,33 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.certification.impl.task.openNextStage;
+package com.evolveum.midpoint.certification.impl.task.closeCurrentStage;
+
+import static com.evolveum.midpoint.certification.api.OutcomeUtils.*;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAccessCertificationDefinitionType.F_LAST_CAMPAIGN_STARTED_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType.F_END_TIMESTAMP;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.common.Clock;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.*;
@@ -15,7 +41,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypedObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.run.*;
@@ -30,54 +55,37 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.certification.api.OutcomeUtils.*;
-import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAccessCertificationDefinitionType.F_LAST_CAMPAIGN_STARTED_TIMESTAMP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 
 /**
  * Execution of a certification campaign creation.
  */
-public final class AccessCertificationOpenNextStageRun
+public final class AccessCertificationCloseCurrentStageRun
         extends SearchBasedActivityRun
-        <AccessCertificationCaseType, AccessCertificationOpenNextStageWorkDefinition,
-                AccessCertificationOpenNextStageActivityHandler,
+        <AccessCertificationCaseType, AccessCertificationCloseCurrentStageWorkDefinition,
+                AccessCertificationCloseCurrentStageActivityHandler,
                 AbstractActivityWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationOpenNextStageRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseCurrentStageRun.class);
 
-
-//    private String campaignOid;
+    private List<AccessCertificationResponseType> outcomesToStopOn;
     private AccessCertificationCampaignType campaign;
     private int iteration;
-    private AccessCertificationStageType stage;
-    private int stageToBe;
-
     private ObjectQuery query;
-    private CertificationHandler handler;
-    private AccessCertificationReviewerSpecificationType reviewerSpec;
-    private int casesEnteringStage;
-//    private AccessCertificationStageType stage;
+    private AccessCertificationStageType stage;
+    private XMLGregorianCalendar now;
+////    private String campaignOid;
 
-    AccessCertificationOpenNextStageRun(
-            @NotNull ActivityRunInstantiationContext<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler> context) {
+
+//    private AccessCertificationStageType stage;
+//    private int stageToBe;
+//
+//    private CertificationHandler handler;
+//    private AccessCertificationReviewerSpecificationType reviewerSpec;
+//    private int casesEnteringStage;
+
+
+    AccessCertificationCloseCurrentStageRun(
+            @NotNull ActivityRunInstantiationContext<AccessCertificationCloseCurrentStageWorkDefinition, AccessCertificationCloseCurrentStageActivityHandler> context) {
         super(context, "");
         setInstanceReady();
     }
@@ -91,72 +99,90 @@ public final class AccessCertificationOpenNextStageRun
 
     @Override
     public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
-        //campaignoid; TODO nacitat vsetky objekty, ktore budem potrebovat, asi aj resolvnutie handlera
         String campaignOid = getWorkDefinition().getCertificationCampaignRef().getOid();
-        //TODO is repository service OK here?
-        casesEnteringStage = 0;
         campaign = getBeans().repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result).asObjectable();
-        handler = getActivityHandler().getCertificationManager().findCertificationHandler(campaign);
-
+        outcomesToStopOn = getActivityHandler().getComputationHelper().getOutcomesToStopOn(campaign);
         iteration = norm(campaign.getIteration());
-        int requestedStageNumber = campaign.getStageNumber() + 1;
-        stage = createStage(campaign, requestedStageNumber);
-        stageToBe = stage.getNumber();
-
-
-        String campaignShortName = toShortString(campaign);
-        AccessCertificationScopeType scope = campaign.getScopeDefinition();
-        LOGGER.trace("Creating cases for scope {} in campaign {}", scope, campaignShortName);
-        if (scope != null && !(scope instanceof AccessCertificationObjectBasedScopeType)) {
-            throw new IllegalStateException("Unsupported access certification scope type: " + scope.getClass() + " for campaign " + campaignShortName);
-        }
-
         query = prepareObjectQuery();
 
-        //TODO coppied from findReviewersSpecification. is stage 1 ok?
-        reviewerSpec = CertCampaignTypeUtil.findStageDefinition(campaign, stageToBe)
-                .getReviewerSpecification();
-//        reviewersHelper.findReviewersSpecification(campaign, 1);
+        stage = CertCampaignTypeUtil.findStage(campaign, campaign.getStageNumber());
+        now = getActivityHandler().getModelBeans().clock.currentTimeXMLGregorianCalendar();
+//        //TODO is repository service OK here?
+//        casesEnteringStage = 0;
 
-//        AccCertOpenerHelper.OpeningContext openingContext = new AccCertOpenerHelper.OpeningContext();
+//        handler = getActivityHandler().getCertificationManager().findCertificationHandler(campaign);
+//
+//        int requestedStageNumber = campaign.getStageNumber() + 1;
+//        stage = createStage(campaign, requestedStageNumber);
+//        stageToBe = stage.getNumber();
+//
+//
+//        String campaignShortName = toShortString(campaign);
+//        AccessCertificationScopeType scope = campaign.getScopeDefinition();
+//        LOGGER.trace("Creating cases for scope {} in campaign {}", scope, campaignShortName);
+//        if (scope != null && !(scope instanceof AccessCertificationObjectBasedScopeType)) {
+//            throw new IllegalStateException("Unsupported access certification scope type: " + scope.getClass() + " for campaign " + campaignShortName);
+//        }
+//
+
+//
+//        //TODO coppied from findReviewersSpecification. is stage 1 ok?
+//        reviewerSpec = CertCampaignTypeUtil.findStageDefinition(campaign, stageToBe)
+//                .getReviewerSpecification();
+////        reviewersHelper.findReviewersSpecification(campaign, 1);
+//
+////        AccCertOpenerHelper.OpeningContext openingContext = new AccCertOpenerHelper.OpeningContext();
         super.beforeRun(result);
     }
 
     @Override
     public void afterRun(OperationResult result) throws CommonException, ActivityRunException {
 
-        int stageNumber = campaign.getStageNumber();
-        int newStageNumber = stage.getNumber();
-
-        ModificationsToExecute rv = new ModificationsToExecute();
-        rv.add(createStageAddDelta(stage));
-        rv.add(createDeltasToRecordStageOpen(campaign, stage));
-        rv.add(getActivityHandler().getUpdateHelper().getDeltasToCreateTriggersForTimedActions(campaign.getOid(), 0,
-                XmlTypeConverter.toDate(stage.getStartTimestamp()), XmlTypeConverter.toDate(stage.getDeadline()),
-                CertCampaignTypeUtil.findStageDefinition(campaign, newStageNumber).getTimedActions()));
-
-        boolean skipEmptyStages = norm(campaign.getIteration()) > 1;
-//        if (!skipEmptyStages || casesEnteringStage > 0) {
-            getActivityHandler().getUpdateHelper().modifyCampaignPreAuthorized(campaign.getOid(), rv, getRunningTask(), result);
-//        }
-
-        Task task = getRunningTask();
-        AccCertEventHelper eventHelper = getActivityHandler().getEventHelper();
-        eventHelper.onCampaignStageStart(campaign, task, result);
-
+        Collection<ItemDelta<?, ?>> deltas  = new ArrayList<>();
         AccCertUpdateHelper updateHelper = getActivityHandler().getUpdateHelper();
-        updateHelper.notifyReviewers(campaign, false, task, result);
+        deltas.add(updateHelper.createStateDelta(REVIEW_STAGE_DONE));
+        Long stageId = stage.asPrismContainerValue().getId();
+        assert stageId != null;
+        deltas.add(PrismContext.get().deltaFor(AccessCertificationCampaignType.class)
+                .item(F_STAGE, stageId, F_END_TIMESTAMP).replace(now)
+                .asItemDelta());
 
-        if (stage.getNumber() == 1 && norm(campaign.getIteration()) == 1 && campaign.getDefinitionRef() != null) {
-            List<ItemDelta<?,?>> deltas = PrismContext.get().deltaFor(AccessCertificationDefinitionType.class)
-                    .item(F_LAST_CAMPAIGN_STARTED_TIMESTAMP).replace(getActivityHandler().getModelBeans().clock.currentTimeXMLGregorianCalendar())
-                    .asItemDeltas();
-            updateHelper.modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
-        }
+        deltas.add(updateHelper.createTriggerDeleteDelta());
+        updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaign.getOid(), deltas, getRunningTask(), result);
 
-//            afterStageOpen(campaign.getOid(), stage, task, result);       // notifications, bookkeeping, ...
-//            return;
+        getActivityHandler().getEventHelper().onCampaignStageEnd(campaign, getRunningTask(), result);
+//        int stageNumber = campaign.getStageNumber();
+//        int newStageNumber = stage.getNumber();
+//
+//        ModificationsToExecute rv = new ModificationsToExecute();
+//        rv.add(createStageAddDelta(stage));
+//        rv.add(createDeltasToRecordStageOpen(campaign, stage));
+//        rv.add(getActivityHandler().getUpdateHelper().getDeltasToCreateTriggersForTimedActions(campaign.getOid(), 0,
+//                XmlTypeConverter.toDate(stage.getStartTimestamp()), XmlTypeConverter.toDate(stage.getDeadline()),
+//                CertCampaignTypeUtil.findStageDefinition(campaign, newStageNumber).getTimedActions()));
+//
+//        boolean skipEmptyStages = norm(campaign.getIteration()) > 1;
+////        if (!skipEmptyStages || casesEnteringStage > 0) {
+//            getActivityHandler().getUpdateHelper().modifyCampaignPreAuthorized(campaign.getOid(), rv, getRunningTask(), result);
+////        }
+//
+//        Task task = getRunningTask();
+//        AccCertEventHelper eventHelper = getActivityHandler().getEventHelper();
+//        eventHelper.onCampaignStageStart(campaign, task, result);
+//
+//        AccCertUpdateHelper updateHelper = getActivityHandler().getUpdateHelper();
+//        updateHelper.notifyReviewers(campaign, false, task, result);
+//
+//        if (stage.getNumber() == 1 && norm(campaign.getIteration()) == 1 && campaign.getDefinitionRef() != null) {
+//            List<ItemDelta<?,?>> deltas = PrismContext.get().deltaFor(AccessCertificationDefinitionType.class)
+//                    .item(F_LAST_CAMPAIGN_STARTED_TIMESTAMP).replace(getActivityHandler().getModelBeans().clock.currentTimeXMLGregorianCalendar())
+//                    .asItemDeltas();
+//            updateHelper.modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
 //        }
+//
+////            afterStageOpen(campaign.getOid(), stage, task, result);       // notifications, bookkeeping, ...
+////            return;
+////        }
 
 
         super.afterRun(result);
@@ -302,49 +328,53 @@ public final class AccessCertificationOpenNextStageRun
 
     @Override
     public boolean processItem(@NotNull AccessCertificationCaseType item, @NotNull ItemProcessingRequest<AccessCertificationCaseType> request, RunningTask workerTask, OperationResult result) throws CommonException, ActivityRunException {
-        AccCertResponseComputationHelper computationHelper = getActivityHandler().getComputationHelper();
-        AccCertReviewersHelper reviewersHelper = getActivityHandler().getReviewersHelper();
-
-        LOGGER.trace("----------------------------------------------------------------------------------------");
-        LOGGER.trace("Considering case: {}", item);
-        Long caseId = item.asPrismContainerValue().getId();
-        assert caseId != null;
+        long caseId = item.getId();
         if (item.getReviewFinishedTimestamp() != null) {
-            LOGGER.trace("Case {} review process has already finished", caseId);
+            LOGGER.trace("Review process of case {} has already finished, skipping to the next one", caseId);
             return true;
         }
-        AccessCertificationResponseType stageOutcome = computationHelper.getStageOutcome(item, stageToBe);
-        if (OutcomeUtils.normalizeToNull(stageOutcome) != null) {
-            LOGGER.trace("Case {} already has an outcome for stage {} - it will not be reviewed in this stage in iteration {}",
-                    caseId, stageToBe, iteration);
-            return true;
+        Clock clock = getActivityHandler().getModelBeans().clock;
+        LOGGER.trace("Updating current outcome for case {}", caseId);
+        AccCertResponseComputationHelper computationHelper = getActivityHandler().getComputationHelper();
+        AccessCertificationResponseType newStageOutcome = computationHelper.computeOutcomeForStage(item, campaign, campaign.getStageNumber());
+        String newStageOutcomeUri = toUri(newStageOutcome);
+        String newOverallOutcomeUri = toUri(computationHelper.computeOverallOutcome(item, campaign, campaign.getStageNumber(), newStageOutcome));
+        List<ItemDelta<?, ?>> deltas = new ArrayList<>(
+                PrismContext.get().deltaFor(AccessCertificationCampaignType.class)
+                        .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(newStageOutcomeUri)
+                        .item(F_CASE, caseId, F_OUTCOME).replace(newOverallOutcomeUri)
+                        .item(F_CASE, caseId, F_EVENT).add(
+                                new StageCompletionEventType()
+                                        .timestamp(clock.currentTimeXMLGregorianCalendar())
+                                        .stageNumber(campaign.getStageNumber())
+                                        .iteration(campaign.getIteration())
+                                        .outcome(newStageOutcomeUri))
+                        .asItemDeltas());
+        LOGGER.trace("Stage outcome = {}, overall outcome = {}", newStageOutcome, newOverallOutcomeUri);
+        if (outcomesToStopOn.contains(newStageOutcome)) {
+            deltas.add(PrismContext.get().deltaFor(AccessCertificationCampaignType.class)
+                    .item(F_CASE, caseId, F_REVIEW_FINISHED_TIMESTAMP).replace(now)
+                    .asItemDelta());
+            LOGGER.debug("Marking case {} as review-finished because stage outcome = {}", caseId, newStageOutcome);
         }
 
-        List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(item, campaign, reviewerSpec, getRunningTask(), result);
-        List<AccessCertificationWorkItemType> workItems = createWorkItems(reviewers, stageToBe, iteration, item);
-
-//        openingContext.workItemsCreated += workItems.size();
-        casesEnteringStage++;
-
-        item.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(workItems));
-        AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(item, campaign, stageToBe);
-        AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(item, campaign, stageToBe, currentStageOutcome);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Computed: reviewers: {}, workItems: {}, currentStageOutcome: {}, overallOutcome: {}",
-                    PrettyPrinter.prettyPrint(reviewers), workItems.size(), currentStageOutcome, overallOutcome);
+//        ObjectQuery query = CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid());
+//        List<AccessCertificationWorkItemType> openWorkItems = queryHelper.searchOpenWorkItems(query, false, result);
+        List<AccessCertificationWorkItemType> openWorkItems = item.getWorkItem().stream().filter(wi -> isWorkItemOpen(wi)).toList();
+        LOGGER.debug("There are {} open work items for {}", openWorkItems.size(), ObjectTypeUtil.toShortString(campaign));
+        for (AccessCertificationWorkItemType workItem : openWorkItems) {
+            deltas.add(PrismContext.get().deltaFor(AccessCertificationCampaignType.class)
+                            .item(F_CASE, item.getId(), F_WORK_ITEM, workItem.getId(), F_CLOSE_TIMESTAMP)
+                            .replace(now)
+                            .asItemDelta());
         }
-        List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(AccessCertificationCampaignType.class)
-                .item(F_CASE, caseId, F_WORK_ITEM).add(PrismContainerValue.toPcvList(workItems))
-                .item(F_CASE, caseId, F_CURRENT_STAGE_CREATE_TIMESTAMP).replace(stage.getStartTimestamp())
-                .item(F_CASE, caseId, F_CURRENT_STAGE_DEADLINE).replace(stage.getDeadline())
-                .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(toUri(currentStageOutcome))
-                .item(F_CASE, caseId, F_OUTCOME).replace(toUri(overallOutcome))
-                .item(F_CASE, caseId, F_STAGE_NUMBER).replace(stageToBe)
-                .item(F_CASE, caseId, F_ITERATION).replace(iteration)
-                .asItemDeltas();
 
-        getActivityHandler().getUpdateHelper().modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaign.getOid(), modifications, getRunningTask(), result);
+        getActivityHandler().getUpdateHelper().modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaign.getOid(), deltas, getRunningTask(), result);
         return true;
+    }
+
+    private boolean isWorkItemOpen(AccessCertificationWorkItemType workItem) {
+        return workItem.getCloseTimestamp() == null && (workItem.getOutput() == null || workItem.getOutput().getOutcome() == null);
     }
 
     private List<AccessCertificationWorkItemType> createWorkItems(

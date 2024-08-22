@@ -248,7 +248,7 @@ public final class AccessCertificationStartCampaignRun
 
     //    @Override
 //    protected @NotNull ActivityRunResult runLocally(OperationResult result) throws ActivityRunException, CommonException {
-//        @NotNull AccessCertificationOpenNextStageActivityHandler handler = getActivityHandler();
+//        @NotNull AccessCertificationCloseCurrentStageActivityHandler handler = getActivityHandler();
 //
 //        LOGGER.trace("Task run starting");
 //

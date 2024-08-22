@@ -52,6 +52,18 @@ public interface CertificationManager {
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
+     * Close current stage in the certification campaign via task in background.
+     *
+     * If the stage being opened is the first stage, certification cases will be generated for the campaign,
+     * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
+     * to cases, based again on the definition (reviewer specification in stage definition and handler).
+     * @param campaignOid Certification campaign OID.
+     * @param task Task in context of which all operations will take place.
+     * @param parentResult Result for the operations.
+     */
+    void closeCurrentStageTask(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    /**
      * Opens the next review stage in the certification campaign via task in background.
      *
      * If the stage being opened is the first stage, certification cases will be generated for the campaign,

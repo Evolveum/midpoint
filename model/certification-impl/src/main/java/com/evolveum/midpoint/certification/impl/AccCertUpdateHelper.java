@@ -117,7 +117,7 @@ public class AccCertUpdateHelper {
                 .asItemDelta();
     }
 
-    ContainerDelta<?> createTriggerDeleteDelta() {
+    public ContainerDelta<?> createTriggerDeleteDelta() {
         return prismContext.deltaFactory().container()
                 .createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
     }

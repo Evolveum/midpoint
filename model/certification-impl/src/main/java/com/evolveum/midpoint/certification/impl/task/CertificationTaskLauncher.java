@@ -86,6 +86,21 @@ public class CertificationTaskLauncher {
                 SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value());
     }
 
+    public void closeCurrentStage(@NotNull AccessCertificationCampaignType campaign, OperationResult parentResult) {
+        ActivityDefinitionType activityDef = new ActivityDefinitionType();
+        activityDef.beginWork()
+                .beginCertificationCloseCurrentStage()
+                .certificationCampaignRef(campaign.getOid(), AccessCertificationCampaignType.COMPLEX_TYPE);
+
+        startTask(
+                campaign.getOid(),
+                activityDef,
+                "Campaign close current stage for " + campaign.getName(),
+                "first stage",
+                parentResult,
+                SystemObjectsType.ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE_TASK.value());
+    }
+
     private void startTask(
             String campaignOid,
             ActivityDefinitionType activityDef,

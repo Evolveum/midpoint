@@ -72,7 +72,7 @@ public class AccCertResponseComputationHelper {
 //        return !amongStopped;
 //    }
 
-    List<AccessCertificationResponseType> getOutcomesToStopOn(AccessCertificationCampaignType campaign) {
+    public List<AccessCertificationResponseType> getOutcomesToStopOn(AccessCertificationCampaignType campaign) {
         List<AccessCertificationResponseType> rv;
         AccessCertificationStageDefinitionType stageDefinition = CertCampaignTypeUtil.getCurrentStageDefinition(campaign);
         if (!stageDefinition.getStopReviewOn().isEmpty() || !stageDefinition.getAdvanceToNextStageOn().isEmpty()) {

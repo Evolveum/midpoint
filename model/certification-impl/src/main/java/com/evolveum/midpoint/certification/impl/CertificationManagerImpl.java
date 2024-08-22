@@ -157,6 +157,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
 
+
     /**
      * This is an action that can be run in unprivileged context. No authorizations are checked.
      * Take care when and where you call it. Child result is intentionally created only when a certification campaign
@@ -267,6 +268,46 @@ public class CertificationManagerImpl implements CertificationManager {
             result.cleanupResultDeeply();
             result.summarize();
 
+        }
+    }
+
+
+    @Override
+    public void closeCurrentStageTask(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        Validate.notNull(campaignOid, "campaignOid");
+        Validate.notNull(task, "task");
+        Validate.notNull(parentResult, "parentResult");
+
+        OperationResult result = parentResult.createSubresult(OPERATION_CLOSE_CURRENT_STAGE);
+        result.addParam("campaignOid", campaignOid);
+
+        try {
+            AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+            result.addParam("campaign", ObjectTypeUtil.toShortString(campaign));
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("closeCurrentStage starting for {}", ObjectTypeUtil.toShortString(campaign));
+            }
+
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.CLOSE_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
+
+            final int currentStageNumber = campaign.getStageNumber();
+            final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
+            final AccessCertificationCampaignStateType state = campaign.getState();
+            LOGGER.trace("closeCurrentStage: currentStageNumber={}, stages={}, state={}", currentStageNumber, stages, state);
+
+            if (!IN_REVIEW_STAGE.equals(state)) {
+                result.recordFatalError("Couldn't close the current review stage as it is currently not open");
+            } else {
+                launcher.closeCurrentStage(campaign, result);
+            }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't close current certification campaign stage: unexpected exception: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 
