@@ -96,6 +96,12 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         RoleAnalysisIdentifyWidgetPanel distributionPanel = new RoleAnalysisIdentifyWidgetPanel(ID_DISTRIBUTION_PANEL,
                 createStringResource("Distribution.access.title"), getModelDistribution()) {
 
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getBodyHeaderPanelStyle() {
+                return "height:90px;";
+            }
+
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
                 List<ProgressBar> progressBars = new ArrayList<>();
@@ -250,6 +256,12 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         RoleAnalysisIdentifyWidgetPanel patternPanel = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERN_PANEL,
                 createStringResource("Pattern.suggestions.title"), getModelPatterns()) {
 
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getBodyHeaderPanelStyle() {
+                return "height:90px;";
+            }
+
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
                 List<ProgressBar> progressBars = new ArrayList<>();
@@ -376,7 +388,13 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         }
 
         RoleAnalysisIdentifyWidgetPanel outlierPanel = new RoleAnalysisIdentifyWidgetPanel(ID_OUTLIER_PANEL,
-                createStringResource("Outlier.suggestions.title"), getModelOutliers());
+                createStringResource("Outlier.suggestions.title"), getModelOutliers()){
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getBodyHeaderPanelStyle() {
+                return "height:90px;";
+            }
+        };
         outlierPanel.setOutputMarkupId(true);
         add(outlierPanel);
     }

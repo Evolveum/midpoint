@@ -47,7 +47,7 @@ import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectDataProvider
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
-import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTile;
+import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTileModel;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisTilePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
@@ -178,7 +178,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public TileTablePanel<RoleAnalysisSessionTile<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>> initTable() {
+    public TileTablePanel<RoleAnalysisSessionTileModel<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>> initTable() {
 
         searchModel = new LoadableDetachableModel<>() {
 
@@ -326,8 +326,8 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             }
 
             @Override
-            protected RoleAnalysisSessionTile createTileObject(SelectableBean<RoleAnalysisSessionType> object) {
-                return new RoleAnalysisSessionTile<>(object.getValue(), getPageBase());
+            protected RoleAnalysisSessionTileModel createTileObject(SelectableBean<RoleAnalysisSessionType> object) {
+                return new RoleAnalysisSessionTileModel<>(object.getValue(), getPageBase());
             }
 
             @Override
@@ -351,7 +351,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
             }
 
             @Override
-            protected Component createTile(String id, IModel<RoleAnalysisSessionTile<SelectableBean<RoleAnalysisSessionType>>> model) {
+            protected Component createTile(String id, IModel<RoleAnalysisSessionTileModel<SelectableBean<RoleAnalysisSessionType>>> model) {
                 return new RoleAnalysisTilePanel<>(id, model) {
                     @Override
                     public List<InlineMenuItem> createMenuItems() {
@@ -798,8 +798,8 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
     }
 
     @SuppressWarnings("unchecked")
-    private TileTablePanel<RoleAnalysisSessionTile<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>> getTable() {
-        return (TileTablePanel<RoleAnalysisSessionTile<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>>)
+    private TileTablePanel<RoleAnalysisSessionTileModel<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>> getTable() {
+        return (TileTablePanel<RoleAnalysisSessionTileModel<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>>)
                 get(createComponentPath(ID_DATATABLE));
     }
 

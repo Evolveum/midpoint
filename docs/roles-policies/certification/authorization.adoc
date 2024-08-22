@@ -104,11 +104,11 @@ At the GUI level, there are the following action URIs available.
 |
 
 | My active campaigns
-| <prefix>#myActiveCertCampaigns
+| <prefix>#myActiveCertificationCampaigns
 |
 
 | All active campaigns
-| <prefix>#activeCertCampaigns
+| <prefix>#activeCertificationCampaigns
 |
 
 | All certification-related pages

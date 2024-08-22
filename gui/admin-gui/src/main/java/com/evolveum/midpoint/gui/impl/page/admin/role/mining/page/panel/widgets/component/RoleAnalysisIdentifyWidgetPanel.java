@@ -167,6 +167,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
 
         WebMarkupContainer bodyHeaderPanelContainer = new WebMarkupContainer(ID_BODY_HEADER_PANEL_CONTAINER);
         bodyHeaderPanelContainer.setOutputMarkupId(true);
+        bodyHeaderPanelContainer.add(AttributeModifier.append("style", getBodyHeaderPanelStyle()));
         bodyContainer.add(bodyHeaderPanelContainer);
 
         Component bodyHeaderPanel = getBodyHeaderPanel(ID_BODY_HEADER_PANEL);
@@ -250,5 +251,9 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
 
     protected String initDefaultCssClass() {
         return "col-4";
+    }
+
+    protected String getBodyHeaderPanelStyle() {
+        return null;
     }
 }
