@@ -6,25 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.component.tile.mining.session;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.reductionBasedColor;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,19 +21,26 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.Nullable;
-
-public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisSessionTile<T>> {
+public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisSessionTileModel<T>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -65,7 +59,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     private static final String DOT_CLASS = RoleAnalysisTilePanel.class.getName() + ".";
     private static final String OP_DELETE_SESSION = DOT_CLASS + "deleteSession";
 
-    public RoleAnalysisTilePanel(String id, IModel<RoleAnalysisSessionTile<T>> model) {
+    public RoleAnalysisTilePanel(String id, IModel<RoleAnalysisSessionTileModel<T>> model) {
         super(id, model);
 
         initLayout();
@@ -213,27 +207,15 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     }
 
     private void initDensityProgressPanel() {
+        double value = getModelObject().getProgressBarValue();
+        String colorClass = getModelObject().getProgressBarColor();
+        String title = getModelObject().getProgressBarTitle();
 
-        double meanDensity;
-        String colorClass;
-        String title;
-        RoleAnalysisCategoryType category = getModelObject().getCategory();
-        if (!category.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-            title = "Possible reduction";
-            meanDensity = getModelObject().getPossibleReductionPercentage();
-            colorClass = reductionBasedColor(meanDensity);
-        } else {
-            title = "Density";
-            meanDensity = getModelObject().getDensity();
-            colorClass = densityBasedColor(meanDensity);
-        }
-
-        double finalMeanDensity = meanDensity;
         ProgressBar progressBar = new ProgressBar(RoleAnalysisTilePanel.ID_DENSITY) {
 
             @Override
             public double getActualValue() {
-                return finalMeanDensity;
+                return value;
             }
 
             @Override
@@ -247,7 +229,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace("title", () -> "Density: " + finalMeanDensity));
+        progressBar.add(AttributeModifier.replace("title", () -> title + " of " + value));
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }
