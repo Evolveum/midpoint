@@ -13,6 +13,9 @@ import java.util.Objects;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +45,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 @Experimental
 public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
+
+    private static final Trace LOGGER = TraceManager.getTrace(RepoShadow.class);
 
     @NotNull private final ShadowType bean;
 
@@ -92,7 +97,8 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
             @NotNull ResourceObjectDefinition definition,
             @NotNull ShadowLifecycleStateType state,
             boolean keepTheRawShadow,
-            boolean lax) throws SchemaException {
+            boolean lax,
+            boolean laxForReferenceAttributes) throws SchemaException {
 
         RawRepoShadow rawShadowToStore;
         ShadowType shadowToAdapt;
@@ -113,9 +119,24 @@ public class RepoShadow implements Cloneable, DebugDumpable, AbstractShadow {
         if (refAttributes != null) {
             PrismContainerValue<?> refAttributesPcv = refAttributes.asPrismContainerValue();
             for (var refAttrRaw : List.copyOf(refAttributesPcv.getItems())) {
-                // FIXME treat non-existing definitions more gracefully
-                var refAttrDef = definition.findReferenceAttributeDefinitionRequired(refAttrRaw.getElementName());
-                refAttributesPcv.removeReference(refAttrRaw.getElementName());
+                var refAttrName = refAttrRaw.getElementName();
+                if (refAttrRaw.hasNoValues()) {
+                    // FIXME repo should not store empty reference attributes!
+                    LOGGER.trace("Ignoring empty reference attribute {}", refAttrName);
+                    continue;
+                }
+
+                refAttributesPcv.removeReference(refAttrName);
+                var refAttrDef = definition.findReferenceAttributeDefinition(refAttrName);
+                if (refAttrDef == null) {
+                    if (laxForReferenceAttributes) {
+                        LOGGER.trace("Ignoring reference attribute {} not present in {}", refAttrName, definition);
+                        continue;
+                    } else {
+                        throw new SchemaException(
+                                "No definition for reference attribute %s in %s".formatted(refAttrName, definition));
+                    }
+                }
                 ShadowUtil
                         .getOrCreateAttributesContainer(shadowToAdapt)
                         .addAttribute(refAttrDef.instantiateFrom(refAttrRaw));
