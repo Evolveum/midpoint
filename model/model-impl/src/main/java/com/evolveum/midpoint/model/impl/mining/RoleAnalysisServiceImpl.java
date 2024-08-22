@@ -23,6 +23,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentT
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -30,13 +32,17 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
+import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.jetbrains.annotations.NotNull;
@@ -3184,5 +3190,181 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
     }
 
+    @Override
+    public UserAccessDistribution resolveUserAccessDistribution(
+            @NotNull PrismObject<UserType> prismUser,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        List<ObjectReferenceType> directAssignments = new ArrayList<>();
+        List<ObjectReferenceType> indirectAssignments = new ArrayList<>();
+        List<ObjectReferenceType> duplicates = new ArrayList<>();
+
+        UserType user = prismUser.asObjectable();
+        List<ObjectReferenceType> refsToRoles = user.getRoleMembershipRef()
+                .stream()
+                .filter(ref -> QNameUtil.match(ref.getType(), RoleType.COMPLEX_TYPE)) //TODO maybe also check relation?
+                .toList();
+
+        for (ObjectReferenceType ref : refsToRoles) {
+            List<AssignmentPathMetadataType> metadataPaths = computeAssignmentPaths(ref);
+            if (metadataPaths.size() == 1) {
+                List<AssignmentPathSegmentMetadataType> segments = metadataPaths.get(0).getSegment();
+                if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
+                    directAssignments.add(ref);
+                } else {
+                    indirectAssignments.add(ref);
+                }
+            } else {
+                boolean foundDirect = false;
+                boolean foundIndirect = false;
+                for (AssignmentPathMetadataType metadata : metadataPaths) {
+                    List<AssignmentPathSegmentMetadataType> segments = metadata.getSegment();
+                    if (CollectionUtils.isEmpty(segments) || segments.size() == 1) {
+                        foundDirect = true;
+                        if (foundIndirect) {
+                            indirectAssignments.remove(ref);
+                            duplicates.add(ref);
+                        } else {
+                            directAssignments.add(ref);
+                        }
+
+                    } else {
+                        foundIndirect = true;
+                        if (foundDirect) {
+                            directAssignments.remove(ref);
+                            duplicates.add(ref);
+                        } else {
+                            indirectAssignments.add(ref);
+                        }
+                    }
+                }
+            }
+
+        }
+
+        UserAccessDistribution userAccessDistribution = new UserAccessDistribution(
+                directAssignments, indirectAssignments, duplicates);
+        userAccessDistribution.setAllAccessCount(refsToRoles.size());
+        return userAccessDistribution;
+    }
+
+    private @NotNull List<AssignmentPathMetadataType> computeAssignmentPaths(
+            @NotNull ObjectReferenceType roleMembershipRef) {
+        List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
+        List<ProvenanceMetadataType> metadataValues = collectProvenanceMetadata(roleMembershipRef.asReferenceValue());
+        if (metadataValues == null) {
+            return assignmentPaths;
+        }
+        for (ProvenanceMetadataType metadataType : metadataValues) {
+            assignmentPaths.add(metadataType.getAssignmentPath());
+        }
+        return assignmentPaths;
+    }
+
+    public <PV extends PrismValue> List<ProvenanceMetadataType> collectProvenanceMetadata(PV rowValue) {
+        List<ValueMetadataType> valueMetadataValues = collectValueMetadata(rowValue);
+        return valueMetadataValues.stream()
+                .map(ValueMetadataType::getProvenance)
+                .collect(Collectors.toList());
+
+    }
+
+    private <PV extends PrismValue> @NotNull List<ValueMetadataType> collectValueMetadata(@NotNull PV rowValue) {
+        PrismContainer<ValueMetadataType> valueMetadataContainer = rowValue.getValueMetadataAsContainer();
+        return (List<ValueMetadataType>) valueMetadataContainer.getRealValues();
+    }
+
+    @Override
+    public @NotNull List<PrismObject<FocusType>> getAsFocusObjects(
+            @Nullable List<ObjectReferenceType> references,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        List<PrismObject<FocusType>> members = new ArrayList<>();
+        if (references == null) {
+            return members;
+        }
+        for (ObjectReferenceType ref : references) {
+            if (ref != null && ref.getOid() != null) {
+                String oid = ref.getOid();
+                PrismObject<FocusType> focusObject = this.getFocusTypeObject(oid,
+                        task, result);
+                members.add(focusObject);
+            }
+        }
+        return members;
+    }
+
+    @Override
+    public int[] computeResolvedAndCandidateRoles(@NotNull Task task, @NotNull OperationResult result) {
+        SearchResultList<PrismObject<RoleAnalysisClusterType>> searchResultList = null;
+        try {
+            searchResultList = modelService.searchObjects(
+                    RoleAnalysisClusterType.class, null, null, task, result);
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
+                ConfigurationException | ExpressionEvaluationException e) {
+            LOGGER.error("Couldn't search RoleAnalysisClusterType objects", e);
+        }
+
+        if (searchResultList == null || searchResultList.isEmpty()) {
+            return new int[] { 0, 0 };
+        }
+
+        int resolvedPatternCount = 0;
+        int candidateRolesCount = 0;
+        for (PrismObject<RoleAnalysisClusterType> prismCluster : searchResultList) {
+            RoleAnalysisClusterType cluster = prismCluster.asObjectable();
+            List<ObjectReferenceType> resolvedPattern = cluster.getResolvedPattern();
+            if (resolvedPattern != null) {
+                resolvedPatternCount += resolvedPattern.size();
+            }
+
+            List<RoleAnalysisCandidateRoleType> candidateRoles = cluster.getCandidateRoles();
+            if (candidateRoles != null) {
+                candidateRolesCount += candidateRoles.size();
+            }
+        }
+
+        return new int[] { resolvedPatternCount, candidateRolesCount };
+    }
+
+    /**
+     * Calculates the possible reduction in role assignments for a given session.
+     * This method calculates the total reduction in role assignments by summing up the detected reduction metrics
+     * for each cluster in the session.
+     * It then calculates the total system percentage reduction by dividing the total reduction by the total
+     * number of role assignments to users.
+     *
+     * @param session The RoleAnalysisSessionType object for which the possible assignment reduction is to be calculated.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return The total system percentage reduction in role assignments. If there are no clusters in the session
+     * or no role assignments to users, it returns 0.
+     */
+    @Override
+    public double calculatePossibleAssignmentReduction(RoleAnalysisSessionType session, Task task, OperationResult result) {
+        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = this.searchSessionClusters(session, task, result);
+        if (sessionClusters == null || sessionClusters.isEmpty()) {
+            return 0;
+        }
+
+        int totalReduction = 0;
+
+        for (PrismObject<RoleAnalysisClusterType> prismCluster : sessionClusters) {
+            RoleAnalysisClusterType cluster = prismCluster.asObjectable();
+            AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+            totalReduction += clusterStatistics.getDetectedReductionMetric();
+        }
+
+        int totalAssignmentRoleToUser = this.countUserOwnedRoleAssignment(result);
+        double totalSystemPercentageReduction = 0;
+        if (totalReduction != 0 && totalAssignmentRoleToUser != 0) {
+            totalSystemPercentageReduction = ((double) totalReduction / totalAssignmentRoleToUser) * 100;
+            BigDecimal bd = new BigDecimal(totalSystemPercentageReduction);
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            totalSystemPercentageReduction = bd.doubleValue();
+        }
+
+        return totalSystemPercentageReduction;
+    }
 }
 

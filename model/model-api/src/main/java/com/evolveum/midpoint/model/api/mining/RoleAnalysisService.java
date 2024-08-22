@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ListMultimap;
@@ -1049,5 +1050,51 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull Task task,
             @NotNull OperationResult result);
+
+    /**
+     * Resolves the distribution of user access based on the user's role assignments.
+     * This method categorizes the user's role assignments into direct assignments, indirect assignments, and duplicates.
+     * Direct assignments are roles assigned directly to the user.
+     * Indirect assignments are roles assigned to the user through a group or another role.
+     * Duplicates are roles that are assigned to the user both directly and indirectly.
+     *
+     * @param user The user object for which the access distribution is to be resolved.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return A UserAccessDistribution object that contains the distribution of user access.
+     */
+    UserAccessDistribution resolveUserAccessDistribution(
+            @NotNull PrismObject<UserType> user,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Retrieves a list of FocusType objects based on a list of ObjectReferenceType references.
+     *
+     * @param references A list of ObjectReferenceType references. These references should point to the objects to be retrieved.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return A list of PrismObject of type FocusType. Each PrismObject represents a FocusType
+     * object retrieved based on the provided references.
+     * If the references list is null, an empty list is returned.
+     */
+    @NotNull List<PrismObject<FocusType>> getAsFocusObjects(
+            @Nullable List<ObjectReferenceType> references,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Computes the number of resolved patterns and candidate roles in all RoleAnalysisClusterType objects.
+     *
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return An array of two integers where the first integer is the count of resolved patterns and
+     * the second integer is the count of candidate roles.
+     */
+    int[] computeResolvedAndCandidateRoles(
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    double calculatePossibleAssignmentReduction(RoleAnalysisSessionType session,Task task, OperationResult result);
 
 }

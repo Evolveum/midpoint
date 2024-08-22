@@ -81,18 +81,24 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
     }
 
     public enum ProcessMode implements TileEnum {
-        USER(CLASS_OBJECT_USER_ICON),
-        ROLE(CLASS_OBJECT_ROLE_ICON);
+        USER(CLASS_OBJECT_USER_ICON, "ProcessMode.USER_MODE.description"),
+        ROLE(CLASS_OBJECT_ROLE_ICON, "ProcessMode.ROLE_MODE.description");
 
         private final String icon;
+        private final String descriptionKey;
 
-        ProcessMode(String icon) {
+        ProcessMode(String icon, String descriptionKey) {
             this.icon = icon;
+            this.descriptionKey = descriptionKey;
         }
 
         @Override
         public String getIcon() {
             return icon;
+        }
+
+        public String getDescriptionKey() {
+            return descriptionKey;
         }
     }
 
@@ -132,6 +138,11 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
     @Override
     protected IModel<String> getSubTextModel() {
         return createStringResource("PageRoleAnalysisSession.wizard.step.choice.subText");
+    }
+
+    @Override
+    protected String getDescriptionForTile(ProcessMode type) {
+        return createStringResource(type.getDescriptionKey()).getString();
     }
 
     @Override

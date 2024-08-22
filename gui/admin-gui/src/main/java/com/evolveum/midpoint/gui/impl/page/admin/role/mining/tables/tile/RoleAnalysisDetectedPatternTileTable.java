@@ -60,7 +60,7 @@ import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.pattern.RoleAnalysisPatternTileModel;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.pattern.RoleAnalysisPatternTilePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTile;
+import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTileModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
@@ -557,8 +557,8 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
     }
 
     @SuppressWarnings("unchecked")
-    private TileTablePanel<RoleAnalysisSessionTile<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>> getTable() {
-        return (TileTablePanel<RoleAnalysisSessionTile<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>>)
+    private TileTablePanel<RoleAnalysisSessionTileModel<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>> getTable() {
+        return (TileTablePanel<RoleAnalysisSessionTileModel<SelectableBean<RoleAnalysisSessionType>>, SelectableBean<RoleAnalysisSessionType>>)
                 get(createComponentPath(ID_DATATABLE));
     }
 

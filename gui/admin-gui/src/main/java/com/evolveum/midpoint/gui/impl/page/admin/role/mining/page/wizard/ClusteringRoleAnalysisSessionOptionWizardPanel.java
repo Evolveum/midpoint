@@ -108,17 +108,17 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.work.detection.option");
+        return createStringResource("PageRoleAnalysisSession.wizard.step.work.clustering.option");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.work.detection.option.text");
+        return createStringResource("PageRoleAnalysisSession.wizard.step.work.clustering.option.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.work.detection.option.subText");
+        return createStringResource("PageRoleAnalysisSession.wizard.step.work.clustering.option.subText");
     }
 
     @Override
