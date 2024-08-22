@@ -194,7 +194,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
         add(AttributeAppender.append("class", "bg-white "
                 + "d-flex flex-column align-items-center"
-                + " bordered w-100 h-100 p-3 elevation-1"));
+                + " rounded  w-100 h-100 p-3 elevation-1"));
 
         add(AttributeAppender.append("style", "width:25%"));
     }
