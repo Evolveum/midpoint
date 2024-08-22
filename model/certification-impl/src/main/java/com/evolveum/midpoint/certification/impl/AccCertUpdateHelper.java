@@ -180,7 +180,7 @@ public class AccCertUpdateHelper {
     }
     //endregion
 
-    void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
+    public void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
         List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(
                 campaign.getOid(), norm(campaign.getIteration()), result);
         Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);

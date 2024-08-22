@@ -4,10 +4,10 @@
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<archetype oid="00000000-0000-0000-0000-000000000534"
+<archetype oid="00000000-0000-0000-0000-000000000536"
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Certification-campaign-next-stage-related task</name>
+    <name>Certification-campaign-creation-related task</name>
     <assignment>
         <identifier>holderType</identifier>
         <assignmentRelation>

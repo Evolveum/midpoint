@@ -187,7 +187,7 @@ public class AccCertResponseComputationHelper {
         return rv;
     }
 
-    AccessCertificationResponseType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
+    public AccessCertificationResponseType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
         Set<AccessCertificationResponseType> stageOutcomes = aCase.getEvent().stream()
                 .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber)
                 .map(e -> normalizeToNonNull(fromUri(((StageCompletionEventType) e).getOutcome())))

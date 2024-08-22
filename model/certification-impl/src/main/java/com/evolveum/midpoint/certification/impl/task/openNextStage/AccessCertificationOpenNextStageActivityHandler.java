@@ -4,16 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.certification.impl.task.startCampaign;
-
-import com.evolveum.midpoint.certification.impl.*;
-import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+package com.evolveum.midpoint.certification.impl.task.openNextStage;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -22,11 +13,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-@Component
-public class AccessCertificationStartCampaignActivityHandler
-        extends ModelActivityHandler<AccessCertificationStartCampaignWorkDefinition, AccessCertificationStartCampaignActivityHandler> {
+import com.evolveum.midpoint.certification.impl.*;
+import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CertificationOpenNextStageWorkDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
-    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value();
+@Component
+public class AccessCertificationOpenNextStageActivityHandler
+        extends ModelActivityHandler<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler> {
+
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value();
 
     @Autowired private TaskManager taskManager;
     @Autowired private CertificationManagerImpl certificationManager;
@@ -77,21 +79,21 @@ public class AccessCertificationStartCampaignActivityHandler
     @PostConstruct
     public void register() {
         handlerRegistry.register(
-                CertificationStartCampaignWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_CERTIFICATION_START_CAMPAIGN,
-                AccessCertificationStartCampaignWorkDefinition.class, AccessCertificationStartCampaignWorkDefinition::new, this);
+                CertificationOpenNextStageWorkDefinitionType.COMPLEX_TYPE, WorkDefinitionsType.F_CERTIFICATION_OPEN_NEXT_STAGE,
+                AccessCertificationOpenNextStageWorkDefinition.class, AccessCertificationOpenNextStageWorkDefinition::new, this);
     }
 
     @PreDestroy
     public void unregister() {
         handlerRegistry.unregister(
-                CertificationStartCampaignWorkDefinitionType.COMPLEX_TYPE, AccessCertificationStartCampaignWorkDefinition.class);
+                CertificationOpenNextStageWorkDefinitionType.COMPLEX_TYPE, AccessCertificationOpenNextStageWorkDefinition.class);
     }
 
     @Override
-    public AbstractActivityRun<AccessCertificationStartCampaignWorkDefinition, AccessCertificationStartCampaignActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<AccessCertificationStartCampaignWorkDefinition, AccessCertificationStartCampaignActivityHandler> context,
+    public AbstractActivityRun<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler> context,
             @NotNull OperationResult result) {
-        return new AccessCertificationStartCampaignRun(context);
+        return new AccessCertificationOpenNextStageRun(context);
     }
 
     @Override
@@ -103,5 +105,4 @@ public class AccessCertificationStartCampaignActivityHandler
     public String getDefaultArchetypeOid() {
         return ARCHETYPE_OID;
     }
-
 }

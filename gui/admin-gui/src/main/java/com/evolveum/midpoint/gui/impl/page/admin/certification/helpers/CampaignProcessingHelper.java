@@ -197,7 +197,7 @@ public class CampaignProcessingHelper implements Serializable {
         AccessCertificationService acs = pageBase.getCertificationService();
         try {
             Task task = pageBase.createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
-            acs.openNextStage(campaign.getOid(), task, result);
+            acs.openNextStage(campaign, task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {

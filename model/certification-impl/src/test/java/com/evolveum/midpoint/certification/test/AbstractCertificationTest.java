@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.certification.impl.task.startCampaign.AccessCertificationStartCampaignWorkDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
@@ -114,8 +115,10 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner-manual.xml");
     protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
 
+    //TODO use archetypes from initial objects
     public static final File ARCHETYPE_CERTIFICATION_REMEDIATION = new File(COMMON_DIR, "archetype-remediation.xml");
     public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE = new File(COMMON_DIR, "archetype-campaign-next-stage.xml");
+    public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_START = new File(COMMON_DIR, "archetype-campaign-start-campaign.xml");
 
     // report columns: certification definitions
     static final int C_DEF_NAME = 0;
@@ -202,8 +205,10 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
+        //TODO use archetypes from initial objects
         repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_REMEDIATION, ArchetypeType.class, initResult);
         repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE, ArchetypeType.class, initResult);
+        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_START, ArchetypeType.class, initResult);
 
         // roles
         repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
@@ -869,6 +874,36 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         ).toList();
     }
 
+    protected List<PrismObject<TaskType>> getFirstStageTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value(), startTime, campaignOid);
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value(), startTime);
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task -> campaignOidMatch(task, campaignOid)).toList();
+    }
+
+    private boolean campaignOidMatch(PrismObject<TaskType> task, String campaignOid) {
+        ActivityDefinitionType activity = task.asObjectable().getActivity();
+        if (activity == null) {
+            return false;
+        }
+        WorkDefinitionsType work = activity.getWork();
+        if (work == null) {
+            return false;
+        }
+        CertificationStartCampaignWorkDefinitionType startCampaign = work.getCertificationStartCampaign();
+        if (startCampaign == null) {
+            return false;
+        }
+        ObjectReferenceType campaign = startCampaign.getCertificationCampaignRef();
+        if (campaign == null) {
+            return false;
+        }
+        return campaignOid.equals(campaign.getOid());
+    }
+
     private ObjectQuery getNewRepoTaskQuery(String archetypeOid, XMLGregorianCalendar startTime, String campaignOid) {
         return prismContext.queryFor(TaskType.class)
                 .item(TaskType.F_ARCHETYPE_REF)
@@ -899,4 +934,5 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
                 .endBlock()
                 .build();
     }
+
 }

@@ -56,7 +56,22 @@ public class CertificationTaskLauncher {
                 SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value());
     }
 
-    public void openNextStageCampaignTask(@NotNull AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
+    public void startCampaignTask(@NotNull AccessCertificationCampaignType campaign, OperationResult parentResult) {
+        ActivityDefinitionType activityDef = new ActivityDefinitionType();
+        activityDef.beginWork()
+                .beginCertificationStartCampaign()
+                .certificationCampaignRef(campaign.getOid(), AccessCertificationCampaignType.COMPLEX_TYPE);
+
+        startTask(
+                campaign.getOid(),
+                activityDef,
+                "Campaign open first stage for " + campaign.getName(),
+                "first stage",
+                parentResult,
+                SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value());
+    }
+
+    public void openNextStageCampaignTask(@NotNull AccessCertificationCampaignType campaign, OperationResult parentResult) {
         ActivityDefinitionType activityDef = new ActivityDefinitionType();
         activityDef.beginWork()
                 .beginCertificationOpenNextStage()
@@ -93,6 +108,7 @@ public class CertificationTaskLauncher {
             PolyStringType polyString = new PolyStringType(taskName);
             task.setName(polyString);
 
+            //TODO is this correct? should it be the logged in user?
             owner = repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result)
                     .asObjectable();
 

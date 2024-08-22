@@ -5,8 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.certification.impl.task.startCampaign;
+package com.evolveum.midpoint.certification.impl.task.openNextStage;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -17,24 +18,21 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypedObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.repo.common.activity.run.*;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.Duration;
@@ -52,26 +50,34 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAcces
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.*;
 
 /**
  * Execution of a certification campaign creation.
  */
-public final class AccessCertificationStartCampaignRun
+public final class AccessCertificationOpenNextStageRun
         extends SearchBasedActivityRun
-        <AssignmentHolderType, AccessCertificationStartCampaignWorkDefinition,
-                AccessCertificationStartCampaignActivityHandler,
+        <AccessCertificationCaseType, AccessCertificationOpenNextStageWorkDefinition,
+                AccessCertificationOpenNextStageActivityHandler,
                 AbstractActivityWorkStateType> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationStartCampaignRun.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationOpenNextStageRun.class);
 
+
+//    private String campaignOid;
     private AccessCertificationCampaignType campaign;
-    private TypedObjectQuery<AssignmentHolderType> query;
+    private int iteration;
+    private AccessCertificationStageType stage;
+    private int stageToBe;
+
+    private ObjectQuery query;
     private CertificationHandler handler;
     private AccessCertificationReviewerSpecificationType reviewerSpec;
-    private AccessCertificationStageType stage;
+    private int casesEnteringStage;
+//    private AccessCertificationStageType stage;
 
-    AccessCertificationStartCampaignRun(
-            @NotNull ActivityRunInstantiationContext<AccessCertificationStartCampaignWorkDefinition, AccessCertificationStartCampaignActivityHandler> context) {
+    AccessCertificationOpenNextStageRun(
+            @NotNull ActivityRunInstantiationContext<AccessCertificationOpenNextStageWorkDefinition, AccessCertificationOpenNextStageActivityHandler> context) {
         super(context, "");
         setInstanceReady();
     }
@@ -88,8 +94,15 @@ public final class AccessCertificationStartCampaignRun
         //campaignoid; TODO nacitat vsetky objekty, ktore budem potrebovat, asi aj resolvnutie handlera
         String campaignOid = getWorkDefinition().getCertificationCampaignRef().getOid();
         //TODO is repository service OK here?
+        casesEnteringStage = 0;
         campaign = getBeans().repositoryService.getObject(AccessCertificationCampaignType.class, campaignOid, null, result).asObjectable();
         handler = getActivityHandler().getCertificationManager().findCertificationHandler(campaign);
+
+        iteration = norm(campaign.getIteration());
+        int requestedStageNumber = campaign.getStageNumber() + 1;
+        stage = createStage(campaign, requestedStageNumber);
+        stageToBe = stage.getNumber();
+
 
         String campaignShortName = toShortString(campaign);
         AccessCertificationScopeType scope = campaign.getScopeDefinition();
@@ -97,16 +110,15 @@ public final class AccessCertificationStartCampaignRun
         if (scope != null && !(scope instanceof AccessCertificationObjectBasedScopeType)) {
             throw new IllegalStateException("Unsupported access certification scope type: " + scope.getClass() + " for campaign " + campaignShortName);
         }
-        AccessCertificationObjectBasedScopeType objectBasedScope = (AccessCertificationObjectBasedScopeType) scope;
 
-        query = prepareObjectQuery(objectBasedScope, handler, campaignShortName);
+        query = prepareObjectQuery();
 
         //TODO coppied from findReviewersSpecification. is stage 1 ok?
-        reviewerSpec = CertCampaignTypeUtil.findStageDefinition(campaign, 1)
+        reviewerSpec = CertCampaignTypeUtil.findStageDefinition(campaign, stageToBe)
                 .getReviewerSpecification();
+//        reviewersHelper.findReviewersSpecification(campaign, 1);
 
-        int requestedStageNumber = campaign.getStageNumber() + 1;
-        stage = createStage(campaign, requestedStageNumber);
+//        AccCertOpenerHelper.OpeningContext openingContext = new AccCertOpenerHelper.OpeningContext();
         super.beforeRun(result);
     }
 
@@ -123,16 +135,13 @@ public final class AccessCertificationStartCampaignRun
                 XmlTypeConverter.toDate(stage.getStartTimestamp()), XmlTypeConverter.toDate(stage.getDeadline()),
                 CertCampaignTypeUtil.findStageDefinition(campaign, newStageNumber).getTimedActions()));
 
-//        if (!skipEmptyStages || openingContext.casesEnteringStage > 0) {
+        boolean skipEmptyStages = norm(campaign.getIteration()) > 1;
+//        if (!skipEmptyStages || casesEnteringStage > 0) {
             getActivityHandler().getUpdateHelper().modifyCampaignPreAuthorized(campaign.getOid(), rv, getRunningTask(), result);
-//            afterStageOpen(campaign.getOid(), stage, task, result);       // notifications, bookkeeping, ...
-//            return;
-//
 //        }
 
         Task task = getRunningTask();
         AccCertEventHelper eventHelper = getActivityHandler().getEventHelper();
-        eventHelper.onCampaignStart(campaign, task, result);
         eventHelper.onCampaignStageStart(campaign, task, result);
 
         AccCertUpdateHelper updateHelper = getActivityHandler().getUpdateHelper();
@@ -144,6 +153,11 @@ public final class AccessCertificationStartCampaignRun
                     .asItemDeltas();
             updateHelper.modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), deltas, task, result);
         }
+
+//            afterStageOpen(campaign.getOid(), stage, task, result);       // notifications, bookkeeping, ...
+//            return;
+//        }
+
 
         super.afterRun(result);
     }
@@ -241,8 +255,8 @@ public final class AccessCertificationStartCampaignRun
     }
 
     @Override
-    public @Nullable SearchSpecification<AssignmentHolderType> createCustomSearchSpecification(OperationResult result) {
-        return SearchSpecification.fromTypedQuery(query);
+    public @Nullable SearchSpecification<AccessCertificationCaseType> createCustomSearchSpecification(OperationResult result) {
+        return new SearchSpecification<>(AccessCertificationCaseType.class, query, null, null);
 //        return super.createCustomSearchSpecification(result);
     }
 
@@ -287,42 +301,49 @@ public final class AccessCertificationStartCampaignRun
     }
 
     @Override
-    public boolean processItem(@NotNull AssignmentHolderType item, @NotNull ItemProcessingRequest<AssignmentHolderType> request, RunningTask workerTask, OperationResult result) throws CommonException, ActivityRunException {
-        List<AccessCertificationCaseType> caseList = new ArrayList<>();
-        Task task = getRunningTask();
-        caseList.addAll(handler.createCasesForObject(request.getItem().asPrismObject(), campaign, task, result));
+    public boolean processItem(@NotNull AccessCertificationCaseType item, @NotNull ItemProcessingRequest<AccessCertificationCaseType> request, RunningTask workerTask, OperationResult result) throws CommonException, ActivityRunException {
+        AccCertResponseComputationHelper computationHelper = getActivityHandler().getComputationHelper();
+        AccCertReviewersHelper reviewersHelper = getActivityHandler().getReviewersHelper();
 
-        Collection<ItemDelta<?, ?>> modifications = new ArrayList<>();
-        for (AccessCertificationCaseType aCase : caseList) {
-            ContainerDelta<AccessCertificationCaseType> caseDelta = PrismContext.get().deltaFactory().container().createDelta(F_CASE,
-                    AccessCertificationCampaignType.class);
-            aCase.setIteration(1);
-            aCase.setStageNumber(1);
-            aCase.setCurrentStageCreateTimestamp(stage.getStartTimestamp());
-            aCase.setCurrentStageDeadline(stage.getDeadline());
-
-
-            List<ObjectReferenceType> reviewers = getActivityHandler().getReviewersHelper().getReviewersForCase(aCase, campaign, reviewerSpec, task, result);
-            aCase.getWorkItem().addAll(createWorkItems(reviewers, 1, 1, aCase));
-
-//            openingContext.workItemsCreated += aCase.getWorkItem().size();
-//            openingContext.casesEnteringStage++;
-
-            AccessCertificationResponseType currentStageOutcome = getActivityHandler().getComputationHelper().computeOutcomeForStage(aCase, campaign, 1);
-            aCase.setCurrentStageOutcome(toUri(currentStageOutcome));
-            aCase.setOutcome(toUri(getActivityHandler().getComputationHelper().computeOverallOutcome(aCase, campaign, 1, currentStageOutcome)));
-
-            @SuppressWarnings({ "raw", "unchecked" })
-            PrismContainerValue<AccessCertificationCaseType> caseCVal = aCase.asPrismContainerValue();
-            caseDelta.addValueToAdd(caseCVal);
-            LOGGER.trace("Adding certification case:\n{}", caseCVal.debugDumpLazily());
-
-//            modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, batch, task, result);
-            modifications.add(caseDelta);
+        LOGGER.trace("----------------------------------------------------------------------------------------");
+        LOGGER.trace("Considering case: {}", item);
+        Long caseId = item.asPrismContainerValue().getId();
+        assert caseId != null;
+        if (item.getReviewFinishedTimestamp() != null) {
+            LOGGER.trace("Case {} review process has already finished", caseId);
+            return true;
         }
-        getActivityHandler().getUpdateHelper().modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaign.getOid(), modifications, task, result);
-//        getBeans().repositoryService.modifyObject(AccessCertificationCampaignType.class, campaign.getOid(), caseDelta, result);
+        AccessCertificationResponseType stageOutcome = computationHelper.getStageOutcome(item, stageToBe);
+        if (OutcomeUtils.normalizeToNull(stageOutcome) != null) {
+            LOGGER.trace("Case {} already has an outcome for stage {} - it will not be reviewed in this stage in iteration {}",
+                    caseId, stageToBe, iteration);
+            return true;
+        }
 
+        List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(item, campaign, reviewerSpec, getRunningTask(), result);
+        List<AccessCertificationWorkItemType> workItems = createWorkItems(reviewers, stageToBe, iteration, item);
+
+//        openingContext.workItemsCreated += workItems.size();
+        casesEnteringStage++;
+
+        item.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(workItems));
+        AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(item, campaign, stageToBe);
+        AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(item, campaign, stageToBe, currentStageOutcome);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Computed: reviewers: {}, workItems: {}, currentStageOutcome: {}, overallOutcome: {}",
+                    PrettyPrinter.prettyPrint(reviewers), workItems.size(), currentStageOutcome, overallOutcome);
+        }
+        List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(AccessCertificationCampaignType.class)
+                .item(F_CASE, caseId, F_WORK_ITEM).add(PrismContainerValue.toPcvList(workItems))
+                .item(F_CASE, caseId, F_CURRENT_STAGE_CREATE_TIMESTAMP).replace(stage.getStartTimestamp())
+                .item(F_CASE, caseId, F_CURRENT_STAGE_DEADLINE).replace(stage.getDeadline())
+                .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(toUri(currentStageOutcome))
+                .item(F_CASE, caseId, F_OUTCOME).replace(toUri(overallOutcome))
+                .item(F_CASE, caseId, F_STAGE_NUMBER).replace(stageToBe)
+                .item(F_CASE, caseId, F_ITERATION).replace(iteration)
+                .asItemDeltas();
+
+        getActivityHandler().getUpdateHelper().modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaign.getOid(), modifications, getRunningTask(), result);
         return true;
     }
 
@@ -359,33 +380,37 @@ public final class AccessCertificationStartCampaignRun
     }
 
     @NotNull
-    private TypedObjectQuery<AssignmentHolderType> prepareObjectQuery(AccessCertificationObjectBasedScopeType objectBasedScope,
-            CertificationHandler handler, String campaignShortName) throws SchemaException {
-        QName scopeDeclaredObjectType;
-        if (objectBasedScope != null) {
-            scopeDeclaredObjectType = objectBasedScope.getObjectType();
-        } else {
-            scopeDeclaredObjectType = null;
-        }
-        QName objectType;
-        if (scopeDeclaredObjectType != null) {
-            objectType = scopeDeclaredObjectType;
-        } else {
-            objectType = handler.getDefaultObjectType();
-        }
-        if (objectType == null) {
-            throw new IllegalStateException("Unspecified object type (and no default one provided) for campaign " + campaignShortName);
-        }
-        @SuppressWarnings({ "unchecked", "raw" })
-        Class<AssignmentHolderType> objectClass = (Class<AssignmentHolderType>) PrismContext.get().getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectType);
-
-        // TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
-        // It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.
-        final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
-        ObjectQuery query = PrismContext.get().queryFactory().createQuery();
-        if (searchFilter != null) {
-            query.setFilter(PrismContext.get().getQueryConverter().parseFilter(searchFilter, objectClass));
-        }
-        return new TypedObjectQuery<>(objectClass, query);
+    private ObjectQuery prepareObjectQuery() throws SchemaException {
+        return PrismContext.get().queryFor(AccessCertificationCaseType.class)
+                .ownerId(campaign.getOid())
+                .and().item(AccessCertificationCaseType.F_ITERATION).eq(iteration)
+                .build();
+//        return new TypedObjectQuery<>(AccessCertificationCaseType.class, query);
+//        QName scopeDeclaredObjectType;
+//        if (objectBasedScope != null) {
+//            scopeDeclaredObjectType = objectBasedScope.getObjectType();
+//        } else {
+//            scopeDeclaredObjectType = null;
+//        }
+//        QName objectType;
+//        if (scopeDeclaredObjectType != null) {
+//            objectType = scopeDeclaredObjectType;
+//        } else {
+//            objectType = handler.getDefaultObjectType();
+//        }
+//        if (objectType == null) {
+//            throw new IllegalStateException("Unspecified object type (and no default one provided) for campaign " + campaignShortName);
+//        }
+//        @SuppressWarnings({ "unchecked", "raw" })
+//        Class<AssignmentHolderType> objectClass = (Class<AssignmentHolderType>) PrismContext.get().getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectType);
+//
+//        // TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
+//        // It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.
+//        final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
+//        ObjectQuery query = PrismContext.get().queryFactory().createQuery();
+//        if (searchFilter != null) {
+//            query.setFilter(PrismContext.get().getQueryConverter().parseFilter(searchFilter, objectClass));
+//        }
+//        return new TypedObjectQuery<>(objectClass, query);
     }
 }

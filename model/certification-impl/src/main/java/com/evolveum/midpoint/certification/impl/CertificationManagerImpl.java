@@ -156,6 +156,7 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
+
     /**
      * This is an action that can be run in unprivileged context. No authorizations are checked.
      * Take care when and where you call it. Child result is intentionally created only when a certification campaign
@@ -271,11 +272,38 @@ public class CertificationManagerImpl implements CertificationManager {
 
     @Override
     public void createNextStageTask(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, parentResult);
+
+        createNextStageTask(campaign, task, parentResult);
+
+//        result.addParam("campaignOid", campaignOid);
+//
+//        try {
+//            AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+//            result.addParam("campaign", ObjectTypeUtil.toShortString(campaign));
+//
+//            LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortStringLazy(campaign));
+//
+//            securityEnforcer.authorize(
+//                    ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
+//                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
+//
+//            launcher.openNextStageCampaignTask(campaign, result);
+//        } catch (RuntimeException e) {
+//            result.recordFatalError("Couldn't move to the next certification campaign stage: unexpected exception: " + e.getMessage(), e);
+//            throw e;
+//        } finally {
+//            result.computeStatusIfUnknown();
+//        }
+    }
+
+    @Override
+    public void createNextStageTask(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         OperationResult result = parentResult.createSubresult(OPERATION_OPEN_NEXT_STAGE);
-        result.addParam("campaignOid", campaignOid);
+//        result.addParam("campaign", campaignOid);
 
         try {
-            AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+//            AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
             result.addParam("campaign", ObjectTypeUtil.toShortString(campaign));
 
             LOGGER.debug("openNextStage starting for {}", ObjectTypeUtil.toShortStringLazy(campaign));
@@ -284,7 +312,11 @@ public class CertificationManagerImpl implements CertificationManager {
                     ModelAuthorizationAction.OPEN_CERTIFICATION_CAMPAIGN_REVIEW_STAGE.getUrl(), null,
                     AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
 
-            launcher.openNextStageCampaignTask(campaign, task, result);
+            if (campaign.getStageNumber() == 0 && norm(campaign.getIteration()) == 1) {
+                launcher.startCampaignTask(campaign, result);
+            } else {
+                launcher.openNextStageCampaignTask(campaign, result);
+            }
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't move to the next certification campaign stage: unexpected exception: " + e.getMessage(), e);
             throw e;
