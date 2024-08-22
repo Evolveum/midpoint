@@ -119,7 +119,7 @@ public class ShadowAssociationDefinitionImpl
     static ShadowAssociationDefinitionImpl parseLegacy(
             @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
             @NotNull ResourceSchemaImpl schemaBeingParsed,
-            @NotNull ResourceObjectTypeDefinition subjectDefinition,
+            @NotNull ResourceObjectDefinition subjectDefinition,
             @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions) throws ConfigurationException {
 
         var legacyInformation = new LegacyAssociationTypeInformation(

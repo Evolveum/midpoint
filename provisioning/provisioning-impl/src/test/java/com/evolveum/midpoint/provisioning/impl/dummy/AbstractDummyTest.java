@@ -349,7 +349,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
-    protected DummyAccountAsserter assertDummyAccount(String icfName, String icfUid)
+    protected DummyAccountAsserter<Void> assertDummyAccount(String icfName, String icfUid)
             throws ConnectException, FileNotFoundException, SchemaViolationException,
             ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
@@ -369,6 +369,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         assertNull("Unexpected dummy account with ICF UID " + icfUid + " (name " + icfName + ")", account);
     }
 
+    @SuppressWarnings({ "SameParameterValue", "WeakerAccess" })
     protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
             return dummyResource.getGroupByName(icfName);
@@ -388,6 +389,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
+    @SuppressWarnings({ "SameParameterValue", "WeakerAccess" })
     protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         if (isIcfNameUidSame()) {
             return dummyResource.getPrivilegeByName(icfName);
@@ -407,14 +409,21 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
         }
     }
 
-    protected <T> void assertDummyAccountAttributeValues(String accountName, String accountUid, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+    @SuppressWarnings("WeakerAccess")
+    @SafeVarargs
+    protected final <T> void assertDummyAccountAttributeValues(
+            String accountName, String accountUid, String attributeName, T... expectedValues)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         DummyAccount dummyAccount = getDummyAccountAssert(accountName, accountUid);
         assertNotNull("No account '" + accountName + "'", dummyAccount);
         assertDummyAttributeValues(dummyAccount, attributeName, expectedValues);
     }
 
-    protected <T> void assertDummyAttributeValues(
+    @SuppressWarnings("WeakerAccess")
+    @SafeVarargs
+    protected final <T> void assertDummyAttributeValues(
             DummyObject object, String attributeName, T... expectedValues) {
+        //noinspection unchecked
         Set<T> attributeValues = (Set<T>) object.getAttributeValues(attributeName, expectedValues[0].getClass());
         assertNotNull("No attribute " + attributeName + " in " + object.getShortTypeName() + " " + object, attributeValues);
         TestUtil.assertSetEquals("Wrong values of attribute " + attributeName + " in " + object.getShortTypeName() + " " + object, attributeValues, expectedValues);
