@@ -41,6 +41,13 @@ public class DelineationResourceObjectTypeStepPanel
     }
 
     @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        getValueModel().getObject().setShowEmpty(false);
+    }
+
+    @Override
     public IModel<PrismContainerValueWrapper<ResourceObjectTypeDelineationType>> getValueModel() {
         return valueModel;
     }

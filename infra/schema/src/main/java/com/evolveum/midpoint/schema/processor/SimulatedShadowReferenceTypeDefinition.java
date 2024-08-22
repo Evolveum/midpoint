@@ -232,7 +232,7 @@ public abstract class SimulatedShadowReferenceTypeDefinition
         static @NotNull SimulatedShadowReferenceTypeDefinition parse(
                 @NotNull ResourceObjectAssociationConfigItem.Legacy definitionCI,
                 @NotNull ResourceSchemaImpl schemaBeingParsed,
-                @NotNull ResourceObjectTypeDefinition referentialSubjectDefinition,
+                @NotNull ResourceObjectDefinition referentialSubjectDefinition,
                 @NotNull Collection<ResourceObjectTypeDefinition> objectTypeDefinitions)
                 throws ConfigurationException {
             var primaryBinding = definitionCI.getPrimaryAttributeBinding();
@@ -262,9 +262,9 @@ public abstract class SimulatedShadowReferenceTypeDefinition
 
         private static @NotNull Collection<SimulatedAssociationClassParticipantDefinition> getLegacySubjectDefinitions(
                 @NotNull ResourceObjectAssociationConfigItem definitionCI,
-                @NotNull ResourceObjectTypeDefinition referentialSubjectDefinition) {
+                @NotNull ResourceObjectDefinition referentialSubjectDefinition) {
             return List.of(
-                    SimulatedAssociationClassParticipantDefinition.fromObjectTypeDefinition(
+                    SimulatedAssociationClassParticipantDefinition.fromObjectDefinition(
                             referentialSubjectDefinition,
                             definitionCI.value().getAuxiliaryObjectClass()));
         }

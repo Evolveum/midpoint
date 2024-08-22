@@ -10,10 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serial;
 
@@ -25,9 +21,9 @@ import java.io.Serial;
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_URL,
-                        label = PageAdminCertification.AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL,
-                        description = PageAdminCertification.AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION)})
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_MY_ACTIVE_CERT_CAMPAIGNS_URL,
+                        label = PageAdminCertification.AUTH_MY_ACTIVE_CERT_CAMPAIGNS_LABEL,
+                        description = PageAdminCertification.AUTH_MY_ACTIVE_CERT_CAMPAIGNS_DESCRIPTION)})
 public class PageMyActiveCampaigns extends PageActiveCampaigns {
 
     @Serial private static final long serialVersionUID = 1L;

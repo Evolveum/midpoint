@@ -4212,4 +4212,18 @@ public final class WebComponentUtil {
             return icon;
         }
     }
+
+    public static String createMarkList(List<ObjectReferenceType> markRefs, PageBase page) {
+        if (markRefs == null) {
+            return null;
+        }
+
+        Object[] marks = markRefs.stream()
+                .map(ref -> WebModelServiceUtils.loadObject(ref, page))
+                .filter(mark -> mark != null)
+                .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
+                .toArray();
+
+        return StringUtils.joinWith(", ", marks);
+    }
 }

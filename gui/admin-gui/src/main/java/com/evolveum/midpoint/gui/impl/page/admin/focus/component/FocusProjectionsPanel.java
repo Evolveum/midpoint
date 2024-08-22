@@ -13,16 +13,19 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowAssociationsPanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -299,7 +302,33 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                 target.add(getPageBase().getFeedbackPanel());
             }
 
+            @Override
+            protected Component createComponent(String componentId, IModel<String> labelModel, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+                return new TitleWithMarks(componentId, labelModel, () -> createRealMarksList(rowModel)) {
+
+                    @Override
+                    protected AbstractLink createTitleLinkComponent(String id) {
+                        return new AjaxLink<>(id) {
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                onClickPerformed(target, rowModel);
+                            }
+                        };
+                    }
+                };
+            }
         };
+    }
+
+    private String createRealMarksList(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+        ShadowType shadow = rowModel.getObject().getRealValue();
+        if (shadow == null) {
+            return "";
+        }
+
+        List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
+        return WebComponentUtil.createMarkList(refs, getPageBase());
     }
 
     private IModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {

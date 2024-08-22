@@ -14,12 +14,8 @@
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
-          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
     <name>Embedded Test OpenDJ</name>
 
@@ -65,15 +61,6 @@
             <focus>
                 <type>UserType</type>
             </focus>
-            <association>
-                <ref>ri:department</ref>
-                <tolerant>false</tolerant>
-                <kind>entitlement</kind>
-                <intent>org-group</intent>
-                <direction>subjectToObject</direction>
-                <associationAttribute>ri:departmentNumber</associationAttribute>
-                <valueAttribute>ri:cn</valueAttribute>
-            </association>
         </objectType>
         <objectType>
             <kind>generic</kind>
@@ -188,6 +175,21 @@
                 <tolerant>true</tolerant>
             </association>
         </objectType>
+        <objectClass>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <!-- The legacy association must be known at the level of the object class. -->
+            <!-- This is usually done by setting default=true for the object type where the association is defined.
+                 But, in this test, we do it in a different way. -->
+            <association>
+                <ref>ri:department</ref>
+                <tolerant>false</tolerant>
+                <kind>entitlement</kind>
+                <intent>org-group</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:departmentNumber</associationAttribute>
+                <valueAttribute>ri:cn</valueAttribute>
+            </association>
+        </objectClass>
     </schemaHandling>
     <capabilities>
         <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">

@@ -42,9 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
                         label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_URL,
-                        label = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL,
-                        description = PageAdminCertification.AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION)})
+                @AuthorizationAction(actionUri = PageAdminCertification.AUTH_ACTIVE_CERT_CAMPAIGNS_URL,
+                        label = PageAdminCertification.AUTH_ACTIVE_CERT_CAMPAIGNS_LABEL,
+                        description = PageAdminCertification.AUTH_ACTIVE_CERT_CAMPAIGNS_DESCRIPTION)})
 public class PageActiveCampaigns extends PageAdminCertification {
 
     @Serial private static final long serialVersionUID = 1L;
