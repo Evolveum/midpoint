@@ -129,6 +129,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                 };
 
                 sessionLink.setOutputMarkupId(true);
+                sessionLink.add(AttributeAppender.append("style", "max-width:150px"));
+                sessionLink.add(AttributeAppender.append("class", "text-truncate"));
                 view.add(sessionLink);
 
                 Label separator = new Label(view.newChildId(), "/");
@@ -144,6 +146,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                     }
                 };
                 clusterLink.setOutputMarkupId(true);
+                clusterLink.add(AttributeAppender.append("style", "max-width:150px"));
+                clusterLink.add(AttributeAppender.append("class", "text-truncate"));
                 view.add(clusterLink);
                 return view;
             }
