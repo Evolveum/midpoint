@@ -7,28 +7,30 @@
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
-        <div class="card card-light col p-0" id="chartScaleContainer">
-            <div class="card-header bg-white">
-                <h3 class="card-title" wicket:id="cardTitle"></h3>
-                <div class="card-tools">
-                    <form wicket:id="toolForm">
+    <div class="card card-light col p-0" id="chartScaleContainer">
+        <div class="card-header bg-white">
+            <h3 class="card-title" wicket:id="cardTitle"></h3>
+            <div class="card-tools">
+                <form wicket:id="toolForm">
 
-                        <button wicket:id="settingPanel" type="button" class="btn btn-tool" id="settingPanel"></button>
+                    <button wicket:id="settingPanel1" type="button" class="btn btn-tool" id="settingPanel1"></button>
+                    <button wicket:id="settingPanel2" type="button" class="btn btn-tool" id="settingPane2l"></button>
+                    <button wicket:id="settingPanel3" type="button" class="btn btn-tool" id="settingPanel3"></button>
+                    <button wicket:id="settingPanel4" type="button" class="btn btn-tool" id="settingPanel4"></button>
+                    <button wicket:id="exportButton" type="button" class="btn btn-tool" id="export"></button>
 
-                        <button wicket:id="exportButton" type="button" class="btn btn-tool" id="export"></button>
-
-                        <button type="button" class="btn btn-tool" title="Collapse/Expand card" data-toggle="tooltip" data-card-widget="collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                    </form>
-
-                </div>
-            </div>
-            <div class="card-body">
-                <div wicket:id="container" class="overflow-auto" style="height:28vh;">
-                    <canvas wicket:id="chart"></canvas>
-                </div>
+<!--                    <button type="button" class="btn btn-tool" title="Collapse/Expand card" data-toggle="tooltip" data-card-widget="collapse">-->
+<!--                        <i class="fas fa-minus"></i>-->
+<!--                    </button>-->
+                </form>
 
             </div>
         </div>
+        <div class="card-body">
+            <div wicket:id="container" class="overflow-auto" style="height:50vh;">
+                <canvas wicket:id="chart"></canvas>
+            </div>
+        </div>
+
+    </div>
 </wicket:panel>
