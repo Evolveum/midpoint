@@ -59,13 +59,13 @@ public class PageAdminCertification extends PageAdmin {
     public static final String AUTH_MY_CERTIFICATION_DECISIONS_LABEL = "PageAdminCertification.auth.myCertificationDecisions.label";
     public static final String AUTH_MY_CERTIFICATION_DECISIONS_DESCRIPTION = "PageAdminCertification.auth.myCertificationDecisions.description";
 
-    public static final String AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_URL = AuthorizationConstants.AUTZ_UI_CERTIFICATION_CAMPAIGN_DECISIONS_URL;
-    public static final String AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL = "PageAdminCertification.auth.certificationCampaignDecisions.label";
-    public static final String AUTH_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION = "PageAdminCertification.auth.certificationCampaignDecisions.description";
+    public static final String AUTH_ACTIVE_CERT_CAMPAIGNS_URL = AuthorizationConstants.AUTZ_UI_ACTIVE_CERT_CAMPAIGNS_URL;
+    public static final String AUTH_ACTIVE_CERT_CAMPAIGNS_LABEL = "PageAdminCertification.auth.activeCertCampaigns.label";
+    public static final String AUTH_ACTIVE_CERT_CAMPAIGNS_DESCRIPTION = "PageAdminCertification.auth.activeCertCampaigns.description";
 
-    public static final String AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_URL = AuthorizationConstants.AUTZ_UI_MY_CERTIFICATION_CAMPAIGN_DECISIONS_URL;
-    public static final String AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_LABEL = "PageAdminCertification.auth.myCertificationCampaignDecisions.label";
-    public static final String AUTH_MY_CERTIFICATION_CAMPAIGN_DECISIONS_DESCRIPTION = "PageAdminCertification.auth.myCertificationCampaignDecisions.description";
+    public static final String AUTH_MY_ACTIVE_CERT_CAMPAIGNS_URL = AuthorizationConstants.AUTZ_UI_MY_ACTIVE_CERT_CAMPAIGNS_URL;
+    public static final String AUTH_MY_ACTIVE_CERT_CAMPAIGNS_LABEL = "PageAdminCertification.auth.myActiveCertCampaigns.label";
+    public static final String AUTH_MY_ACTIVE_CERT_CAMPAIGNS_DESCRIPTION = "PageAdminCertification.auth.myActiveCertCampaigns.description";
 
     public PageAdminCertification() {
         super();
