@@ -61,7 +61,7 @@ public abstract class ContainerableNameColumn<SR extends SelectableRow<C>, C ext
         };
     }
 
-    private void onClickPerformed(AjaxRequestTarget target, IModel<SR> rowModel) {
+    protected void onClickPerformed(AjaxRequestTarget target, IModel<SR> rowModel) {
         SR selectableBean = rowModel.getObject();
         C value = ColumnUtils.unwrapSelectableRowModel(rowModel);
         if (value == null || resultPresent(selectableBean)) {
