@@ -15,6 +15,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.provisioning.util.ErrorState;
 
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -310,11 +312,15 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
                 getIdentifiers());
     }
 
-    private void postProcessForDeletion(OperationResult result) throws SchemaException {
+    private void postProcessForDeletion(OperationResult result) throws SchemaException, ConfigurationException {
         assert repoShadow != null;
-        if (!repoShadow.shadow().isDead() || repoShadow.shadow().doesExist()) {
-            b.shadowUpdater.markShadowTombstone(repoShadow.shadow(), effectiveCtx.getTask(), result);
+        var shadow = repoShadow.shadow();
+        if (!shadow.isDead() || shadow.doesExist()) {
+            b.shadowUpdater.markShadowTombstone(shadow, effectiveCtx.getTask(), result);
         }
+        var bean = shadow.getBean();
+        bean.setEffectiveOperationPolicy(
+                ObjectOperationPolicyHelper.get().computeEffectivePolicy(bean, result));
     }
 
     public ResourceObjectShadowChangeDescription getShadowChangeDescription() {
