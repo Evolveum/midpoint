@@ -14,7 +14,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisSimpleModel;
 import com.evolveum.wicket.chartjs.*;
 

@@ -115,6 +115,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         add(menu);
 
         Label title = new Label(ID_TITLE, getTitleModel());
+        title.add(AttributeAppender.append("title", getTitleModel()));
         title.setOutputMarkupId(true);
         add(title);
 

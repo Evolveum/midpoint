@@ -25,7 +25,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
@@ -234,7 +233,7 @@ public class RoleAnalysisAspectsWebUtils {
                     Label label = new Label(id,
                             pageBase.createStringResource("RoleAnalysisIdentifyWidgetPanel.value.title.system.reduction"));
                     label.setOutputMarkupId(true);
-                    label.add(new VisibleBehaviour(() -> getValue() != null));
+                    label.add(new VisibleBehaviour(() -> getDescription() != null));
                     return label;
                 }
 

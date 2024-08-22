@@ -22,16 +22,18 @@ import org.jetbrains.annotations.NotNull;
 public enum AnalysisCategory implements TileEnum {
 
 //    STANDARD("fa fa-cogs"),
-    BALANCED_COVERAGE("fa fa-balance-scale"),
-    EXACT_ACCESS_SIMILARITY("fa fa-key"),
-    DEPARTMENT("fa fa-building"),
-    ADVANCED("fa fa-sliders-h"),
-    OUTLIER("fa fa-wrench");
+    BALANCED_COVERAGE("fa fa-balance-scale","RoleAnalysisCategoryType.BALANCED_COVERAGE.description"),
+    EXACT_ACCESS_SIMILARITY("fa fa-key", "RoleAnalysisCategoryType.EXACT_ACCESS_SIMILARITY.description"),
+    DEPARTMENT("fa fa-building", "RoleAnalysisCategoryType.DEPARTMENT.description"),
+    ADVANCED("fa fa-sliders-h", "RoleAnalysisCategoryType.ADVANCED.description"),
+    OUTLIER("fa fa-wrench", "RoleAnalysisCategoryType.OUTLIER.description");
 
     private final String iconClass;
+    private final String descriptionKey;
 
-    AnalysisCategory(String iconClass) {
+    AnalysisCategory(String iconClass, String descriptionKey) {
         this.iconClass = iconClass;
+        this.descriptionKey = descriptionKey;
     }
 
     @Override
@@ -65,7 +67,8 @@ public enum AnalysisCategory implements TileEnum {
         };
     }
 
-
-
+    public String getDescriptionKey() {
+        return descriptionKey;
+    }
 
 }

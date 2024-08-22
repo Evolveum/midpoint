@@ -8,7 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart;/*
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartTicks;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.UniqueChartScaleAxisOption;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -130,12 +131,17 @@ public class RoleAnalysisAggregateChartModel extends LoadableModel<ChartConfigur
         interaction.setIntersect(false);
         options.setInteraction(interaction);
 
-        ChartScaleAxisOption chartScaleXAxisOption = new ChartScaleAxisOption();
-        chartScaleXAxisOption.setDisplay(true);
+        UniqueChartScaleAxisOption chartScaleXAxisOption = new UniqueChartScaleAxisOption();
         ChartTitleOption chartTitleXOption =
                 new ChartTitleOption();
-        chartTitleXOption.setDisplay(true);
-        chartTitleXOption.setText(getXAxisTitle());
+        if (chartType.equals(ChartType.SCATTER)) {
+            chartTitleXOption.setDisplay(true);
+            chartTitleXOption.setText(getXAxisTitle());
+        }else{
+            chartTitleXOption.setDisplay(false);
+            chartScaleXAxisOption.setTicks(new ChartTicks(false));
+        }
+
 
         chartScaleXAxisOption.setTitle(chartTitleXOption);
 

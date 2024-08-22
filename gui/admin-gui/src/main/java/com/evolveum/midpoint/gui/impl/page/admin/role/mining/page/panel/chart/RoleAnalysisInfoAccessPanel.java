@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType.SCATTER;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType.getNextChartType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType.SCATTER;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType.getNextChartType;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.ChartType;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -52,7 +53,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.RoleAnalysisAggregateChartModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.model.ChartType;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.RoleAnalysisModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;

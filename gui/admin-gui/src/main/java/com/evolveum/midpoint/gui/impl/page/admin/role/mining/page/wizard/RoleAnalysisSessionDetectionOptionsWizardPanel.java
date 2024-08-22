@@ -47,17 +47,29 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.work.filter.options");
+        if (getRoleAnalysisCategoryType().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            return createStringResource("PageRoleAnalysisSession.wizard.step.work.anomaly.detection.options");
+        }
+
+        return createStringResource("PageRoleAnalysisSession.wizard.step.work.role.detection.options");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.work.filter.options.text");
+        if (getRoleAnalysisCategoryType().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            return createStringResource("PageRoleAnalysisSession.wizard.step.work.anomaly.detection.options.text");
+        }
+
+        return createStringResource("PageRoleAnalysisSession.wizard.step.work.role.detection.options.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.work.filter.options.subText");
+        if (getRoleAnalysisCategoryType().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            return createStringResource("PageRoleAnalysisSession.wizard.step.work.anomaly.detection.options.subText");
+        }
+
+        return createStringResource("PageRoleAnalysisSession.wizard.step.work.role.detection.options.subText");
     }
 
     @Override
@@ -87,9 +99,7 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
 
-        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-        RoleAnalysisOptionType option = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = option.getAnalysisCategory();
+        RoleAnalysisCategoryType analysisCategory = getRoleAnalysisCategoryType();
 
         boolean isOutlierSession = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
         return wrapper -> {
@@ -111,5 +121,11 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
             return ItemVisibility.AUTO;
         };
+    }
+
+    private RoleAnalysisCategoryType getRoleAnalysisCategoryType() {
+        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
+        RoleAnalysisOptionType option = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
+        return option.getAnalysisCategory();
     }
 }

@@ -191,8 +191,6 @@ public class OutlierPartitionPage extends PageAdmin {
 
                 initAttributesItem(menu);
 
-                initAccessItem(menu);
-
                 return menu;
             }
         };
@@ -391,26 +389,4 @@ public class OutlierPartitionPage extends PageAdmin {
         menu.getItems().add(outlierAttributesItemPanel);
     }
 
-    private void initAccessItem(@NotNull ListGroupMenu<RoleAnalysisOutlierPartitionType> menu) {
-        CustomListGroupMenuItem<RoleAnalysisOutlierPartitionType> outlierAccessItemPanel = new CustomListGroupMenuItem<>(
-                "OutlierAccessItemPanel.title") {
-            @Contract("_, _, _ -> new")
-            @Override
-            public @NotNull Component createMenuItemPanel(String id,
-                    IModel<ListGroupMenuItem<RoleAnalysisOutlierPartitionType>> model,
-                    SerializableBiConsumer<AjaxRequestTarget, ListGroupMenuItem<RoleAnalysisOutlierPartitionType>> onClickHandler) {
-
-                return new OutlierAccessItemPanel<>(id, model, getPartitionModel(), getOutlierModel()) {
-                    @Override
-                    protected void onClickPerformed(@NotNull AjaxRequestTarget target, @NotNull Component panelComponent) {
-                        super.onClickPerformed(target, panelComponent);
-                        onClickHandler.accept(target, model.getObject());
-                        isOutlierOverviewItemPanelActive = false;
-                    }
-                };
-            }
-        };
-        outlierAccessItemPanel.setIconCss("fe fe-role");
-        menu.getItems().add(outlierAccessItemPanel);
-    }
 }

@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.aspects;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModelMain;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierPartitionPanel.PARAM_ANOMALY_OID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.OutlierPartitionPanel.PARAM_ANOMALY_OID;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;

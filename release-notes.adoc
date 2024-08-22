@@ -421,6 +421,9 @@ The complete new set of initial objects is in the `config/initial-objects` direc
 _Actions required:_ Please review the changes and apply them appropriately to your configuration. Ninja can help with updating existing initial objects during upgrade procedure using `initial-objects` command.
 For more information see xref:/midpoint/reference/deployment/ninja/use-case/upgrade-with-ninja/#initial-objects[here].
 
+* 040-role-enduser.xml: The `End user` role was updated with a hidden visibility for `myCertificationItems` dashboard widget.
+* 042-role-enduser.xml: The `Reviewer` role was extended with `myActiveCertificationCampaigns` UI authorization for active campaigns page and with more items of the certification campaign object to be read.
+* 000-system-configuration.xml: The `SystemConfiguration` object was extended with a new dashboard widget configuration for certification items.
 * 250-object-collection-resource.xml: The `All resources` object collection was updated with a filter to exclude resource templates.
 * 251-object-collection-resource-up.xml: The `Resources up` object collection was updated with a filter to exclude resource templates.
 * 520-archetype-task-certification.xml: Changes for proper functioning of certification related tasks.

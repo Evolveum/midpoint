@@ -90,16 +90,12 @@ public class TestDummyIntents extends AbstractDummyTest {
 
     @Test
     public void test110RetrievingAccountsByKindAndIntent() throws Exception {
-
         deleteAllShadows();
 
+        executeSearchByKindAndIntent(RESOURCE_DUMMY_NO_DEFAULT_ACCOUNT);
         executeSearchByKindAndIntent(RESOURCE_DUMMY_NO_DEFAULT_ACCOUNT_FIXED);
         executeSearchByKindAndIntent(RESOURCE_DUMMY_WITH_DEFAULT_ACCOUNT);
-
-        skipTestIf(InternalsConfig.isShadowCachingOnByDefault(), "fails when shadow caching is enabled");
-        executeSearchByKindAndIntent(RESOURCE_DUMMY_NO_DEFAULT_ACCOUNT);
     }
-
 
     private void executeSearchByObjectClass(DummyTestResource resource, boolean associationsVisible) throws CommonException {
         var task = getTestTask();

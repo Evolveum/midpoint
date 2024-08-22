@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -267,5 +269,4 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
 
     private void exitToPreview(AjaxRequestTarget target) {
     }
-
 }

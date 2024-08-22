@@ -5,9 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierPartitionPanel.PARAM_ANOMALY_OID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.OutlierPartitionPanel.PARAM_ANOMALY_OID;
 
 import java.io.Serial;
 import java.math.BigDecimal;
@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
