@@ -51,7 +51,7 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
                 clusteringSetting,
                 0.0,
                 2,
-                1,
+                2,
                 false);
 
         updateDetectionOptions(2,

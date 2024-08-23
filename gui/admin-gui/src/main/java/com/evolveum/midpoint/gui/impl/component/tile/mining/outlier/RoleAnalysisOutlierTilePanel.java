@@ -151,6 +151,8 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 };
 
                 sessionLink.setOutputMarkupId(true);
+                sessionLink.add(AttributeAppender.append("style", "max-width:150px"));
+                sessionLink.add(AttributeAppender.append("class", "text-truncate"));
                 view.add(sessionLink);
 
                 Label separator = new Label(view.newChildId(), "/");
@@ -166,6 +168,8 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                     }
                 };
                 clusterLink.setOutputMarkupId(true);
+                clusterLink.add(AttributeAppender.append("style", "max-width:150px"));
+                clusterLink.add(AttributeAppender.append("class", "text-truncate"));
                 view.add(clusterLink);
                 return view;
             }

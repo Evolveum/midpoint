@@ -286,6 +286,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         };
 
         sessionLink.setOutputMarkupId(true);
+        sessionLink.add(AttributeAppender.append("style", "max-width:150px"));
+        sessionLink.add(AttributeAppender.append("class", "text-truncate"));
         add(sessionLink);
 
         AjaxLinkPanel clusterLink = new AjaxLinkPanel(ID_CLUSTER, Model.of(clusterRef.getTargetName().getOrig())) {
@@ -297,6 +299,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             }
         };
         clusterLink.setOutputMarkupId(true);
+        clusterLink.add(AttributeAppender.append("style", "max-width:150px"));
+        clusterLink.add(AttributeAppender.append("class", "text-truncate"));
         add(clusterLink);
     }
 
