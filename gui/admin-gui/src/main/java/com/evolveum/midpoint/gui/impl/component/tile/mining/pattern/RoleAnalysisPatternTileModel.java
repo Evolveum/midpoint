@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.gui.impl.component.tile.mining.pattern;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +25,7 @@ public class RoleAnalysisPatternTileModel<T extends Serializable> extends Tile<T
     String userCount;
     String roleCount;
     String processMode;
+    double systemReductionPercentage;
 
     public RoleAnalysisPatternTileModel(String icon, String title) {
         super(icon, title);
@@ -31,13 +34,33 @@ public class RoleAnalysisPatternTileModel<T extends Serializable> extends Tile<T
     public RoleAnalysisPatternTileModel(
             @NotNull DetectedPattern pattern,
             @NotNull String name,
-            @NotNull String processMode) {
+            int totalRoleToUserAssignments) {
         this.icon = GuiStyleConstants.CLASS_DETECTED_PATTERN_ICON;
         this.name = name;
         this.pattern = pattern;
         this.userCount = String.valueOf(pattern.getUsers().size());
         this.roleCount = String.valueOf(pattern.getRoles().size());
-        this.processMode = processMode;
+        this.systemReductionPercentage = calculateSystemReductionPercentage(totalRoleToUserAssignments);
+    }
+
+    private double calculateSystemReductionPercentage(int totalRoleToUserAssignments) {
+        Double metric = pattern.getMetric();
+        if (metric == null) {
+            return 0;
+        }
+
+        if (metric == 0 || totalRoleToUserAssignments == 0) {
+            return 0;
+        }
+
+        double percentageCoverage = (metric / totalRoleToUserAssignments) * 100;
+        BigDecimal bd = new BigDecimal(percentageCoverage);
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
+        return bd.doubleValue();
+    }
+
+    public double getSystemReductionPercentage() {
+        return systemReductionPercentage;
     }
 
     @Override

@@ -27,6 +27,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 
@@ -42,6 +43,8 @@ import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.checkerframework.checker.units.qual.C;
 
 /**
  * @author semancik
@@ -63,6 +66,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     protected static final String ID_TITLE2 = "summaryTitle2";
     protected static final String ID_TITLE3 = "summaryTitle3";
     protected static final String ID_BADGES = "badges";
+    protected static final String ID_MARKS = "marks";
 
     protected static final String ID_PHOTO = "summaryPhoto";                  // perhaps useful only for focal objects but it was simpler to include it here
     protected static final String ID_ORGANIZATION = "summaryOrganization";    // similar (requires ObjectWrapper to get parent organizations so hard to use in ObjectSummaryPanel)
@@ -168,6 +172,11 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         parentOrgLabel.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(parentOrgModel.getObject())));
         box.add(parentOrgLabel);
 
+        IModel<String> marksModel = createMarksModel();
+        Label marks = new Label(ID_MARKS, marksModel);
+        marks.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(marksModel.getObject())));
+        box.add(marks);
+
         iconBox = new WebMarkupContainer(ID_ICON_BOX);
         box.add(iconBox);
 
@@ -244,6 +253,23 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         Label title = new Label(id, labelModel);
         title.add(new VisibleBehaviour(() -> StringUtils.isNotBlank(labelModel.getObject())));
         box.add(title);
+    }
+
+    protected IModel<String> createMarksModel() {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected String load() {
+                C c = getModelObject();
+                if (!(c instanceof ObjectType object)) {
+                    return null;
+                }
+
+                List<ObjectReferenceType> refs = object.getEffectiveMarkRef();
+
+                return WebComponentUtil.createMarkList(refs, getPageBase());
+            }
+        };
     }
 
     protected IModel<List<Badge>> createBadgesModel() {

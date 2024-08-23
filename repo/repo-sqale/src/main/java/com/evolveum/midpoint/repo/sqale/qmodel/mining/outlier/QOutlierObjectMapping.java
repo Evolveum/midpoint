@@ -27,11 +27,11 @@ public class QOutlierObjectMapping
         super(QOutlierData.TABLE_NAME, DEFAULT_ALIAS_NAME,
                 RoleAnalysisOutlierType.class, QOutlierData.class, repositoryContext);
 
-//        addRefMapping(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF,
-//                q -> q.targetObjectRefTargetOid,
-//                q -> q.targetObjectRefTargetType,
-//                q -> q.targetObjectRefRelationId,
-//                QObjectMapping::getObjectMapping);
+        addRefMapping(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF,
+                q -> q.targetObjectRefTargetOid,
+                q -> q.targetObjectRefTargetType,
+                q -> q.targetObjectRefRelationId,
+                QObjectMapping::getObjectMapping);
 //
 //        addRefMapping(RoleAnalysisOutlierType.F_TARGET_CLUSTER_REF,
 //                q -> q.targetClusterRefTargetOid,
@@ -56,10 +56,10 @@ public class QOutlierObjectMapping
             RoleAnalysisOutlierType outlierObject, JdbcSession jdbcSession) {
         MOutlierObject row = super.toRowObjectWithoutFullObject(outlierObject, jdbcSession);
 
-//        setReference(outlierObject.getTargetObjectRef(),
-//                o -> row.targetObjectRefTargetOid = o,
-//                t -> row.targetObjectRefTargetType = t,
-//                r -> row.targetObjectRefRelationId = r);
+        setReference(outlierObject.getTargetObjectRef(),
+                o -> row.targetObjectRefTargetOid = o,
+                t -> row.targetObjectRefTargetType = t,
+                r -> row.targetObjectRefRelationId = r);
 //
 //        //TODO: session not cluster
 //        setReference(outlierObject.getTargetSessionRef(),

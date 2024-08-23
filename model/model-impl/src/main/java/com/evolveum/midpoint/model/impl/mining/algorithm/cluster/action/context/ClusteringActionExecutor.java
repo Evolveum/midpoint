@@ -8,8 +8,14 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.context;
 
 import java.util.List;
+import java.util.Set;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
@@ -18,14 +24,20 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.mining.algorithm.BaseAction;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering.Clusterable;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context.OutlierDetectionActionExecutor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils.processOutliersAnalysis;
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.getExistingActiveRolesOidsSet;
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.getRoleBasedRoleToUserMap;
 
 /**
  * Clustering action.
@@ -43,6 +55,10 @@ public class ClusteringActionExecutor extends BaseAction {
     private Clusterable clusterable;
 
     private static final String DECOMISSIONED_MARK_OID = "00000000-0000-0000-0000-000000000801";
+
+    private static final Trace LOGGER = TraceManager.getTrace(ClusteringActionExecutor.class);
+
+    private final AttributeAnalysisCache attributeAnalysisCache = new AttributeAnalysisCache();
 
     private final RoleAnalysisProgressIncrement handler = new RoleAnalysisProgressIncrement("Density Clustering",
             7, this::incrementProgress);
@@ -66,55 +82,58 @@ public class ClusteringActionExecutor extends BaseAction {
         PrismObject<RoleAnalysisSessionType> prismSession = roleAnalysisService.getSessionTypeObject(
                 sessionOid, task, result);
 
-        if (prismSession != null) {
+        if (prismSession == null) {
+            LOGGER.debug("nothing to do"); //TODO message
+            return;
+        }
 
-            RoleAnalysisSessionType session = prismSession.asObjectable();
-            List<ObjectReferenceType> effectiveMarkRef = session.getEffectiveMarkRef();
-            boolean isDecomissioned = false;
-            if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
-                for (ObjectReferenceType ref : effectiveMarkRef) {
-                    if (ref.getOid().equals(DECOMISSIONED_MARK_OID)) {
-                        String description = ref.getDescription();
-                        if (description != null && description.equals("First run")) {
-                            ObjectReferenceType mark = new ObjectReferenceType().oid(DECOMISSIONED_MARK_OID)
-                                    .type(MarkType.COMPLEX_TYPE)
-                                    .description("Second run");
-                            roleAnalysisService.replaceSessionMarkRef(prismSession, mark, result, task);
-                        } else {
-                            isDecomissioned = true;
-                        }
-                        break;
+
+        RoleAnalysisSessionType session = prismSession.asObjectable();
+        List<ObjectReferenceType> effectiveMarkRef = session.getEffectiveMarkRef();
+        boolean isDecomissioned = false;
+
+        if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
+            for (ObjectReferenceType ref : effectiveMarkRef) {
+                if (ref.getOid().equals(DECOMISSIONED_MARK_OID)) {
+                    String description = ref.getDescription();
+                    if (description != null && description.equals("First run")) {
+                        ObjectReferenceType mark = new ObjectReferenceType().oid(DECOMISSIONED_MARK_OID)
+                                .type(MarkType.COMPLEX_TYPE)
+                                .description("Second run");
+                        roleAnalysisService.replaceSessionMarkRef(prismSession, mark, result, task);
+                    } else {
+                        isDecomissioned = true;
                     }
+                    break;
                 }
             }
+        }
 
-            if (isDecomissioned) {
-                Task subTask = task.createSubtask();
-                PrismObject<TaskType> sessionTask = roleAnalysisService.getSessionTask(sessionOid, subTask, result);
+        if (isDecomissioned) {
+            Task subTask = task.createSubtask();
+            PrismObject<TaskType> sessionTask = roleAnalysisService.getSessionTask(sessionOid, subTask, result);
 //                roleAnalysisService.stopSessionTask(sessionOid, task1, result);
 //                roleAnalysisService.deleteSessionTask(sessionOid, result);
 //                sessionTask.asObjectable().cleanupAfterCompletion(XmlTypeConverter.createDuration("PT0S"));
 
-                roleAnalysisService.deleteSession(sessionOid, subTask, result);
-                task.setName("Role Analysis Decommissioned");
-                if (sessionTask != null) {
-                    roleAnalysisService.deleteSessionTask(sessionTask.asObjectable(), result);
-                }
-                handler.finish();
-                return;
+            roleAnalysisService.deleteSession(sessionOid, subTask, result);
+            task.setName("Role Analysis Decommissioned");
+            if (sessionTask != null) {
+                roleAnalysisService.deleteSessionTask(sessionTask.asObjectable(), result);
             }
+            handler.finish();
+            return;
+        }
 
-            roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result);
+        roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result, false);
 
-            this.clusterable = new ClusteringBehavioralResolver();
+        this.clusterable = new ClusteringBehavioralResolver();
 
-            List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
-                    clusterable.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
+        List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
+                clusterable.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
 
-            if (!clusterObjects.isEmpty()) {
-                importObjects(roleAnalysisService, clusterObjects, session, task, result);
-            }
-
+        if (!clusterObjects.isEmpty()) {
+            importObjects(roleAnalysisService, clusterObjects, session, task, result);
         }
     }
 
@@ -167,9 +186,24 @@ public class ClusteringActionExecutor extends BaseAction {
                     clusterTypePrismObject, session.getDefaultDetectionOption(), sessionRef, task, result
             );
 
-            processOutliersAnalysis(roleAnalysisService, cluster, session, analysisOption, task, result);
-
         }
+
+
+        ModelService modelService = ModelBeans.get().modelService;
+        ListMultimap<String, String> roleMembersMap = loadRoleMembersMap(modelService, session.getUserModeOptions().getQuery(), task, result);
+        attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
+
+        //TODO not just basic it must be connected to in and out outlier analysis (experimental)
+        for (PrismObject<RoleAnalysisClusterType> clusterTypePrismObject : clusters) {
+            long startTime = System.currentTimeMillis();
+            RoleAnalysisClusterType cluster = clusterTypePrismObject.asObjectable();
+            OutlierDetectionActionExecutor detectionExecutionUtil = new OutlierDetectionActionExecutor(roleAnalysisService);
+            detectionExecutionUtil.executeOutlierDetection(cluster, session, analysisOption, attributeAnalysisCache, task, result);
+            long endTime = System.currentTimeMillis();
+            double processingTimeInSeconds = (double) (endTime - startTime) / 1000.0;
+            LOGGER.debug("Processing time for outlier detection cluster " + cluster.getName() + ": " + processingTimeInSeconds + " seconds");
+        }
+
         result.getSubresults().get(0).close();
 
         meanDensity = meanDensity / (clusters.size() - countOutliers);
@@ -183,8 +217,18 @@ public class ClusteringActionExecutor extends BaseAction {
         handler.enterNewStep("Update Session");
         handler.setOperationCountToProcess(clusters.size());
         roleAnalysisService
-                .updateSessionStatistics(sessionRef, sessionStatistic, task, result
-                );
+                .updateSessionStatistics(sessionRef, sessionStatistic, task, result);
     }
 
+    public static @NotNull ListMultimap<String, String> loadRoleMembersMap(@NotNull ModelService modelService,
+            @Nullable SearchFilterType userQuery,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        Set<String> existingRolesOidsSet = getExistingActiveRolesOidsSet(modelService, task, result);
+
+        //role //user
+        return getRoleBasedRoleToUserMap(
+                modelService, userQuery, existingRolesOidsSet, task, result);
+    }
 }

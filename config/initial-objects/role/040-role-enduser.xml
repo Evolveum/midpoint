@@ -265,6 +265,10 @@
                     <visibility>hidden</visibility>
                 </action>
             </widget>
+            <widget id="268">
+                <identifier>myCertificationItems</identifier>
+                <visibility>hidden</visibility>
+            </widget>
         </homePage>
         <selfProfilePage>
             <type>UserType</type>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="ae8a1129-1e81-4097-a1cf-6dacfc03e5ff"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+
+    <name>no-default-account</name>
+    <connectorRef oid="will-be-supplied-by-the-test-code"/>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>no-default-account</icfi:instanceId>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>main</intent>
+            <!-- Here we intentionally make this object type a non-default one. The legacy associations will not work properly;
+                 and although it is expected, we want to see how bad the behavior really is. -->
+            <default>false</default>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
+            <association>
+                <ref>ri:group</ref>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+            <association>
+                <ref>ri:priv</ref>
+                <kind>entitlement</kind>
+                <intent>privilege</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:privileges</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
+            </association>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <default>false</default> <!-- this is intentional -->
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>ri:members</ref>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>privilege</intent>
+            <default>false</default>
+            <objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+    </schemaHandling>
+</resource>

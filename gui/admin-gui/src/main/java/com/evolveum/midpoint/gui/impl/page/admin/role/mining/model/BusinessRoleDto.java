@@ -37,19 +37,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class BusinessRoleDto implements Serializable {
 
     PrismObject<UserType> prismObjectUser;
-    PrismObject<RoleType> prismRoleObject;
+
     List<DeltaDto> deltaDtos;
     List<ObjectDelta<? extends ObjectType>> objectDeltas;
     int assignedCount;
     boolean include;
     int unassignedCount;
-    Set<RoleType> candidateRoles;
+
+    private Set<PrismObject<RoleType>> candidateRoles;
+    private PrismObject<RoleType> prismRoleObject;
 
     public BusinessRoleDto(PrismObject<UserType> prismObjectUser,
             PrismObject<RoleType> prismRoleObject,
             List<ObjectDelta<? extends ObjectType>> objectDeltas,
             int assignedCount, int unassignedCount, boolean include,
-            Set<RoleType> candidateRoles) {
+            Set<PrismObject<RoleType>> candidateRoles) {
         this.prismObjectUser = prismObjectUser;
         this.prismRoleObject = prismRoleObject;
         this.objectDeltas = objectDeltas;
@@ -63,7 +65,7 @@ public class BusinessRoleDto implements Serializable {
     public BusinessRoleDto(
             @NotNull PrismObject<UserType> prismObjectUser,
             @NotNull PrismObject<RoleType> prismObjectRole,
-            Set<RoleType> candidateRoles,
+            Set<PrismObject<RoleType>> candidateRoles,
             PageBase pageBase) {
         this.candidateRoles = candidateRoles;
         prepareUserDeltas(prismObjectUser, prismObjectRole, pageBase);
@@ -83,7 +85,7 @@ public class BusinessRoleDto implements Serializable {
      * @param inducements The list of inducements to be used for updating the value.
      * @param pageBase The pageBase object.
      */
-    public void updateValue(List<RoleType> inducements, PageBase pageBase) {
+    public void updateValue(List<PrismObject<RoleType>> inducements, PageBase pageBase) {
         this.candidateRoles = new HashSet<>(inducements);
         prepareUserDeltas(prismObjectUser, prismRoleObject, pageBase);
     }
@@ -99,7 +101,7 @@ public class BusinessRoleDto implements Serializable {
 
         List<String> userRolesAssignmentOids = getRolesOidAssignment(userObject);
         List<String> roleRolesAssignmentOids = this.candidateRoles.stream()
-                .map(AbstractMutableObjectable::getOid)
+                .map(PrismObject::getOid)
                 .toList();
 
         Set<String> appliedRoles = new HashSet<>();

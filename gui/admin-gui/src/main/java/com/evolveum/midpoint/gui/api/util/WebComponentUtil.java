@@ -2289,27 +2289,37 @@ public final class WebComponentUtil {
         if (ref == null) {
             return "";
         }
-        StringBuilder sb = new StringBuilder();
+
+        String name = null;
         if (ref.getObject() != null) {
-            sb.append(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ref.getObject().getName()));
+            name = com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ref.getObject().getName());
         } else if (ref.getTargetName() != null && StringUtils.isNotEmpty(ref.getTargetName().getOrig())) {
-            sb.append(com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ref.getTargetName()));
+            name = com.evolveum.midpoint.gui.api.util.LocalizationUtil.translatePolyString(ref.getTargetName());
         }
-        if (StringUtils.isNotEmpty(ref.getOid())) {
+
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(name)) {
+            sb.append(name);
+        }
+
+        if (StringUtils.isEmpty(name) && StringUtils.isNotEmpty(ref.getOid())) {
             if (sb.length() > 0) {
                 sb.append("; ");
             }
             sb.append(pageBase.createStringResource("ReferencePopupPanel.oid").getString());
             sb.append(ref.getOid());
         }
-        if (ref.getRelation() != null) {
+
+        QName relation = ref.getRelation();
+        if (ref.getRelation() != null && !QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT)) {
             if (sb.length() > 0) {
                 sb.append("; ");
             }
             sb.append(pageBase.createStringResource("ReferencePopupPanel.relation").getString());
             sb.append(ref.getRelation().getLocalPart());
         }
-        if (ref.getType() != null) {
+
+        if (StringUtils.isEmpty(name) && ref.getType() != null) {
             if (sb.length() > 0) {
                 sb.append("; ");
             }
@@ -2322,6 +2332,7 @@ public final class WebComponentUtil {
                 sb.append(ref.getType().getLocalPart());
             }
         }
+
         return sb.toString();
     }
 
@@ -4200,5 +4211,19 @@ public final class WebComponentUtil {
             icon.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(iconCss)));
             return icon;
         }
+    }
+
+    public static String createMarkList(List<ObjectReferenceType> markRefs, PageBase page) {
+        if (markRefs == null) {
+            return null;
+        }
+
+        Object[] marks = markRefs.stream()
+                .map(ref -> WebModelServiceUtils.loadObject(ref, page))
+                .filter(mark -> mark != null)
+                .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
+                .toArray();
+
+        return StringUtils.joinWith(", ", marks);
     }
 }

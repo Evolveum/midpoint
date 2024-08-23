@@ -86,14 +86,14 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
             throw new RuntimeException(e);
         }
 
-        Set<RoleType> candidateRoles = new HashSet<>();
+        Set<PrismObject<RoleType>> candidateRoles = new HashSet<>();
         for (AssignmentType assignmentType : inducement) {
             if (assignmentType.getTargetRef() == null) {
                 continue;
             }
             PrismObject<RoleType> role = assignmentType.getTargetRef().asReferenceValue().getObject();
             if (role != null) {
-                candidateRoles.add(role.asObjectable());
+                candidateRoles.add(role);
             }
 
         }
@@ -150,7 +150,7 @@ public class ModificationTargetPanel<AR extends AbstractRoleType> extends Abstra
                             public void performAddOperation(AjaxRequestTarget ajaxRequestTarget, IModel<SelectableBean<UserType>> iModel) {
                                 BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
 
-                                Set<RoleType> candidateRoles = patternDeltas.getCandidateRoles();
+                                Set<PrismObject<RoleType>> candidateRoles = patternDeltas.getCandidateRoles();
                                 UserType user = iModel.getObject().getValue();
 
                                 BusinessRoleDto newValue = new BusinessRoleDto(

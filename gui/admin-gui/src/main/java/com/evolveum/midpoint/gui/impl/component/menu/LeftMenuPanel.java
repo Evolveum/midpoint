@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.*;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysis;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.PageOutliers;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -404,6 +405,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         roleMenu.addMenuItem(new MenuItem("PageRoleAnalysisSession.menu.title",
                 GuiStyleConstants.CLASS_PLUS_CIRCLE,
                 PageRoleAnalysisSession.class));
+        roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.outliers",
+                GuiStyleConstants.CLASS_OUTLIER_ICON,
+                PageOutliers.class));
 
         return roleMenu;
     }

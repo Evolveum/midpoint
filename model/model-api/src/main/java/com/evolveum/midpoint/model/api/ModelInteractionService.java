@@ -731,4 +731,6 @@ public interface ModelInteractionService {
      * Later, this should be the functionality directly supported in DB (and midPoint query language)
      */
     boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException;
+
+    boolean isSubarchetypeOrArchetype(String archetypeOid, String parentArchetype, OperationResult result);
 }

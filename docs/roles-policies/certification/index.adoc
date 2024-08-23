@@ -329,12 +329,14 @@ This configuration will be merged with the global one and applied to all campaig
 === Dashboard widget configuration
 
 Certification dashboard widget can be configured to be shown on the self-service dashboard page.
-The widget can be configured in the _systemConfiguration -> adminGuiConfiguration -> homePage_ element.
+The widget configuration is as a part of the system configuration initial object.
+The configuration can be found in the _systemConfiguration -> adminGuiConfiguration -> homePage_ element.
+It is hidden in the `End user` initial object by default and can be adopted to the specific needs of the project (please, see xref:/midpoint/reference/admin-gui/admin-gui-config/#how-it-works[Admin GUI configuration merging mechanism]).
 
 [source,xml]
 ----
             <widget>
-                <identifier>dashboardCertItems</identifier>
+                <identifier>myCertificationItems</identifier>
                 <display>
                     <label>
                         <t:orig>Certification items</t:orig>
@@ -348,7 +350,7 @@ The widget can be configured in the _systemConfiguration -> adminGuiConfiguratio
                     </icon>
                 </display>
                 <displayOrder>50</displayOrder>
-                <panelType>dashboardCertItems</panelType>
+                <panelType>myCertificationItems</panelType>
                 <previewSize>5</previewSize>
                 <action>
                     <identifier>viewAll</identifier>

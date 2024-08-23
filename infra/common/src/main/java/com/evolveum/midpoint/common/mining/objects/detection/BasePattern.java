@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.Set;
 
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisDetectionPatternType;
 
@@ -30,6 +31,17 @@ public abstract class BasePattern implements Serializable {
     RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
     RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
 
+    private PatternType patternType;
+
+    private boolean patternSelected;
+    ObjectReferenceType outlierRef;
+
+    ObjectReferenceType clusterRef;
+    ObjectReferenceType sessionRef;
+
+    public ObjectReferenceType getOutlierRef() {
+        return outlierRef;
+    }
     public BasePattern(Set<String> roles,
             Set<String> users,
             Double metric,
@@ -76,7 +88,8 @@ public abstract class BasePattern implements Serializable {
     }
 
     public BasePattern(Set<String> roles, Set<String> users,
-            double clusterMetric, Long patternId, String roleOid) {
+            double clusterMetric, Long patternId, String roleOid,
+            PatternType patternType) {
         this.roles = roles;
         this.users = users;
         this.metric = clusterMetric;
@@ -88,6 +101,7 @@ public abstract class BasePattern implements Serializable {
         }
         this.associatedColor = null;
         this.roleOid = roleOid;
+        this.patternType = patternType;
     }
 
     public Set<String> getRoles() {
@@ -176,4 +190,25 @@ public abstract class BasePattern implements Serializable {
     public void setRoleOid(String roleOid) {
         this.roleOid = roleOid;
     }
+
+    public PatternType getPatternType() {
+        return patternType;
+    }
+
+    public void setPatternType(PatternType patternType) {
+        this.patternType = patternType;
+    }
+
+    public boolean isPatternSelected() {
+        return patternSelected;
+    }
+
+    public void setPatternSelected(boolean patternSelected) {
+        this.patternSelected = patternSelected;
+    }
+
+    public enum PatternType {
+        PATTERN, CANDIDATE, OUTLIER;
+    }
+
 }

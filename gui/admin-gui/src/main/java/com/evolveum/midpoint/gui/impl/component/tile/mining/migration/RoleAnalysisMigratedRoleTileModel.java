@@ -10,6 +10,9 @@ package com.evolveum.midpoint.gui.impl.component.tile.mining.migration;
 import java.io.Serializable;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -27,11 +30,11 @@ public class RoleAnalysisMigratedRoleTileModel<T extends Serializable> extends T
     String createDate;
     String inducementsCount;
     String membersCount;
-    String processMode;
     PageBase pageBase;
     String status;
     RoleType role;
-    String clusterOid;
+    ObjectReferenceType clusterRef;
+    ObjectReferenceType sessionRef;
 
     public RoleAnalysisMigratedRoleTileModel(String icon, String title) {
         super(icon, title);
@@ -40,17 +43,17 @@ public class RoleAnalysisMigratedRoleTileModel<T extends Serializable> extends T
     public RoleAnalysisMigratedRoleTileModel(
             @NotNull RoleType role,
             @NotNull PageBase pageBase,
-            @NotNull String processMode,
-            @NotNull String clusterOid) {
+            @NotNull IModel<ObjectReferenceType> clusterRef,
+            @NotNull IModel<ObjectReferenceType> sessionOid) {
         this.icon = GuiStyleConstants.CLASS_CANDIDATE_ROLE_ICON;
-        this.clusterOid = clusterOid;
+        this.clusterRef = clusterRef.getObject();
+        this.sessionRef = sessionOid.getObject();
         this.name = role.getName().getOrig();
         this.role = role;
         this.pageBase = pageBase;
         this.createDate = resolveDateAndTime(role);
         this.inducementsCount = getRoleInducementsCount(role);
         this.membersCount = getRoleAssignmentCount(role, pageBase);
-        this.processMode = processMode;
         this.status = resolveStatus(role).name();
     }
 
@@ -74,7 +77,7 @@ public class RoleAnalysisMigratedRoleTileModel<T extends Serializable> extends T
 
     private @NotNull String resolveDateAndTime(@NotNull RoleType role) {
 
-        if(role.getMetadata() == null || role.getMetadata().getCreateTimestamp() == null) {
+        if (role.getMetadata() == null || role.getMetadata().getCreateTimestamp() == null) {
             return "";
         }
 
@@ -118,10 +121,6 @@ public class RoleAnalysisMigratedRoleTileModel<T extends Serializable> extends T
         return membersCount;
     }
 
-    public String getProcessMode() {
-        return processMode;
-    }
-
     public PageBase getPageBase() {
         return pageBase;
     }
@@ -134,8 +133,12 @@ public class RoleAnalysisMigratedRoleTileModel<T extends Serializable> extends T
         return role;
     }
 
-    public String getClusterOid() {
-        return clusterOid;
+    public ObjectReferenceType getClusterRef() {
+        return clusterRef;
+    }
+
+    public ObjectReferenceType getSessionRef() {
+        return sessionRef;
     }
 
 }

@@ -19,13 +19,15 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
+import org.jetbrains.annotations.NotNull;
+
 public class IconWithLabel extends BasePanel<String> {
 
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final String ID_TEXT = "label";
+    private static final String ID_ICON_CONTAINER = "iconContainer";
     private static final String ID_ICON = "icon";
-
+    private static final String ID_TEXT = "label";
     private static final String ID_SUB_COMPONENT = "subComponent";
 
     public IconWithLabel(String id, IModel<String> model) {
@@ -35,33 +37,39 @@ public class IconWithLabel extends BasePanel<String> {
 
     private void initLayout() {
         add(AttributeAppender.append("class", getComponentCssClass()));
+        add(AttributeAppender.append("style", getComponentCssStyle()));
+
+        WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);
+        iconContainer.setOutputMarkupId(true);
+        iconContainer.add(AttributeAppender.replace("class", getIconContainerCssClass()));
+        iconContainer.add(AttributeAppender.replace("style", getIconContainerCssStyle()));
+        add(iconContainer);
 
         Label image = new Label(ID_ICON);
-        image.add(AttributeModifier.replace("class", getIconCssClass()));
+        image.add(AttributeModifier.replace("class", getIconCssClass() + " fa-sm"));
         image.add(AttributeModifier.replace("style", getIconComponentCssStyle()));
         image.setOutputMarkupId(true);
-        add(image);
+        iconContainer.add(image);
 
         Component subComponent = getSubComponent(ID_SUB_COMPONENT);
         subComponent.setOutputMarkupId(true);
         add(subComponent);
 
-        if (isLink()) {
-            AjaxLinkPanel components = new AjaxLinkPanel(ID_TEXT, getModel()) {
+        Component textComponent = createComponent(getModel());
+        add(textComponent);
+    }
 
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    onClickPerform(target);
-                }
-            };
-            components.setOutputMarkupId(true);
-            add(components);
-        } else {
-            Label label = new Label(ID_TEXT, getModel());
-            label.setOutputMarkupId(true);
-            add(label);
+    private @NotNull Component createComponent(IModel<String> model) {
+        Component component = isLink() ? new AjaxLinkPanel(IconWithLabel.ID_TEXT, model) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onClickPerform(target);
+            }
         }
-
+                : new Label(IconWithLabel.ID_TEXT, model);
+        component.setOutputMarkupId(true);
+        component.add(AttributeAppender.replace("class", getLabelComponentCssClass()));
+        return component;
     }
 
     protected String getComponentCssClass() {
@@ -80,7 +88,19 @@ public class IconWithLabel extends BasePanel<String> {
         return "";
     }
 
+    protected String getLabelComponentCssClass() {
+        return null;
+    }
+
     protected String getIconComponentCssStyle() {
+        return null;
+    }
+
+    protected String getIconContainerCssClass() {
+        return null;
+    }
+
+    protected String getIconContainerCssStyle() {
         return null;
     }
 
@@ -88,5 +108,9 @@ public class IconWithLabel extends BasePanel<String> {
         WebMarkupContainer container = new WebMarkupContainer(id);
         container.add(AttributeModifier.remove("class"));
         return container;
+    }
+
+    protected String getComponentCssStyle() {
+        return null;
     }
 }

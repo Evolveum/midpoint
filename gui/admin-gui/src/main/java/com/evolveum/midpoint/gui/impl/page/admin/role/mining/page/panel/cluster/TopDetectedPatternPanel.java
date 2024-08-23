@@ -26,7 +26,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.panel.RoleAnalysisDetectedPatternTable;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.RoleAnalysisDetectedPatternTable;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -109,16 +109,19 @@ public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysi
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
+    //TODO reduction vs attribute confidence
+    // not correct way how to load top patterns
     private @NotNull List<DetectedPattern> getTopPatterns(RoleAnalysisSessionType session) {
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
 
         Task task = getPageBase().createSimpleTask("getTopPatterns");
         OperationResult result = task.getResult();
-        List<PrismObject<RoleAnalysisClusterType>> prismObjects = roleAnalysisService.searchSessionClusters(session, task, result);
+        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = roleAnalysisService.searchSessionClusters(
+                session, task, result);
 
         List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
-        for (PrismObject<RoleAnalysisClusterType> prismObject : prismObjects) {
-            List<DetectedPattern> detectedPatterns = transformDefaultPattern(prismObject.asObjectable());
+        for (PrismObject<RoleAnalysisClusterType> cluster : sessionClusters) {
+            List<DetectedPattern> detectedPatterns = transformDefaultPattern(cluster.asObjectable(), session);
 
             double maxOverallConfidence = 0;
             DetectedPattern topDetectedPattern = null;
@@ -136,6 +139,8 @@ public class TopDetectedPatternPanel extends AbstractObjectMainPanel<RoleAnalysi
             }
 
         }
+
+        topDetectedPatterns.sort((o1, o2) -> Double.compare(o2.getMetric(), o1.getMetric()));
         return topDetectedPatterns;
     }
 

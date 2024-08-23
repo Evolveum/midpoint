@@ -10,17 +10,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -29,26 +18,32 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.AbstractRoleDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsTaskCreator;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.ApplicationRoleWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.BusinessRoleWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
@@ -112,10 +107,37 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         return new RoleSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
     }
 
-    protected boolean canShowWizard(SystemObjectsType archetype) {
-        return !isHistoryPage() && (!isEditObject()) && WebComponentUtil.hasArchetypeAssignment(
-                getObjectDetailsModels().getObjectType(),
-                archetype.value());
+    @Override
+    protected boolean isApplicableTemplate() {
+        if (isCreateFromRoleMining()) {
+            return true;
+        }
+        return super.isApplicableTemplate();
+    }
+
+    @Override
+    protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
+        Collection<CompiledObjectCollectionView> applicableArchetypeViews = super.findAllApplicableArchetypeViews();
+        if (!isCreateFromRoleMining()) {
+            return applicableArchetypeViews;
+        }
+        //TODO restrict to only of business roles?
+        return applicableArchetypeViews.stream()
+                .filter(this::isBusinessRole)
+                .toList();
+//                .forEach(view -> view.getCollection().getCollectionRef().setFilter(null));
+    }
+
+    private boolean isBusinessRole(CompiledObjectCollectionView view) {
+        String archetypeOid = view.getArchetypeOid();
+        if (archetypeOid == null) {
+            return false;
+        }
+        return getModelInteractionService().isSubarchetypeOrArchetype(archetypeOid, SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(), new OperationResult("check archetype"));
+    }
+
+    private boolean isCreateFromRoleMining() {
+        return patternDeltas != null || getObjectDetailsModels().getPatternDeltas() != null;
     }
 
     @Override
@@ -277,6 +299,13 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         result.computeStatus();
         showResult(result);
         super.postProcessResultForWizard(result, executedDeltas, target);
+    }
+
+    @Override
+    protected void reloadObjectDetailsModel(PrismObject<RoleType> prismObject) {
+        BusinessRoleApplicationDto patterns = getObjectDetailsModels().getPatternDeltas();
+        super.reloadObjectDetailsModel(prismObject);
+        getObjectDetailsModels().setPatternDeltas(patterns);
     }
 
     protected ObjectQuery createInOidQuery(List<ObjectType> selectedObjectsList) {

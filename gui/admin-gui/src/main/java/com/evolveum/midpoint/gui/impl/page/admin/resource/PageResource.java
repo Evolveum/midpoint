@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schem
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.inbound.AssociationInboundMappingContainerWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundEvaluatorWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.subject.mappingContainer.outbound.AssociationOutboundMappingContainerWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.PoliciesObjectTypeWizardPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -149,7 +150,18 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                                 ResourceType.F_SCHEMA_HANDLING,
                                 SchemaHandlingType.F_OBJECT_TYPE,
                                 ResourceObjectTypeDefinitionType.F_FOCUS,
-                                ResourceObjectFocusSpecificationType.F_ARCHETYPE_REF)).resolve();
+                                ResourceObjectFocusSpecificationType.F_ARCHETYPE_REF)).resolve()
+                .item(
+                        ItemPath.create(
+                                ResourceType.F_SCHEMA_HANDLING,
+                                SchemaHandlingType.F_OBJECT_TYPE,
+                                ResourceObjectTypeDefinitionType.F_DEFAULT_OPERATION_POLICY_REF)).resolve()
+                .item(
+                        ItemPath.create(
+                                ResourceType.F_SCHEMA_HANDLING,
+                                SchemaHandlingType.F_OBJECT_TYPE,
+                                ResourceObjectTypeDefinitionType.F_MARKING,
+                                ShadowMarkingConfigurationType.F_MARK_REF)).resolve();
 
         if (useNoFetchOption()) {
             builder.noFetch();
@@ -210,6 +222,10 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     public void showActivationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
         showContainerWizardForObjectType(target, pathToValue, ActivationsWizardPanel.class);
+    }
+
+    public void showPoliciesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
+        showContainerWizardForObjectType(target, pathToValue, PoliciesObjectTypeWizardPanel.class);
     }
 
     public void showAssociationInboundsWizard(AjaxRequestTarget target, ItemPath pathToValue, ShadowAssociationTypeDefinitionType association) {

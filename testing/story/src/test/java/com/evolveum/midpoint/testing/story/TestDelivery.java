@@ -385,7 +385,10 @@ public class TestDelivery extends AbstractStoryTest {
                 ModelExecuteOptions.create().reconcile(),
                 task,
                 result);
-        assertPreviewContext(previewContext).projectionContexts().by().shadowOid(bobShadowOid).find().assertNoSecondaryDelta();
+        assertPreviewContext(previewContext)
+                .display()
+                .projectionContexts().by().shadowOid(bobShadowOid).find()
+                .assertNoSecondaryDelta();
     }
 
     @NotNull

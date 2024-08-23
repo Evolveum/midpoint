@@ -8,6 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -45,6 +48,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
         WebMarkupContainer headerItemsContainer = new WebMarkupContainer(ID_HEADER_ITEMS_CONTAINER);
         headerItemsContainer.setOutputMarkupId(true);
+        headerItemsContainer.add(new VisibleBehaviour(this::isWidgetsPanelVisible));
         headerItemsContainer.add(AttributeModifier.replace("class", getCssClassForHeaderItemsContainer()));
         container.add(headerItemsContainer);
 
@@ -62,6 +66,9 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         initStatisticsPanel(statisticsPanelContainer);
     }
 
+    protected boolean isWidgetsPanelVisible() {
+        return true;
+    }
     protected String getCssClassForHeaderItemsContainer() {
         return "row";
     }
@@ -193,6 +200,11 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 }
 
                 @Override
+                protected boolean isCardTitleVisible() {
+                    return RoleAnalysisDetectedPatternDetails.this.isCardTitleVisible();
+                }
+
+                @Override
                 protected @NotNull String getChartContainerStyle() {
                     return "height:30vh;";
                 }
@@ -212,11 +224,11 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
     }
 
     protected String getInfoBoxClass() {
-        return "col-md-3";
+        return "col-12 col-sm-12 col-md-12 col-lg-6 col-xl-3 p-2";
     }
 
     protected IModel<String> getCardTitleModel() {
-        return Model.of("Role suggestion attributes analysis result");
+        return createStringResource("RoleAnalysisDetectedPatternDetails.panel.title");
     }
 
     protected String getCssClassForStatisticsPanel() {
@@ -225,6 +237,10 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
     protected String getIconBoxContainerCssStyle() {
         return null;
+    }
+
+    protected boolean isCardTitleVisible() {
+        return true;
     }
 
 }

@@ -52,6 +52,12 @@
                     </div>
                     <span wicket:id="summaryOrganization" class="summary-panel-organization"/>
                 </wicket:enclosure>
+                <wicket:enclosure child="marks">
+                    <div class="text-sm" wicket:message="title:AbstractSummaryPanel.objectMarks">
+                        <i class="fa-solid fa-tag text-success mr-1"/>
+                        <span class="text-secondary text-truncate" wicket:id="marks"/>
+                    </div>
+                </wicket:enclosure>
             </div>
             <div class="summary-tag-box">
                 <wicket:enclosure child="summaryTagBox">

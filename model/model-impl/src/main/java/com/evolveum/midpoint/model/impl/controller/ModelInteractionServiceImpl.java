@@ -2462,4 +2462,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public boolean isOfArchetype(AssignmentHolderType assignmentHolderType, String archetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
         return archetypeManager.isOfArchetype(assignmentHolderType, archetypeOid, result);
     }
+
+    @Override
+    public boolean isSubarchetypeOrArchetype(String archetypeOid, String parentArchetype, OperationResult result){
+        try {
+            return archetypeManager.isSubArchetypeOrArchetype(archetypeOid, parentArchetype, result);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check if archetype {} is subarchetype of {}", e, archetypeOid, parentArchetype);
+            throw new SystemException(e);
+        }
+    }
 }

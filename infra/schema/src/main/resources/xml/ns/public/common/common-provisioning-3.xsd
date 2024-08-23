@@ -1127,6 +1127,7 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.9</a:since>
+                <a:naturalKey>markRef</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2866,6 +2867,7 @@
                     <a:operation>removed</a:operation>
                 </a:schemaMigration>
                 <a:container/>
+                <a:naturalKey>filter</a:naturalKey>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -6272,6 +6274,9 @@
                     <xsd:documentation>
                         Object class (like ri:inetOrgPerson) for this resource object type.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="auxiliaryObjectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
@@ -6285,6 +6290,9 @@
                         However, currently this auxiliary object classes are not used for classification; i.e. the classification
                         decision is not based on their presence in the specific resource object.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO The OCs mentioned in "auxiliaryObjectClass" are applied automatically to objects of this type.
@@ -6323,6 +6331,9 @@
                         A filter that defines the object set. Appended to any filter(s) defined in the supertype(s).
                         Used also for classification.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayHint>emphasized</a:displayHint>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="classificationCondition" type="c:ExpressionType" minOccurs="0">

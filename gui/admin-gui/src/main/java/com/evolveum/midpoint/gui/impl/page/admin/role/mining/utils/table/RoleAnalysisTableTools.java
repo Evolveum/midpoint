@@ -39,12 +39,42 @@ public class RoleAnalysisTableTools {
 
     public static @NotNull String densityBasedColor(double density) {
 
-        if (density >= 60) {
-            return "#198754";
+        if (density >= 80) {
+            return "#528BB8";
+//            return "rgb(32, 111, 157)";
         } else if (density > 30) {
             return "#008099";
         } else {
-            return "#777";
+            return "#CA444B";
+        }
+
+    }
+
+    public static @NotNull String reductionBasedColor(double density) {
+        if (density >= 50) {
+            return "#dc3444";
+        } else if (density > 30) {
+            return "#ffc007";
+        } else {
+            return "#528BB8";
+        }
+    }
+
+    public static @NotNull String confidenceBasedTwoColor(double density) {
+        if (density >= 50) {
+            return "#528BB8";
+        } else {
+            return "#CA444B";
+        }
+    }
+
+    public static @NotNull String densityBasedColorOposite(double density) {
+
+        if (density >= 90) {
+            return "#CA444B";
+        } else {
+            return "#528BB8";
+//            return "rgb(32, 111, 157)";
         }
 
     }
@@ -56,15 +86,6 @@ public class RoleAnalysisTableTools {
      */
     public static String applyTableScaleScript() {
         return "MidPointTheme.initScaleResize('#tableScaleContainer');";
-    }
-
-    /**
-     * Generate a script for applying image scale adjustments.
-     *
-     * @return The JavaScript script for applying image scale adjustments.
-     */
-    public static String applyImageScaleScript() {
-        return "MidPointTheme.initScaleResize('#imageScaleContainer');";
     }
 
     /**

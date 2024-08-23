@@ -8,10 +8,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -36,7 +40,6 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
         onLoadComponent();
     }
 
-
     protected void onLoadComponent() {
 
     }
@@ -51,25 +54,35 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "d-flex align-items-center gap-2 "));
+        add(AttributeAppender.append("class", getAdditionalCssClass()));
 
         Label image = new Label(ID_ICON);
         image.add(AttributeModifier.replace("class", getIconCssClass()));
         image.setOutputMarkupId(true);
+        image.add(new Behavior() {
+            @Override
+            public void onConfigure(Component component) {
+                image.add(AttributeModifier.replace("class", getIconCssClass()));
+                super.onConfigure(component);
+            }
+        });
         add(image);
 
         Label label = new Label(ID_TEXT, getModel());
+        label.add(AttributeAppender.append("title", getModel()));
+        label.add(new TooltipBehavior());
         label.setOutputMarkupId(true);
+        label.add(AttributeAppender.replace("class", getLabelCssClass()));
         add(label);
 
         Label badge = new Label(ID_BADGE, Model.of(getBadgeValue()));
-        badge.add(AttributeAppender.append("class", "badge bg-danger "));
+        badge.add(AttributeAppender.replace("class", getBadgeCssClass()));
         badge.setOutputMarkupId(true);
         add(badge);
     }
 
-    public Integer getBadgeValue() {
-        return 0;
+    public String getBadgeValue() {
+        return "0";
     }
 
     public String getIconCssClass() {
@@ -86,4 +99,17 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
 
     protected void onClick(AjaxRequestTarget target) {
     }
+
+    protected String getBadgeCssClass() {
+        return null;
+    }
+
+    protected String getLabelCssClass() {
+        return null;
+    }
+
+    protected String getAdditionalCssClass() {
+        return "d-flex align-items-center gap-2 ";
+    }
+
 }

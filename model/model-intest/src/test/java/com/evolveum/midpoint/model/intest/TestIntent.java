@@ -380,6 +380,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
                 null, task, result);
 
         then("three accounts are found");
+        display("ri:AccountObjectClass", accounts);
         assertThat(accounts).hasSize(3);
 
         when("searching for account/main");

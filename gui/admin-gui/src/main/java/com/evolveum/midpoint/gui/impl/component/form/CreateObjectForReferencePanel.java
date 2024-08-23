@@ -78,8 +78,13 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
     private IModel<State> currentState = Model.of();
     private FeedbackAlerts feedback = null;
     private final ContainerPanelConfigurationType config;
+    private final boolean isHeaderVisible;
 
-    public CreateObjectForReferencePanel(String id, IModel<PrismReferenceValueWrapperImpl<R>> model, ContainerPanelConfigurationType config) {
+    public CreateObjectForReferencePanel(
+            String id,
+            IModel<PrismReferenceValueWrapperImpl<R>> model,
+            ContainerPanelConfigurationType config,
+            boolean isHeaderVisible) {
         super(id, model);
         Referencable bean = model.getObject().getRealValue();
         if (model.getObject().existNewObjectModel()) {
@@ -90,6 +95,7 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
             currentState.setObject(State.USE_EXISTING);
         }
         this.config = config;
+        this.isHeaderVisible = isHeaderVisible;
     }
 
     public void setFeedback(FeedbackAlerts feedback) {
@@ -309,7 +315,7 @@ public class CreateObjectForReferencePanel<R extends Referencable> extends BaseP
         return get(createComponentPath(ID_USE_EXISTING_CONTAINER, ID_USE_EXISTING_INPUT));
     }
 
-    protected boolean isHeaderOfCreateObjectVisible() {
-        return false;
+    private boolean isHeaderOfCreateObjectVisible() {
+        return isHeaderVisible;
     }
 }

@@ -8,42 +8,34 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <div class="d-flex justify-content-between w-100">
-        <div class="">
-            <div wicket:id="status" class="mb-2"></div>
-            <!--            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">-->
-        </div>
-
-        <div class="col-auto">
-            <div class="row gap-3 d-flex align-items-center justify-content-center">
-                <div wicket:id="buttonBar" class="mb-2"></div>
-            </div>
-        </div>
-
+    <div class="d-flex w-100 border-bottom p-3" style="font-size:18px">
+        <a wicket:id="objectTitle"></a>
+        <div wicket:id="buttonBar" class="ml-auto"></div>
     </div>
 
-    <div class="mt-2 gap-1 d-flex flex-column justify-content-center w-100">
+    <div class="d-flex w-100 pt-3 pl-3 pr-3 pb-0">
+        <div wicket:id="reduction" class="col-6 p-0"></div>
+        <div wicket:id="attribute-confidence" class="ml-auto col-6"></div>
+    </div>
 
-        <div class="justify-content-center pb-2" wicket:id="objectTitle"></div>
-        <div class="d-flex justify-content-center pb-2" wicket:id="details"></div>
+    <div class="w-100 pt-0 pl-3 pr-3 pb-0">
+        <div wicket:id="progress-bar"></div>
+    </div>
 
-
-        <div class="d-flex justify-content-center flex-wrap gap-1">
-            <div class="pt-2 " wicket:id="explorePatternButton" style="width:70%"></div>
-            <div class="pt-2 " wicket:id="createCandidateButton" style="width:70%"></div>
+    <div class="d-flex w-100 p-3">
+        <div class="col">
+            <div class="row gap-3">
+                <div wicket:id="users-count"></div>
+                <div wicket:id="roles-count"></div>
+            </div>
         </div>
 
-        <div class="pt-4 row d-flex justify-content-between">
-            <div class="col-auto">
-                <div wicket:id="mode"></div>
+        <div class="col-auto ml-auto">
+            <div class="row gap-1">
+                <a wicket:id="session"></a>
+                <a wicket:id="separator"></a>
+                <a wicket:id="cluster"></a>
             </div>
-            <div class="col-auto">
-                <div class="row gap-3">
-                    <div wicket:id="users-count"></div>
-                    <div wicket:id="roles-count"></div>
-                </div>
-            </div>
-
         </div>
     </div>
 

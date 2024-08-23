@@ -13,7 +13,11 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -273,24 +277,28 @@ public class AssignmentsUtil {
             }
 
         }
-        StringBuilder sb = new StringBuilder();
 
-        if (assignment.getConstruction() != null) {
+        ConstructionType construction = assignment.getConstruction();
+        if (construction != null) {
             // account assignment through account construction
-            ConstructionType construction = assignment.getConstruction();
-            if (construction.getResourceRef() != null) {
-                sb.append(WebComponentUtil.getName(construction.getResourceRef(), pageBase, OPERATION_LOAD_USER));
-            }
-            return sb.toString();
+            return getNameFromConstruction(construction, pageBase);
         }
 
         //TODO fix this.. what do we want to show in the name columns in the case of assignmentRelation assignment??
+        StringBuilder sb = new StringBuilder();
+
         if (assignment.getAssignmentRelation() != null && !assignment.getAssignmentRelation().isEmpty()) {
             for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
                 sb.append("Assignment relation");
                 List<QName> holders = assignmentRelation.getHolderType();
+                String[] translated = holders.stream()
+                        .map(q -> {
+                            ObjectTypes ot = ObjectTypes.getObjectTypeFromTypeQNameIfKnown(q);
+                            return ot != null ? LocalizationUtil.translateEnum(ot) : q.getLocalPart();
+                        }).toArray(String[]::new);
+
                 if (!holders.isEmpty()) {
-                    sb.append(": ").append(holders.iterator().next());
+                    sb.append(": ").append(StringUtils.joinWith(",", translated));
                 }
 
             }
@@ -355,6 +363,42 @@ public class AssignmentsUtil {
             }
         }
         return sb.toString();
+    }
+
+    private static String getNameFromConstruction(ConstructionType construction, PageBase pageBase) {
+        if (construction.getResourceRef() == null) {
+            return "";
+        }
+
+        Task task = pageBase.createSimpleTask(OPERATION_LOAD_USER);
+        PrismObject<ResourceType> resource =
+                WebModelServiceUtils.loadObject(construction.getResourceRef(), true, pageBase, task, task.getResult());
+        if (resource == null) {
+            return "";
+        }
+
+        String resourceName = WebComponentUtil.getName(resource);
+
+        ResourceObjectTypeDefinitionType objectType =
+                ResourceTypeUtil.findObjectTypeDefinition(resource, construction.getKind(), construction.getIntent());
+        if (objectType == null) {
+            return resourceName + ": " + getNameForKindIntent(construction.getKind(), construction.getIntent());
+        }
+
+        if (objectType.getDisplayName() != null){
+            return resourceName + ": " + objectType.getDisplayName();
+        }
+
+        return resourceName + ": " + getNameForKindIntent(objectType.getKind(), objectType.getIntent());
+    }
+
+    private static String getNameForKindIntent(ShadowKindType shadowKind, String intent) {
+        String kind = shadowKind != null ? LocalizationUtil.translateEnum(shadowKind) : "";
+        if (intent == null) {
+            return kind;
+        }
+
+        return kind + "/" + intent;
     }
 
     private static boolean isNotEmptyRef(ObjectReferenceType ref) {

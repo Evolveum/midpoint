@@ -152,6 +152,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_MIGRATED_ROLES,
         PANEL_CANDIDATE_ROLES,
         PANEL_OUTLIER_PROPERTIES,
+        TABLE_OUTLIERS,
+        PANEL_OUTLIER_PARTITIONS,
         PANEL_ASSOCIATION_INBOUND,
         PANEL_ASSOCIATION_OUTBOUND,
     }

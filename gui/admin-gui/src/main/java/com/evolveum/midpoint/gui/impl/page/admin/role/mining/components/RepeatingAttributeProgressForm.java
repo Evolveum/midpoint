@@ -48,9 +48,9 @@ public class RepeatingAttributeProgressForm extends BasePanel<String> {
 
         WebMarkupContainer containerFirstGroup = createContainer();
         if (isHide()) {
-            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body collapse"));
+            containerFirstGroup.add(AttributeModifier.replace("class", "row p-0 card-body collapse"));
         } else {
-            containerFirstGroup.add(AttributeModifier.replace("class", "row card-body collapse show"));
+            containerFirstGroup.add(AttributeModifier.replace("class", "row p-0 card-body collapse show"));
         }
         add(containerFirstGroup);
 
@@ -135,11 +135,11 @@ public class RepeatingAttributeProgressForm extends BasePanel<String> {
                     ajaxRequestTarget.add(containerFirstGroup);
                 }
             };
-            containerFirstGroup.add(showAllButton);
+            add(showAllButton);
         } else {
             WebMarkupContainer showAllButton = new WebMarkupContainer(ID_SHOW_MORE_PROGRESS_BAR);
             showAllButton.setVisible(false);
-            containerFirstGroup.add(showAllButton);
+            add(showAllButton);
         }
 
     }

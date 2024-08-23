@@ -77,7 +77,7 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
     }
 
     protected String getInfoBoxCssClass() {
-        return "bg-info";
+        return "bg-primary";
     }
 
 }
