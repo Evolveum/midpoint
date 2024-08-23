@@ -360,7 +360,7 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
 
         });
 
-        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.properties")) {
+        columns.add(new AbstractColumn<>(createStringResource("RoleAnalysisOutlierTable.outlier.access")) {
 
             @Override
             public boolean isSortable() {
@@ -388,7 +388,7 @@ public class RoleAnalysisOutlierAssociatedTileTable extends BasePanel<List<RoleA
             @Override
             public Component getHeader(String componentId) {
                 return new Label(
-                        componentId, createStringResource("RoleAnalysisOutlierTable.outlier.properties"));
+                        componentId, createStringResource("RoleAnalysisOutlierTable.outlier.access"));
             }
 
         });

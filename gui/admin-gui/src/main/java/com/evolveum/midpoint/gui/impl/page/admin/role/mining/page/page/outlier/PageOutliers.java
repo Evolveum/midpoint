@@ -144,7 +144,7 @@ public class PageOutliers extends PageAdmin {
 
                 IColumn<SelectableBean<RoleAnalysisOutlierType>, String> column;
                 column = new AbstractExportableColumn<>(
-                        createStringResource("RoleAnalysisOutlierTable.outlier.properties")) {
+                        createStringResource("RoleAnalysisOutlierTable.outlier.access")) {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
@@ -184,7 +184,7 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public Component getHeader(String componentId) {
                         return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierTable.outlier.properties")){
+                                createStringResource("RoleAnalysisOutlierTable.outlier.access")){
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierTable.outlier.properties.help");
@@ -194,7 +194,7 @@ public class PageOutliers extends PageAdmin {
                 };
                 defaultColumns.add(column);
                 column = new AbstractExportableColumn<>(
-                        createStringResource("RoleAnalysisOutlierTable.outlier.partitions")) {
+                        createStringResource("RoleAnalysisOutlierType.outlierPartitions")) {
 
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
@@ -219,7 +219,7 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public Component getHeader(String componentId) {
                         return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierTable.outlier.partitions")){
+                                createStringResource("RoleAnalysisOutlierType.outlierPartitions")){
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierTable.outlier.partitions.help");
