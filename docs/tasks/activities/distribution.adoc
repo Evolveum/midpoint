@@ -162,9 +162,9 @@ Should be specified, because
 Starts at 1.
 
 | characters
-a| Characters that make up the boundaries.
+| Characters that make up the boundaries.
 These characters must be sorted.
-+
+
 *Reserved characters*: '-', '$' (to be implemented later) +
 *Escaping character*: '\'
 
