@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.certification;
 import java.io.Serial;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.SelectReportTemplatePanel;
@@ -71,6 +72,9 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
     private static final String DOT_CLASS = PageCertCampaign.class.getName() + ".";
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadCertItemsReport";
 
+    private LoadableDetachableModel<String> buttonLabelModel;
+    private LoadableDetachableModel<String> buttonCssModel;
+
     public PageCertCampaign() {
         this(new PageParameters());
     }
@@ -109,6 +113,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             protected void addRightButtons(@NotNull RepeatingView rightButtonsView) {
                 addCampaignManagementButton(rightButtonsView);
                 addCreateReportButton(rightButtonsView);
+                addReloadButton(rightButtonsView);
             }
 
             @Override
@@ -151,19 +156,15 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
     }
 
     private void addCampaignManagementButton(RepeatingView rightButtonsView) {
-        LoadableDetachableModel<String> buttonLabelModel = getActionButtonTitleModel();
-        LoadableDetachableModel<String> buttonCssModel = getActionButtonCssModel();
+        buttonLabelModel = getActionButtonTitleModel();
+        buttonCssModel = getActionButtonCssModel();
+
         AjaxIconButton button = new AjaxIconButton(rightButtonsView.newChildId(), buttonCssModel, buttonLabelModel) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 AccessCertificationCampaignType campaign = getModelObjectType();
-
-                getObjectDetailsModels().reloadPrismObjectModel();
-                PageCertCampaign.this.getModel().detach();
-                buttonCssModel.detach();
-                buttonLabelModel.detach();
 
                 CampaignProcessingHelper.campaignActionPerformed(campaign, PageCertCampaign.this, ajaxRequestTarget);
             }
@@ -181,6 +182,21 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             @Override
             public void onClick(AjaxRequestTarget target) {
                 createReportPerformed(target);
+            }
+        };
+        button.showTitleAsLabel(true);
+        button.add(AttributeModifier.append("class", "btn btn-secondary"));
+        rightButtonsView.add(button);
+    }
+
+    private void addReloadButton(RepeatingView rightButtonsView) {
+        AjaxIconButton button = new AjaxIconButton(rightButtonsView.newChildId(), Model.of("fa fa-sync-alt"),
+                createStringResource("ReloadableButton.reload")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                target.add(PageCertCampaign.this);
             }
         };
         button.showTitleAsLabel(true);
@@ -265,5 +281,17 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
                 return createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()).getString();
             }
         };
+    }
+
+    @Override
+    protected void onDetach() {
+        getObjectDetailsModels().reset();
+        if (buttonCssModel != null) {
+            buttonCssModel.detach();
+        }
+        if (buttonLabelModel != null) {
+            buttonLabelModel.detach();
+        }
+        super.onDetach();
     }
 }
