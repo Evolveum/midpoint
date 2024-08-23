@@ -49,6 +49,7 @@ public class ProgressBar extends BasePanel<String> {
     private static final String ID_BAR_PERCENTAGE_INLINE = "progressBarPercentageInline";
     private static final String ID_BAR_TITLE = "progressBarTitle";
     private static final String ID_BAR_TITTLE_DATA = "progressBarDetails";
+    private static final String ID_CONTAINER_TITLE_DATA = "details-container";
 
     double minValue = 0;
     double maxValue = 100;
@@ -64,7 +65,7 @@ public class ProgressBar extends BasePanel<String> {
         super.onInitialize();
 
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
-        container.add(AttributeModifier.replace("style",getProgressBarContainerStyle()));
+        container.add(AttributeModifier.replace("style", getProgressBarContainerStyle()));
         container.setOutputMarkupId(true);
         add(container);
 
@@ -96,6 +97,7 @@ public class ProgressBar extends BasePanel<String> {
 
             WebMarkupContainer progressBarInline = new WebMarkupContainer(ID_BAR_PERCENTAGE_INLINE);
             progressBarInline.setOutputMarkupId(true);
+            progressBarInline.add(new VisibleBehaviour(() -> false));
             add(progressBarInline);
         }
     }
@@ -109,13 +111,18 @@ public class ProgressBar extends BasePanel<String> {
                     + ", in-repo=" + getInRepoCount() + ")";
         }
 
+        WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER_TITLE_DATA);
+        container.setOutputMarkupId(true);
+        container.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(value)));
+        add(container);
+
         Label help = new Label(ID_BAR_TITTLE_DATA);
         IModel<String> helpModel = Model.of(value);
         help.add(AttributeModifier.replace("data-original-title",
                 createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
         help.setOutputMarkupId(true);
-        add(help);
+        container.add(help);
     }
 
     private void setProgressBarParameters(@NotNull WebMarkupContainer progressBar) {
