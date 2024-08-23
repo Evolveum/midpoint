@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.form.SwitchBoxPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarNew;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
@@ -791,7 +791,7 @@ public enum AnomalyTableCategory implements Serializable {
 
         String colorClass = densityBasedColorOposite(pointsDensity);
 
-        ProgressBarNew progressBar = new ProgressBarNew(componentId) {
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId) {
 
             @Override
             public boolean isInline() {

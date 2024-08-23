@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessM
  */
 
 //TODO Merge ProgressBar and ProgressBarNew
-public class ProgressBarNew extends BasePanel<String> {
+public class ProgressBarSecondStyle extends BasePanel<String> {
     private static final String ID_CONTAINER = "progressBarContainer";
     private static final String ID_BAR = "progressBar";
     private static final String ID_BAR_PERCENTAGE = "progressBarPercentage";
@@ -56,7 +56,7 @@ public class ProgressBarNew extends BasePanel<String> {
     double actualValue = 100;
     String barTitle = "";
 
-    public ProgressBarNew(String id) {
+    public ProgressBarSecondStyle(String id) {
         super(id);
     }
 
@@ -76,7 +76,7 @@ public class ProgressBarNew extends BasePanel<String> {
 
         WebMarkupContainer titleContainer = new WebMarkupContainer(ID_TITLE_CONTAINER);
         titleContainer.setOutputMarkupId(true);
-        titleContainer.add(new VisibleBehaviour(this::isTitleContainerVisible));
+        titleContainer.add(new VisibleBehaviour(() -> isTitleContainerVisible() && !isInline()));
         add(titleContainer);
 
         resolveTitleLabel(titleContainer);

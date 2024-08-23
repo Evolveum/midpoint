@@ -40,7 +40,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.form.SwitchBoxPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarNew;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -408,7 +408,7 @@ public class PageOutliers extends PageAdmin {
 
         String colorClass = densityBasedColorOposite(pointsDensity);
 
-        ProgressBarNew progressBar = new ProgressBarNew(componentId) {
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId) {
 
             @Override
             public boolean isInline() {
