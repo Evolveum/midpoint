@@ -120,6 +120,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE = new File(COMMON_DIR, "archetype-campaign-next-stage.xml");
     public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_START = new File(COMMON_DIR, "archetype-campaign-start-campaign.xml");
     public static final File ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE = new File(COMMON_DIR, "archetype-campaign-close-current-stage.xml");
+    public static final File ARCHETYPE_CERTIFICATION_REITERATE = new File(COMMON_DIR, "archetype-campaign-reiterate.xml");
 
     // report columns: certification definitions
     static final int C_DEF_NAME = 0;
@@ -211,6 +212,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE, ArchetypeType.class, initResult);
         repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_START, ArchetypeType.class, initResult);
         repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE, ArchetypeType.class, initResult);
+        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_REITERATE, ArchetypeType.class, initResult);
 
         // roles
         repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);

@@ -2184,6 +2184,17 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+                <xsd:element name="certificationReiterateCampaign" type="tns:CertificationReiterateCampaignWorkDefinitionType"
+                        minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Specified certification campaign for next stage operation.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
             </xsd:choice>
             <xsd:element name="extension" type="tns:ExtensionType" minOccurs="0">
                 <xsd:annotation>
@@ -9491,4 +9502,21 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="certificationCloseCurrentStageWorkDefinition" type="tns:CertificationCloseCurrentStageWorkDefinitionType"/>
+
+    <xsd:complexType name="CertificationReiterateCampaignWorkDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specified certification campaign for opening next stage.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCertificationWorkDefinitionType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="certificationReiterateCampaignWorkDefinition" type="tns:CertificationReiterateCampaignWorkDefinitionType"/>
 </xsd:schema>

@@ -111,7 +111,7 @@ public class AccCertUpdateHelper {
                 .asItemDelta();
     }
 
-    ItemDelta<?, ?> createEndTimeDelta(XMLGregorianCalendar date) throws SchemaException {
+    public ItemDelta<?, ?> createEndTimeDelta(XMLGregorianCalendar date) throws SchemaException {
         return prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(AccessCertificationCampaignType.F_END_TIMESTAMP).replace(date)
                 .asItemDelta();
