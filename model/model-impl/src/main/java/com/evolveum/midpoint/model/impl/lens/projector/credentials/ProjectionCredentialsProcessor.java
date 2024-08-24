@@ -14,11 +14,12 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.util.ErrorHandlingUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
@@ -88,16 +89,24 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        processProjectionCredentials(context, projectionContext, now, task, result);
-        context.checkConsistenceIfNeeded();
+        try {
+            processProjectionCredentials(context, projectionContext, now, task, result);
+            context.checkConsistenceIfNeeded();
+        } catch (MappingLoader.NotLoadedException e) {
+            // Just like for activation processor.
+            ErrorHandlingUtil.processProjectionNotLoadedException(e, projectionContext);
+        }
 
-        medic.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionContext.getDescription(), false, context, true);
+        medic.traceContext(LOGGER, activityDescription,
+                "projection values and credentials of " + projectionContext.getDescription(),
+                false, context, true);
     }
 
     private <F extends FocusType> void processProjectionCredentials(LensContext<F> context,
             LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task,
             OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-                    SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
+            SecurityViolationException, MappingLoader.NotLoadedException {
 
         SecurityPolicyType securityPolicy = determineSecurityPolicy(context, projectionContext);
 
@@ -109,8 +118,10 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
     }
 
     private <F extends FocusType> void processProjectionPasswordMapping(LensContext<F> context,
-            final LensProjectionContext projCtx, final SecurityPolicyType securityPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
-                    throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            LensProjectionContext projCtx, SecurityPolicyType securityPolicy, XMLGregorianCalendar now,
+            Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
         LensFocusContext<F> focusContext = context.getFocusContext();
 
         PrismObject<F> focusNew = focusContext.getObjectNew();

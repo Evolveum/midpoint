@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActiva
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.DisableInsteadOfDeleteEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.PreProvisionEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActivationMapping.PredefinedActivationMappingEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ErrorHandlingUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -190,19 +191,16 @@ public class ActivationProcessor implements ProjectorProcessor {
                     processActivationMappingsFuture(contextCasted, projectionContext, now, task, result);
 
                 } catch (ObjectNotFoundException e) {
-                    if (projectionContext.isGone()) {
-                        // This is not critical. The projection is marked as gone and we can go on with processing
-                        // No extra action is needed.
-                    } else {
-                        throw e;
-                    }
+                    ErrorHandlingUtil.processProjectionNotFoundException(e, projectionContext);
+                } catch (MappingLoader.NotLoadedException e) {
+                    ErrorHandlingUtil.processProjectionNotLoadedException(e, projectionContext);
                 }
             }
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -212,7 +210,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             XMLGregorianCalendar now,
             Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
 
         assert context.hasFocusContext();
 
@@ -578,7 +576,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             Task task,
             OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
 
         assert context.hasFocusContext();
 
@@ -654,7 +652,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             XMLGregorianCalendar now, MappingTimeEval evaluationTime,
             Task task, final OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
         final String projCtxDesc = projCtx.toHumanReadableString();
 
         final Boolean legal = projCtx.isLegal();
@@ -878,7 +876,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             MappingTimeEval evaluationTime,
             String desc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
 
         LOGGER.trace("Evaluating '{}' of projection {} ({})", projectionPropertyPath, projCtx, evaluationTime);
 
@@ -971,7 +969,7 @@ public class ActivationProcessor implements ProjectorProcessor {
             MappingTimeEval evaluationTime,
             String desc, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
+            ConfigurationException, SecurityViolationException, MappingLoader.NotLoadedException {
 
         if (bidirectionalMappingBean == null) {
             LOGGER.trace("No '{}' definition in projection {}, skipping", desc, projCtx.toHumanReadableString());
@@ -1243,11 +1241,15 @@ public class ActivationProcessor implements ProjectorProcessor {
         } else {
 
             LOGGER.trace("Computing projection purpose (using mapping): {}", purposeMappings);
-            evaluateActivationMapping(
-                    context, projCtx, null,
-                    purposeMappings, // [EP:M:OM] DONE
-                    null, ShadowType.F_PURPOSE,
-                    null, now, MappingTimeEval.CURRENT, ShadowType.F_PURPOSE.getLocalPart(), task, result);
+            try {
+                evaluateActivationMapping(
+                        context, projCtx, null,
+                        purposeMappings, // [EP:M:OM] DONE
+                        null, ShadowType.F_PURPOSE,
+                        null, now, MappingTimeEval.CURRENT, ShadowType.F_PURPOSE.getLocalPart(), task, result);
+            } catch (MappingLoader.NotLoadedException e) {
+                ErrorHandlingUtil.processProjectionNotLoadedException(e, projCtx);
+            }
         }
 
         context.checkConsistenceIfNeeded();

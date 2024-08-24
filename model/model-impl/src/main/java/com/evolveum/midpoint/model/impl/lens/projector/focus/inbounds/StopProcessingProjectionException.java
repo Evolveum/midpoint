@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
 import com.evolveum.midpoint.util.exception.CommonException;
 
+import com.evolveum.midpoint.util.exception.SeverityAwareException;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,16 +18,11 @@ import org.jetbrains.annotations.NotNull;
  * Currently thrown when the full shadow cannot be loaded, or when the projection context is broken.
  * (So it has no use in pre-inbounds.)
  */
-public class StopProcessingProjectionException extends CommonException {
+public class StopProcessingProjectionException extends Exception implements SeverityAwareException {
 
     @Override
-    public String getErrorTypeMessage() {
-        return "(internal exception, not necessarily signalling an error)";
-    }
-
-    @Override
-    public @NotNull CommonException.Severity getSeverity() {
+    public @NotNull SeverityAwareException.Severity getSeverity() {
         // Does not necessarily indicate an error.
-        return Severity.NOT_APPLICABLE;
+        return SeverityAwareException.Severity.NOT_APPLICABLE;
     }
 }
