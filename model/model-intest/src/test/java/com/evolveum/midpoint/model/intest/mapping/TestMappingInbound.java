@@ -256,9 +256,8 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         getAndCheckMancombAccount();
 
-        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        assertNotNull("User mancomb has disappeared", userMancomb);
-        assertJpegPhoto(UserType.class, userMancomb.getOid(), "rum".getBytes(StandardCharsets.UTF_8), result);
+        assertUserAfter(findUserByUsernameFullRequired(ACCOUNT_MANCOMB_DUMMY_USERNAME))
+                .assertJpegPhoto("rum");
     }
 
     /**
@@ -289,7 +288,8 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         getAndCheckMancombAccount();
 
-        assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
+        assertUserAfter(findUserByUsernameFullRequired(ACCOUNT_MANCOMB_DUMMY_USERNAME))
+                .assertJpegPhoto("beer");
     }
 
     /**
@@ -309,20 +309,23 @@ public class TestMappingInbound extends AbstractMappingTest {
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
 
-        ObjectDelta<UserType> delta = deltaFor(UserType.class)
-                .item(UserType.F_JPEG_PHOTO).replaceRealValues(singleton("cherry".getBytes(StandardCharsets.UTF_8)))
-                .asObjectDelta(userMancomb.getOid());
-        executeChanges(delta, executeOptions().reconcile(), task, result);
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_JPEG_PHOTO)
+                        .replaceRealValues(singleton("cherry".getBytes(StandardCharsets.UTF_8)))
+                        .asObjectDelta(userMancomb.getOid()),
+                executeOptions().reconcile(),
+                task, result);
 
         then();
 
         assertSuccess(result);
 
-        PrismObject<UserType> userMancombAfter = repositoryService.getObject(UserType.class, userMancomb.getOid(),
-                schemaService.getOperationOptionsBuilder().retrieve().build(), result);
-        display("user mancomb after", userMancombAfter);
-
-        assertJpegPhoto(UserType.class, userMancomb.getOid(), "beer".getBytes(StandardCharsets.UTF_8), result);
+        assertUserAfter(findUserByUsernameFullRequired(ACCOUNT_MANCOMB_DUMMY_USERNAME))
+                .assertJpegPhoto("beer")
+                .extension()
+                .property(PIRACY_LOCKER)
+                .singleValue(); // locker should be kept intact here
     }
 
     /**
