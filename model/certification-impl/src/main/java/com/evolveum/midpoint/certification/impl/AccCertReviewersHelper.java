@@ -51,7 +51,7 @@ public class AccCertReviewersHelper {
     @Autowired private AccCertExpressionHelper expressionHelper;
     @Autowired private RelationRegistry relationRegistry;
 
-    AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign, int stage) {
+    public AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign, int stage) {
         return CertCampaignTypeUtil.findStageDefinition(campaign, stage)
                 .getReviewerSpecification();
     }
