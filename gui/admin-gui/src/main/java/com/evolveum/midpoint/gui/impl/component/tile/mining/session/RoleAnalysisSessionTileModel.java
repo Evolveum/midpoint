@@ -21,15 +21,17 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 
-public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.reductionBasedColor;
+
+public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T> {
 
     String icon;
     String oid;
     private String name;
     private String description;
-    private double density;
+    private double progressBarValue;
     private String processedObjectCount;
     private String clusterCount;
     RoleAnalysisProcessModeType processMode;
@@ -37,12 +39,14 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
     private RoleAnalysisOperationStatus status;
     ObjectReferenceType taskRef;
     String stateString;
+    String progressBarTitle;
+    String progressBarColor;
 
-    public RoleAnalysisSessionTile(String icon, String title) {
+    public RoleAnalysisSessionTileModel(String icon, String title) {
         super(icon, title);
     }
 
-    public RoleAnalysisSessionTile(
+    public RoleAnalysisSessionTileModel(
             @NotNull RoleAnalysisSessionType session,
             @NotNull PageBase pageBase) {
 
@@ -57,14 +61,13 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
 
         RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
         if (sessionStatistic != null) {
-
             Double meanDensity = sessionStatistic.getMeanDensity();
             if (meanDensity != null) {
                 BigDecimal bd = new BigDecimal(Double.toString(meanDensity));
                 bd = bd.setScale(2, RoundingMode.HALF_UP);
-                this.density = bd.doubleValue();
+                this.progressBarValue = bd.doubleValue();
             } else {
-                this.density = 0.00;
+                this.progressBarValue = 0.00;
             }
 
             Integer processedObjectCount = sessionStatistic.getProcessedObjectCount();
@@ -77,7 +80,7 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
                 this.clusterCount = clusterCount.toString();
             }
         } else {
-            this.density = 0.00;
+            this.progressBarValue = 0.00;
             this.processedObjectCount = "0";
             this.clusterCount = "0";
         }
@@ -89,6 +92,27 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
 
         resolveStatus(pageBase);
 
+        calculatePossibleReduction(session, pageBase);
+
+        if (!category.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            this.progressBarTitle = pageBase.createStringResource("RoleAnalysisSessionTile.possible.reduction")
+                    .getString();
+            this.progressBarColor = reductionBasedColor(progressBarValue);
+        } else {
+            this.progressBarTitle = pageBase.createStringResource("RoleAnalysisSessionTile.density")
+                    .getString();
+            this.progressBarColor = densityBasedColor(progressBarValue);
+        }
+
+    }
+
+    private void calculatePossibleReduction(@NotNull RoleAnalysisSessionType session, @NotNull PageBase pageBase) {
+        if (category != RoleAnalysisCategoryType.OUTLIERS) {
+            RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+            Task task = pageBase.createSimpleTask("calculatePossibleAssignmentReduction");
+            OperationResult result = task.getResult();
+            this.progressBarValue = roleAnalysisService.calculatePossibleAssignmentReduction(session, task, result);
+        }
     }
 
     private void resolveStatus(@NotNull PageBase pageBase) {
@@ -149,12 +173,8 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
         this.description = description;
     }
 
-    public Double getDensity() {
-        return density;
-    }
-
-    public void setDensity(Double density) {
-        this.density = density;
+    public Double getProgressBarValue() {
+        return progressBarValue;
     }
 
     public String getProcessedObjectCount() {
@@ -211,6 +231,14 @@ public class RoleAnalysisSessionTile<T extends Serializable> extends Tile<T> {
 
     public void setStateString(String stateString) {
         this.stateString = stateString;
+    }
+
+    public String getProgressBarTitle() {
+        return progressBarTitle;
+    }
+
+    public String getProgressBarColor() {
+        return progressBarColor;
     }
 
 }

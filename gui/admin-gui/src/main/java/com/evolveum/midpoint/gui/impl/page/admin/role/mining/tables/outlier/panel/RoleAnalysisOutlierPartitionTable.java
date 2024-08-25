@@ -42,7 +42,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarNew;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
@@ -332,7 +332,7 @@ public class RoleAnalysisOutlierPartitionTable extends BasePanel<String> {
 
         String colorClass = densityBasedColorOposite(pointsDensity);
 
-        ProgressBarNew progressBar = new ProgressBarNew(componentId) {
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(componentId) {
 
             @Override
             public boolean isInline() {

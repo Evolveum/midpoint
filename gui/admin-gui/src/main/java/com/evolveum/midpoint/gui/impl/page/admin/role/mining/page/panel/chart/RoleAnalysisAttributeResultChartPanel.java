@@ -28,7 +28,7 @@ public class RoleAnalysisAttributeResultChartPanel extends BasePanel<String> {
 
     private static final String ID_CONTAINER_CHART = "container";
     private static final String ID_CHART = "chart";
-    ChartType chartType = ChartType.BAR;
+    ChartType chartType = ChartType.SCATTER;
 
     public RoleAnalysisAttributeResultChartPanel(String id) {
         super(id);

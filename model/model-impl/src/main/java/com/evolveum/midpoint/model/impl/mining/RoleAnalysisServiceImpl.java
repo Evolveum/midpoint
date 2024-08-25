@@ -23,6 +23,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentT
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -3323,6 +3325,46 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         return new int[] { resolvedPatternCount, candidateRolesCount };
+    }
+
+    /**
+     * Calculates the possible reduction in role assignments for a given session.
+     * This method calculates the total reduction in role assignments by summing up the detected reduction metrics
+     * for each cluster in the session.
+     * It then calculates the total system percentage reduction by dividing the total reduction by the total
+     * number of role assignments to users.
+     *
+     * @param session The RoleAnalysisSessionType object for which the possible assignment reduction is to be calculated.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return The total system percentage reduction in role assignments. If there are no clusters in the session
+     * or no role assignments to users, it returns 0.
+     */
+    @Override
+    public double calculatePossibleAssignmentReduction(RoleAnalysisSessionType session, Task task, OperationResult result) {
+        List<PrismObject<RoleAnalysisClusterType>> sessionClusters = this.searchSessionClusters(session, task, result);
+        if (sessionClusters == null || sessionClusters.isEmpty()) {
+            return 0;
+        }
+
+        int totalReduction = 0;
+
+        for (PrismObject<RoleAnalysisClusterType> prismCluster : sessionClusters) {
+            RoleAnalysisClusterType cluster = prismCluster.asObjectable();
+            AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+            totalReduction += clusterStatistics.getDetectedReductionMetric();
+        }
+
+        int totalAssignmentRoleToUser = this.countUserOwnedRoleAssignment(result);
+        double totalSystemPercentageReduction = 0;
+        if (totalReduction != 0 && totalAssignmentRoleToUser != 0) {
+            totalSystemPercentageReduction = ((double) totalReduction / totalAssignmentRoleToUser) * 100;
+            BigDecimal bd = new BigDecimal(totalSystemPercentageReduction);
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            totalSystemPercentageReduction = bd.doubleValue();
+        }
+
+        return totalSystemPercentageReduction;
     }
 }
 

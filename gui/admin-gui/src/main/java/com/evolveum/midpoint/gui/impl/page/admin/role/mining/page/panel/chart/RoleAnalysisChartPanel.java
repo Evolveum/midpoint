@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.AttributeModifier;
@@ -96,7 +98,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
     private static final String ID_SETTING_PANEL = "settingPanel";
 
     private boolean isSortByGroup = false;
-    ChartType chartType = ChartType.BAR;
+    ChartType chartType = SCATTER;
     private boolean isScalable = false;
     private boolean isUserMode = false;
 
@@ -156,6 +158,7 @@ public class RoleAnalysisChartPanel extends BasePanel<String> implements Popupab
         toolForm.add(components2);
 
         AjaxCompositedIconSubmitButton components3 = buildSortButton("settingPanel3", roleAnalysisChart);
+        components3.add(new VisibleBehaviour(() -> !chartType.equals(SCATTER)));
         toolForm.add(components3);
 
         AjaxCompositedIconSubmitButton components4 = buildChartTypeButton("settingPanel4", roleAnalysisChart);
