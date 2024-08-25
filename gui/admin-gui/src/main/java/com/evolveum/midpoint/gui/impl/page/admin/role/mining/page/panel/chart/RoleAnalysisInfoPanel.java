@@ -432,7 +432,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
         double finalAveragePerUser = averagePerUser;
 
-        double usedRoles = countAverageNumberOfMemberPerUser();
+        int usedRoles = (int) countAppliedDirectlyRoles();
+
 
         List<IdentifyWidgetItem> detailsModel = new ArrayList<>();
 
@@ -459,7 +460,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             @Override
             public Component createScoreComponent(String id) {
                 Component valueComponent = super.createScoreComponent(id);
-                valueComponent.add(AttributeAppender.replace("class", "text-dark"));
+                valueComponent.add(AttributeAppender.replace("class", "text-dark h5 m-0"));
                 return valueComponent;
             }
 
@@ -467,7 +468,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             public Component createTitleComponent(String id) {
                 Label linkPanel = new Label(id, Model.of("Role to user assignment"));
                 linkPanel.setOutputMarkupId(true);
-                linkPanel.add(AttributeAppender.append("class", "text-muted"));
+                linkPanel.add(AttributeAppender.append("class", "text-dark"));
                 return linkPanel;
             }
 
@@ -501,7 +502,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             @Override
             public Component createScoreComponent(String id) {
                 Component valueComponent = super.createScoreComponent(id);
-                valueComponent.add(AttributeAppender.replace("class", "text-dark"));
+                valueComponent.add(AttributeAppender.replace("class", "text-dark h5 m-0"));
                 return valueComponent;
             }
 
@@ -509,7 +510,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             public Component createTitleComponent(String id) {
                 Label linkPanel = new Label(id, Model.of("Average assignment"));
                 linkPanel.setOutputMarkupId(true);
-                linkPanel.add(AttributeAppender.append("class", "text-muted"));
+                linkPanel.add(AttributeAppender.append("class", "text-dark"));
                 return linkPanel;
             }
 
@@ -537,15 +538,13 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
             @Override
             public Component createDescriptionComponent(String id) {
-                Component valueComponent = super.createDescriptionComponent(id);
-                valueComponent.add(AttributeAppender.replace("class", "text-dark"));
-                return valueComponent;
+                return super.createDescriptionComponent(id);
             }
 
             @Override
             public Component createScoreComponent(String id) {
                 Component valueComponent = super.createScoreComponent(id);
-                valueComponent.add(AttributeAppender.replace("class", "text-dark"));
+                valueComponent.add(AttributeAppender.replace("class", "text-dark h5 m-0"));
                 return valueComponent;
             }
 
@@ -553,7 +552,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             public Component createTitleComponent(String id) {
                 Label linkPanel = new Label(id, Model.of("Applied direct roles"));
                 linkPanel.setOutputMarkupId(true);
-                linkPanel.add(AttributeAppender.append("class", "text-muted"));
+                linkPanel.add(AttributeAppender.append("class", "text-dark"));
                 return linkPanel;
             }
 
@@ -568,7 +567,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         return Model.ofList(detailsModel);
     }
 
-    private double countAverageNumberOfMemberPerUser() {
+    private double countAppliedDirectlyRoles() {
         RepositoryService repositoryService = getPageBase().getRepositoryService();
         OperationResult result = new OperationResult("OP_LOAD_STATISTICS");
 

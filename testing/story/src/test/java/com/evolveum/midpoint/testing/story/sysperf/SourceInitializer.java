@@ -41,6 +41,7 @@ public class SourceInitializer {
             initializeResource(resource, result);
             createAccounts(resource, primary);
             primary = false;
+            SOURCES_CONFIGURATION.getOperationDelay().applyTo(resource);
         }
     }
 

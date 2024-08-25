@@ -57,7 +57,7 @@ public class AccessCertificationCampaignReiterationTriggerHandler implements Sin
             LOGGER.info("Automatically reiterating {}", ObjectTypeUtil.toShortString(campaign));
             if (CertCampaignTypeUtil.isReiterable(campaign)) {
                 certificationManager.reiterateCampaign(campaign.getOid(), task, result);
-                certificationManager.openNextStage(campaign.getOid(), task, result);
+                certificationManager.createNextStageTask(campaign.getOid(), task, result);
             } else {
                 LOGGER.warn("Campaign {} is not reiterable, exiting.", ObjectTypeUtil.toShortString(campaign));
             }

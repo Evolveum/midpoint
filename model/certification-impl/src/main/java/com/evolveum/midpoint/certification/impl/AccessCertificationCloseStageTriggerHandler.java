@@ -32,7 +32,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 @Component
 public class AccessCertificationCloseStageTriggerHandler implements SingleTriggerHandler {
 
-    static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-3";
+    public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-3";
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageTriggerHandler.class);
 

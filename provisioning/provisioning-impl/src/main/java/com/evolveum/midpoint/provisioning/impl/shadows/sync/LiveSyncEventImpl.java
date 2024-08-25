@@ -11,12 +11,12 @@ import com.evolveum.midpoint.provisioning.api.LiveSyncEvent;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowedLiveSyncChange;
 
 /**
- * TODO
+ * Abstract {@link LiveSyncEvent} implementation. Currently, it has only one specialization, so we may consider simplifying
+ * it somehow.
  */
 abstract class LiveSyncEventImpl extends SynchronizationEventImpl<ShadowedLiveSyncChange> implements LiveSyncEvent {
 
     LiveSyncEventImpl(ShadowedLiveSyncChange change) {
         super(change);
     }
-
 }

@@ -63,7 +63,7 @@ public class AccCertUpdateHelper {
 
     // see also MidpointUtil.createTriggersForTimedActions (in workflow-impl)
     @NotNull
-    List<ItemDelta<?, ?>> getDeltasToCreateTriggersForTimedActions(String campaignOid, int escalationLevel,
+    public List<ItemDelta<?, ?>> getDeltasToCreateTriggersForTimedActions(String campaignOid, int escalationLevel,
             Date workItemCreateTime,
             Date workItemDeadline, List<WorkItemTimedActionsType> timedActionsList) {
         LOGGER.trace("Creating triggers for timed actions for certification campaign {}, escalation level {}, create time {}, deadline {}, {} timed action(s)",
@@ -97,27 +97,27 @@ public class AccCertUpdateHelper {
         return rv;
     }
 
-    PropertyDelta<Integer> createStageNumberDelta(int number) {
+    public PropertyDelta<Integer> createStageNumberDelta(int number) {
         return prismContext.deltaFactory().property().createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STAGE_NUMBER, number);
     }
 
-    PropertyDelta<AccessCertificationCampaignStateType> createStateDelta(AccessCertificationCampaignStateType state) {
+    public PropertyDelta<AccessCertificationCampaignStateType> createStateDelta(AccessCertificationCampaignStateType state) {
         return prismContext.deltaFactory().property().createReplaceDelta(generalHelper.getCampaignObjectDefinition(), AccessCertificationCampaignType.F_STATE, state);
     }
 
-    ItemDelta<?, ?> createStartTimeDelta(XMLGregorianCalendar date) throws SchemaException {
+    public ItemDelta<?, ?> createStartTimeDelta(XMLGregorianCalendar date) throws SchemaException {
         return prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(AccessCertificationCampaignType.F_START_TIMESTAMP).replace(date)
                 .asItemDelta();
     }
 
-    ItemDelta<?, ?> createEndTimeDelta(XMLGregorianCalendar date) throws SchemaException {
+    public ItemDelta<?, ?> createEndTimeDelta(XMLGregorianCalendar date) throws SchemaException {
         return prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(AccessCertificationCampaignType.F_END_TIMESTAMP).replace(date)
                 .asItemDelta();
     }
 
-    ContainerDelta<?> createTriggerDeleteDelta() {
+    public ContainerDelta<?> createTriggerDeleteDelta() {
         return prismContext.deltaFactory().container()
                 .createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
     }
@@ -152,7 +152,7 @@ public class AccCertUpdateHelper {
          */
     }
 
-    void modifyCampaignPreAuthorized(String campaignOid, ModificationsToExecute modifications, Task task, OperationResult result)
+    public void modifyCampaignPreAuthorized(String campaignOid, ModificationsToExecute modifications, Task task, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         for (List<ItemDelta<?, ?>> batch : modifications.batches) {
             if (!batch.isEmpty()) {
@@ -162,7 +162,7 @@ public class AccCertUpdateHelper {
         }
     }
 
-    <T extends ObjectType> void modifyObjectPreAuthorized(Class<T> objectClass, String oid, Collection<ItemDelta<?,?>> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+    public <T extends ObjectType> void modifyObjectPreAuthorized(Class<T> objectClass, String oid, Collection<ItemDelta<?, ?>> itemDeltas, Task task, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, itemDeltas, objectClass
         );
         try {
@@ -180,7 +180,7 @@ public class AccCertUpdateHelper {
     }
     //endregion
 
-    void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
+    public void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
         List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(
                 campaign.getOid(), norm(campaign.getIteration()), result);
         Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);

@@ -764,24 +764,11 @@
             </objectCollectionView>
             <objectCollectionView id="69">
                 <identifier>certification-tasks-view</identifier>
-                <display>
-                    <label>Certification-related task</label>
-                    <pluralLabel>
-                        <orig>Certification-related tasks</orig>
-                        <norm>certificationrelated tasks</norm>
-                        <translation>
-                            <key>CertificationRelatedTasks.title</key>
-                        </translation>
-                    </pluralLabel>
-                    <icon>
-                        <cssClass>fa fa-certificate</cssClass>
-                        <color>green</color>
-                    </icon>
-                </display>
                 <refreshInterval>30</refreshInterval>
+                <applicableForOperation>modify</applicableForOperation>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0002-000000000008" relation="org:default" type="c:ObjectCollectionType"/>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000520" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView id="70">

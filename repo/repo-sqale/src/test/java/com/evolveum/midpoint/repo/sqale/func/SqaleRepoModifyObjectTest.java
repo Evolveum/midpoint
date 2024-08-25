@@ -21,6 +21,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
@@ -3395,7 +3397,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test530ModifyReferenceAttributes() throws CommonException {
+    public void test520ModifyReferenceAttributes() throws CommonException {
         OperationResult result = createOperationResult();
 
         var resourceRef = UUID.randomUUID().toString();
@@ -3470,16 +3472,16 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     // endregion
 
     @Test
-    public void test520ChangeAttributeType() throws CommonException {
+    public void test530ChangeAttributeType() throws CommonException {
         OperationResult result = createOperationResult();
 
         given("a shadow in repository");
-        ShadowType shadow = new ShadowType().name("shadow-520")
+        ShadowType shadow = new ShadowType().name(getTestNameShort())
                 .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
                 .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
                 .kind(ShadowKindType.ACCOUNT)
                 .intent("intent");
-        ItemName attrName = new ItemName(NS_RI, "a520");
+        ItemName attrName = new ItemName(NS_RI, "a530");
         ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrName);
         //noinspection RedundantTypeArguments // actually, it is needed because of ambiguity resolution
         new ShadowAttributesHelper(shadow)
@@ -3504,6 +3506,61 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         var shadowAfter = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
         PrismProperty<PolyString> valueAfter = shadowAfter.findProperty(attrPath);
         assertThat(valueAfter.getRealValue()).isEqualTo(PolyString.fromOrig("JACK2"));
+    }
+
+    @Test(enabled = false)
+    public void test540ProtectedAttribute() throws CommonException {
+        OperationResult result = createOperationResult();
+
+        given("a shadow with protected attribute");
+        ShadowType shadow = new ShadowType().name(getTestNameShort())
+                .resourceRef(UUID.randomUUID().toString(), ResourceType.COMPLEX_TYPE)
+                .objectClass(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("intent");
+        ItemName attrName = ItemName.from(NS_RI, "a540");
+        ItemPath attrPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attrName);
+        var initialValue = prismContext.getDefaultProtector().encryptString("rum");
+        var shadowAttributesHelper = new ShadowAttributesHelper(shadow);
+        //noinspection RedundantTypeArguments
+        shadowAttributesHelper.<ProtectedStringType>set(
+                attrName, ProtectedStringType.COMPLEX_TYPE, 0, 1, initialValue);
+
+        when("shadow is put into the repository");
+        var shadowOid = repositoryService.addObject(shadow.asPrismObject(), null, result);
+
+        then("the attribute is there");
+        var shadowFromRepo = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        assertProtectedAttributeValue(shadowFromRepo, attrPath, initialValue);
+
+        when("attribute value is replaced");
+        var valueToUpdate = prismContext.getDefaultProtector().encryptString("beer");
+
+        when("attribute value is replaced");
+        var deltas = prismContext.deltaFor(ShadowType.class)
+                .item(attrPath, shadowAttributesHelper.getDefinition(attrName))
+                .replace(valueToUpdate)
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, deltas, result);
+
+        then("everything is OK, and the value is updated");
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        var shadowFromRepoAfter = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        assertProtectedAttributeValue(shadowFromRepoAfter, attrPath, valueToUpdate);
+    }
+
+    private static void assertProtectedAttributeValue(
+            PrismObject<ShadowType> shadow, ItemPath attrPath, ProtectedStringType expected) {
+        var propertyFromRepo = shadow.findProperty(attrPath);
+        assertThat(propertyFromRepo)
+                .as("protected attribute")
+                .isNotNull();
+        assertThat(propertyFromRepo.getRealValues())
+                .as("protected attribute values")
+                .hasSize(1)
+                .singleElement()
+                .isEqualTo(expected);
     }
 
     // region value metadata

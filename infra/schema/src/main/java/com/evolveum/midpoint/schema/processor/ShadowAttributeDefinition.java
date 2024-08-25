@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,6 +104,10 @@ public interface ShadowAttributeDefinition<
         if (cachingPolicy.getCachingStrategy() != CachingStrategyType.PASSIVE) {
             // Caching is disabled. Individual overriding of caching status is not relevant.
             return false;
+        }
+
+        if (ProtectedStringType.class.equals(getTypeClass())) {
+            return false; // FIXME implement more seriously (and remove after protected attributes are support by the repo)
         }
 
         var override = isCached();

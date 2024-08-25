@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.createClusteringAttributeChoiceSet;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -118,23 +120,7 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
         } else {
             List<ClusteringAttributeRuleType> clusteringAttributeRule = new ArrayList<>(
                     model.getObject().getRealValue().getClusteringAttributeRule());
-            ListModel<ClusteringAttributeRuleType> clusteringAttributeRuleModel = new ListModel<>(clusteringAttributeRule) {
-                @Override
-                public List<ClusteringAttributeRuleType> getObject() {
-                    return super.getObject();
-                }
-
-                @Override
-                public void setObject(List<ClusteringAttributeRuleType> object) {
-                    super.setObject(object);
-                }
-            };
-
-            RoleAnalysisClusteringAttributeTable clusteringAttributeTable = new RoleAnalysisClusteringAttributeTable(
-                    ID_CONTAINER, clusteringAttributeRuleModel, true) {
-
-            };
-            clusteringAttributeTable.setOutputMarkupId(true);
+            RoleAnalysisClusteringAttributeTable clusteringAttributeTable = buildConfigureTablePanel(clusteringAttributeRule);
             clusteringAttributeTable.add(AttributeAppender.replace("class", "col-12 p-0"));
             container = clusteringAttributeTable;
 
@@ -142,6 +128,29 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
             container.setVisible(false);
         }
         return container;
+    }
+
+    @NotNull
+    private static RoleAnalysisClusteringAttributeTable buildConfigureTablePanel(
+            List<ClusteringAttributeRuleType> clusteringAttributeRule) {
+        ListModel<ClusteringAttributeRuleType> clusteringAttributeRuleModel = new ListModel<>(clusteringAttributeRule) {
+            @Override
+            public List<ClusteringAttributeRuleType> getObject() {
+                return super.getObject();
+            }
+
+            @Override
+            public void setObject(List<ClusteringAttributeRuleType> object) {
+                super.setObject(object);
+            }
+        };
+
+        RoleAnalysisClusteringAttributeTable clusteringAttributeTable = new RoleAnalysisClusteringAttributeTable(
+                ID_CONTAINER, clusteringAttributeRuleModel, true) {
+
+        };
+        clusteringAttributeTable.setOutputMarkupId(true);
+        return clusteringAttributeTable;
     }
 
     public Component getAttributeSettingPanel() {
@@ -250,6 +259,12 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
         IModel<PrismPropertyValueWrapper<ClusteringAttributeSettingType>> model = getModel();
         ClusteringAttributeSettingType realValue = model.getObject().getRealValue();
 
+        if (poiRefs.isEmpty()) {
+            getSelectedObject().setObject(new ArrayList<>());
+            realValue.getClusteringAttributeRule().clear();
+            return;
+        }
+
         if (realValue == null) {
             realValue = new ClusteringAttributeSettingType();
             model.getObject().setRealValue(realValue);
@@ -257,12 +272,25 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
 
         List<ClusteringAttributeRuleType> clusteringAttributeRule = realValue.getClusteringAttributeRule();
         Set<String> identifiers = clusteringAttributeRule.stream().map(ClusteringAttributeRuleType::getAttributeIdentifier).collect(Collectors.toSet());
+
+        int attributeRulesCount = poiRefs.size();
+        double weightPerAttribute = 1.0 / attributeRulesCount;
+        weightPerAttribute = roundUpTwoDecimal(weightPerAttribute);
+
+        double appliedWeight = 0.0;
+        int remainingCount = attributeRulesCount;
+        realValue.getClusteringAttributeRule().clear();
         for (ClusteringAttributeRuleType poiRef : poiRefs) {
+            remainingCount--;
+            boolean isLast = (remainingCount == 0);
 
             if (identifiers.contains(poiRef.getAttributeIdentifier())) {
+                appliedWeight = setupWeight(poiRef, realValue, isLast, appliedWeight, weightPerAttribute);
                 identifiers.remove(poiRef.getAttributeIdentifier());
                 continue;
             }
+
+            appliedWeight = setupWeight(poiRef, realValue, isLast, appliedWeight, weightPerAttribute);
 
             clusteringAttributeRule.add(poiRef.clone());
             identifiers.remove(poiRef.getAttributeIdentifier());
@@ -272,11 +300,33 @@ public class ClusteringAttributeSelectorPanel extends InputPanel {
             clusteringAttributeRule.removeIf(rule -> identifiers.contains(rule.getAttributeIdentifier()));
         }
 
-        if (clusteringAttributeRule.size() == 1) {
-            clusteringAttributeRule.get(0).setWeight(1.0);
-        }
-
         getSelectedObject().setObject(new ArrayList<>(poiRefs));
+    }
+
+    private double roundUpTwoDecimal(double weightPerAttribute) {
+        BigDecimal weightPerAttributeBD = new BigDecimal(weightPerAttribute);
+        weightPerAttributeBD = weightPerAttributeBD.setScale(2, RoundingMode.HALF_UP);
+        weightPerAttribute = weightPerAttributeBD.doubleValue();
+        return weightPerAttribute;
+    }
+
+    private double setupWeight(
+            @NotNull ClusteringAttributeRuleType poiRef,
+            @NotNull ClusteringAttributeSettingType realValue,
+            boolean isLast,
+            double appliedWeight,
+            double weightPerAttribute) {
+        if (isLast) {
+            double lastRuleWeight = 1.0 - appliedWeight;
+            lastRuleWeight = roundUpTwoDecimal(lastRuleWeight);
+            poiRef.setWeight(lastRuleWeight);
+            realValue.getClusteringAttributeRule().add(poiRef);
+        } else {
+            poiRef.setWeight(weightPerAttribute);
+            appliedWeight += weightPerAttribute;
+            realValue.getClusteringAttributeRule().add(poiRef);
+        }
+        return appliedWeight;
     }
 
     private @NotNull List<ClusteringAttributeRuleType> performSearch(String term) {

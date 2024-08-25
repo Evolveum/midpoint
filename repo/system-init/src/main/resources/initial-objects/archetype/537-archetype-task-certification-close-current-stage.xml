@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000537"
+           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Certification-campaign-close-current-stage task</name>
+    <archetypePolicy>
+        <display>
+            <label>Certification campaign close current stage related task</label>
+            <pluralLabel>
+                <orig>Certification-campaign-close-current-stage-related tasks</orig>
+                <translation>
+                    <key>CertificationCampaignCloseCurrentStageRelatedTasks.title</key>
+                </translation>
+            </pluralLabel>
+        </display>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>TaskType</type>
+                <panel id="1">
+                    <identifier>activity</identifier>
+                    <panel id="2">
+                        <identifier>work</identifier>
+                        <container id="3">
+                            <identifier>certificationOpenNextStage</identifier>
+                            <path>activity/work/certificationCloseCurrentStage</path>
+                        </container>
+                    </panel>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <superArchetypeRef oid="00000000-0000-0000-0000-000000000520" type="c:ArchetypeType"/>
+</archetype>
