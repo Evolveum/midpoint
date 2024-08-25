@@ -16,6 +16,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,8 +139,12 @@ public final class AccessCertificationReiterateCampaignRun
 
     @NotNull
     private ObjectQuery prepareObjectQuery() {
-        return PrismContext.get().queryFor(AccessCertificationCaseType.class)
+        ObjectQuery noResponseQuery = PrismContext.get().queryFor(AccessCertificationCaseType.class)
                 .item(AccessCertificationCaseType.F_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
                 .build();
+        return QueryUtils.addFilter(
+                noResponseQuery,
+                PrismContext.get().queryFactory().createOwnerHasOidIn(campaign.getOid()));
+
     }
 }

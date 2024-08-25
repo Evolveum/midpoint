@@ -13,14 +13,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.certification.impl.task.CertificationTaskLauncher;
-import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
-import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
-
-import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
-
-import com.evolveum.midpoint.task.api.TaskManager;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +25,7 @@ import com.evolveum.midpoint.certification.api.AccessCertificationEventListener;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
+import com.evolveum.midpoint.certification.impl.task.CertificationTaskLauncher;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,13 +35,17 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.config.PolicyActionConfigItem;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.ValueAuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -577,7 +574,7 @@ public class CertificationManagerImpl implements CertificationManager {
     }
 
     @Override
-    public void reiterateCampaign(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+    public void reiterateCampaignTask(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
         OperationResult result = parentResult.createSubresult(OPERATION_REITERATE_CAMPAIGN);
@@ -586,7 +583,7 @@ public class CertificationManagerImpl implements CertificationManager {
             securityEnforcer.authorize(
                     ModelAuthorizationAction.REITERATE_CERTIFICATION_CAMPAIGN.getUrl(), null,
                     AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
-            openerHelper.reiterateCampaign(campaign, task, result);
+            launcher.reiterateCampaignTask(campaign, result);
         } catch (RuntimeException e) {
             result.recordException("Couldn't reiterate certification campaign: unexpected exception: " + e.getMessage(), e);
             throw e;

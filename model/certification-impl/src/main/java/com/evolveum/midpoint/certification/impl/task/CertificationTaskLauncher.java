@@ -101,6 +101,21 @@ public class CertificationTaskLauncher {
                 SystemObjectsType.ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE_TASK.value());
     }
 
+    public void reiterateCampaignTask(@NotNull AccessCertificationCampaignType campaign, OperationResult parentResult) {
+        ActivityDefinitionType activityDef = new ActivityDefinitionType();
+        activityDef.beginWork()
+                .beginCertificationReiterateCampaign()
+                .certificationCampaignRef(campaign.getOid(), AccessCertificationCampaignType.COMPLEX_TYPE);
+
+        startTask(
+                campaign.getOid(),
+                activityDef,
+                "Campaign reiteration for " + campaign.getName(),
+                "first stage",
+                parentResult,
+                SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value());
+    }
+
     private void startTask(
             String campaignOid,
             ActivityDefinitionType activityDef,

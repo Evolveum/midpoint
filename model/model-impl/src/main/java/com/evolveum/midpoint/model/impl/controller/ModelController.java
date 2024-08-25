@@ -2520,7 +2520,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerRequired().reiterateCampaign(campaignOid, task, result);
+        getCertificationManagerRequired().reiterateCampaignTask(campaignOid, task, result);
     }
 
     @Override

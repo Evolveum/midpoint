@@ -118,7 +118,7 @@ public interface CertificationManager {
     /**
      * Reiterates a closed campaign.
      */
-    void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    void reiterateCampaignTask(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Records a particular decision of a reviewer.
