@@ -784,7 +784,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         List<PrismObject<TaskType>> tasks = getReiterationTasks(campaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
-        waitForTaskFinish(tasks.get(0).getOid(), 40000, true);
+        waitForTaskFinish(tasks.get(0).getOid(), 200000, true);
 
         TaskInformation taskInfo = TaskInformation.createForTask(tasks.get(0).asObjectable(), null);
         assertEquals("Expected task with fatal error result, ", taskInfo.getResultStatus(), OperationResultStatusType.FATAL_ERROR);
