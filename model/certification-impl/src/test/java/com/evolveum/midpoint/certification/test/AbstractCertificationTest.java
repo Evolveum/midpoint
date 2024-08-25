@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.certification.impl.task.startCampaign.AccessCertificationStartCampaignWorkDefinition;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.AccessCertificationWorkItemId;
 
@@ -115,13 +116,6 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner-manual.xml");
     protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
 
-    //TODO use archetypes from initial objects
-    public static final File ARCHETYPE_CERTIFICATION_REMEDIATION = new File(COMMON_DIR, "archetype-remediation.xml");
-    public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE = new File(COMMON_DIR, "archetype-campaign-next-stage.xml");
-    public static final File ARCHETYPE_CERTIFICATION_CAMPAIGN_START = new File(COMMON_DIR, "archetype-campaign-start-campaign.xml");
-    public static final File ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE = new File(COMMON_DIR, "archetype-campaign-close-current-stage.xml");
-    public static final File ARCHETYPE_CERTIFICATION_REITERATE = new File(COMMON_DIR, "archetype-campaign-reiterate.xml");
-
     // report columns: certification definitions
     static final int C_DEF_NAME = 0;
     static final int C_DEF_OWNER = 1;
@@ -207,12 +201,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
-        //TODO use archetypes from initial objects
-        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_REMEDIATION, ArchetypeType.class, initResult);
-        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_NEXT_STAGE, ArchetypeType.class, initResult);
-        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CAMPAIGN_START, ArchetypeType.class, initResult);
-        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_CLOSE_CURRENT_STAGE, ArchetypeType.class, initResult);
-        repoAddObjectFromFile(ARCHETYPE_CERTIFICATION_REITERATE, ArchetypeType.class, initResult);
+        CommonInitialObjects.addCertificationTasks(this, initTask, initResult);
 
         // roles
         repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
