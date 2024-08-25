@@ -883,6 +883,22 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         ).toList();
     }
 
+    protected List<PrismObject<TaskType>> getReiterationTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
+        if (isNativeRepository()) {
+            ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value(), startTime, campaignOid);
+            return taskManager.searchObjects(TaskType.class, query, null, result);
+        }
+        ObjectQuery query = getOldRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value(), startTime);
+        List<PrismObject<TaskType>> tasks = taskManager.searchObjects(TaskType.class, query, null, result);
+        return tasks.stream().filter(task ->
+                task.asObjectable().getActivity() != null
+                        && task.asObjectable().getActivity().getWork() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationReiterateCampaign() != null
+                        && task.asObjectable().getActivity().getWork().getCertificationReiterateCampaign().getCertificationCampaignRef() != null
+                        && campaignOid.equals(task.asObjectable().getActivity().getWork().getCertificationReiterateCampaign().getCertificationCampaignRef().getOid())
+        ).toList();
+    }
+
     protected List<PrismObject<TaskType>> getFirstStageTasks(String campaignOid, XMLGregorianCalendar startTime, OperationResult result) throws SchemaException {
         if (isNativeRepository()) {
             ObjectQuery query = getNewRepoTaskQuery(SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value(), startTime, campaignOid);

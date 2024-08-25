@@ -76,10 +76,13 @@ public final class AccessCertificationReiterateCampaignRun
 
         LOGGER.info("Reiterating campaign {}", ObjectTypeUtil.toShortString(campaign));
         if (campaign.getState() != CLOSED) {
+            result.recordFatalError("Campaign is not in CLOSED state");
             throw new IllegalStateException("Campaign is not in CLOSED state");
         }
         if (campaign.getReiterationDefinition() != null && campaign.getReiterationDefinition().getLimit() != null
                 && norm(campaign.getIteration()) >= campaign.getReiterationDefinition().getLimit()) {
+            result.recordFatalError("Campaign cannot be reiterated: maximum number of iterations ("
+                    + campaign.getReiterationDefinition().getLimit() + ") was reached.");
             throw new IllegalStateException("Campaign cannot be reiterated: maximum number of iterations ("
                     + campaign.getReiterationDefinition().getLimit() + ") was reached.");
         }

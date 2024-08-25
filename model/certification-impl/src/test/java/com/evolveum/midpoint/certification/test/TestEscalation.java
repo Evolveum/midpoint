@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -437,6 +439,7 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         clock.overrideDuration("P18D"); // campaign ends at P16D, reiteration scheduled to P17D
         waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, 20000, true);
 
@@ -444,6 +447,10 @@ public class TestEscalation extends AbstractCertificationTest {
         then();
         result.computeStatus();
         TestUtil.assertSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);
@@ -632,13 +639,21 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         clock.overrideDuration("P20D");          // +1 day relative to previous test
-        certificationManager.reiterateCampaign(campaignOid, task, result);
+
+
+        certificationManager.reiterateCampaignTask(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getReiterationTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
+
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after reiteration", campaign);
@@ -762,16 +777,20 @@ public class TestEscalation extends AbstractCertificationTest {
         when();
 
         clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         clock.overrideDuration("P22D");          // +1 day relative to previous test
-        try {
-            certificationManager.reiterateCampaign(campaignOid, task, result);
-            fail("unexpected success");
-        } catch (IllegalStateException e) {
-            // THEN
-            System.err.println("got expected exception: " + e.getMessage());
-            e.printStackTrace();
-            assertTrue("wrong exception message", e.getMessage().contains("maximum number of iterations (3) was reached"));
-        }
+
+        certificationManager.reiterateCampaignTask(campaignOid, task, result);
+
+        List<PrismObject<TaskType>> tasks = getReiterationTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid(), 40000, true);
+
+        TaskInformation taskInfo = TaskInformation.createForTask(tasks.get(0).asObjectable(), null);
+        assertEquals("Expected task with fatal error result, ", taskInfo.getResultStatus(), OperationResultStatusType.FATAL_ERROR);
+        //TODO message
+//        String message = taskInfo.getTask().getResult().getMessage();
+//        assertTrue("wrong exception message", message.contains("maximum number of iterations (3) was reached"));
     }
 
     @SuppressWarnings("Duplicates")

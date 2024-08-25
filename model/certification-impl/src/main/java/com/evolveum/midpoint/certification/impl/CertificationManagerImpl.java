@@ -592,6 +592,25 @@ public class CertificationManagerImpl implements CertificationManager {
         }
     }
 
+    @Override
+    public void reiterateCampaign(String campaignOid, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        OperationResult result = parentResult.createSubresult(OPERATION_REITERATE_CAMPAIGN);
+        try {
+            AccessCertificationCampaignType campaign = generalHelper.getCampaign(campaignOid, null, task, result);
+            securityEnforcer.authorize(
+                    ModelAuthorizationAction.REITERATE_CERTIFICATION_CAMPAIGN.getUrl(), null,
+                    AuthorizationParameters.Builder.buildObject(campaign.asPrismObject()), task, result);
+            openerHelper.reiterateCampaign(campaign, task, result);
+        } catch (RuntimeException e) {
+            result.recordException("Couldn't reiterate certification campaign: unexpected exception: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.close();
+        }
+    }
+
 
     // this method delegates the authorization to the model
     @Override

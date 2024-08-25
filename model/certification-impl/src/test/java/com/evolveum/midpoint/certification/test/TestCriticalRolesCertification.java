@@ -1113,6 +1113,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test500Reiterate() throws Exception {
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
         // GIVEN
         Task task = getTestTask();
@@ -1125,12 +1126,16 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         when();
 
         //certificationManager.closeCampaign(campaignOid, true, task, result);
-        certificationManager.reiterateCampaign(campaignOid, task, result);
+        certificationManager.reiterateCampaignTask(campaignOid, task, result);
 
         // THEN
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getReiterationTasks(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after reiteration", campaign);

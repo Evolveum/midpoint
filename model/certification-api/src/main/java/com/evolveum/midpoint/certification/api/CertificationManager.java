@@ -121,6 +121,12 @@ public interface CertificationManager {
     void reiterateCampaignTask(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
+     * Reiterates a closed campaign.
+     * //TODO is here just because the ceritficaion trigger task. Do not use otherwise
+     */
+    void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    /**
      * Records a particular decision of a reviewer.
      *
      * @param workItemId Complex ID of the work item to which the decision belongs.
