@@ -25,6 +25,7 @@ public abstract class AccessCertificationCampaignActivityHandler<WD extends Acce
     @Autowired private AccCertResponseComputationHelper computationHelper;
     @Autowired private AccCertUpdateHelper updateHelper;
     @Autowired private AccCertEventHelper eventHelper;
+    @Autowired private AccCertCaseOperationsHelper caseHelper;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     public TaskManager getTaskManager() {
@@ -63,4 +64,7 @@ public abstract class AccessCertificationCampaignActivityHandler<WD extends Acce
         return eventHelper;
     }
 
+    public AccCertCaseOperationsHelper getCaseHelper() {
+        return caseHelper;
+    }
 }

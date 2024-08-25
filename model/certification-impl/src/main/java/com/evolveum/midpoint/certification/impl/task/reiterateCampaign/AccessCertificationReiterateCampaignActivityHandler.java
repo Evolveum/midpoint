@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.certification.impl.task.reiterateCampaign;
 
 import com.evolveum.midpoint.certification.impl.*;
+import com.evolveum.midpoint.certification.impl.task.AccessCertificationCampaignActivityHandler;
 import com.evolveum.midpoint.model.impl.tasks.ModelActivityHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
@@ -27,55 +28,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AccessCertificationReiterateCampaignActivityHandler
-        extends ModelActivityHandler<AccessCertificationReiterateCampaignWorkDefinition, AccessCertificationReiterateCampaignActivityHandler> {
+        extends AccessCertificationCampaignActivityHandler<AccessCertificationReiterateCampaignWorkDefinition, AccessCertificationReiterateCampaignActivityHandler> {
 
     private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value();
-
-    @Autowired private TaskManager taskManager;
-    @Autowired private CertificationManagerImpl certificationManager;
-    @Autowired private AccCertGeneralHelper helper;
-    @Autowired private AccCertQueryHelper queryHelper;
-    @Autowired private AccCertReviewersHelper reviewersHelper;
-    @Autowired private AccCertResponseComputationHelper computationHelper;
-    @Autowired private AccCertUpdateHelper updateHelper;
-    @Autowired private AccCertEventHelper eventHelper;
-    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-
-    public TaskManager getTaskManager() {
-        return taskManager;
-    }
-
-    public CertificationManagerImpl getCertificationManager() {
-        return certificationManager;
-    }
-
-    public AccCertGeneralHelper getHelper() {
-        return helper;
-    }
-
-    public AccCertQueryHelper getQueryHelper() {
-        return queryHelper;
-    }
-
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
-    }
-
-    public AccCertReviewersHelper getReviewersHelper() {
-        return reviewersHelper;
-    }
-
-    public AccCertResponseComputationHelper getComputationHelper() {
-        return computationHelper;
-    }
-
-    public AccCertUpdateHelper getUpdateHelper() {
-        return updateHelper;
-    }
-
-    public AccCertEventHelper getEventHelper() {
-        return eventHelper;
-    }
 
     @PostConstruct
     public void register() {
@@ -99,7 +54,7 @@ public class AccessCertificationReiterateCampaignActivityHandler
 
     @Override
     public String getIdentifierPrefix() {
-        return "certification-next-stage";
+        return "certification-reiterate-campaign";
     }
 
     @Override
