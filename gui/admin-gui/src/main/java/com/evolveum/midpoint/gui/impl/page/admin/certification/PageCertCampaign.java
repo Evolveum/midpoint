@@ -15,10 +15,14 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.SelectReportTemplatePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.report.api.ReportConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectReferenceTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportParameterTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -28,6 +32,9 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CertCampaignSummaryPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -72,6 +79,8 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
     private LoadableDetachableModel<String> buttonLabelModel;
     private LoadableDetachableModel<String> buttonCssModel;
 
+    private String runningTaskOid;
+
     public PageCertCampaign() {
         this(new PageParameters());
     }
@@ -109,6 +118,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             @Override
             protected void addRightButtons(@NotNull RepeatingView rightButtonsView) {
                 addCampaignManagementButton(rightButtonsView);
+                addRunningTaskButton(rightButtonsView);
                 addCreateReportButton(rightButtonsView);
                 addReloadButton(rightButtonsView);
             }
@@ -161,8 +171,9 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
             @Override
             protected void refresh(AjaxRequestTarget target) {
-                buttonLabelModel.detach();
+                runningTaskOid = getRunningTaskOid();
                 PageCertCampaign.this.refresh(target, !isEmptyTaskOid());
+                buttonLabelModel.detach();
             }
 
         };
@@ -181,6 +192,23 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         };
     }
 
+    private void addRunningTaskButton(RepeatingView rightButtonsView) {
+        AjaxIconButton button = new AjaxIconButton(rightButtonsView.newChildId(), Model.of("fa fa-tasks"),
+                createStringResource("PageCertCampaign.button.showRunningTask")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(runningTaskOid, ObjectTypes.TASK);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ref, PageCertCampaign.this, false);
+            }
+        };
+        button.showTitleAsLabel(true);
+        button.add(AttributeModifier.append("class", "btn btn-sm btn-secondary"));
+        button.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(runningTaskOid)));
+        rightButtonsView.add(button);
+    }
+
     private void addCreateReportButton(RepeatingView rightButtonsView) {
         AjaxIconButton button = new AjaxIconButton(rightButtonsView.newChildId(), Model.of("fa fa-chart-pie"),
                 createStringResource("PageCertDecisions.button.createReport")) {
@@ -192,7 +220,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.append("class", "btn btn-secondary"));
+        button.add(AttributeModifier.append("class", "btn btn-sm btn-secondary"));
         rightButtonsView.add(button);
     }
 
@@ -207,7 +235,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
             }
         };
         button.showTitleAsLabel(true);
-        button.add(AttributeModifier.append("class", "btn btn-secondary"));
+        button.add(AttributeModifier.append("class", "btn btn-sm btn-secondary"));
         rightButtonsView.add(button);
     }
 
@@ -281,7 +309,6 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
     @Override
     protected void onDetach() {
         getObjectDetailsModels().reset();
-        getObjectDetailsModels().reloadPrismObjectModel();
         if (buttonCssModel != null) {
             buttonCssModel.detach();
         }
@@ -293,7 +320,6 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
     public void refresh(AjaxRequestTarget target, boolean soft) {
         getObjectDetailsModels().reset();
-        getObjectDetailsModels().reloadPrismObjectModel();
         if (getSummaryPanel() != null) {
             target.add(getSummaryPanel());
         }

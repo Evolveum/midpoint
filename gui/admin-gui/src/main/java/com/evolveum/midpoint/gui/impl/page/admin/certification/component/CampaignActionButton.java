@@ -41,7 +41,7 @@ public abstract class CampaignActionButton extends ReloadableButton {
     }
 
     @Override
-    protected String getProcessingTaskOid(AjaxRequestTarget target) {
+    protected String getCreatedTaskOid(AjaxRequestTarget target) {
         AccessCertificationCampaignType campaign = campaignModel.getObject();
         OperationResult result = new OperationResult(OPERATION_CERTIFICATION_ITEM_ACTION);
         CampaignStateHelper.CampaignAction action = new CampaignStateHelper(campaign).getNextAction();

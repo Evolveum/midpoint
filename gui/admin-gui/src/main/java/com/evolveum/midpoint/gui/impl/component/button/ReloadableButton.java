@@ -90,7 +90,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
     }
 
     private void onClickReloadButton(AjaxRequestTarget target) {
-        taskOidForReloaded = getProcessingTaskOid(target);
+        taskOidForReloaded = getCreatedTaskOid(target);
         reloadedBehaviour = new AjaxSelfUpdatingTimerBehavior(Duration.ofSeconds(5)) {
 
             @Override
@@ -149,13 +149,17 @@ public abstract class ReloadableButton extends AjaxIconButton {
         return getConfirmMessage() != null && getConfirmMessage().getObject() != null && !getConfirmMessage().getObject().isEmpty();
     }
 
-    protected String getProcessingTaskOid(AjaxRequestTarget target) {
+    protected String getCreatedTaskOid(AjaxRequestTarget target) {
         return pageBase.taskAwareExecutor(target, OPERATION_RELOAD)
                 .withOpResultOptions(
                         OpResult.Options.create()
                                 .withHideSuccess(true)
                                 .withHideInProgress(true))
                 .run(getTaskExecutor());
+    }
+
+    protected String getRunningTaskOid() {
+        return taskOidForReloaded;
     }
 
     private TaskAwareExecutor.Executable<String> getTaskExecutor() {
