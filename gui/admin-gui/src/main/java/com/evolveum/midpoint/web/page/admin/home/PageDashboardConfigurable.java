@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.RefFilter;
 
@@ -300,16 +301,20 @@ public class PageDashboardConfigurable extends PageDashboard {
         return null;
     }
 
-    private boolean isCollectionLoadable(DashboardWidgetType widget) {
+    private CompiledObjectCollectionView compileCollectionView(DashboardWidgetType widget) {
         Task task = createSimpleTask(OPERATION_COMPILE_DASHBOARD_COLLECTION);
         OperationResult result = new OperationResult(OPERATION_COMPILE_DASHBOARD_COLLECTION);
         try {
-            getModelInteractionService().compileObjectCollectionView(getDashboardService()
+            return getModelInteractionService().compileObjectCollectionView(getDashboardService()
                     .getCollectionRefSpecificationType(widget, task, result), null, task, result);
-            return true;
         } catch (Exception e) {
-            return false;
         }
+
+        return null;
+    }
+
+    private boolean isCollectionLoadable(DashboardWidgetType widget) {
+        return compileCollectionView(widget) != null;
     }
 
     private boolean existLinkRef(DashboardWidgetType widget) {
@@ -335,7 +340,7 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private boolean linkRefForObjectCollectionExists(DashboardWidgetType widget) {
-        CollectionRefObjectProvider collection = getObjectCollectionType(widget);
+        CollectionRefObjectProvider<?> collection = getObjectCollectionType(widget);
         if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
             if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
                 String oid = getResourceOid(collection.getFilter());
@@ -369,22 +374,25 @@ public class PageDashboardConfigurable extends PageDashboard {
         return model.getData().getCollection();
     }
 
-    private CollectionRefObjectProvider getObjectCollectionType(DashboardWidgetType widget) {
+    private CollectionRefObjectProvider<?> getObjectCollectionType(DashboardWidgetType widget) {
         CollectionRefSpecificationType collectionRef = getObjectCollectionRef(widget);
         if (collectionRef == null) {
             return null;
         }
+
         ObjectReferenceType ref = collectionRef.getCollectionRef();
         Task task = createSimpleTask("Search collection");
-        PrismObject<ObjectCollectionType> objectCollection = WebModelServiceUtils.loadObject(ref, this, task, task.getResult());
+        PrismObject<?> objectCollection = WebModelServiceUtils.loadObject(ref, this, task, task.getResult());
         if (objectCollection == null) {
             return null;
         }
 
-        if (objectCollection instanceof ObjectCollectionType oc) {
+        if (objectCollection.asObjectable() instanceof ObjectCollectionType oc) {
             return new ObjectCollectionProviderImpl(oc);
-        } else if (objectCollection instanceof AbstractRoleType role) {
-            return new AbstractRoleProviderImpl(role);
+        } else if (objectCollection.asObjectable() instanceof AbstractRoleType role) {
+            // todo improve this is just a messy way to figure out type of objects for search, since widgets defined via archetype in collectionRefs don't have place to define type (other than assignmentRelation/holderType)
+            CompiledObjectCollectionView view = compileCollectionView(widget);
+            return new AbstractRoleProviderImpl(role, view.getContainerType());
         }
 
         return null;
@@ -442,7 +450,7 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private void navigateToObjectCollectionPage(DashboardWidgetType widget) {
-        CollectionRefObjectProvider collection = getObjectCollectionType(widget);
+        CollectionRefObjectProvider<?> collection = getObjectCollectionType(widget);
         if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
             Class<? extends WebPage> pageType = LINKS_REF_COLLECTIONS.get(collection.getType().getLocalPart());
             PageParameters parameters = new PageParameters();
@@ -517,13 +525,17 @@ public class PageDashboardConfigurable extends PageDashboard {
 
     private static class AbstractRoleProviderImpl extends CollectionRefObjectProvider<AbstractRoleType> {
 
-        public AbstractRoleProviderImpl(AbstractRoleType object) {
+        QName type;
+
+        public AbstractRoleProviderImpl(AbstractRoleType object, QName type) {
             super(object);
+
+            this.type = type;
         }
 
         @Override
         QName getType() {
-            return AssignmentHolderType.COMPLEX_TYPE;
+            return type;
         }
 
         @Override
