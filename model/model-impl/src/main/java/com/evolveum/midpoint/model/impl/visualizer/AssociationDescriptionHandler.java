@@ -20,8 +20,9 @@ import com.evolveum.midpoint.model.impl.visualizer.output.VisualizationItemValue
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowAssociationsUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -53,17 +54,23 @@ public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
         Visualization shadowVisualization = visualization.getOwner().getOwner();    // todo not very nice -> search via path or something
         ShadowType subject = (ShadowType) shadowVisualization.getSourceValue().asContainerable();
 
-        ShadowAssociationValueType associationValue = (ShadowAssociationValueType) visualization.getSourceValue().asContainerable();
+        ShadowAssociationValue associationValue = (ShadowAssociationValue) visualization.getSourceValue();
 
         String subjectName = getShadowName(subject);
 
-        String association = visualization.getSourceDefinition().getItemName().getLocalPart();  // todo how to get association name or displayName
+        ShadowAssociationDefinition def = associationValue.getDefinitionRequired();
+        String association = def.getReferenceAttributeDefinition().getDisplayName();
+        if (association == null) {
+            visualization.getSourceDefinition().getItemName().getLocalPart();
+        }
 
         String objectName = "ShadowDescriptionHandler.noName";
 
-        ObjectReferenceType shadowRef = ShadowAssociationsUtil.getSingleObjectRefRelaxed(associationValue); //value.asObjectReferenceType();
+        ObjectReferenceType shadowRef = associationValue.getSingleObjectRefRelaxed();
         if (shadowRef != null) {
-            PrismObject<ShadowType> object = (PrismObject<ShadowType>) resolver.resolveObject(shadowRef, task, result);
+            PrismObject<ShadowType> object = shadowRef.getObject() != null ?
+                    shadowRef.getObject() : (PrismObject<ShadowType>) resolver.resolveObject(shadowRef, task, result);
+
             ShadowType objectShadow = object.asObjectable();
             objectName = getShadowName(objectShadow);
 
@@ -75,7 +82,6 @@ public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
                         shadowRefDelta.get().getNewValues().get(0).getText());
                 newItemValue.setSourceValue(shadowRef.asReferenceValue());
                 shadowRefDelta.get().setNewValues(List.of(newItemValue));
-
             }
         }
 
