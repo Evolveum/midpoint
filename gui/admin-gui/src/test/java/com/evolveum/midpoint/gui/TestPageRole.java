@@ -41,6 +41,8 @@ import java.util.concurrent.TimeUnit;
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
 
+    public static final int ARCHEYPE_CHOICE_ALL_ROLES = 2;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -58,7 +60,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test002testAddNewRole() throws Exception {
         renderPage(PageRole.class);
-        choiceArchetype(2);
+        choiceArchetype(ARCHEYPE_CHOICE_ALL_ROLES);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         formTester.setValue(PATH_FORM_NAME, "newRole");
