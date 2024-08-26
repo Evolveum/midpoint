@@ -58,7 +58,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test002testAddNewRole() throws Exception {
         renderPage(PageRole.class);
-        choiceArchetype(4);
+        choiceArchetype(2);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         formTester.setValue(PATH_FORM_NAME, "newRole");
