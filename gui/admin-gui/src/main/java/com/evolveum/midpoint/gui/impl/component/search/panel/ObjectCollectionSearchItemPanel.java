@@ -6,16 +6,16 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectCollectionSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
 
 public class ObjectCollectionSearchItemPanel extends SingleSearchItemPanel<ObjectCollectionSearchItemWrapper> {
 
@@ -50,4 +50,8 @@ public class ObjectCollectionSearchItemPanel extends SingleSearchItemPanel<Objec
         return ajaxLinkPanel;
     }
 
+    @Override
+    protected IModel<String> createLabelModel() {
+        return () -> "";
+    }
 }
