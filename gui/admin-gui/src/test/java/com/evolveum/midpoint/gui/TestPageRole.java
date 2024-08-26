@@ -83,7 +83,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         String role1Oid = addObject(role1);
         Task task = createTask("assign");
         // Assign Role0001 with orgRef P0001
-//        assignParametricRole(USER_JACK_OID, role1Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult()); //TODO uncomment after fixing search for members without org/project
+        assignParametricRole(USER_JACK_OID, role1Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult());
         assignRole(USER_JACK_OID, role1Oid);
         assignRole(USER_ADMINISTRATOR_OID, role1Oid);
 
