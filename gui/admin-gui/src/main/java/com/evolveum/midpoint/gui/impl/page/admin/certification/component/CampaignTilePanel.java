@@ -31,12 +31,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignS
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -60,8 +61,6 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private static final String ID_STAGE = "stage";
     private static final String ID_ITERATION = "iteration";
     private static final String ID_ACTION_BUTTON = "actionButton";
-    private static final String ID_ACTION_BUTTON_LABEL = "actionButtonLabel";
-    private static final String ID_ACTION_BUTTON_ICON = "actionButtonIcon";
     private static final String ID_DETAILS = "details";
     private static final String ID_DETAILS_LABEL = "detailsLabel";
 
@@ -140,27 +139,25 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         iteration.setOutputMarkupId(true);
         add(iteration);
 
-        AjaxLink<Void> actionButton = new AjaxLink<>(ID_ACTION_BUTTON) {
+        LoadableDetachableModel<String> buttonLabelModel = getActionButtonTitleModel();
+
+        CampaignActionButton actionButton = new CampaignActionButton(ID_ACTION_BUTTON, getPageBase(), getCampaignModel(), buttonLabelModel) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                CampaignProcessingHelper.campaignActionPerformed(getCampaign(), getPageBase(), target);
+            protected void refresh(AjaxRequestTarget target) {
+                buttonLabelModel.detach();
+                target.add(CampaignTilePanel.this);
+                Component feedbackPanel = getPageBase().getFeedbackPanel();
+                target.add(feedbackPanel);
             }
+
         };
+        actionButton.setOutputMarkupPlaceholderTag(true);
         actionButton.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionCssClass()));
         actionButton.setOutputMarkupId(true);
         actionButton.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
         add(actionButton);
-
-        Label actionButtonLabel = new Label(ID_ACTION_BUTTON_LABEL, getActionButtonModel());
-        actionButtonLabel.setOutputMarkupId(true);
-        actionButton.add(actionButtonLabel);
-
-        WebMarkupContainer actionButtonIcon = new WebMarkupContainer(ID_ACTION_BUTTON_ICON);
-        actionButtonIcon.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionIcon().getCssClass()));
-        actionButtonIcon.setOutputMarkupId(true);
-        actionButton.add(actionButtonIcon);
 
         AjaxLink<Void> details = new AjaxLink<>(ID_DETAILS) {
             @Serial private static final long serialVersionUID = 1L;
@@ -256,6 +253,15 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         };
     }
 
+    public LoadableDetachableModel<AccessCertificationCampaignType> getCampaignModel() {
+        return new LoadableDetachableModel<AccessCertificationCampaignType>() {
+            @Override
+            protected AccessCertificationCampaignType load() {
+                return getCampaign();
+            }
+        };
+    }
+
     protected AccessCertificationCampaignType getCampaign() {
         return getModelObject().getValue().getValue();
     }
@@ -305,5 +311,17 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
      */
     protected LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
         return null;
+    }
+
+    private LoadableDetachableModel<String> getActionButtonTitleModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getCampaign());
+                return createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()).getString();
+            }
+        };
     }
 }
