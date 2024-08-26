@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.RefFilter;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -65,6 +68,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author skublik
@@ -330,7 +335,7 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private boolean linkRefForObjectCollectionExists(DashboardWidgetType widget) {
-        ObjectCollectionType collection = getObjectCollectionType(widget);
+        CollectionRefObjectProvider collection = getObjectCollectionType(widget);
         if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
             if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
                 String oid = getResourceOid(collection.getFilter());
@@ -364,7 +369,7 @@ public class PageDashboardConfigurable extends PageDashboard {
         return model.getData().getCollection();
     }
 
-    private ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget) {
+    private CollectionRefObjectProvider getObjectCollectionType(DashboardWidgetType widget) {
         CollectionRefSpecificationType collectionRef = getObjectCollectionRef(widget);
         if (collectionRef == null) {
             return null;
@@ -376,7 +381,13 @@ public class PageDashboardConfigurable extends PageDashboard {
             return null;
         }
 
-        return objectCollection.asObjectable();
+        if (objectCollection instanceof ObjectCollectionType oc) {
+            return new ObjectCollectionProviderImpl(oc);
+        } else if (objectCollection instanceof AbstractRoleType role) {
+            return new AbstractRoleProviderImpl(role);
+        }
+
+        return null;
     }
 
     private boolean isDataNull(DashboardWidgetType dashboardWidgetType) {
@@ -431,7 +442,7 @@ public class PageDashboardConfigurable extends PageDashboard {
     }
 
     private void navigateToObjectCollectionPage(DashboardWidgetType widget) {
-        ObjectCollectionType collection = getObjectCollectionType(widget);
+        CollectionRefObjectProvider collection = getObjectCollectionType(widget);
         if (collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
             Class<? extends WebPage> pageType = LINKS_REF_COLLECTIONS.get(collection.getType().getLocalPart());
             PageParameters parameters = new PageParameters();
@@ -463,5 +474,71 @@ public class PageDashboardConfigurable extends PageDashboard {
         parameters.add(OnePageParameterEncoder.PARAMETER, object.getOid());
 
         navigateToNext(pageType, parameters);
+    }
+
+
+
+    private abstract static class CollectionRefObjectProvider<O extends ObjectType> {
+
+        protected O object;
+
+        public CollectionRefObjectProvider(O object) {
+            this.object = object;
+        }
+
+        abstract QName getType();
+
+        abstract SearchFilterType getFilter();
+
+        abstract SelectorQualifiedGetOptionsType getGetOptions();
+    }
+
+    private static class ObjectCollectionProviderImpl extends CollectionRefObjectProvider<ObjectCollectionType> {
+
+        public ObjectCollectionProviderImpl(ObjectCollectionType object) {
+            super(object);
+        }
+
+        @Override
+        QName getType() {
+            return object.getType();
+        }
+
+        @Override
+        SearchFilterType getFilter() {
+            return object.getFilter();
+        }
+
+        @Override
+        SelectorQualifiedGetOptionsType getGetOptions() {
+            return object.getGetOptions();
+        }
+    }
+
+    private static class AbstractRoleProviderImpl extends CollectionRefObjectProvider<AbstractRoleType> {
+
+        public AbstractRoleProviderImpl(AbstractRoleType object) {
+            super(object);
+        }
+
+        @Override
+        QName getType() {
+            return AssignmentHolderType.COMPLEX_TYPE;
+        }
+
+        @Override
+        SearchFilterType getFilter() {
+            PrismContext ctx = PrismContext.get();
+            RefFilter archetypeFilter = (RefFilter) ctx.queryFor(AssignmentHolderType.class)
+                    .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(object.getOid())
+                    .buildFilter();
+            archetypeFilter.setTargetTypeNullAsAny(true);
+            return null;
+        }
+
+        @Override
+        SelectorQualifiedGetOptionsType getGetOptions() {
+            return null;
+        }
     }
 }
