@@ -811,11 +811,6 @@
             </objectCollectionView>
             <objectCollectionView id="75">
                 <identifier>application-role</identifier>
-                <display>
-                    <label>Application roles</label>
-                    <singularLabel>Application role</singularLabel>
-                    <tooltip>Application roles</tooltip>
-                </display>
                 <displayOrder>180</displayOrder>
                 <type>RoleType</type>
                 <collection>
@@ -824,11 +819,6 @@
             </objectCollectionView>
             <objectCollectionView id="76">
                 <identifier>business-role</identifier>
-                <display>
-                    <label>Business roles</label>
-                    <singularLabel>Business role</singularLabel>
-                    <tooltip>Business roles</tooltip>
-                </display>
                 <displayOrder>190</displayOrder>
                 <type>RoleType</type>
                 <collection>
