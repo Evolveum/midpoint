@@ -626,18 +626,13 @@ public class OutliersDetectionUtil {
             int userCountInRepo,
             @NotNull ListMultimap<String, DetectedAnomalyResult> userRoleMap) {
         List<String> roles = miningRoleTypeChunk.getMembers();
+
+        double anomalyDeviationConfidence = roleAnalysisService.calculateZScoreConfidence(miningRoleTypeChunk, zScoreData);
+        double anomalyFrequencyConfidence = frequencyItem.getFrequency();
         for (String role : roles) {
-            DetectedAnomalyResult anomalyResult = new DetectedAnomalyResult();
-            anomalyResult.setTargetObjectRef(new ObjectReferenceType().oid(role).type(RoleType.COMPLEX_TYPE));
-
-            anomalyResult.setStatistics(new DetectedAnomalyStatistics());
-            DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
-            anomalyResult.setCreateTimestamp(
-                    XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
-
-            double confidence = roleAnalysisService.calculateZScoreConfidence(miningRoleTypeChunk, zScoreData);
-            statistics.setConfidenceDeviation(confidence);
-            statistics.setFrequency(frequencyItem.getFrequency());
+            ObjectReferenceType anomalyRef = new ObjectReferenceType()
+                    .oid(role)
+                    .type(RoleType.COMPLEX_TYPE);
 
             for (String member : members) {
                 PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
@@ -647,16 +642,48 @@ public class OutliersDetectionUtil {
                 RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(member, miningRoleTypeChunks, session,
                         roleAnalysisService, task, result, allowedProperties, analysisCache, false);
 
-                statistics.setPatternAnalysis(patternAnalysis);
+                DetectedAnomalyResult detectedAnomalyResult = prepareChunkAnomalyResult(anomalyRef,
+                        anomalyFrequencyConfidence,
+                        anomalyDeviationConfidence,
+                        patternAnalysis);
 
                 double anomalyConfidence = calculateAssignmentAnomalyConfidence(
                         roleAnalysisService, attributesForUserAnalysis,
-                        userTypeObject, userCountInRepo, anomalyResult, analysisCache, task, result);
+                        userTypeObject, userCountInRepo, detectedAnomalyResult, analysisCache, task, result);
 
+                DetectedAnomalyStatistics statistics = detectedAnomalyResult.getStatistics();
                 statistics.setConfidence(anomalyConfidence);
-                userRoleMap.put(member, anomalyResult);
+                userRoleMap.put(member, detectedAnomalyResult);
             }
         }
+    }
+
+    //TODO should we move other statistics computation to this method?
+    /**
+     * Partially prepares a DetectedAnomalyResult object based on the provided parameters.
+     *
+     * @param anomalyRef A reference to the anomaly object. This is the object that the anomaly is detected for.
+     * @param anomalyFrequencyConfidence The confidence level of the anomaly frequency.
+     * @param anomalyDeviationConfidence The confidence level of the anomaly deviation.
+     * @param patternAnalysis The analysis of the pattern associated with the anomaly.
+     * @return A DetectedAnomalyResult object that encapsulates the provided parameters along with a timestamp of when the anomaly result was created.
+     */
+    private static @NotNull DetectedAnomalyResult prepareChunkAnomalyResult(
+            @NotNull ObjectReferenceType anomalyRef,
+            double anomalyFrequencyConfidence,
+            double anomalyDeviationConfidence,
+            @Nullable RoleAnalysisPatternAnalysis patternAnalysis) {
+        DetectedAnomalyResult anomalyResult = new DetectedAnomalyResult();
+        anomalyResult.setTargetObjectRef(anomalyRef);
+        anomalyResult.setStatistics(new DetectedAnomalyStatistics());
+        DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
+        anomalyResult.setCreateTimestamp(
+                XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+
+        statistics.setConfidenceDeviation(anomalyDeviationConfidence);
+        statistics.setFrequency(anomalyFrequencyConfidence);
+        statistics.setPatternAnalysis(patternAnalysis);
+        return anomalyResult;
     }
 
 }
