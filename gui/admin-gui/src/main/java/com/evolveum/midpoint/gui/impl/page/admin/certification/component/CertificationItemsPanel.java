@@ -202,9 +202,7 @@ public class CertificationItemsPanel extends BasePanel<String> {
 
 
     private IModel<String> getNavigationPanelTitleModel() {
-        String campaignName = getCampaignName();
-        return createStringResource("PageMyCertCampaigns.title",
-                StringUtils.isNotEmpty(campaignName) ? "/" + campaignName : "");
+        return () -> getCampaignName();
     }
 
     private String getCampaignName() {

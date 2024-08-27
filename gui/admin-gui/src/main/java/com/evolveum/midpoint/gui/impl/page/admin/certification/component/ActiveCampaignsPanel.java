@@ -94,7 +94,7 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
 
             @Override
             protected IModel<String> createTitleModel() {
-                return createStringResource("PageMyCertCampaigns.title", "");
+                return getActiveCampaignsPanelTitleModel();
             }
 
             @Override
@@ -127,6 +127,10 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
 
     protected MidPointPrincipal getPrincipal() {
         return null;
+    }
+
+    protected IModel<String> getActiveCampaignsPanelTitleModel() {
+        return createStringResource("ActiveCampaignsPanel.title");
     }
 }
 

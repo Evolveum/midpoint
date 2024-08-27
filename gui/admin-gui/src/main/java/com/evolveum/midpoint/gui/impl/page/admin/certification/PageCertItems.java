@@ -115,4 +115,9 @@ public class PageCertItems extends PageAdminCertification {
     protected boolean isMyCertItems() {
         return false;
     }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return createStringResource("PageCertItems.title");
+    }
 }

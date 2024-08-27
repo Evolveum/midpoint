@@ -250,7 +250,7 @@ public abstract class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>
 
         while (path.size() > 1) {
             ItemRelationResolver<CQ, CR, ?, ?> resolver = mapping.relationResolver(path); // Resolves only first element
-            ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolve(context);
+            ItemRelationResolver.ResolutionResult<?, ?> resolution = resolver.resolveUsingJoin(context);
             if (resolution.subquery) {
                 throw new QueryException("Item path '" + inputPath
                         + "' cannot be used for ordering because subquery is used to resolve it.");

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
+import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -49,19 +50,31 @@ public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
                 && visualization.getSourceValue().getPath().namedSegmentsOnly().startsWith(ShadowType.F_ASSOCIATIONS);
     }
 
+    private Visualization getRootVisualization(Visualization visualization) {
+        Visualization parent = visualization.getOwner();
+        if (parent == null) {
+            return visualization;
+        }
+        return getRootVisualization(parent);
+    }
+
     @Override
     public void apply(VisualizationImpl visualization, VisualizationImpl parentVisualization, Task task, OperationResult result) {
-        Visualization shadowVisualization = visualization.getOwner().getOwner();    // todo not very nice -> search via path or something
-        ShadowType subject = (ShadowType) shadowVisualization.getSourceValue().asContainerable();
+        Visualization shadowVisualization = getRootVisualization(visualization);
+        PrismContainerValue<?> pcv = shadowVisualization.getSourceValue();
+        if (pcv == null || !(pcv.asContainerable() instanceof ShadowType subject)) {
+            return;
+        }
 
         ShadowAssociationValue associationValue = (ShadowAssociationValue) visualization.getSourceValue();
 
         String subjectName = getShadowName(subject);
 
         ShadowAssociationDefinition def = associationValue.getDefinitionRequired();
-        String association = def.getReferenceAttributeDefinition().getDisplayName();
+        ShadowReferenceAttributeDefinition refDef = def.getReferenceAttributeDefinition();
+        String association = refDef.getDisplayName();
         if (association == null) {
-            visualization.getSourceDefinition().getItemName().getLocalPart();
+            association = refDef.getItemName().getLocalPart();
         }
 
         String objectName = "ShadowDescriptionHandler.noName";
