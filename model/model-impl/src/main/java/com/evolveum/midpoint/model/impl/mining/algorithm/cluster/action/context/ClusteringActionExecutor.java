@@ -89,6 +89,8 @@ public class ClusteringActionExecutor extends BaseAction {
 
         RoleAnalysisSessionType session = prismSession.asObjectable();
         List<ObjectReferenceType> effectiveMarkRef = session.getEffectiveMarkRef();
+        //TODO this is brutal hack. Change it.
+        // Start *
         boolean isDecomissioned = false;
 
         if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
@@ -123,13 +125,14 @@ public class ClusteringActionExecutor extends BaseAction {
             handler.finish();
             return;
         }
+        //End *
 
         roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result, false);
 
         this.clusterable = new ClusteringBehavioralResolver();
 
-        List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
-                clusterable.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
+        List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(
+                roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
 
         if (!clusterObjects.isEmpty()) {
             importObjects(roleAnalysisService, clusterObjects, session, task, result);

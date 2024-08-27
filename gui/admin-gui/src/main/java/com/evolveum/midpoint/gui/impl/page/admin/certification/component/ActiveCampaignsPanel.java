@@ -132,5 +132,10 @@ public class ActiveCampaignsPanel extends CampaignsPanel {
     protected IModel<String> getActiveCampaignsPanelTitleModel() {
         return createStringResource("ActiveCampaignsPanel.title");
     }
+
+    @Override
+    protected String getCampaignTileCssStyle() {
+        return "min-height: 250px;";
+    }
 }
 

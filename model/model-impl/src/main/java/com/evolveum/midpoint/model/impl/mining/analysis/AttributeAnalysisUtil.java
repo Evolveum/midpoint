@@ -122,6 +122,10 @@ public class AttributeAnalysisUtil {
                 userAnalysisCache.putMemberUserAnalysisCache(prismUser.getOid(), attributeResultMapForSpecificUser);
             }
 
+            if (userCache == null) {
+                userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
+            }
+
             if (userCache != null) {
                 for (RoleAnalysisAttributeDef item : itemDef) {
                     String displayValue = item.getDisplayValue();
@@ -165,8 +169,11 @@ public class AttributeAnalysisUtil {
             @NotNull OperationResult result) {
 
         int usersCount = prismUsers.size();
+
         Map<String, AttributePathResult> attributeResultMap = new HashMap<>();
+
         for (PrismObject<UserType> prismUser : prismUsers) {
+
             for (RoleAnalysisAttributeDef item : itemDef) {
                 ItemPath path = item.getPath();
                 String displayValue = item.getDisplayValue();
