@@ -57,123 +57,8 @@ public class CampaignProcessingHelper implements Serializable {
     private static final String OPERATION_START_REMEDIATION = DOT_CLASS + "startRemediation";
     private static final String OPERATION_REITERATE_CAMPAIGN = DOT_CLASS + "reiterateCampaign";
 
-    public static void closeStageConfirmation(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        pageBase.showMainPopup(getCloseStageConfirmationPanel(campaigns, pageBase), target);
-    }
-
-    public static Popupable getCloseStageConfirmationPanel(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return new ConfirmationPanel(pageBase.getMainPopupBodyId(), createCloseStageConfirmString(campaigns, pageBase)) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public StringResourceModel getTitle() {
-                return pageBase.createStringResource("PageCertCampaigns.dialog.title.confirmCloseStage");
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                closeStageConfirmedPerformed(target, campaigns, pageBase);
-            }
-
-        };
-    }
-
-    public static void closeCampaignConfirmation(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        pageBase.showMainPopup(getCloseCampaignConfirmationPanel(campaigns, pageBase), target);
-    }
-
-    public static void campaignRemediationConfirmation(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        pageBase.showMainPopup(getRemediationConfirmationPanel(campaigns, pageBase), target);
-    }
-
-    public static void reiterateCampaignConfirmation(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        pageBase.showMainPopup(getReiterateCampaignConfirmationPanel(campaigns, pageBase), target);
-    }
-
-    public static Popupable getCloseCampaignConfirmationPanel(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return new ConfirmationPanel(pageBase.getMainPopupBodyId(), createCloseCampaignConfirmString(campaigns, pageBase)) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public StringResourceModel getTitle() {
-                return createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign");
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                closeCampaignConfirmedPerformed(target, campaigns, pageBase);
-            }
-
-        };
-    }
-
-    public static Popupable getReiterateCampaignConfirmationPanel(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return new ConfirmationPanel(pageBase.getMainPopupBodyId(), createReiterateCampaignConfirmString(campaigns, pageBase)) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public StringResourceModel getTitle() {
-                return createStringResource("PageCertCampaigns.dialog.title.confirmReiterateCampaign");
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                reiterateCampaignConfirmedPerformed(target, campaigns, pageBase);
-            }
-
-        };
-    }
-
-    public static void deleteCampaignConfirmation(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        pageBase.showMainPopup(getDeleteCampaignConfirmationPanel(campaigns, pageBase), target);
-    }
-
-    public static Popupable getDeleteCampaignConfirmationPanel(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return new ConfirmationPanel(pageBase.getMainPopupBodyId(), createDeleteCampaignConfirmString(campaigns, pageBase)) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public StringResourceModel getTitle() {
-                return createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign");
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                deleteCampaignConfirmedPerformed(target, campaigns, pageBase);
-            }
-
-        };
-    }
-
-    public static void deleteCampaignConfirmedPerformed(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        deleteCampaignsPerformed(target, campaigns, pageBase);
-    }
-
-    public static Popupable getRemediationConfirmationPanel(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return new ConfirmationPanel(pageBase.getMainPopupBodyId(), createRemediationCampaignConfirmString(campaigns, pageBase)) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public StringResourceModel getTitle() {
-                return createStringResource("PageCertCampaigns.dialog.title.confirmCampaignRemediation");
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                startRemediationPerformed(target, campaigns, pageBase);
-            }
-
-        };
-    }
-
-    public static void startRemediationPerformed(AjaxRequestTarget target,
+    public static void startRemediationPerformed(OperationResult result,
             List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        OperationResult result = new OperationResult(OPERATION_START_REMEDIATION);
         AccessCertificationService acs = pageBase.getCertificationService();
         campaigns.forEach(campaign -> {
             LOGGER.debug("Start remediation performed for {}", campaign.asPrismObject());
@@ -188,16 +73,14 @@ public class CampaignProcessingHelper implements Serializable {
         });
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         pageBase.showResult(result);
-        target.add(pageBase);
     }
 
-    public static void openNextStagePerformed(AjaxRequestTarget target, AccessCertificationCampaignType campaign, PageBase pageBase) {
+    public static void openNextStagePerformed(OperationResult result, AccessCertificationCampaignType campaign, PageBase pageBase) {
         LOGGER.debug("Start campaign / open next stage performed for {}", campaign.asPrismObject());
-        OperationResult result = new OperationResult(OPERATION_OPEN_NEXT_STAGE);
         AccessCertificationService acs = pageBase.getCertificationService();
         try {
             Task task = pageBase.createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
-            acs.openNextStage(campaign.getOid(), task, result);
+            acs.openNextStage(campaign, task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {
@@ -205,12 +88,10 @@ public class CampaignProcessingHelper implements Serializable {
         }
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         pageBase.showResult(result);
-        target.add(pageBase);
     }
 
-    public static void closeCampaignConfirmedPerformed(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns,
+    public static void closeCampaignConfirmedPerformed(OperationResult result, List<AccessCertificationCampaignType> campaigns,
             PageBase pageBase) {
-        OperationResult result = new OperationResult(OPERATION_CLOSE_CAMPAIGN);
         campaigns.forEach(campaign -> {
             try {
                 LOGGER.debug("Close certification campaign performed for {}", campaign.asPrismObject());
@@ -227,12 +108,10 @@ public class CampaignProcessingHelper implements Serializable {
 
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         pageBase.showResult(result);
-        target.add(pageBase);
     }
 
-    public static void reiterateCampaignConfirmedPerformed(AjaxRequestTarget target,
+    public static void reiterateCampaignConfirmedPerformed(OperationResult result,
             List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        OperationResult result = new OperationResult(OPERATION_REITERATE_CAMPAIGN);
         Task task = pageBase.createSimpleTask(OPERATION_REITERATE_CAMPAIGN);
         AccessCertificationService acs = pageBase.getCertificationService();
 
@@ -249,12 +128,10 @@ public class CampaignProcessingHelper implements Serializable {
         });
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         pageBase.showResult(result);
-        target.add(pageBase);
     }
 
-    public static void closeStageConfirmedPerformed(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns,
+    public static void closeStageConfirmedPerformed(OperationResult result, List<AccessCertificationCampaignType> campaigns,
             PageBase pageBase) {
-        OperationResult result = new OperationResult(OPERATION_CLOSE_STAGE);
         Task task = pageBase.createSimpleTask(OPERATION_CLOSE_STAGE);
         AccessCertificationService acs = pageBase.getCertificationService();
 
@@ -271,7 +148,6 @@ public class CampaignProcessingHelper implements Serializable {
         });
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         pageBase.showResult(result);
-        target.add(pageBase);
     }
 
     public static void campaignDetailsPerformed(String oid, PageBase pageBase) {
@@ -313,42 +189,36 @@ public class CampaignProcessingHelper implements Serializable {
         target.add(pageBase.getFeedbackPanel(), pageBase);
     }
 
-    public static void campaignActionPerformed(@NotNull AccessCertificationCampaignType campaign, PageBase pageBase,
-            AjaxRequestTarget target) {
-        CampaignStateHelper.CampaignAction action = new CampaignStateHelper(campaign).getNextAction();
-        campaignActionPerformed(Collections.singletonList(campaign), action, pageBase, target);
-    }
-
-    public static void campaignActionPerformed(@NotNull AccessCertificationCampaignType campaign,
-            CampaignStateHelper.CampaignAction action, PageBase pageBase, AjaxRequestTarget target) {
-        campaignActionPerformed(Collections.singletonList(campaign), action, pageBase, target);
-    }
-
-    public static void campaignActionPerformed(@NotNull List<AccessCertificationCampaignType> campaigns,
-            CampaignStateHelper.CampaignAction action, PageBase pageBase, AjaxRequestTarget target) {
+    /**
+     * this method should be called after action confirmation
+     * @param campaigns
+     * @param pageBase
+     * @param target
+     */
+    public static void campaignActionConfirmed(List<AccessCertificationCampaignType> campaigns, CampaignStateHelper.CampaignAction action,
+            PageBase pageBase, AjaxRequestTarget target, OperationResult result) {
         if (CollectionUtils.isEmpty(campaigns)) {
             pageBase.warn(pageBase.getString("PageCertCampaigns.message.noCampaignsSelected"));
             target.add(pageBase.getFeedbackPanel());
             return;
         }
         String operationName = LocalizationUtil.translate(action.getActionLabelKey());
-        OperationResult result = new OperationResult(operationName);
 
         try {
             if (CampaignStateHelper.CampaignAction.START_CAMPAIGN.equals(action)) {
-                campaigns.forEach(campaign -> openNextStagePerformed(target, campaign, pageBase));
+                campaigns.forEach(campaign -> openNextStagePerformed(result, campaign, pageBase));
             } else if (CampaignStateHelper.CampaignAction.CLOSE_CAMPAIGN.equals(action)) {
-                closeCampaignConfirmation(target, campaigns, pageBase);
+                closeCampaignConfirmedPerformed(result, campaigns, pageBase);
             } else if (CampaignStateHelper.CampaignAction.START_REMEDIATION.equals(action)) {
-                campaignRemediationConfirmation(target, campaigns, pageBase);
+                startRemediationPerformed(result, campaigns, pageBase);
             } else if (CampaignStateHelper.CampaignAction.CLOSE_STAGE.equals(action)) {
-                closeStageConfirmation(target, campaigns, pageBase);
+                closeStageConfirmedPerformed(result, campaigns, pageBase);
             } else if (CampaignStateHelper.CampaignAction.REITERATE_CAMPAIGN.equals(action)) {
-                reiterateCampaignConfirmation(target, campaigns, pageBase);
+                reiterateCampaignConfirmedPerformed(result, campaigns, pageBase);
             } else if (CampaignStateHelper.CampaignAction.OPEN_NEXT_STAGE.equals(action)) {
-                campaigns.forEach(campaign -> openNextStagePerformed(target, campaign, pageBase));
+                campaigns.forEach(campaign -> openNextStagePerformed(result, campaign, pageBase));
             } else if (CampaignStateHelper.CampaignAction.REMOVE_CAMPAIGN.equals(action)) {
-                deleteCampaignConfirmation(target, campaigns, pageBase);
+                deleteCampaignsPerformed(target, campaigns, pageBase);
             } else {
                 throw new IllegalStateException("Unknown action: " + operationName);
             }
@@ -357,199 +227,6 @@ public class CampaignProcessingHelper implements Serializable {
                     "PageCertCampaigns.message.actOnCampaignsPerformed.partialError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process campaign", ex);
         }
-    }
-
-    public static IModel<String> createCloseStageConfirmString(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return () -> {
-            if (campaigns.size() == 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.closeStageConfirmSingle",
-                        campaigns.get(0).getName()).getString();
-            } else {
-                return pageBase.createStringResource("PageCertCampaigns.message.closeStageConfirmMultiple",
-                        campaigns.size()).getString();
-            }
-        };
-    }
-
-    public static IModel<String> createCloseCampaignConfirmString(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return () -> {
-            if (campaigns.size() == 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.closeCampaignConfirmSingle",
-                        campaigns.get(0).getName()).getString();
-            } else {
-                return pageBase.createStringResource("PageCertCampaigns.message.closeCampaignConfirmMultiple",
-                        campaigns.size()).getString();
-            }
-        };
-    }
-
-    public static IModel<String> createReiterateCampaignConfirmString(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return () -> {
-            if (campaigns.size() == 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.reiterateCampaignConfirmSingle",
-                        campaigns.get(0).getName()).getString();
-            } else {
-                return pageBase.createStringResource("PageCertCampaigns.message.reiterateCampaignConfirmMultiple",
-                        campaigns.size()).getString();
-            }
-        };
-    }
-
-    public static IModel<String> createCloseSelectedCampaignsConfirmString(List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        return () -> {
-            if (campaigns.size() > 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.closeCampaignConfirmMultiple",
-                        campaigns.size()).getString();
-            } else if (campaigns.size() == 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.closeCampaignConfirmSingle",
-                        campaigns.get(0).getName()).getString();
-            } else {
-                return "EMPTY";
-            }
-        };
-    }
-
-    public static IModel<String> createReiterateSelectedCampaignsConfirmString(List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        return () -> {
-            if (campaigns.size() > 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.reiterateCampaignConfirmMultiple",
-                        campaigns.size()).getString();
-            } else if (campaigns.size() == 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.reiterateCampaignConfirmSingle",
-                        campaigns.get(0).getName()).getString();
-            } else {
-                return "EMPTY";
-            }
-        };
-    }
-
-    public static IModel<String> createDeleteCampaignConfirmString(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return () -> {
-            if (campaigns.size() == 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
-                        campaigns.get(0).getName()).getString();
-            } else {
-                return pageBase.createStringResource("PageCertCampaigns.message.deleteCampaignConfirmMultiple",
-                        campaigns.size()).getString();
-            }
-        };
-    }
-
-    public static IModel<String> createRemediationCampaignConfirmString(List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        return () -> {
-            if (campaigns.size() == 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.remediationConfirmSingle",
-                        campaigns.get(0).getName()).getString();
-            } else {
-                return pageBase.createStringResource("PageCertCampaigns.message.remediationConfirmMultiple",
-                        campaigns.size()).getString();
-            }
-        };
-    }
-
-    public static IModel<String> createDeleteSelectedCampaignsConfirmString(List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        return () -> {
-            if (campaigns.size() > 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.deleteCampaignConfirmMultiple",
-                        campaigns.size()).getString();
-            } else if (campaigns.size() == 1) {
-                return pageBase.createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
-                        campaigns.get(0).getName()).getString();
-            } else {
-                return "EMPTY";
-            }
-        };
-    }
-
-    public static void reiterateSelectedCampaignsConfirmation(AjaxRequestTarget target,
-            List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        pageBase.showMainPopup(getReiterateSelectedCampaignsConfirmationPanel(campaigns, pageBase), target);
-    }
-
-    private static Popupable getReiterateSelectedCampaignsConfirmationPanel(List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        return new ConfirmationPanel(pageBase.getMainPopupBodyId(),
-                createReiterateSelectedCampaignsConfirmString(campaigns, pageBase)) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public StringResourceModel getTitle() {
-                return pageBase.createStringResource("PageCertCampaigns.dialog.title.confirmReiterateCampaign");
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                reiterateSelectedCampaignsConfirmedPerformed(target, campaigns, pageBase);
-            }
-
-        };
-    }
-
-    private static void reiterateSelectedCampaignsConfirmedPerformed(AjaxRequestTarget target,
-            List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        campaignActionPerformed(campaigns, CampaignStateHelper.CampaignAction.REITERATE_CAMPAIGN, pageBase, target);
-    }
-
-    public static void deleteSelectedCampaignsConfirmation(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        pageBase.showMainPopup(getDeleteSelectedCampaignsConfirmationPanel(campaigns, pageBase),
-                target);
-    }
-
-    private static Popupable getDeleteSelectedCampaignsConfirmationPanel(List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        return new ConfirmationPanel(pageBase.getMainPopupBodyId(),
-                createDeleteSelectedCampaignsConfirmString(campaigns, pageBase)) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public StringResourceModel getTitle() {
-                return createStringResource("PageCertCampaigns.dialog.title.confirmDeleteCampaign");
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                deleteCampaignsPerformed(target, campaigns, pageBase);
-            }
-
-        };
-    }
-
-    public static void closeSelectedCampaignsConfirmation(AjaxRequestTarget target, List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        pageBase.showMainPopup(getCloseSelectedCampaignsConfirmationPanel(campaigns, pageBase), target);
-    }
-
-    public static Popupable getCloseSelectedCampaignsConfirmationPanel(List<AccessCertificationCampaignType> campaigns,
-            PageBase pageBase) {
-        return new ConfirmationPanel(pageBase.getMainPopupBodyId(), createCloseSelectedCampaignsConfirmString(
-                campaigns, pageBase)) {
-            @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public StringResourceModel getTitle() {
-                return createStringResource("PageCertCampaigns.dialog.title.confirmCloseCampaign");
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                closeSelectedCampaignsConfirmedPerformed(target, campaigns, pageBase);
-            }
-
-        };
-    }
-
-    public static void closeSelectedCampaignsConfirmedPerformed(AjaxRequestTarget target,
-            List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        campaignActionPerformed(campaigns, CampaignStateHelper.CampaignAction.CLOSE_CAMPAIGN, pageBase, target);
-    }
-
-    public static  void startSelectedCampaignsPerformed(AjaxRequestTarget target,
-            List<AccessCertificationCampaignType> campaigns, PageBase pageBase) {
-        campaignActionPerformed(campaigns, CampaignStateHelper.CampaignAction.START_CAMPAIGN, pageBase, target);
     }
 
     public static String computeDeadlineAsString(AccessCertificationCampaignType campaign, PageBase page) {

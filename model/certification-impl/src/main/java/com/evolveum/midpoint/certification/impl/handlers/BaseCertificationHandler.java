@@ -51,7 +51,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     @Autowired protected AccCertExpressionHelper expressionHelper;
 
     // default implementation, depending only on the expressions provided
-    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <F extends AssignmentHolderType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 

@@ -25,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * @author semancik
  */
@@ -315,6 +317,10 @@ public class UserAsserter<RA> extends FocusAsserter<UserType, RA> {
         assertTrue("Missing jpegPhoto in " + desc(), photoProperty != null &&
                 (photoProperty.isIncomplete() || photoProperty.size() == 1 && photoProperty.getRealValue() != null));
         return this;
+    }
+
+    public UserAsserter<RA> assertJpegPhoto(String expected) {
+        return assertJpegPhoto(expected != null ? expected.getBytes(StandardCharsets.UTF_8) : null);
     }
 
     public UserAsserter<RA> assertJpegPhoto(byte[] expected) {

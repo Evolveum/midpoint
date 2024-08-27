@@ -296,7 +296,9 @@ public class AccCertOpenerHelper {
         repositoryService.searchObjectsIterative(typedQuery.getObjectClass(), typedQuery.getObjectQuery(),
                 (object, parentResult) -> {
                     try {
+
                         caseList.addAll(handler.createCasesForObject(object, campaign, task, parentResult));
+
                     } catch (CommonException | RuntimeException e) {
                         // TODO process the exception more intelligently
                         throw new SystemException("Cannot create certification case for object " + toShortString(object.asObjectable()) + ": " + e.getMessage(), e);

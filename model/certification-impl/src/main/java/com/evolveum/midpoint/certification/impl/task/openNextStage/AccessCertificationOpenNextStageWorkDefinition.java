@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.certification.impl.task.openNextStage;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.certification.impl.task.AccessCertificationCampaignWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Work definition for certification campaign remediation.

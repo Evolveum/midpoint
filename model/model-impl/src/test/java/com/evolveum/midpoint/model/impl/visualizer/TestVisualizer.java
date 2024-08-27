@@ -6,8 +6,29 @@
  */
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+import static org.testng.AssertJUnit.assertEquals;
+
+import static com.evolveum.midpoint.schema.constants.ObjectTypes.*;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -16,34 +37,16 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import static com.evolveum.midpoint.schema.constants.ObjectTypes.*;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
-import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
-import static org.testng.AssertJUnit.*;
 
 @UnusedTestElement("reason unknown, 2 tests FAIL")
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 
@@ -427,4 +430,35 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
         // TODO some asserts
     }
 
+    @Test
+    public void test350AssociationDelta() throws Exception {
+        Task task = getTestTask();
+
+        // GIVEN
+        addObject(new File(COMMON_DIR, "role-dummy-group.xml"), task, task.getResult());
+        addObject(new File(COMMON_DIR, "role-dummy-account.xml"), task, task.getResult());
+
+        String roleOid = ROLE_DUMMY_ACCOUNT_OID;
+
+        AssignmentType assignment = new AssignmentType();
+        assignment.setTargetRef(new ObjectReferenceType()
+                .oid(roleOid)
+                .type(RoleType.COMPLEX_TYPE));
+
+        UserType user = new UserType();
+        user.name("my association delta user");
+        user.getAssignment().add(assignment);
+
+        ObjectDelta<UserType> delta = user.asPrismObject().createAddDelta();
+
+        // WHEN
+        when();
+
+        ModelContext modelContext = modelInteractionService.previewChanges(List.of(delta), null, task, task.getResult());
+        ModelContextVisualization visualization = modelInteractionService.visualizeModelContext(modelContext, task, task.getResult());
+
+        // THEN
+        then();
+        displayDumpable("visualization", visualization);
+    }
 }
