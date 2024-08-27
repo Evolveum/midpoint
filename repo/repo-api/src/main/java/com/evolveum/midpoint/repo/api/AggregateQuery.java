@@ -30,6 +30,7 @@ public class AggregateQuery<T extends Containerable> {
     private final List<ObjectOrdering> orderBy = new ArrayList<>();
 
     private final List<ResultItem> items = new ArrayList<>();
+    private boolean resolveNames = false;
 
     public AggregateQuery(Class<T> containerableClass, PrismContainerDefinition<T> def) {
         root = containerableClass;
@@ -114,6 +115,15 @@ public class AggregateQuery<T extends Containerable> {
 
     public ObjectFilter getFilter() {
         return filter;
+    }
+
+    public AggregateQuery<T> resolveNames() {
+        this.resolveNames = true;
+        return this;
+    }
+
+    public boolean isResolveNames() {
+        return resolveNames;
     }
 
     public abstract static class ResultItem {
