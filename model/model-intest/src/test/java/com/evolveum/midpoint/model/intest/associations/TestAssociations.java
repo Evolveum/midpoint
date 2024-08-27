@@ -1100,7 +1100,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         and("user's group membership is deleted on the resource and the user is reconciled");
         adScenario.accountGroup.delete(dummyAccount, dummyGroup);
         invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AD.oid);
-        traced(() -> reconcileUser(userOid, task, result));
+        reconcileUser(userOid, task, result);
 
         then("the second user's assignment is untouched and the group membership is restored");
         assertUser(userOid, "user after reconciliation")

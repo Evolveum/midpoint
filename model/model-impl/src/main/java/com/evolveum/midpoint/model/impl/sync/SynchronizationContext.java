@@ -200,8 +200,7 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     boolean isMarkedSkipSynchronization(OperationResult result) throws ConfigurationException {
         var policy = shadowedResourceObject.getEffectiveOperationPolicy();
-        // Policy should not be null if was provided by provisioning-impl. Unfortunately, it is not the case e.g. for
-        // deletion live sync events. TODO To be fixed later
+        // Policy should not be null if was provided by provisioning-impl. TODO Remove this check later
         if (policy == null) {
             LOGGER.warn("Missing effective operation policy in {}.", shadowedResourceObject);
             policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, result);
