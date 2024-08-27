@@ -8,6 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -235,7 +238,16 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRoleAnalysisSession.this) {
             @Override
             protected void initFragmentLayout() {
-                add(new RoleAnalysisSessionWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper()));
+                add(new RoleAnalysisSessionWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper()) {
+
+                    @Override
+                    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(AnalysisCategory category, Task task, OperationResult result) {
+                        RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
+                        category.generateConfiguration(getRoleAnalysisService(), session, task, result);
+                        reloadObjectDetailsModel(session.asPrismObject());
+                        return getObjectDetailsModels();
+                    }
+                });
             }
         };
 

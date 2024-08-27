@@ -12,10 +12,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -38,7 +35,15 @@ public class RoleAnalysisAttributeDef implements Serializable {
     Class<? extends ObjectType> targetClassType;
     Class<? extends ObjectType> associatedClassType;
 
+    private ItemDefinition<?> definition;
+
     IdentifierType identifierType;
+
+    public RoleAnalysisAttributeDef(ItemPath path,
+            ItemDefinition<?> definition) {
+        this.path = path;
+        this.definition = definition;
+    }
 
     public RoleAnalysisAttributeDef(ItemPath path,
             boolean isContainer,
@@ -135,7 +140,15 @@ public class RoleAnalysisAttributeDef implements Serializable {
     }
 
     public ObjectQuery getQuery(String value) {
-        return query;
+        if (definition instanceof PrismReferenceDefinition) {
+            return PrismContext.get().queryFor(UserType.class)
+                    .item(getPath()).ref(value)
+                    .build();
+        }
+        return PrismContext.get().queryFor(UserType.class)
+                .item(getPath()).eq(value)
+                .build();
+//        return query;
     }
 
     public void setQuery(ObjectQuery query) {

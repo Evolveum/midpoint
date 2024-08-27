@@ -87,7 +87,7 @@ public class AttributeAnalysisUtil {
             @NotNull OperationResult result) {
 
         int usersCount = prismUsers.size();
-        Map<String, AttributePathResult> attributeResultMap = new HashMap<>();
+        Map<ItemPath, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<UserType> prismUser : prismUsers) {
             Map<String, AttributePathResult> userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
             if (userCache == null) {
@@ -131,7 +131,7 @@ public class AttributeAnalysisUtil {
                         AttributePathResult attributePathResult = attributeResultMap.get(displayValue);
                         if (attributePathResult == null) {
                             attributePathResult = attributeCachePathResult;
-                            attributeResultMap.put(displayValue, attributePathResult);
+                            attributeResultMap.put(item.getPath(), attributePathResult);
                         } else {
                             int totalRelation = attributeCachePathResult.getTotalRelation();
                             attributePathResult.setTotalRelation(attributePathResult.getTotalRelation() + totalRelation);
@@ -165,7 +165,7 @@ public class AttributeAnalysisUtil {
             @NotNull OperationResult result) {
 
         int usersCount = prismUsers.size();
-        Map<String, AttributePathResult> attributeResultMap = new HashMap<>();
+        Map<ItemPath, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<UserType> prismUser : prismUsers) {
             for (RoleAnalysisAttributeDef item : itemDef) {
                 ItemPath path = item.getPath();
@@ -177,7 +177,7 @@ public class AttributeAnalysisUtil {
                     attributePathResult = new AttributePathResult(new HashMap<>(), 0);
                     attributePathResult.setMultiValue(isContainer);
                     attributePathResult.setItemDefinition(item);
-                    attributeResultMap.put(displayValue, attributePathResult);
+                    attributeResultMap.put(path, attributePathResult);
                 }
 
                 if (isContainer) {
@@ -214,7 +214,7 @@ public class AttributeAnalysisUtil {
             @NotNull List<RoleAnalysisAttributeDef> itemDef,
             @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures, @NotNull Task task, @NotNull OperationResult result) {
         int rolesCount = prismRoles.size();
-        Map<String, AttributePathResult> attributeResultMap = new HashMap<>();
+        Map<ItemPath, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<RoleType> prismRole : prismRoles) {
             for (RoleAnalysisAttributeDef item : itemDef) {
                 ItemPath path = item.getPath();
@@ -226,7 +226,7 @@ public class AttributeAnalysisUtil {
                     attributePathResult = new AttributePathResult(new HashMap<>(), 0);
                     attributePathResult.setMultiValue(isContainer);
                     attributePathResult.setItemDefinition(item);
-                    attributeResultMap.put(displayValue, attributePathResult);
+                    attributeResultMap.put(path, attributePathResult);
                 }
 
                 if (isContainer) {

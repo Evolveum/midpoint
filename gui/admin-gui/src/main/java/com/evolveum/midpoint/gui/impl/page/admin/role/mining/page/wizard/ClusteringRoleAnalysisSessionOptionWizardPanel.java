@@ -64,7 +64,7 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
         return itemName.equivalent(AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT)
                 || itemName.equivalent(AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP)
                 || itemName.equivalent(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
-                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)
+                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING)
                 || itemName.equivalent(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING);
     }
 
@@ -94,6 +94,11 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
             return ItemVisibility.AUTO;
         };
+    }
+
+    @Override
+    protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+        return true;
     }
 
     @Override

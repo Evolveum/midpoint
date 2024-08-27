@@ -1670,7 +1670,28 @@
                 </collection>
             </roleCatalog>
         </accessRequest>
+
     </adminGuiConfiguration>
+
+    <roleAnalysis>
+        <attributeStatistics>
+            <type>UserType</type>
+            <path>title</path>
+            <path>locality</path>
+            <path>archetypeRef</path>
+            <path>extension/manager</path>
+            <assignment>
+                <targetType></targetType>
+                <rootOrgRef oid="my-root-department-oid" /> <!-- or archetypeRef -->
+                <archetypeRef oid="department-archetype-oid" /> <!-- or rootOrgRef -->
+            </assignment>
+            <organization>
+                <rootOrgRef oid="my-root-department-oid" /> <!-- or archetypeRef -->
+                <archetypeRef oid="department-archetype-oid" /> <!-- or rootOrgRef -->
+            </organization>
+        </attributeStatistics>
+
+    </roleAnalysis>
 
     <expressions>
         <expressionProfile id="218">

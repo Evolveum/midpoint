@@ -66,10 +66,13 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
         Task task = getPageBase().createSimpleTask("prepare options");
         OperationResult result = task.getResult();
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        value.generateConfiguration(
-                roleAnalysisService, objectWrapper, task, result);
+        reloadDefaultConfiguration(value, task, result);
 
         onSubmitPerformed(target);
+    }
+
+    protected void reloadDefaultConfiguration(AnalysisCategory value, Task task, OperationResult result) {
+
     }
 
     @Override

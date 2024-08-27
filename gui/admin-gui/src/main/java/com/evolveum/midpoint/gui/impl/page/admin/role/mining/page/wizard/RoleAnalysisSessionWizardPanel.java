@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -68,6 +69,12 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                 showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
                 super.onSubmitPerformed(target);
             }
+
+            @Override
+            protected void reloadDefaultConfiguration(AnalysisCategory value, Task task, OperationResult result) {
+                AssignmentHolderDetailsModel<RoleAnalysisSessionType> sessionModel = reloadWrapperWithDefaultConfiguration(value, task, result);
+                getHelper().updateDetailsModel(sessionModel);
+            }
         };
 
         Fragment choiceFragment = createChoiceFragment(new ProcessModeChoiceStepPanel(idOfChoicePanel, getHelper().getDetailsModel()) {
@@ -84,6 +91,10 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
         });
 
         add(choiceFragment);
+    }
+
+    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(AnalysisCategory category, Task task, OperationResult result) {
+        return null;
     }
 
     private List<WizardStep> createBasicSteps() {

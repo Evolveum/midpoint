@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.detection;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +39,7 @@ public class PatternConfidenceCalculator implements Serializable {
     private void initializeItemCount() {
         AbstractAnalysisSessionOptionType sessionOptions = getSessionOptions();
         AnalysisAttributeSettingType analysisAttributeSetting = getAnalysisAttributeSetting(sessionOptions);
-        List<AnalysisAttributeRuleType> analysisAttributeRule = getAnalysisAttributeRule(analysisAttributeSetting);
+        List<ItemPathType> analysisAttributeRule = getAnalysisAttributeRule(analysisAttributeSetting);
         itemCount = analysisAttributeRule == null ? 0 : analysisAttributeRule.size();
     }
 
@@ -46,18 +49,18 @@ public class PatternConfidenceCalculator implements Serializable {
     }
 
     private AnalysisAttributeSettingType getAnalysisAttributeSetting(AbstractAnalysisSessionOptionType sessionOptions) {
-        if (sessionOptions == null || sessionOptions.getAnalysisAttributeSetting() == null) {
+        if (sessionOptions == null || sessionOptions.getUserAnalysisAttributeSetting() == null) {
             return null;
         }
-        return sessionOptions.getAnalysisAttributeSetting();
+        return sessionOptions.getUserAnalysisAttributeSetting();
     }
 
-    private List<AnalysisAttributeRuleType> getAnalysisAttributeRule(
+    private List<ItemPathType> getAnalysisAttributeRule(
             @Nullable AnalysisAttributeSettingType analysisAttributeSetting) {
         if (analysisAttributeSetting == null) {
             return null;
         }
-        return analysisAttributeSetting.getAnalysisAttributeRule();
+        return analysisAttributeSetting.getPath();
     }
 
     public double calculateReductionFactorConfidence() {

@@ -8,9 +8,15 @@
 package com.evolveum.midpoint.common.mining.utils;
 
 import static com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef.extractRealValue;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 
 import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAssignmentAttributeDef;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.*;
 
@@ -25,22 +31,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalysisAttributeDefUtils {
 
-    public static final ItemName F_NAME = new ItemName(ObjectFactory.NAMESPACE, "name");
-    public static final ItemName F_TITLE = new ItemName(ObjectFactory.NAMESPACE, "title");
-    public static final ItemName F_ORGANIZATION = new ItemName(ObjectFactory.NAMESPACE, "organization");
-    public static final ItemName F_ORGANIZATIONAL_UNIT = new ItemName(ObjectFactory.NAMESPACE, "organizationalUnit");
-    public static final ItemName F_LOCALE = new ItemName(ObjectFactory.NAMESPACE, "locale");
-    public static final ItemName F_LOCALITY = new ItemName(ObjectFactory.NAMESPACE, "locality");
-    public static final ItemName F_COST_CENTER = new ItemName(ObjectFactory.NAMESPACE, "costCenter");
-    public static final ItemName F_LIFECYCLE_STATE = new ItemName(ObjectFactory.NAMESPACE, "lifecycleState");
-    public static final ItemName F_RISK_LEVEL = new ItemName(ObjectFactory.NAMESPACE, "riskLevel");
+    private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisAttributeDefUtils.class);
 
     public static RoleAnalysisAttributeDef getObjectNameDef() {
         return name;
     }
 
     public static RoleAnalysisAttributeDef name = new RoleAnalysisAttributeDef(
-            F_NAME,
+            FocusType.F_NAME,
             false,
             "name",
             ObjectType.class,
@@ -119,7 +117,7 @@ public class RoleAnalysisAttributeDefUtils {
     }
 
     public static RoleAnalysisAttributeDef title = new RoleAnalysisAttributeDef(
-            F_TITLE,
+            UserType.F_TITLE,
             false,
             "title",
             UserType.class,
@@ -132,26 +130,26 @@ public class RoleAnalysisAttributeDefUtils {
         }
     };
 
-    public static RoleAnalysisAttributeDef locale = new RoleAnalysisAttributeDef(
-            F_LOCALE,
-            false,
-            "locale",
-            FocusType.class,
-            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
-        @Override
-        public ObjectQuery getQuery(String value) {
-            return PrismContext.get().queryFor(FocusType.class)
-                    .item(getPath()).eq(value)
-                    .build();
-        }
-    };
+//    public static RoleAnalysisAttributeDef locale = new RoleAnalysisAttributeDef(
+//            UserType.F_LOCALE,
+//            false,
+//            "locale",
+//            FocusType.class,
+//            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
+//        @Override
+//        public ObjectQuery getQuery(String value) {
+//            return PrismContext.get().queryFor(FocusType.class)
+//                    .item(getPath()).eq(value)
+//                    .build();
+//        }
+//    };
 
     public static RoleAnalysisAttributeDef getLocality() {
         return locality;
     }
 
     public static RoleAnalysisAttributeDef locality = new RoleAnalysisAttributeDef(
-            F_LOCALITY,
+            UserType.F_LOCALITY,
             false,
             "locality",
             FocusType.class,
@@ -165,7 +163,7 @@ public class RoleAnalysisAttributeDefUtils {
     };
 
     public static RoleAnalysisAttributeDef costCenter = new RoleAnalysisAttributeDef(
-            F_COST_CENTER,
+            UserType.F_COST_CENTER,
             false,
             "costCenter",
             FocusType.class,
@@ -178,22 +176,22 @@ public class RoleAnalysisAttributeDefUtils {
         }
     };
 
-    public static RoleAnalysisAttributeDef lifecycleState = new RoleAnalysisAttributeDef(
-            F_LIFECYCLE_STATE,
-            false,
-            "lifecycleState",
-            FocusType.class,
-            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
-        @Override
-        public ObjectQuery getQuery(String value) {
-            return PrismContext.get().queryFor(FocusType.class)
-                    .item(getPath()).eq(value)
-                    .build();
-        }
-    };
+//    public static RoleAnalysisAttributeDef lifecycleState = new RoleAnalysisAttributeDef(
+//            UserType.F_LIFECYCLE_STATE,
+//            false,
+//            "lifecycleState",
+//            FocusType.class,
+//            RoleAnalysisAttributeDef.IdentifierType.FINAL) {
+//        @Override
+//        public ObjectQuery getQuery(String value) {
+//            return PrismContext.get().queryFor(FocusType.class)
+//                    .item(getPath()).eq(value)
+//                    .build();
+//        }
+//    };
 
     public static RoleAnalysisAttributeDef riskLevel = new RoleAnalysisAttributeDef(
-            F_RISK_LEVEL,
+            RoleType.F_RISK_LEVEL,
             false,
             "riskLevel",
             RoleType.class,
@@ -206,39 +204,60 @@ public class RoleAnalysisAttributeDefUtils {
         }
     };
 
-    public static RoleAnalysisAttributeDef getAttributeByDisplayValue(String displayValue) {
-        Map<String, RoleAnalysisAttributeDef> attributeMap = createAttributeMap();
-        return attributeMap.get(displayValue);
+    public static RoleAnalysisAttributeDef getAttributeByDisplayValue(ItemPath itemPath, AnalysisAttributeSettingType analysisAttributeSettings) {
+        List<RoleAnalysisAttributeDef> attributeMap = createAttributeList(analysisAttributeSettings);
+        for (RoleAnalysisAttributeDef attribute : attributeMap) {
+            if (attribute.getPath().equivalent(itemPath)) {
+                return attribute;
+            }
+        }
+        return null;
+//        return attributeMap.get(displayValue);
     }
 
-    public static @NotNull @UnmodifiableView Map<String, RoleAnalysisAttributeDef> createAttributeMap() {
-        Map<String, RoleAnalysisAttributeDef> attributeMap = new HashMap<>();
-        attributeMap.put(orgAssignment.getDisplayValue(), orgAssignment);
-        attributeMap.put(roleAssignment.getDisplayValue(), roleAssignment);
-        attributeMap.put(serviceAssignment.getDisplayValue(), serviceAssignment);
-        attributeMap.put(archetypeAssignment.getDisplayValue(), archetypeAssignment);
-        attributeMap.put(resourceAssignment.getDisplayValue(), resourceAssignment);
-        attributeMap.put(orgInducement.getDisplayValue(), orgInducement);
-        attributeMap.put(roleInducement.getDisplayValue(), roleInducement);
-        attributeMap.put(serviceInducement.getDisplayValue(), serviceInducement);
-        attributeMap.put(archetypeInducement.getDisplayValue(), archetypeInducement);
-        attributeMap.put(archetypeRef.getDisplayValue(), archetypeRef);
-        attributeMap.put(title.getDisplayValue(), title);
-        attributeMap.put(locale.getDisplayValue(), locale);
-        attributeMap.put(locality.getDisplayValue(), locality);
-        attributeMap.put(costCenter.getDisplayValue(), costCenter);
-        attributeMap.put(lifecycleState.getDisplayValue(), lifecycleState);
-        attributeMap.put(riskLevel.getDisplayValue(), riskLevel);
+    public static List<RoleAnalysisAttributeDef> createAttributeList(AnalysisAttributeSettingType analysisAttributeSetting) {
+        List<RoleAnalysisAttributeDef> attributeDefs = new ArrayList<>();
 
-        loadRoleExtension().forEach(attribute -> attributeMap.put(attribute.getDisplayValue(), attribute));
-        loadUserExtension().forEach(attribute -> attributeMap.put(attribute.getDisplayValue(), attribute));
-        return Collections.unmodifiableMap(attributeMap);
+        PrismObjectDefinition<UserType> userDefinition = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+
+        PrismContainerDefinition<AssignmentType> assignmentDefinition = userDefinition.findContainerDefinition(F_ASSIGNMENT);
+        List<AnalysisAttributeRuleType> assignmentRules = analysisAttributeSetting.getAssignmentRule();
+        for (AnalysisAttributeRuleType rule : assignmentRules) {
+            RoleAnalysisAttributeDef attributeDef = new RoleAnalysisAssignmentAttributeDef(F_ASSIGNMENT, assignmentDefinition, rule);
+            attributeDefs.add(attributeDef);
+        }
+
+        List<ItemPathType> analysisAttributeRule = analysisAttributeSetting.getPath();
+
+        if (analysisAttributeRule.isEmpty()) {
+            return attributeDefs;
+        }
+
+
+
+        for (ItemPathType itemPathType : analysisAttributeRule) {
+            if (itemPathType == null) {
+                continue;
+            }
+            ItemPath path = itemPathType.getItemPath();
+            ItemDefinition<?> itemDefinition = userDefinition.findItemDefinition(path);
+            if (itemDefinition instanceof PrismContainerDefinition<?>) {
+                LOGGER.debug("Skipping {} because container items are not supported for attribute analysis.", itemDefinition);
+                continue;
+            }
+            //TODO reference vs. property
+            RoleAnalysisAttributeDef attributeDef = new RoleAnalysisAttributeDef(path, itemDefinition);
+            attributeDefs.add(attributeDef);
+        }
+        return attributeDefs;
     }
+
+
 
     public static @NotNull List<RoleAnalysisAttributeDef> getAttributesForRoleAnalysis() {
         List<RoleAnalysisAttributeDef> analysisAttributeDefs = new ArrayList<>(List.of(
-                lifecycleState,
-                locale,
+//                lifecycleState,
+//                locale,
                 locality,
                 costCenter,
                 riskLevel,
@@ -259,10 +278,10 @@ public class RoleAnalysisAttributeDefUtils {
     public static @NotNull List<RoleAnalysisAttributeDef> getAttributesForUserAnalysis() {
         List<RoleAnalysisAttributeDef> analysisAttributeDefs = new ArrayList<>(List.of(
                 title,
-                locale,
+//                locale,
                 locality,
                 costCenter,
-                lifecycleState,
+//                lifecycleState,
 //                archetypeAssignment,
                 orgAssignment,
                 resourceAssignment,
@@ -640,7 +659,7 @@ public class RoleAnalysisAttributeDefUtils {
         return null;
     }
 
-    private static boolean isSupportedPropertyType(@NotNull Class<?> typeClass) {
+    public static boolean isSupportedPropertyType(@NotNull Class<?> typeClass) {
         return typeClass.equals(Integer.class) || typeClass.equals(Long.class) || typeClass.equals(Boolean.class)
                 || typeClass.equals(Double.class) || typeClass.equals(String.class) || typeClass.equals(PolyString.class);
     }
@@ -658,19 +677,18 @@ public class RoleAnalysisAttributeDefUtils {
         return null;
     }
 
-    public static @NotNull List<AnalysisAttributeRuleType> createAnalysisAttributeChoiceSet() {
+//    public static @NotNull List<ItemPath> createAnalysisAttributeChoiceSet() {
 
-        List<AnalysisAttributeRuleType> result = new ArrayList<>();
-        List<RoleAnalysisAttributeDef> roleAttributesForRoleAnalysis = new ArrayList<>(
-                RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis());
-        List<RoleAnalysisAttributeDef> userAttributesForUserAnalysis = new ArrayList<>(
-                RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis());
+//        List<AnalysisAttributeRuleType> result = new ArrayList<>();
+//        List<RoleAnalysisAttributeDef> roleAttributesForRoleAnalysis = new ArrayList<>(
+//                RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis());
+//        List<RoleAnalysisAttributeDef> userAttributesForUserAnalysis = new ArrayList<>(
+//                RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis());
+//
+//        addAttributesToResult(roleAttributesForRoleAnalysis, result, RoleType.COMPLEX_TYPE);
+//        addAttributesToResult(userAttributesForUserAnalysis, result, UserType.COMPLEX_TYPE);
+//    }
 
-        addAttributesToResult(roleAttributesForRoleAnalysis, result, RoleType.COMPLEX_TYPE);
-        addAttributesToResult(userAttributesForUserAnalysis, result, UserType.COMPLEX_TYPE);
-
-        return result;
-    }
 
     private static void addAttributesToResult(
             @NotNull List<RoleAnalysisAttributeDef> attributeDef,
@@ -685,27 +703,11 @@ public class RoleAnalysisAttributeDefUtils {
             @NotNull RoleAnalysisAttributeDef def,
             @NotNull QName complexType) {
         AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
-        rule.setAttributeIdentifier(def.getDisplayValue());
-        rule.setPropertyType(complexType);
+//        rule.setsetAttributeIdentifier(def.getDisplayValue());
+//        rule.setPropertyType(complexType);
         return rule;
     }
 
-    public static @NotNull List<AnalysisAttributeRuleType> createChoiceUserRoleAttributeSet() {
-        //TODO mark good
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = new ArrayList<>(
-                RoleAnalysisAttributeDefUtils.getAttributesForUserAnalysis());
-
-        attributesForUserAnalysis.addAll(RoleAnalysisAttributeDefUtils.getAttributesForRoleAnalysis());
-
-        List<AnalysisAttributeRuleType> result = new ArrayList<>();
-        for (RoleAnalysisAttributeDef def : attributesForUserAnalysis) {
-            AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
-            rule.setAttributeIdentifier(def.getDisplayValue());
-            rule.setPropertyType(def.getComplexType());
-            result.add(rule);
-        }
-        return result;
-    }
 
     @NotNull
     public static List<RoleAnalysisAttributeDef> createSimpleUserAttributeChoiceSet() {

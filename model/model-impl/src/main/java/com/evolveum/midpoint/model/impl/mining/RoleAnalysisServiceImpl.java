@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_
 import static java.util.Collections.singleton;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.createAttributeMap;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.jacquardSimilarity;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.loadUserBasedMultimapData;
@@ -31,14 +30,18 @@ import java.util.stream.IntStream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAssignmentAttributeDef;
 import com.evolveum.midpoint.common.mining.objects.detection.BasePattern;
 import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
+import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 
 import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -2030,8 +2033,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
                     RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                     roleAnalysisAttributeAnalysis.setDensity(density);
-                    roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
-                    roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+                    roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPathType());
+//                    roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
                     roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
                     roleAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
 
@@ -2059,8 +2062,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
                     RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
                     roleAnalysisAttributeAnalysis.setDensity(density);
-                    roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
-                    roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue());
+                    roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPathType());
+//                    roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue()); //TODO
                     roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
                     roleAnalysisAttributeAnalysis.setParentType(roleAttributeAnalysisStructure.getComplexType());
                     List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAttributeAnalysisStructure.getAttributeStatistics();
@@ -2220,47 +2223,76 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return null;
         }
 
-        AnalysisAttributeSettingType analysisAttributeSetting = null;
-
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
-            if (roleModeOptions == null) {
-                return null;
-            }
-            analysisAttributeSetting = roleModeOptions.getAnalysisAttributeSetting();
-        } else if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
-            if (userModeOptions == null) {
-                return null;
-            }
-            analysisAttributeSetting = userModeOptions.getAnalysisAttributeSetting();
+        AbstractAnalysisSessionOptionType options = resolveModeOptions(processMode, session);
+        if (options == null) {
+            return null;
         }
 
+        //TODO user vs. role attribute settings?
+        AnalysisAttributeSettingType analysisAttributeSetting = options.getUserAnalysisAttributeSetting();//getAnalysisAttributeSetting();
         if (analysisAttributeSetting == null) {
             return null;
         }
 
-        List<AnalysisAttributeRuleType> analysisAttributeRule = analysisAttributeSetting.getAnalysisAttributeRule();
+        List<RoleAnalysisAttributeDef> attributeDefs = RoleAnalysisAttributeDefUtils.createAttributeList(analysisAttributeSetting);
 
-        if (analysisAttributeRule == null || analysisAttributeRule.isEmpty()) {
-            return null;
-        }
+//        List<RoleAnalysisAttributeDef> attributeDefs = new ArrayList<>();
+//
+//        PrismObjectDefinition<UserType> userDefinition = PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+//
+//        PrismContainerDefinition<AssignmentType> assignmentDefinition = userDefinition.findContainerDefinition(F_ASSIGNMENT);
+//        List<AnalysisAttributeRuleType> assignmentRules = analysisAttributeSetting.getAssignmentRule();
+//        for (AnalysisAttributeRuleType rule : assignmentRules) {
+//            RoleAnalysisAttributeDef attributeDef = new RoleAnalysisAssignmentAttributeDef(F_ASSIGNMENT, assignmentDefinition, rule);
+//            attributeDefs.add(attributeDef);
+//        }
+//
+//        List<ItemPathType> analysisAttributeRule = analysisAttributeSetting.getPath();
+//
+//        if (analysisAttributeRule.isEmpty()) {
+//            return attributeDefs;
+//        }
+//
+//
+//
+//        for (ItemPathType itemPathType : analysisAttributeRule) {
+//            if (itemPathType == null) {
+//                continue;
+//            }
+//            ItemPath path = itemPathType.getItemPath();
+//            ItemDefinition<?> itemDefinition = userDefinition.findItemDefinition(path);
+//            if (itemDefinition instanceof PrismContainerDefinition<?>) {
+//                LOGGER.debug("Skipping {} because container items are not supported for attribute analysis.", itemDefinition);
+//                continue;
+//            }
+//            //TODO reference vs. property
+//            RoleAnalysisAttributeDef attributeDef = new RoleAnalysisAttributeDef(path, itemDefinition);
+//            attributeDefs.add(attributeDef);
+//        }
 
-        Map<String, RoleAnalysisAttributeDef> attributeMap = createAttributeMap();
-        List<RoleAnalysisAttributeDef> attributeDefs = new ArrayList<>();
+//        Map<String, RoleAnalysisAttributeDef> attributeMap = createAttributeMap();
 
-        for (AnalysisAttributeRuleType rule : analysisAttributeRule) {
-            if (!rule.getPropertyType().equals(complexType)) {
-                continue;
-            }
 
-            String key = rule.getAttributeIdentifier();
-            RoleAnalysisAttributeDef attributeDef = attributeMap.get(key);
-            if (attributeDef != null) {
-                attributeDefs.add(attributeDef);
-            }
-        }
+
+//        for (AnalysisAttributeRuleType rule : analysisAttributeRule) {
+//            if (!rule.getPropertyType().equals(complexType)) {
+//                continue;
+//            }
+//
+//            String key = rule.getAttributeIdentifier();
+//            RoleAnalysisAttributeDef attributeDef = attributeMap.get(key);
+//            if (attributeDef != null) {
+//                attributeDefs.add(attributeDef);
+//            }
+//        }
         return attributeDefs;
+    }
+
+    private AbstractAnalysisSessionOptionType resolveModeOptions(RoleAnalysisProcessModeType processMode, RoleAnalysisSessionType session) {
+        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+            return session.getRoleModeOptions();
+        }
+        return session.getUserModeOptions();
     }
 
     @Override
@@ -2274,7 +2306,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         List<RoleAnalysisAttributeAnalysis> attributeAnalysis = comparison.getAttributeAnalysis();
 
         for (RoleAnalysisAttributeAnalysis clusterAnalysis : attributeAnalysis) {
-            String clusterItemPath = clusterAnalysis.getItemPath();
+            ItemPathType clusterItemPath = clusterAnalysis.getItemPath();
             Set<String> outlierValues = extractCorrespondingOutlierValues(compared, clusterItemPath);
             if (outlierValues == null) {
                 continue;
@@ -2313,7 +2345,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         for (RoleAnalysisAttributeDef item : attributesForUserAnalysis) {
             RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
-            roleAnalysisAttributeAnalysis.setItemPath(item.getDisplayValue());
+            roleAnalysisAttributeAnalysis.setItemPath(item.getPath().toBean());
             roleAnalysisAttributeAnalysis.setParentType(UserType.COMPLEX_TYPE);
             List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAnalysisAttributeAnalysis.getAttributeStatistics();
 
@@ -2341,10 +2373,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     private static @Nullable Set<String> extractCorrespondingOutlierValues(
-            @NotNull RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult, String itemPath) {
+            @NotNull RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult, ItemPathType itemPath) {
         List<RoleAnalysisAttributeAnalysis> outlier = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
         for (RoleAnalysisAttributeAnalysis outlierAttribute : outlier) {
-            if (outlierAttribute.getItemPath().equals(itemPath)) {
+            if (outlierAttribute.getItemPath().equals(itemPath)) { //TODO equivalent
                 Set<String> outlierValues = new HashSet<>();
                 for (RoleAnalysisAttributeStatistics attributeStatistic : outlierAttribute.getAttributeStatistics()) {
                     outlierValues.add(attributeStatistic.getAttributeValue());
@@ -2382,8 +2414,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
             RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
             roleAnalysisAttributeAnalysis.setDensity(density);
-            roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
-            roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+            roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPathType());
+//            roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue()); //TODO
             roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
             roleAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
             List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
@@ -2439,8 +2471,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
             RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
             roleAnalysisAttributeAnalysis.setDensity(density);
-            roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
-            roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+            roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPathType());
+//            roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue()); //TODO
             roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
             roleAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
 

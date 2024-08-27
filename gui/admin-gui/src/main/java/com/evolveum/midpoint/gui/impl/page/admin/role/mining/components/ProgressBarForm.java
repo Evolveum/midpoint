@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.components;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -60,8 +62,8 @@ public class ProgressBarForm extends BasePanel<String> {
         container.setOutputMarkupId(true);
         add(container);
 
-        String title = analysisResult.getItemPath();
-        IconWithLabel titleForm = new IconWithLabel(ID_FORM_TITLE, Model.of(title)) {
+        ItemPathType title = analysisResult.getItemPath();
+        IconWithLabel titleForm = new IconWithLabel(ID_FORM_TITLE, Model.of(title.toString())) {
             @Override
             protected String getIconCssClass() {
                 QName parentType = analysisResult.getParentType();
@@ -111,7 +113,7 @@ public class ProgressBarForm extends BasePanel<String> {
         int totalBars = 0;
         int size = roleAnalysisAttributeStructures.size();
         Map<Double, List<RoleAnalysisAttributeStatistics>> map = new TreeMap<>(Comparator.reverseOrder());
-        if (size > 5 && analysisResult.isIsMultiValue()) {
+        if (size > 5 ) { //&& analysisResult.isIsMultiValue()) {
             roleAnalysisAttributeStructures.forEach((item) -> {
                 double frequency = item.getFrequency();
                 List<RoleAnalysisAttributeStatistics> list = map.getOrDefault(frequency, new ArrayList<>());

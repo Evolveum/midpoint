@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
@@ -25,18 +27,16 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
     RoleAnalysisService service;
     Task task;
     OperationResult result;
-    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
 
     public DepartmentModeConfiguration(
             RoleAnalysisService service,
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
+            RoleAnalysisSessionType objectWrapper,
             Task task,
             OperationResult result) {
         super(objectWrapper);
         this.service = service;
         this.task = task;
         this.result = result;
-        this.objectWrapper = objectWrapper;
     }
 
     @Override

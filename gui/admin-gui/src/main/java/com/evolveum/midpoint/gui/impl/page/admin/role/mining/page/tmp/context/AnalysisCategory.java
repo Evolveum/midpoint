@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCategoryType;
@@ -43,16 +44,16 @@ public enum AnalysisCategory implements TileEnum {
 
     public void generateConfiguration(
             @NotNull RoleAnalysisService service,
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
+            RoleAnalysisSessionType object,
             @NotNull Task task,
             @NotNull OperationResult result) {
         switch (this) {
 //            case STANDARD -> new StandardModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case BALANCED_COVERAGE -> new BalancedCoverageModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case EXACT_ACCESS_SIMILARITY -> new ExactSimilarityModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case DEPARTMENT -> new DepartmentModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case ADVANCED -> new AdvancedModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
-            case OUTLIER -> new OutlierModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case BALANCED_COVERAGE -> new BalancedCoverageModeConfiguration(service, object, task, result).updateConfiguration();
+            case EXACT_ACCESS_SIMILARITY -> new ExactSimilarityModeConfiguration(service, object, task, result).updateConfiguration();
+            case DEPARTMENT -> new DepartmentModeConfiguration(service, object, task, result).updateConfiguration();
+            case ADVANCED -> new AdvancedModeConfiguration(service, object, task, result).updateConfiguration();
+            case OUTLIER -> new OutlierModeConfiguration(service, object, task, result).updateConfiguration();
         }
     }
 

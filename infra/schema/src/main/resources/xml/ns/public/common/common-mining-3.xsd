@@ -1188,7 +1188,7 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="analysisAttributeSetting" type="tns:AnalysisAttributeSettingType" minOccurs="0">
+            <xsd:element name="userAnalysisAttributeSetting" type="tns:AnalysisAttributeSettingType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -1520,18 +1520,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="isMultiValue" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>If true, the matching rule is applied to each value of the property.</p>
-                        <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>RoleAnalysisAttributeAnalysis.isMultiValue</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="itemPath" type="xsd:string" minOccurs="0">
+            <!--<xsd:element name="isMultiValue" type="xsd:boolean" minOccurs="0">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            <p>If true, the matching rule is applied to each value of the property.</p>-->
+            <!--            <p>Also, there must be specified a matchSimilarity value. If not default 100% is used.</p>-->
+            <!--        </xsd:documentation>-->
+            <!--        <xsd:appinfo>-->
+            <!--            <a:displayName>RoleAnalysisAttributeAnalysis.isMultiValue</a:displayName>-->
+            <!--        </xsd:appinfo>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
+            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Item path to the object that is the target of the outlier analysis.
@@ -2054,7 +2054,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="attributeIdentifier" type="xsd:string" minOccurs="0">
+            <xsd:element name="targetType" type="xsd:QName" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>Path to the property used for comparison.</p>
@@ -2066,11 +2066,27 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="propertyType" type="xsd:QName" minOccurs="0">
+            <xsd:element name="rootOrganization" type="tns:ObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of the property used for comparison.
+                        <p>Path to the property used for comparison.</p>
+                        <p>It is necessary that the output be a simple object convertible to a String type</p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AnalysisAttributeRuleType.attributeIdentifier</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="archetypeRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>Path to the property used for comparison.</p>
+                        <p>It is necessary that the output be a simple object convertible to a String type</p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AnalysisAttributeRuleType.attributeIdentifier</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
 
@@ -2112,10 +2128,13 @@
                 <p>Contains information about matching rules for object analysis process.</p>
                 <p>Matching rule presupposes the business logic for the comparison of objects.</p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="analysisAttributeRule" type="tns:AnalysisAttributeRuleType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2123,7 +2142,20 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AnalysisAttributeSettingType.analysisAttributeRule</a:displayName>
+                        <a:displayName>AnalysisAttributeSettingType.itemPath</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="assignmentRule" type="tns:AnalysisAttributeRuleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Matching rule for attribute clustering.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AnalysisAttributeSettingType.assignmentRule</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

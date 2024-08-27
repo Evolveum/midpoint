@@ -23,18 +23,16 @@ public class StandardModeConfiguration extends AbstractRoleAnalysisConfiguration
     RoleAnalysisService service;
     Task task;
     OperationResult result;
-    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
 
     public StandardModeConfiguration(
             RoleAnalysisService service,
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
+            RoleAnalysisSessionType objectWrapper,
             Task task,
             OperationResult result) {
         super(objectWrapper);
         this.service = service;
         this.task = task;
         this.result = result;
-        this.objectWrapper = objectWrapper;
     }
 
     @Override

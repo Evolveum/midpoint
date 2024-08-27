@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
@@ -55,10 +58,13 @@ public class ClusterExplanation implements Serializable {
 
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-        Set<String> ruleIdentifiers;
+        Set<ItemPath> ruleIdentifiers;
+
+        AbstractAnalysisSessionOptionType sessionOptionType;
 
         if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
             UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            sessionOptionType = userModeOptions;
             if (userModeOptions == null
                     || userModeOptions.getClusteringAttributeSetting() == null
                     || userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
@@ -67,6 +73,7 @@ public class ClusterExplanation implements Serializable {
             ruleIdentifiers = extractRuleIdentifiers(userModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule());
         } else {
             RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            sessionOptionType = roleModeOptions;
             if (roleModeOptions == null
                     || roleModeOptions.getClusteringAttributeSetting() == null
                     || roleModeOptions.getClusteringAttributeSetting().getClusteringAttributeRule() == null) {
@@ -83,13 +90,17 @@ public class ClusterExplanation implements Serializable {
             List<RoleAnalysisAttributeAnalysis> attributeAnalysisList = userAttributeResult.getAttributeAnalysis();
 
             for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysisList) {
-                String itemPath = analysis.getItemPath();
+                ItemPathType itemPathType = analysis.getItemPath();
+                if (itemPathType == null) {
+                    continue;
+                }
+                ItemPath itemPath = itemPathType.getItemPath();
                 if (ruleIdentifiers.contains(itemPath) && analysis.getDensity() == 100) {
                     List<RoleAnalysisAttributeStatistics> attributeStatisticsList = analysis.getAttributeStatistics();
                     if (attributeStatisticsList.size() == 1) {
                         RoleAnalysisAttributeStatistics attributeStatistic = attributeStatisticsList.get(0);
                         String value = attributeStatistic.getAttributeValue();
-                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath);
+                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
 
                         String candidateName;
                         if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
@@ -113,13 +124,17 @@ public class ClusterExplanation implements Serializable {
             List<RoleAnalysisAttributeAnalysis> attributeAnalysisList = roleAttributeResult.getAttributeAnalysis();
 
             for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysisList) {
-                String itemPath = analysis.getItemPath();
+                ItemPathType itemPathType = analysis.getItemPath();
+                if (itemPathType == null) {
+                    continue;
+                }
+                ItemPath itemPath = itemPathType.getItemPath();
                 if (ruleIdentifiers.contains(itemPath) && analysis.getDensity() == 100) {
                     List<RoleAnalysisAttributeStatistics> attributeStatisticsList = analysis.getAttributeStatistics();
                     if (attributeStatisticsList.size() == 1) {
                         RoleAnalysisAttributeStatistics attributeStatistic = attributeStatisticsList.get(0);
                         String value = attributeStatistic.getAttributeValue();
-                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath);
+                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
 
                         String candidateName;
                         if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
@@ -138,10 +153,10 @@ public class ClusterExplanation implements Serializable {
         return candidateNames.size() == 1 ? candidateNames.iterator().next() : null;
     }
 
-    private static @NotNull Set<String> extractRuleIdentifiers(@NotNull List<ClusteringAttributeRuleType> matchingRule) {
-        Set<String> ruleIdentifiers = new HashSet<>();
+    private static @NotNull Set<ItemPath> extractRuleIdentifiers(@NotNull List<ClusteringAttributeRuleType> matchingRule) {
+        Set<ItemPath> ruleIdentifiers = new HashSet<>();
         for (ClusteringAttributeRuleType ruleType : matchingRule) {
-            ruleIdentifiers.add(ruleType.getAttributeIdentifier());
+            ruleIdentifiers.add(ItemPath.create(ruleType.getAttributeIdentifier()));
         }
         return ruleIdentifiers;
     }

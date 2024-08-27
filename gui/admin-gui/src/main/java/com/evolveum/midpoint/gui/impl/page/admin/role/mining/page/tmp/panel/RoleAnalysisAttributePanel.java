@@ -11,9 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,8 +54,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
     boolean isCompared = false;
 
-    List<String> userPath = new ArrayList<>();
-    List<String> rolePath = new ArrayList<>();
+    List<ItemPath> userPath = new ArrayList<>();
+    List<ItemPath> rolePath = new ArrayList<>();
 
     LoadableDetachableModel<List<RoleAnalysisSimpleModel>> chartModel = new LoadableDetachableModel<>() {
         @Override
@@ -148,8 +151,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     private @NotNull RepeatingAttributeProgressForm initCardBodyComponentRp(
-            @NotNull List<String> userPath,
-            @NotNull List<String> rolePath) {
+            @NotNull List<ItemPath> userPath,
+            @NotNull List<ItemPath> rolePath) {
 
         RoleAnalysisAttributeAnalysisResult analysisAttributeToDisplay = new RoleAnalysisAttributeAnalysisResult();
 
@@ -165,7 +168,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         if (userAttributeAnalysisResult != null) {
             List<RoleAnalysisAttributeAnalysis> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
             for (RoleAnalysisAttributeAnalysis analysis : userAttributeAnalysis) {
-                if (userPath.contains(analysis.getItemPath().toLowerCase())) {
+                if (userPath.contains(analysis.getItemPath().getItemPath())) {
                     analysisAttributeToDisplay.getAttributeAnalysis().add(analysis.clone());
                 }
             }
@@ -187,31 +190,33 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     private void initCardHeaderButtons(WebMarkupContainer cardContainer) {
         RepeatingView repeatingView = new RepeatingView(ID_CARD_HEADER_REPEATING_BUTTONS);
 
-        List<String> userPath = new ArrayList<>();
-        List<String> rolePath = new ArrayList<>();
+        List<ItemPath> userPath = new ArrayList<>();
+        List<ItemPath> rolePath = new ArrayList<>();
         if (userAttributeAnalysisResult != null) {
 
             List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
             for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
-                String itemDescription = analysis.getItemPath();
-                if (itemDescription != null && !itemDescription.isEmpty()) {
-                    itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
-                    userPath.add(itemDescription.toLowerCase());
+                ItemPathType itemDescription = analysis.getItemPath();
+                if (itemDescription == null) {
+                    continue;
                 }
+                ItemPath itemPath = itemDescription.getItemPath();
+                userPath.add(itemPath);
                 String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON;
 
                 int badge = analysis.getAttributeStatistics().size();
-                initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge);
+                initRepeatingChildButtons(classObjectIcon, repeatingView, itemPath, badge);
             }
         }
 
         if (roleAttributeAnalysisResult != null) {
             for (RoleAnalysisAttributeAnalysis analysis : roleAttributeAnalysisResult.getAttributeAnalysis()) {
-                String itemDescription = analysis.getItemPath();
-                if (itemDescription != null && !itemDescription.isEmpty()) {
-                    itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
-                    rolePath.add(itemDescription.toLowerCase());
+                ItemPathType itemDescriptionType = analysis.getItemPath();
+                if (itemDescriptionType == null) {
+                    continue;
                 }
+                ItemPath itemDescription = itemDescriptionType.getItemPath();
+                rolePath.add(itemDescription);
                 String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
 
                 int badge = analysis.getAttributeStatistics().size();
@@ -229,9 +234,9 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     private void initRepeatingChildButtons(String classObjectIcon, RepeatingView repeatingView,
-            String itemDescription, int badge) {
+            ItemPath itemDescription, int badge) {
 
-        IconAjaxButtonBadge button = new IconAjaxButtonBadge(repeatingView.newChildId(), Model.of(itemDescription), true) {
+        IconAjaxButtonBadge button = new IconAjaxButtonBadge(repeatingView.newChildId(), Model.of(itemDescription.toString()), true) {
 
             @Override
             protected void onLoadComponent() {
@@ -241,9 +246,9 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
                 if (this.isClicked()) {
                     if (classObjectIcon.contains("user")) {
-                        userPath.add(this.getModelObject().toLowerCase());
+                        userPath.add(ItemPath.create(this.getModelObject()));
                     } else {
-                        rolePath.add(this.getModelObject().toLowerCase());
+                        rolePath.add(ItemPath.create(this.getModelObject()));
                     }
                 }
             }
@@ -255,9 +260,9 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
                 if (this.isClicked()) {
                     if (classObjectIcon.contains("user")) {
-                        userPath.add(this.getModelObject().toLowerCase());
+                        userPath.add(ItemPath.create(this.getModelObject()));
                     } else {
-                        rolePath.add(this.getModelObject().toLowerCase());
+                        rolePath.add(ItemPath.create(this.getModelObject()));
                     }
                 } else {
                     if (classObjectIcon.contains("user")) {
@@ -327,8 +332,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     private void initOveralResultButton(@NotNull RepeatingView repeatingView,
-            List<String> userPath,
-            List<String> rolePath) {
+            List<ItemPath> userPath,
+            List<ItemPath> rolePath) {
 
         IconAjaxButtonBadge button = new IconAjaxButtonBadge(repeatingView.newChildId(), Model.of("Overal result"), false) {
 
@@ -403,8 +408,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
     private void switchCardBodyComponent(
             @NotNull AjaxRequestTarget target,
-            @NotNull List<String> userPath,
-            @NotNull List<String> rolePath) {
+            @NotNull List<ItemPath> userPath,
+            @NotNull List<ItemPath> rolePath) {
         Component component = RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_CONTAINER, ID_CARD_BODY, ID_CARD_BODY_COMPONENT));
         if (!userPath.isEmpty() || !rolePath.isEmpty()) {
             component.replaceWith(initCardBodyComponentRp(userPath, rolePath));

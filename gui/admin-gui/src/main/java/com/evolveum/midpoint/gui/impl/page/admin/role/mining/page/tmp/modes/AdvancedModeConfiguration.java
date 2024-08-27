@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,18 +24,16 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
     RoleAnalysisService service;
     Task task;
     OperationResult result;
-    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
 
     public AdvancedModeConfiguration(
             RoleAnalysisService service,
-            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
+            RoleAnalysisSessionType objectWrapper,
             Task task,
             OperationResult result) {
         super(objectWrapper);
         this.service = service;
         this.task = task;
         this.result = result;
-        this.objectWrapper = objectWrapper;
     }
 
     @Override

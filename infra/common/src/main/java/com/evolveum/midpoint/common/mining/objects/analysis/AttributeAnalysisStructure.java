@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.common.mining.objects.analysis;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +29,7 @@ public class AttributeAnalysisStructure implements Serializable {
 
     int uniqueValues;
     int totalValues;
-    String itemPath;
+    private ItemPath itemPath;
     double density;
     String description;
     List<RoleAnalysisAttributeStatistics> attributeStatistics = new ArrayList<>();
@@ -34,7 +37,7 @@ public class AttributeAnalysisStructure implements Serializable {
     QName complexType;
 
 
-    public AttributeAnalysisStructure(int uniqueValues, int objectCount, int totalValues, String itemPath, QName complexType) {
+    public AttributeAnalysisStructure(int uniqueValues, int objectCount, int totalValues, ItemPath itemPath, QName complexType) {
         this.uniqueValues = uniqueValues;
         this.totalValues = totalValues;
         int possibleRelations = uniqueValues * objectCount;
@@ -44,7 +47,7 @@ public class AttributeAnalysisStructure implements Serializable {
     }
 
 
-    public AttributeAnalysisStructure(double density, String itemPath, QName complexType) {
+    public AttributeAnalysisStructure(double density, ItemPath itemPath, QName complexType) {
         this.density = density;
         this.itemPath = itemPath;
         this.complexType = complexType;
@@ -75,7 +78,7 @@ public class AttributeAnalysisStructure implements Serializable {
         List<AttributeAnalysisStructure> analysisStructures = new ArrayList<>();
         for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysisList) {
             Double density = attribute.getDensity();
-            String itemPath = attribute.getItemPath();
+            ItemPath itemPath = attribute.getItemPath() != null ? attribute.getItemPath().getItemPath() : null;
             analysisStructures.add(new AttributeAnalysisStructure(density, itemPath, complexType));
         }
         return analysisStructures;
@@ -85,7 +88,7 @@ public class AttributeAnalysisStructure implements Serializable {
         if (attributeAnalysis == null) {
             return;
         }
-        this.itemPath = attributeAnalysis.getItemPath();
+        this.itemPath = attributeAnalysis.getItemPath() != null ? attributeAnalysis.getItemPath().getItemPath() : null;
         this.density = attributeAnalysis.getDensity();
         this.description = attributeAnalysis.getDescription();
     }
@@ -113,8 +116,12 @@ public class AttributeAnalysisStructure implements Serializable {
         return totalValues;
     }
 
-    public String getItemPath() {
+    public ItemPath getItemPath() {
         return itemPath;
+    }
+
+    public ItemPathType getItemPathType() {
+        return itemPath != null ? itemPath.toBean() : null;
     }
 
     public double getDensity() {
@@ -148,5 +155,6 @@ public class AttributeAnalysisStructure implements Serializable {
     public QName getComplexType() {
         return complexType;
     }
+
 
 }

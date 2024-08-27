@@ -83,8 +83,6 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
     }
 
     private void initDistributionPanel() {
-        PageBase pageBase = (PageBase) getPage();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
 //        if (getModelDistribution() == null) {
 //            WebMarkupContainer roleAnalysisInfoOutlierPanel = new WebMarkupContainer(ID_DISTRIBUTION_PANEL);
@@ -105,6 +103,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
                 List<ProgressBar> progressBars = new ArrayList<>();
+                PageBase pageBase = getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
                 Task task = pageBase.createSimpleTask("Count objects");
                 OperationResult result = task.getResult();
                 Integer rolesInSystem = roleAnalysisService.countObjects(RoleType.class, null, null, task, result);
@@ -249,10 +249,6 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             return;
         }
 
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        Task task = getPageBase().createSimpleTask("Prepare data");
-        OperationResult result = task.getResult();
-
         RoleAnalysisIdentifyWidgetPanel patternPanel = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERN_PANEL,
                 createStringResource("Pattern.suggestions.title"), getModelPatterns()) {
 
@@ -265,6 +261,10 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
                 List<ProgressBar> progressBars = new ArrayList<>();
+
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                Task task = getPageBase().createSimpleTask("Prepare data");
+                OperationResult result = task.getResult();
 
                 int[] resolvedAndCandidateRoles = roleAnalysisService.computeResolvedAndCandidateRoles(task, result);
 
