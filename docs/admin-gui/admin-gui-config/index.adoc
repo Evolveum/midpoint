@@ -1453,6 +1453,10 @@ The following changes are _not_ guaranteed to be applied immediately:
 If the user is deactivated in the sense of setting `activation/effectiveStatus`, it is logged out automatically on his/her next action in GUI.
 However, if the deactivation is indirectly via losing all authorizations, the 403 page is shown instead.
 
+Admin GUI configuration is currently not refreshed immediately if changes were done on objects referenced via collectionRef.
+For example change in archetype in `archetypePolicy/display/*` that is referenced in `objectCollectionViews` in system configuration will not be applied immediately.
+For more information see bug:MID-9776[].
+
 === Implementation Details
 
 Technically, the compiled user profile is invalidated on the changes listed above:
