@@ -13,6 +13,7 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -24,10 +25,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.PathMetadataFactory;
+import com.querydsl.core.types.*;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.SQLQuery;
 
@@ -141,9 +139,12 @@ public class AggregateSearchContext {
         } else if (item.getDefinition() instanceof PrismObjectDefinition) {
             // Handle prism object definition
         } else if (item.getDefinition() instanceof PrismPropertyDefinition) {
-            if (PolyStringType.COMPLEX_TYPE.equals(item.getDefinition().getTypeName())) {
-                // Handle PolyString
-                return new PolyStringMapping(item, resolved);
+            var processor = resolved.mapper.createFilterProcessor(resolved.context);
+            if (processor instanceof PolyStringItemFilterProcessor poly) {
+                return new PolyStringMapping(item, poly);
+            }
+            if (processor instanceof SimpleItemFilterProcessor simple) {
+                return new SimpleValueMapping(item, simple);
             }
             // Handle prism property definition
         }
@@ -237,17 +238,11 @@ public class AggregateSearchContext {
 
         private final List<Expression<?>> expressions;
 
-        public PolyStringMapping(AggregateQuery.ResultItem item, SqlQueryContext.ResolveResult<?, ?> resolved) {
+        public PolyStringMapping(AggregateQuery.ResultItem item, PolyStringItemFilterProcessor poly) {
             super(item);
             normPath = Expressions.stringPath(pathName("norm"));
             origPath = Expressions.stringPath(pathName("orig"));
-            var processor = resolved.mapper.createFilterProcessor(resolved.context);
-            //noinspection rawtypes
-            if (processor instanceof PolyStringItemFilterProcessor poly) {
-                expressions = ImmutableList.of(poly.getNormPath().as(normPath), poly.getOrigPath().as(origPath));
-            } else {
-                throw new UnsupportedOperationException("Only Polystring filter is supported");
-            }
+            expressions = ImmutableList.of(poly.getNormPath().as(normPath), poly.getOrigPath().as(origPath));
         }
 
         @Override
@@ -267,6 +262,38 @@ public class AggregateSearchContext {
             var norm = partial.get(normPath);
             if (orig != null && norm != null) {
                 property.setRealValue(new PolyString( orig, norm));
+            }
+            return property;
+        }
+    }
+
+    private class SimpleValueMapping extends ResultMapping {
+        private final StringPath path;
+
+        private final List<Expression<?>> expressions;
+
+        public SimpleValueMapping(AggregateQuery.ResultItem item, SimpleItemFilterProcessor processor) {
+            super(item);
+            path = Expressions.stringPath(pathName("norm"));
+            expressions = ImmutableList.of(ExpressionUtils.as(processor.getPath(), path));
+        }
+
+        @Override
+        public Collection<Expression<?>> selectExpressions() {
+            return expressions;
+        }
+
+        @Override
+        public Collection<? extends Expression<?>> groupExpressions() {
+            return ImmutableList.of(path);
+        }
+
+        @Override
+        public Item<?, ?> prismItemFrom(Tuple partial, JdbcSession session) {
+            var property = PrismContext.get().itemFactory().createProperty(item.getName());
+            var value = partial.get(path);
+            if (value != null) {
+                property.setRealValue(value);
             }
             return property;
         }
@@ -343,10 +370,7 @@ public class AggregateSearchContext {
             if (oid != null) {
                 var typeClass = Objects.requireNonNull(partial.get(typePath)).getSchemaType();
                 var typeQName = PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(typeClass).getTypeName();
-
-
                 var refValue = PrismContext.get().itemFactory().createReferenceValue(oid, typeQName);
-
                 var relationRepo = partial.get(relationPath);
                 if (relationRepo != null) {
                     var relationQName =  sqlRepoContext.resolveUriIdToQName(relationRepo);

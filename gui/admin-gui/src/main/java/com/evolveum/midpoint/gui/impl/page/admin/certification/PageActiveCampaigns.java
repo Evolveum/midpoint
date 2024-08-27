@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -97,9 +98,17 @@ public class PageActiveCampaigns extends PageAdminCertification {
                 return PageActiveCampaigns.this.getPrincipalAsReviewer();
             }
 
+            protected IModel<String> getActiveCampaignsPanelTitleModel() {
+                return PageActiveCampaigns.this.getActiveCampaignsPanelTitleModel();
+            }
+
         };
         campaignsPanel.setOutputMarkupId(true);
         add(campaignsPanel);
+    }
+
+    protected IModel<String> getActiveCampaignsPanelTitleModel() {
+        return createStringResource("ActiveCampaignsPanel.title");
     }
 
     private List<PrismObject<AccessCertificationCampaignType>> loadActiveCampaigns() {

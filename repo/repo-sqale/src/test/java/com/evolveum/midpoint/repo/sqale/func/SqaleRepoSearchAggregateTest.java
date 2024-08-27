@@ -581,6 +581,35 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
 
     }
 
+    @Test
+    public void test300AggregateWorkItems() throws Exception {
+        // owner name
+        var opResult = createOperationResult();
+        var dereferencedName = ItemPath.create(AccessCertificationWorkItemType.F_ASSIGNEE_REF, new ObjectReferencePathSegment(), F_NAME);
+        var outcomePath = ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME);
+        queryRecorder.startRecording();
+        try {
+            var spec = AggregateQuery.forType(AccessCertificationWorkItemType.class);
+            spec
+                    .retrieve(F_NAME, dereferencedName)
+                    .retrieve(AbstractWorkItemOutputType.F_OUTCOME, outcomePath)
+                    .count(AccessCertificationCaseType.F_WORK_ITEM, ItemPath.SELF_PATH)
+            ;
+
+
+            spec.orderBy(spec.getResultItem(F_NAME), OrderDirection.DESCENDING);
+
+            SearchResultList<PrismContainerValue<?>> result = repositoryService.searchAggregate(spec, opResult);
+
+            assertThat(result)
+                    .isNotEmpty();
+            ;
+        } finally {
+            queryRecorder.dumpQueryBuffer();
+        }
+
+    }
+
 
 
 
