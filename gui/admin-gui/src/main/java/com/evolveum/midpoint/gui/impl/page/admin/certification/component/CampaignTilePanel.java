@@ -86,7 +86,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
     protected void initLayout() {
         add(AttributeAppender.append("class",
-                "campaign-tile-panel catalog-tile-panel d-flex flex-column align-items-center rounded p-3 elevation-1"));
+                "campaign-tile-panel catalog-tile-panel d-flex flex-column align-items-center rounded p-3 elevation-1 mt-2"));
 
         setOutputMarkupId(true);
 
