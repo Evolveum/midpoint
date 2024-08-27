@@ -179,7 +179,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
                     @Override
                     protected String getTileCssStyle() {
-                        return "min-height: 340px;";
+                        return getCampaignTileCssStyle();
                     }
 
                     @Override
@@ -285,4 +285,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
         return new WebMarkupContainer(id);
     }
 
+    protected String getCampaignTileCssStyle() {
+        return "min-height: 340px;";
+    }
 }

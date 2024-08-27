@@ -4,6 +4,9 @@ import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAG
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
@@ -12,6 +15,8 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 
 import com.evolveum.midpoint.test.TestObject;
+
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -131,9 +136,9 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         account1.addAttributeValue(ATTR_PERSONAL_NUMBER, "1004444");
 
         importAccountsRequest()
-            .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
-            .withNameValue("brown")
-            .execute(result);
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue("brown")
+                .execute(result);
 
         // Find user brown
         PrismObject<UserType> userOrig = searchObjectByName(UserType.class, "brown");
@@ -142,9 +147,9 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         account1.replaceAttributeValue(ATTR_FAMILY_NAME, "Brownie");
 
         importAccountsRequest()
-            .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
-            .withNameValue("brown")
-            .execute(result);
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue("brown")
+                .execute(result);
 
         PrismObject<UserType> userAfter = searchObjectByName(UserType.class, "brown");
         assertEquals(userAfter.asObjectable().getFamilyName().getOrig(), "Brownie");
@@ -183,16 +188,15 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         account1.addAttributeValue(ATTR_PERSONAL_NUMBER, "2004444");
 
         importAccountsRequest()
-            .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
-            .withNameValue("reddy")
-            .execute(result);
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue("reddy")
+                .execute(result);
 
         assertNotNull(result);
 
         // Find user reddy
         PrismObject<UserType> userOrig = searchObjectByName(UserType.class, "reddy");
         ObjectReferenceType shadow1Ref = userOrig.asObjectable().getLinkRef().get(0);
-
 
         var renamed = PolyString.fromOrig("Browny");
         var modifyResult = createOperationResult();
@@ -212,10 +216,10 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         // Changes from resource should be imported (inbound enabled)
         account1.replaceAttributeValue(ATTR_GIVEN_NAME, "Renamed");
         importAccountsRequest()
-            .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
-            .withNameValue("reddy")
-            .withTracing()
-            .execute(result);
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue("reddy")
+                .withTracing()
+                .execute(result);
 
         PrismObject<UserType> userAfterImport = searchObjectByName(UserType.class, "reddy");
         assertEquals(userAfterImport.asObjectable().getGivenName().getOrig(), "Renamed");
@@ -225,7 +229,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    void test300importUserWithBrokenMapping() throws Exception {
+    void test300ImportUserWithBrokenMapping() throws Exception {
         var result = createOperationResult();
         DummyAccount account1 = RESOURCE_SHADOW_MARKS.controller.addAccount("broken");
         account1.addAttributeValue(ATTR_GIVEN_NAME, "Karl");
@@ -233,10 +237,10 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         account1.addAttributeValue(ATTR_PERSONAL_NUMBER, "Broken");
 
         importAccountsRequest()
-            .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
-            .withNameValue("broken")
-            .withAssertSuccess(false)
-            .execute(result);
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue("broken")
+                .withAssertSuccess(false)
+                .execute(result);
 
         assertNotNull(result);
     }
@@ -359,5 +363,70 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
                 .assertEffectiveMarks();
         assertDummyAccountByUsername(RESOURCE_SHADOW_MARKS.name, userName)
                 .assertAttribute(ATTR_FAMILY_NAME, "Even Bigger Tester");
+    }
+
+    /**
+     * A user (`account/tester`) is `unmanaged`, but has an assignment that provides him with a shadow on the resource.
+     * When the account is deleted, midPoint should still apply the operation policy of `unmanaged` regarding this resource.
+     * Otherwise, the account would get immediately re-created.
+     */
+    @Test
+    void test410TestUnmanagedShadowDeletion() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a new tester account is created on the resource");
+        RESOURCE_SHADOW_MARKS.controller.addAccount(userName)
+                .addAttributeValue(ATTR_GIVEN_NAME, "Phoenix")
+                .addAttributeValue(ATTR_FAMILY_NAME, "Tester")
+                .addAttributeValue(ATTR_TYPE, TYPE_TESTER);
+
+        when("the account is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue(userName)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .executeOnForeground(result);
+
+        then("the user is there, account is Unmanaged");
+        var userAsserter = assertUserByUsername(userName, "after initial import")
+                .display()
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assertGivenName("Phoenix")
+                .assertFamilyName("Tester")
+                .assertEffectiveMarks(MARK_HAS_UNMANAGED_PROJECTION.oid);
+        var shadowAsserter = userAsserter
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .assertIntent(INTENT_TESTER)
+                .assertEffectiveMarks(MARK_UNMANAGED.oid);
+        var userOid = userAsserter.getOid();
+        var shadowOid = shadowAsserter.getOid();
+
+        when("an assignment of 'account/tester' is created");
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(RESOURCE_SHADOW_MARKS.assignmentWithConstructionOf(ACCOUNT, INTENT_TESTER))
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        and("the account is deleted and discovered as dead");
+        RESOURCE_SHADOW_MARKS.controller.deleteAccount(userName);
+        try {
+            var shadow = provisioningService.getShadow(shadowOid, null, task, result);
+            assertShadow(shadow.getBean(), "after deletion")
+                    .assertIsDead(true);
+        } catch (ObjectNotFoundException e) {
+            displayExpectedException(e);
+        }
+
+        then("the account should be gone");
+        assertSuccess(result);
+        assertNoDummyAccount(RESOURCE_SHADOW_MARKS.name, userName);
+        assertUserAfter(userOid)
+                .assertLinks(0, 1);
     }
 }
