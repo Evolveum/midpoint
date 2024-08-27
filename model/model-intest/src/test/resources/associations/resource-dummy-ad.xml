@@ -125,6 +125,7 @@
                 <association>
                     <ref>ri:group</ref>
                     <outbound>
+                        <name>groups-outbound</name>
                         <expression>
                             <associationConstruction>
                                 <objectRef>
