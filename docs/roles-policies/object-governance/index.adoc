@@ -88,7 +88,7 @@ Ownership of roles and applications make sure there is always responsible person
 Usually, every application and many roles should have specified owner.
 
 Governance relations can be easily managed in midPoint administration user interface.
-Object detail pages have menu:[Governance] panel, designed especially for setting up object governance relations.
+Object detail pages have `Governance` panel, designed especially for setting up object governance relations.
 
 image::website-governance-owner.png[Managing application owner in GUI]
 
@@ -108,6 +108,12 @@ image::website-governance-owner.png[Managing application owner in GUI]
 
 // TODO: each application must have an owner - to ensure maintenance
 
+== Processes and Procedures
+
+// TODO: methodology
+// TODO: describe common scenarios and pre-configured mechanisms
+// TODO: owner vs approver
+// TODO: owner vs custodian
 
 == See Also
 
