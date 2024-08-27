@@ -376,7 +376,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
                 .withNameValue(PERSON_JOHN_NAME)
-                .withTracing()
                 .executeOnForeground(result);
 
         then("orgs are there (they were created on demand)");
@@ -515,7 +514,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_DMS.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
                 .withNameValue("jack")
-                .withTracing()
                 .executeOnForeground(result);
 
         then("jack is found");
@@ -613,7 +611,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         dmsScenario.accountAccess.add(dmsScenario.account.getByNameRequired(userName), dummyAdminAccess);
         dmsScenario.accessDocument.add(dummyAdminAccess, dmsScenario.document.getByNameRequired(documentName));
 
-        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_DMS.oid);
+        invalidateShadowCacheIfNeeded(resource.oid);
 
         and("provisioning the user with write access to the document");
         executeChanges(
