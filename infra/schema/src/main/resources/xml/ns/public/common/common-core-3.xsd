@@ -21577,6 +21577,30 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="AbstractOperationPolicyConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common supertype for policy for given operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since> <!-- factored out in 4.9 -->
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="severity" minOccurs="0" type="tns:OperationPolicyViolationSeverityType" default="error">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How severe is the policy violation? I.e. how "loudly" is a policy enforced - if the given
+                        operation would occur, what should be signalled to the upper layers?
+
+                        Currently not fully supported, please see the docs.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="OperationPolicyConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -21587,18 +21611,80 @@
                 <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true" />
-            <xsd:element name="severity" minOccurs="0" type="tns:OperationPolicyViolationSeverityType" default="error">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractOperationPolicyConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SyncInboundOperationPolicyConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractOperationPolicyConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="enabled" minOccurs="0" type="tns:SyncInboundOperationPolicyEnabledType" default="true" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:simpleType name="SyncInboundOperationPolicyEnabledType">
+        <xsd:annotation>
+            <!-- note: The values of "true" and "false" are here to provide backwards compatibility with pre-4.9 schema. -->
+            <!-- note: We use enum instead of separate item in SynchronizeOperationPolicyConfigurationType to avoid problems
+                 with merging the policies (e.g., when using the default) -->
+            <xsd:documentation>
+                The degree how much are inbound operations enabled.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        How severe is the policy violation? I.e. how "loudly" is a policy enforced - if the given
-                        operation would occur, what should be signalled to the upper layers?
+                        All of the inbound processing is enabled.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TRUE"/>
+                    </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
+            </xsd:enumeration>
+            <xsd:enumeration value="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Inbound processing is completely disabled: no correlation, no synchronization situation determination,
+                        no reaction execution, no mappings.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FALSE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="exceptForMappings">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The correlation, synchronization situation determination, and reaction execution are enabled.
+                        Only inbound mappings are disabled, preventing data flow from the resource to midPoint.
+                        <!-- TODO what about "add" sync reaction? It probably makes no sense without inbound mappings.
+                              But can there be a special case in which we want to invoke it? -->
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXCEPT_FOR_MAPPINGS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <!-- TODO find a better name; maybe the values are not ideal either -->
     <xsd:simpleType name="OperationPolicyViolationSeverityType">
@@ -21641,7 +21727,14 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="inbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
+            <xsd:element name="inbound" type="tns:SyncInboundOperationPolicyConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If disabled, then the shadow will not be synchronized from the resource to midPoint.
+                        Not even synchronization reactions will be evaluated.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="outbound" type="tns:OperationPolicyConfigurationType" minOccurs="0" />
             <xsd:element name="membership" type="tns:SynchronizeMembershipOperationPolicyConfigurationType" minOccurs="0">
                 <xsd:annotation>

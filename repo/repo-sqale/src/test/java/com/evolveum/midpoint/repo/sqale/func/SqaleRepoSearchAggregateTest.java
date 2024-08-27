@@ -408,10 +408,12 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
                                 .stageNumber(1)
                                 .iteration(1)
                                 .workItem(new AccessCertificationWorkItemType()
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
                                         .stageNumber(11)
                                         .iteration(1)
                                         .assigneeRef(user1Oid, UserType.COMPLEX_TYPE))
                                 .workItem(new AccessCertificationWorkItemType()
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
                                         .stageNumber(12)
                                         .iteration(1)))
                         ._case(new AccessCertificationCaseType()
@@ -420,9 +422,15 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
                                 .iteration(2)
                                 .targetRef(user1Oid, UserType.COMPLEX_TYPE)
                                 .workItem(new AccessCertificationWorkItemType()
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                                        .assigneeRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                                        .output(new AbstractWorkItemOutputType().outcome("OUTCOME one"))
                                         .stageNumber(21)
                                         .iteration(1))
                                 .workItem(new AccessCertificationWorkItemType()
+                                        .assigneeRef(user1Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                                        .assigneeRef(user2Oid, UserType.COMPLEX_TYPE, ORG_DEFAULT)
+                                        .output(new AbstractWorkItemOutputType().outcome("OUTCOME one"))
                                         .stageNumber(22)
                                         .iteration(1)))
                         .asPrismObject(),
@@ -589,15 +597,17 @@ public class SqaleRepoSearchAggregateTest extends SqaleRepoBaseTest {
         var outcomePath = ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME);
         queryRecorder.startRecording();
         try {
-            var spec = AggregateQuery.forType(AccessCertificationWorkItemType.class);
-            spec
-                    .retrieve(F_NAME, dereferencedName)
+            var spec = AggregateQuery.forType(AccessCertificationWorkItemType.class)
+                    .resolveNames()
+                    .retrieve(AccessCertificationWorkItemType.F_ASSIGNEE_REF) // Resolver assignee
                     .retrieve(AbstractWorkItemOutputType.F_OUTCOME, outcomePath)
-                    .count(AccessCertificationCaseType.F_WORK_ITEM, ItemPath.SELF_PATH)
-            ;
+                    .count(AccessCertificationCaseType.F_WORK_ITEM, ItemPath.SELF_PATH);
 
-
-            spec.orderBy(spec.getResultItem(F_NAME), OrderDirection.DESCENDING);
+            spec.filter(PrismContext.get().queryFor(AbstractWorkItemType.class)
+                    .ownerId(accCertCampaign1Oid)
+                    .buildFilter()
+            );
+            spec.orderBy(spec.getResultItem(AccessCertificationWorkItemType.F_ASSIGNEE_REF), OrderDirection.DESCENDING);
 
             SearchResultList<PrismContainerValue<?>> result = repositoryService.searchAggregate(spec, opResult);
 
