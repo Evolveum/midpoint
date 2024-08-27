@@ -101,11 +101,15 @@ public class TableRelationResolver<
             subquery.where(correlationPredicateFunction.apply(context.path(), subcontext.path()));
 
             return new ResolutionResult<>(subcontext, subcontext.mapping(), true);
-        } else {
-            SqlQueryContext<TS, TQ, TR> subcontext = context.leftJoin(
-                    targetMappingSupplier.get(), correlationPredicateFunction);
-            return new ResolutionResult<>(subcontext, subcontext.mapping());
         }
+        return resolveUsingJoin(context);
+    }
+
+    @Override
+    public ResolutionResult<TQ, TR> resolveUsingJoin(SqlQueryContext<?, Q, R> context) {
+        SqlQueryContext<TS, TQ, TR> subcontext = context.leftJoin(
+                targetMappingSupplier.get(), correlationPredicateFunction);
+        return new ResolutionResult<>(subcontext, subcontext.mapping());
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
