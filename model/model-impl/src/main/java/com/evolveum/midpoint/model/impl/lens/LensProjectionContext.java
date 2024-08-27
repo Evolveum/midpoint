@@ -2185,9 +2185,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public boolean isOutboundSyncDisabled(OperationResult result) throws ConfigurationException {
+        return Objects.requireNonNullElse(
+                isOutboundSyncDisabledNullable(result),
+                false);
+    }
+
+    public Boolean isOutboundSyncDisabledNullable(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
-            return false;
+            return null;
         }
         return isSyncOutboundDisabled(policy); // TODO severity
     }
