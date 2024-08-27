@@ -42,4 +42,8 @@ public abstract class SinglePathItemFilterProcessor<T, P extends Path<?>>
     public Expression<?> rightHand(ValueFilter<?, ?> filter) throws RepositoryException {
         return path;
     }
+
+    public P getPath() {
+        return path;
+    }
 }
