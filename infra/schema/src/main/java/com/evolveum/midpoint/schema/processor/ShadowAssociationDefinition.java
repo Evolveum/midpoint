@@ -57,6 +57,7 @@ public interface ShadowAssociationDefinition
         return getObjectParticipants().keySet();
     }
 
+    // FIXME is this really correct? Why don't we look at our own participant types?
     default boolean matches(@NotNull ShadowType potentialTarget) {
         return getReferenceAttributeDefinition().getTargetParticipantTypes().stream()
                 .anyMatch(participantType -> participantType.matches(potentialTarget));

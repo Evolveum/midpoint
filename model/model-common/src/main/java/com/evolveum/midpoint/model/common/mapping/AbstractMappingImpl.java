@@ -399,6 +399,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Value metadata computer to be used when expression is evaluated.
      */
     transient private TransformationValueMetadataComputer valueMetadataComputer;
+
     private List<MappingSpecificationType> mappingAliasSpecifications;
     //endregion
 
@@ -985,7 +986,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             // FIXME: Migrate legacy to new?
 
             if (rangeSetDef.contains(originalValue)) {
-                addToMinusIfNecessary(originalValue, rangeSetDef);
+                addToMinusIfNecessary(originalValue, rangeSetDef, result);
             }
         }
     }
@@ -1108,8 +1109,16 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     @SuppressWarnings("unchecked")
-    private void addToMinusIfNecessary(V originalValue, ValueSetDefinition<V, D> rangeSetDef) {
-        if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
+    private void addToMinusIfNecessary(
+            @NotNull V originalValue,
+            @NotNull ValueSetDefinition<V, D> rangeSetDef,
+            @NotNull OperationResult result) {
+        if (outputTriple != null
+                && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
+            return;
+        }
+        if (expression != null && expression.doesVetoTargetValueRemoval(originalValue, result)) {
+            LOGGER.trace("Expression vetoed removal of value: {}", originalValue);
             return;
         }
         // remove it!
@@ -1120,9 +1129,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         V valueToDelete = (V) originalValue.clone();
         if (rangeSetDef.isYieldSpecific()) {
             LOGGER.trace("A yield of original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
-
-
-
             valueToDelete.<ValueMetadataType>getValueMetadataAsContainer()
                     .removeIf(md -> !rangeSetDef.hasMappingSpecification(md.asContainerable()));
             // TODO we could check if the minus set already contains the value we are going to remove
