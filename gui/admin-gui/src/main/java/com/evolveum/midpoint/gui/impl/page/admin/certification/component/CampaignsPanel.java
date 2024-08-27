@@ -165,9 +165,9 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
                         return new LoadableModel<>() {
                             @Override
                             protected List<AccessCertificationCampaignType> load() {
-                                List<IModel<SelectableBeanImpl<AccessCertificationCampaignType>>> selected =
-                                        TableUtil.getAvailableData(getTable().getDataTable());
-                                return selected.stream().map(s -> s.getObject().getValue()).toList();
+                                List<SelectableBean<AccessCertificationCampaignType>> selected =
+                                        TableUtil.getSelectedModels(getTable().getDataTable());
+                                return selected.stream().map(SelectableBean::getValue).toList();
                             }
                         };
                     }
@@ -179,7 +179,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
 
                     @Override
                     protected String getTileCssStyle() {
-                        return "min-height: 340px;";
+                        return getCampaignTileCssStyle();
                     }
 
                     @Override
@@ -285,4 +285,7 @@ public class CampaignsPanel extends BasePanel<AccessCertificationCampaignType> {
         return new WebMarkupContainer(id);
     }
 
+    protected String getCampaignTileCssStyle() {
+        return "min-height: 340px;";
+    }
 }

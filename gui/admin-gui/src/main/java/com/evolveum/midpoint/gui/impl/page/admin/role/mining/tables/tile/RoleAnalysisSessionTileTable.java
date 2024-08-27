@@ -307,7 +307,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
 
             @Override
             protected String getTilesFooterCssClasses() {
-                return "card-footer";
+                return "pt-1";/* card-footer */
             }
 
             @Override
@@ -337,17 +337,17 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
 
             @Override
             protected String getTileCssStyle() {
-                return " min-height:170px ";
-            }
+                return "";
+            } /* min-height:170px */
 
             @Override
             protected String getTileCssClasses() {
-                return "col-3 p-2";
+                return "col-12 col-sm-12 col-md-6 col-lg-6 col-xl-3 col-xxl-5i p-2";
             }
 
             @Override
             protected String getTileContainerCssClass() {
-                return "row justify-content-left ";
+                return "row justify-content-left pt-2 ";
             }
 
             @Override

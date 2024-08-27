@@ -44,7 +44,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CARD_CONTAINER = "card-container";
-    private static final String ID_CARD_HEADER_TITLE = "cardHeaderTitle";
+   /* private static final String ID_CARD_HEADER_TITLE = "cardHeaderTitle";*/
     private static final String ID_CARD_HEADER_REPEATING_BUTTONS = "analysisAttributesButtons";
     private static final String ID_CARD_BODY_COMPONENT = "cardBodyComponent";
     private static final String ID_CARD_BODY = "cardBody";
@@ -101,7 +101,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         cardContainer.add(AttributeAppender.replace("class", getCssClassForCardContainer()));
         add(cardContainer);
 
-        initCardHeaderTitle(cardContainer);
+        /*initCardHeaderTitle(cardContainer);*/
 
         initCardHeaderButtons(cardContainer);
 
@@ -420,7 +420,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         target.add(RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_CONTAINER, ID_CARD_BODY, ID_CARD_BODY_COMPONENT)).getParent());
     }
 
-    private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
+    /*private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
         IconWithLabel label = new IconWithLabel(ID_CARD_HEADER_TITLE, getModel()) {
             @Override
             protected String getIconCssClass() {
@@ -430,7 +430,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         label.add(new VisibleBehaviour(this::isCardTitleVisible));
         label.setOutputMarkupId(true);
         cardContainer.add(label);
-    }
+    }*/
 
     public String getIconCssClass() {
         return "";

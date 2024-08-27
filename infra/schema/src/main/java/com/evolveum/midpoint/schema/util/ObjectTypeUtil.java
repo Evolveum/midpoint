@@ -1151,10 +1151,16 @@ public class ObjectTypeUtil {
 
     // Currently ignoring reference definition (target type limitations)
     public static Class<? extends ObjectType> getTargetClassFromReference(@NotNull ObjectReferenceType ref) {
-        if (ref.getType() != null) {
-            return ObjectTypes.getObjectTypeClass(ref.getType());
+        return getTargetClassFromReference(ref, ObjectType.class);
+    }
+
+    public static Class<? extends ObjectType> getTargetClassFromReference(
+            @NotNull ObjectReferenceType ref, @NotNull Class<? extends ObjectType> defaultType) {
+        var type = ref.getType();
+        if (type != null) {
+            return ObjectTypes.getObjectTypeClass(type);
         } else {
-            return ObjectType.class;
+            return defaultType;
         }
     }
 

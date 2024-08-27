@@ -86,7 +86,8 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
                                         .targetRef(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value(), MarkType.COMPLEX_TYPE))
                         .objectOperationPolicy(new ObjectOperationPolicyType()
                                 .synchronize(new SynchronizeOperationPolicyConfigurationType()
-                                        .inbound(new OperationPolicyConfigurationType().enabled(false)))),
+                                        .inbound(new SyncInboundOperationPolicyConfigurationType()
+                                                .enabled(SyncInboundOperationPolicyEnabledType.FALSE)))),
                 initTask, initResult);
 
         // Read-only is base for do-not touch
@@ -336,9 +337,27 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         reconcileUser(userOid, task, result);
 
         then("the user in midPoint is not changed; and it is no longer marked as having unmanaged projections");
-        assertUser(userOid, "after change on resource while managed")
+        assertUser(userOid, "after change on resource while managed + reconciled")
                 .display()
                 .assertFamilyName("Even Bigger Tester")
                 .assertEffectiveMarks();
+        assertDummyAccountByUsername(RESOURCE_SHADOW_MARKS.name, userName)
+                .assertAttribute(ATTR_FAMILY_NAME, "Even Bigger Tester");
+
+        when("there is a change on resource, and the user is imported");
+        account.replaceAttributeValue(ATTR_FAMILY_NAME, "Mega Tester - Again");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue(userName)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .executeOnForeground(result);
+
+        then("the user in midPoint is not changed, and the change on the resource is cancelled");
+        assertUser(userOid, "after change on resource while managed + imported")
+                .display()
+                .assertFamilyName("Even Bigger Tester")
+                .assertEffectiveMarks();
+        assertDummyAccountByUsername(RESOURCE_SHADOW_MARKS.name, userName)
+                .assertAttribute(ATTR_FAMILY_NAME, "Even Bigger Tester");
     }
 }

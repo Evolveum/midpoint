@@ -50,14 +50,15 @@ public class OutlierModeConfiguration extends AbstractRoleAnalysisConfiguration 
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
-                90.0,
-                10,
+                80.0,
+                5,
                 2,
                 false);
 
+        //TODO there is inconsistency with role mining detection options (TBD)
         updateDetectionOptions(2,
                 2,
-                80.0,
+                70.0,
                 new RangeType()
                         .min(2.0)
                         .max(2.0),

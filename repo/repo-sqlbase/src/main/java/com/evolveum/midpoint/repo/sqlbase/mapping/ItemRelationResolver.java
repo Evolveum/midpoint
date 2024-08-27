@@ -29,6 +29,10 @@ public interface ItemRelationResolver<
      */
     ResolutionResult<TQ, TR> resolve(SqlQueryContext<?, Q, R> context);
 
+    default ResolutionResult<TQ, TR> resolveUsingJoin(SqlQueryContext<?, Q, R> context) {
+        return resolve(context);
+    }
+
     class ResolutionResult<TQ extends FlexibleRelationalPathBase<TR>, TR> {
         public final SqlQueryContext<?, TQ, TR> context;
         public final QueryModelMapping<?, TQ, TR> mapping;

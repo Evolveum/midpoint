@@ -2176,12 +2176,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return isAddDisabled(policy) && isModifyDisabled(policy) && isDeleteDisabled(policy);
     }
 
-    public boolean isInboundSyncDisabled(OperationResult result) throws ConfigurationException {
+    public boolean areInboundSyncMappingsDisabled(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
             return false;
         }
-        return isSyncInboundDisabled(policy); // TODO severity
+        return areSyncInboundMappingsDisabled(policy); // TODO severity
     }
 
     public boolean isOutboundSyncDisabled(OperationResult result) throws ConfigurationException {

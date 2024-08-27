@@ -14,10 +14,10 @@ import java.io.Serial;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -427,6 +427,8 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                     };
                     columns.add(column);
                 } else {
+
+                    ListMultimap<String, String> mappedClusterOutliers = tmpMapClusterOutliers();
                     columns.add(new AbstractExportableColumn<>(
                             createStringResource("AnalysisClusterStatisticType.attribute.confidence")) {
 
@@ -482,57 +484,15 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                             return new Label(componentId, "Outliers count");
                         }
 
-                        int outlierCount = 0;
-
                         @Override
                         public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
                                 String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-                            outlierCount = 0;
+
                             RoleAnalysisClusterType cluster = model.getObject().getValue();
-                            List<ObjectReferenceType> member = cluster.getMember();
+                            String clusterOid = cluster.getOid();
 
-                            Set<String> membersOid = new HashSet<>();
-                            for (ObjectReferenceType objectReferenceType : member) {
-                                membersOid.add(objectReferenceType.getOid());
-                            }
-
-                            ObjectQuery query = getPrismContext().queryFor(RoleAnalysisOutlierType.class)
-                                    .item(RoleAnalysisOutlierType.F_TARGET_OBJECT_REF).ref(membersOid.toArray(new String[0]))
-                                    .build();
-
-                            ModelService modelService = getPageBase().getModelService();
-                            Task task = getPageBase().createSimpleTask("countObjects");
-                            OperationResult result = task.getResult();
-
-//                            int count = 0;
-                            //TODO restore after db schema change
-//                            try {
-//                                count = modelService.countObjects(RoleAnalysisOutlierType.class, query, null, task, result);
-//                            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
-//                                    ConfigurationException | CommunicationException |
-//                                    ExpressionEvaluationException e) {
-//                                throw new RuntimeException("Couldn't count outliers", e);
-//                            }
-
-                            //TODO remove hack after db schema change
-                            ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
-
-                                RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-                                ObjectReferenceType targetObjectRef = outlierObject.getTargetObjectRef();
-                                String oid = targetObjectRef.getOid();
-                                if (membersOid.contains(oid)) {
-                                    outlierCount++;
-                                }
-                                return true;
-                            };
-
-                            try {
-                                modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
-                                        null, task, result);
-                            } catch (Exception ex) {
-                                throw new RuntimeException("Couldn't count outliers", ex);
-                            }
-
+                            List<String> outliers = mappedClusterOutliers.get(clusterOid);
+                            int outlierCount = outliers.size();
                             cellItem.add(new Label(componentId, Model.of(outlierCount)));
                         }
 
@@ -621,9 +581,15 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
 
                                     if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
                                         RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_COLLAPSABLE_CONTENT,
-                                                Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult);
+                                                Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+                                            @Override
+                                            protected String getCssClassForCardContainer() {
+                                                return "m-3 elevation-1 card";
+                                            }
+                                        };
                                         roleAnalysisAttributePanel.setOutputMarkupId(true);
                                         webMarkupContainerUser.add(roleAnalysisAttributePanel);
+                                        webMarkupContainerUser.add(AttributeAppender.append("class", "bg-light"));
                                     } else {
                                         Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
                                         label.setOutputMarkupId(true);
@@ -932,6 +898,30 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 return false;
             }
         };
+
+    }
+
+    //TODO this is a hack, remove after db schema change
+    public ListMultimap<String, String> tmpMapClusterOutliers() {
+        ListMultimap<String, String> outliersMap = ArrayListMultimap.create();
+        ModelService modelService = getPageBase().getModelService();
+        Task task = getPageBase().createSimpleTask("countObjects");
+        OperationResult result = task.getResult();
+        ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
+            RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
+            outlierObject.getOutlierPartitions().forEach(partition -> {
+                outliersMap.put(partition.getTargetClusterRef().getOid(), outlierObject.getOid());
+            });
+            return true;
+        };
+
+        try {
+            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
+                    null, task, result);
+        } catch (Exception ex) {
+            throw new RuntimeException("Couldn't map outliers", ex);
+        }
+        return outliersMap;
 
     }
 

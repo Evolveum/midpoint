@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.clustering;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -33,6 +34,7 @@ public class StandardClustering implements Clusterable {
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
@@ -41,9 +43,9 @@ public class StandardClustering implements Clusterable {
         if (processMode != null) {
             return switch (processMode) {
                 case ROLE -> new RoleBasedClustering()
-                        .executeClustering(roleAnalysisService, modelService, session, handler, task, result);
+                        .executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
                 case USER -> new UserBasedClustering().
-                        executeClustering(roleAnalysisService, modelService, session, handler, task, result);
+                        executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
             };
         } else {
             throw new IllegalStateException("Missing process mode in analysis option");

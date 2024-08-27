@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -47,6 +48,7 @@ public class AdvancedClustering implements Clusterable {
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -54,9 +56,9 @@ public class AdvancedClustering implements Clusterable {
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
 
         if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return executeRoleBasedAdvancedClustering(roleAnalysisService, modelService, session, handler, task, result);
+            return executeRoleBasedAdvancedClustering(roleAnalysisService, modelService, session, attributeAnalysisCache, handler, task, result);
         } else {
-            return executeUserBasedAdvancedClustering(roleAnalysisService, modelService, session, handler, task, result);
+            return executeUserBasedAdvancedClustering(roleAnalysisService, modelService, session, attributeAnalysisCache, handler, task, result);
         }
     }
 
@@ -64,6 +66,7 @@ public class AdvancedClustering implements Clusterable {
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -104,13 +107,14 @@ public class AdvancedClustering implements Clusterable {
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
         return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
-                handler, task, result);
+                attributeAnalysisCache, handler, task, result);
     }
 
     public @NotNull List<PrismObject<RoleAnalysisClusterType>> executeUserBasedAdvancedClustering(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -151,7 +155,7 @@ public class AdvancedClustering implements Clusterable {
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);
 
         return new RoleAnalysisAlgorithmUtils().processClusters(roleAnalysisService, dataPoints, clusters, session,
-                handler, task, result);
+                attributeAnalysisCache, handler, task, result);
     }
 
     private @NotNull List<DataPoint> loadInitialData(
@@ -250,7 +254,7 @@ public class AdvancedClustering implements Clusterable {
                 return ClusteringMode.UNBALANCED_RULES;
             }
 
-            if(analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)){
+            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
                 return ClusteringMode.BALANCED_RULES_OUTLIER;
             }
 

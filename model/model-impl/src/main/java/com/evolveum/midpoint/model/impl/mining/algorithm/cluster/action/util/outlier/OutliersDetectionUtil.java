@@ -7,30 +7,33 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier;
 
+import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.prepareDetectedPattern;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
+
 import java.util.*;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
-import com.evolveum.midpoint.common.mining.objects.analysis.cache.RoleMemberCountCache;
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context.OutlierPatternResolver;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
+import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.RoleMemberCountCache;
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
+import com.evolveum.midpoint.common.mining.utils.values.FrequencyItem;
+import com.evolveum.midpoint.common.mining.utils.values.ZScoreData;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context.OutlierPatternResolver;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.SimpleHeatPattern;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.prepareDetectedPattern;
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 //TODO major multiple thinks is processed multiple times
 // (Create structure for caching these data, NOTE: use also clustering process there is multiple mapped structures that can be used)
@@ -41,23 +44,63 @@ public class OutliersDetectionUtil {
             @NotNull RoleAnalysisSessionType session,
             @NotNull String userOid,
             @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
-
         RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
         Double sensitivity = detectionOption.getSensitivity();
         double requiredConfidence = roleAnalysisService.calculateOutlierConfidenceRequired(sensitivity);
 
-        //TODO temporary solution
+        //TODO temporary solution // move outside from *
         requiredConfidence = requiredConfidence * 100;
 
-        Double clusterConfidence = partition.getPartitionAnalysis().getOverallConfidence();
-        Double clusterAnomalyObjectsConfidence = partition.getPartitionAnalysis().getAnomalyObjectsConfidence();
-        if (clusterConfidence == null
-                || clusterConfidence < requiredConfidence
-                || clusterAnomalyObjectsConfidence < requiredConfidence) {
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+        //TODO whats if cluster is < requiredConfidence and clusterAnomalyObjectsConfidence > requiredConfidence,
+        // should we inform manager about specific outlier type?
+//        Double clusterConfidence = partitionAnalysis.getOverallConfidence();
+//        Double clusterAnomalyObjectsConfidence = partition.getPartitionAnalysis().getAnomalyObjectsConfidence();
+//        if (clusterConfidence == null
+//                || (clusterConfidence < requiredConfidence
+//                && clusterAnomalyObjectsConfidence < requiredConfidence)) {
+//            return;
+//        }
+
+        Double partitionOverallConfidence = partitionAnalysis.getOverallConfidence();
+        if (partitionOverallConfidence == null || partitionOverallConfidence < requiredConfidence) {
             return;
         }
+
+        Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
+        Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
+
+        List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService
+                .resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
+        List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
+                .resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
+
+        RoleAnalysisPatternAnalysis patternAnalysis = partitionAnalysis.getPatternAnalysis();
+        if (patternAnalysis != null) {
+            RoleAnalysisDetectionPatternType topDetectedPattern = patternAnalysis.getTopDetectedPattern();
+            if (topDetectedPattern != null) {
+                roleAnalysisService.resolveDetectedPatternsAttributesCached(Collections.singletonList(topDetectedPattern), userExistCache,
+                        roleExistCache, userAnalysisCache, roleAnalysisAttributeDef, userAnalysisAttributeDef, task, result);
+            }
+        }
+
+        List<DetectedAnomalyResult> detectedAnomalyResults = partition.getDetectedAnomalyResult();
+
+        detectedAnomalyResults.forEach(detectedAnomalyResult -> {
+            RoleAnalysisPatternAnalysis pattern = detectedAnomalyResult.getStatistics().getPatternAnalysis();
+            if (pattern != null) {
+                RoleAnalysisDetectionPatternType topDetectedPattern = pattern.getTopDetectedPattern();
+                if (topDetectedPattern != null) {
+                    roleAnalysisService.resolveDetectedPatternsAttributesCached(Collections.singletonList(topDetectedPattern), userExistCache,
+                            roleExistCache, userAnalysisCache, roleAnalysisAttributeDef, userAnalysisAttributeDef, task, result);
+                }
+            }
+        });
+
+        //TODO to *
 
         PrismObject<RoleAnalysisOutlierType> outlierObject = roleAnalysisService.searchOutlierObjectByUserOidClusters(
                 userOid, task, result);
@@ -101,7 +144,7 @@ public class OutliersDetectionUtil {
         }
     }
 
-    static double calculateAssignmentAnomalyConfidence(
+    public static double calculateAssignmentAnomalyConfidence(
             @NotNull RoleAnalysisService roleAnalysisService,
             @Nullable List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
             PrismObject<UserType> userTypeObject,
@@ -117,7 +160,7 @@ public class OutliersDetectionUtil {
         double itemFactorConfidence = calculateItemFactorConfidence(
                 prepareRoleOutlier, userTypeObject, attributesForUserAnalysis, roleAnalysisService, userAnalysisCache, task, result);
         long endTime = System.currentTimeMillis();
-        LOGGER.debug("Item factor confidence calculation time in seconds: {}", (endTime - startTime) / 1000);
+        LOGGER.debug("ITEM FACTOR CONFIDENCE: Item factor confidence calculation time in ms: {}", (endTime - startTime));
         double distributionConfidence = statistics.getConfidenceDeviation();
         double patternConfidence = statistics.getPatternAnalysis().getConfidence();
         double roleMemberConfidence = calculateRoleCoverageConfidence(
@@ -134,8 +177,7 @@ public class OutliersDetectionUtil {
                 + roleMemberConfidenceDiff + coverageConfidenceDiff) / 5;
     }
 
-    static double getAverageItemFactor(@Nullable RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
-
+    public static double getAverageItemFactor(@Nullable RoleAnalysisAttributeAnalysisResult compareAttributeResult) {
         if (compareAttributeResult == null) {
             return 0;
         }
@@ -158,23 +200,33 @@ public class OutliersDetectionUtil {
     }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
-    static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
+    public static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
             @NotNull String userOid,
             @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            BasicOutlierDetectionStrategy.ProcessingTimes processingTimes,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Task task,
             @NotNull OperationResult result,
-            @Nullable List<String> allowedProperties) {
+            @Nullable List<String> allowedProperties,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
+            boolean includeAttributeAnalysis) {
         RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
 
+        //TODO take from session detection option
         DetectionOption detectionOption = new DetectionOption(
                 10, 100, 2, 2);
+        long startTime = System.currentTimeMillis();
         List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
                 .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
-                        Collections.singletonList(userOid), allowedProperties, processingTimes);
+                        Collections.singletonList(userOid), allowedProperties);
+        long endTime = System.currentTimeMillis();
+        if (allowedProperties == null) {
+            LOGGER.debug("PATTERN: User Pattern Detection time in ms: {}", (endTime - startTime));
+        } else {
+            LOGGER.debug("PATTERN: Anomaly Pattern Detection time in ms: {}", (endTime - startTime));
+        }
 
+        //TODO simplify until not needed
         int patternCount = totalRelationOfPatternsForCell.size();
         int totalRelations = 0;
         int topPatternRelation = 0;
@@ -217,16 +269,20 @@ public class OutliersDetectionUtil {
 
             pattern.setClusterMetric(detectedPattern.getMetric());
 
-            Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-            Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
+            if (includeAttributeAnalysis) {
+                Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
+                Map<String, PrismObject<RoleType>> roleExistCache = new HashMap<>();
 
-            List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService
-                    .resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
-            List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
-                    .resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
+                List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = roleAnalysisService
+                        .resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
+                List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
+                        .resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
 
-            roleAnalysisService.resolveDetectedPatternsAttributes(Collections.singletonList(pattern), userExistCache,
-                    roleExistCache, task, result, roleAnalysisAttributeDef, userAnalysisAttributeDef);
+                //TODO performance test  // 20 - 160ms on test data.
+                roleAnalysisService.resolveDetectedPatternsAttributesCached(Collections.singletonList(pattern), userExistCache,
+                        roleExistCache, userAnalysisCache, roleAnalysisAttributeDef, userAnalysisAttributeDef, task, result);
+
+            }
             patternInfo.setTopDetectedPattern(pattern);
         }
 
@@ -240,42 +296,6 @@ public class OutliersDetectionUtil {
         patternInfo.setClusterRelations(clusterRelations);
         return patternInfo;
     }
-
-    //TODO this is just for USER MODE! (Experimental) Need to be optimized (MAJOR).
-//    static @NotNull RoleAnalysisPatternAnalysis detectAndLoadPatternAnalysis(
-//            @NotNull MiningRoleTypeChunk miningRoleTypeChunk,
-//            @NotNull String user,
-//            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
-//            BasicOutlierDetectionStrategy.ProcessingTimes processingTimes) {
-//
-//        List<String> allowedProperties = miningRoleTypeChunk.getProperties();
-//        DetectionOption detectionOption = new DetectionOption(
-//                10, 100, 2, 2);
-//        List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
-//                .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
-//                        Collections.singletonList(user), allowedProperties, processingTimes);
-//
-//        int patternCount = totalRelationOfPatternsForCell.size();
-//        int totalRelations = 0;
-//        int topPatternRelation = 0;
-//        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
-//            int relations = simpleHeatPattern.getTotalRelations();
-//            totalRelations += relations;
-//            if (relations > topPatternRelation) {
-//                topPatternRelation = relations;
-//            }
-//        }
-//
-//        int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
-//        RoleAnalysisPatternAnalysis patternInfo = new RoleAnalysisPatternAnalysis();
-//        double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
-//        patternInfo.setConfidence(topPatternCoverage);
-//        patternInfo.setDetectedPatternCount(patternCount);
-//        patternInfo.setTopPatternRelation(topPatternRelation);
-//        patternInfo.setTotalRelations(totalRelations);
-//        patternInfo.setClusterRelations(clusterRelations);
-//        return patternInfo;
-//    }
 
     //TODO this is just for USER MODE! Implement Role (Experimental)
 
@@ -395,7 +415,7 @@ public class OutliersDetectionUtil {
     }
 
     @NotNull
-    static RoleAnalysisDetectionOptionType prepareDetectionOptions(@NotNull RoleAnalysisSessionType session) {
+    public static RoleAnalysisDetectionOptionType prepareDetectionOptions(@NotNull RoleAnalysisSessionType session) {
         RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();
         double minFrequency = 2;
         double maxFrequency = 2;
@@ -444,6 +464,197 @@ public class OutliersDetectionUtil {
                         duplicatedRoleAssignment.add(ref);
                     }
                 }
+            }
+        }
+    }
+
+    //TODO
+    public static double calculatePartitionOverallConfidence(double clusterConfidence, double partitionAnomaliesConfidence) {
+        double overallConfidence = 0;
+        double confidenceSum = clusterConfidence + partitionAnomaliesConfidence;
+        if (confidenceSum != 0) {
+            overallConfidence = confidenceSum / 2;
+        }
+        return overallConfidence;
+    }
+
+    //TODO
+    public static double calculatePartitionClusterConfidence(
+            double assignmentFrequencyConfidence,
+            double outlierPatternConfidence,
+            double averageItemFactor,
+            double density) {
+        double clusterConfidence = assignmentFrequencyConfidence
+                + outlierPatternConfidence
+                + averageItemFactor;
+
+        clusterConfidence += density;
+        if (clusterConfidence != 0) {
+            clusterConfidence = clusterConfidence / 4;
+        }
+        return clusterConfidence;
+    }
+
+    public static double calculatePartitionAnomaliesConfidence(@NotNull Collection<DetectedAnomalyResult> detectedAnomalyResults) {
+        double partitionAnomaliesConfidence = 0;
+        for (DetectedAnomalyResult prepareRoleOutlier : detectedAnomalyResults) {
+            Double confidence = prepareRoleOutlier.getStatistics().getConfidence();
+            partitionAnomaliesConfidence += confidence;
+        }
+        if (partitionAnomaliesConfidence != 0 && !detectedAnomalyResults.isEmpty()) {
+            partitionAnomaliesConfidence = partitionAnomaliesConfidence / detectedAnomalyResults.size();
+        }
+        return partitionAnomaliesConfidence;
+    }
+
+    public static void analyzeAndResolveOutlierObject(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull AttributeAnalysisCache analysisCache,
+            @NotNull OutlierAnalyzeModel analysisModel,
+            Collection<DetectedAnomalyResult> detectedAnomalyResults,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        RoleAnalysisClusterType analysisCluster = analysisModel.getAnalysisCluster();
+        String memberOid = analysisModel.getAnalyzedObjectRef().getOid();
+        double similarityThreshold = analysisModel.getSimilarityThreshold();
+        PrismObject<UserType> userObject = analysisModel.getUserObject();
+        List<MiningRoleTypeChunk> miningRoleTypeChunks = analysisModel.getMiningRoleTypeChunks();
+
+        RoleAnalysisSessionType session = analysisModel.getSession();
+        ObjectReferenceType clusterRef = analysisModel.getClusterRef();
+        ObjectReferenceType sessionRef = analysisModel.getSessionRef();
+        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = analysisModel.getAttributesForUserAnalysis();
+
+        AnalysisClusterStatisticType clusterStatistics1 = analysisCluster.getClusterStatistics();
+        int countOfRoles = clusterStatistics1.getRolesCount();
+
+        RoleAnalysisOutlierPartitionType partitionType = new RoleAnalysisOutlierPartitionType();
+        partitionType.setTargetClusterRef(clusterRef.clone());
+        partitionType.setTargetSessionRef(sessionRef.clone());
+        partitionType.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = new RoleAnalysisPartitionAnalysisType();
+
+        partitionAnalysis.setOutlierNoiseCategory(analysisModel.getNoiseCategory());
+        partitionAnalysis.setOutlierCategory(analysisModel.getOutlierCategory());
+
+        //Resolve similar objects analysis
+        RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = new RoleAnalysisOutlierSimilarObjectsAnalysisResult();
+        similarObjectAnalysis.setSimilarObjectsThreshold(similarityThreshold);
+        similarObjectAnalysis.setSimilarObjectsCount(analysisCluster.getMember().size());
+
+        Double density = clusterStatistics1.getMembershipDensity();
+        if (density == null) {
+            density = 0.0;
+        }
+        AnalysisClusterStatisticType clusterStatistics = analysisCluster.getClusterStatistics();
+        similarObjectAnalysis.setSimilarObjectsDensity(density);
+        //TODO store just useful information
+        similarObjectAnalysis.setClusterStatistics(clusterStatistics);
+
+        similarObjectAnalysis.getSimilarObjects().addAll(CloneUtil.cloneCollectionMembers(analysisCluster.getMember()));
+        partitionAnalysis.setSimilarObjectAnalysis(similarObjectAnalysis);
+
+        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics
+                .getUserAttributeAnalysisResult();
+
+        RoleAnalysisAttributeAnalysisResult compareAttributeResult = null;
+        if (userAttributeAnalysisResult != null && attributesForUserAnalysis != null) {
+
+            RoleAnalysisAttributeAnalysisResult userAttributes = analysisCache
+                    .getUserAttributeAnalysisCache(userObject.getOid());
+            if (userAttributes == null) {
+                userAttributes = roleAnalysisService.resolveUserAttributes(userObject, attributesForUserAnalysis);
+                analysisCache.putUserAttributeAnalysisCache(userObject.getOid(), userAttributes);
+            }
+
+            compareAttributeResult = roleAnalysisService
+                    .resolveSimilarAspect(userAttributes, userAttributeAnalysisResult);
+
+            AttributeAnalysis attributeAnalysis = new AttributeAnalysis();
+            attributeAnalysis.setUserAttributeAnalysisResult(userAttributeAnalysisResult);
+            attributeAnalysis.setUserClusterCompare(compareAttributeResult);
+            partitionAnalysis.setAttributeAnalysis(attributeAnalysis);
+        }
+
+        double assignmentFrequencyConfidence = calculateOutlierRoleAssignmentFrequencyConfidence(
+                userObject, countOfRoles);
+        partitionAnalysis.setOutlierAssignmentFrequencyConfidence(assignmentFrequencyConfidence);
+
+        RoleAnalysisPatternAnalysis roleAnalysisPatternInfo = detectAndLoadPatternAnalysis(memberOid, miningRoleTypeChunks,
+                session, roleAnalysisService, task, result, null, analysisCache, false);
+        partitionAnalysis.setPatternAnalysis(roleAnalysisPatternInfo);
+
+        double partitionAnomaliesConfidence = calculatePartitionAnomaliesConfidence(detectedAnomalyResults);
+        partitionAnalysis.setAnomalyObjectsConfidence(partitionAnomaliesConfidence);
+
+        partitionType.getDetectedAnomalyResult().addAll(CloneUtil.cloneCollectionMembers(detectedAnomalyResults));
+
+        double averageItemFactor = getAverageItemFactor(compareAttributeResult);
+
+        Double outlierPatternConfidence = partitionAnalysis.getPatternAnalysis().getConfidence();
+        if (outlierPatternConfidence == null) {
+            outlierPatternConfidence = 0.0;
+        }
+
+        double clusterConfidence = calculatePartitionClusterConfidence(assignmentFrequencyConfidence,
+                outlierPatternConfidence,
+                averageItemFactor,
+                density);
+        partitionAnalysis.setSimilarObjectsConfidence(clusterConfidence);
+
+        double overallConfidence = calculatePartitionOverallConfidence(clusterConfidence, partitionAnomaliesConfidence);
+        partitionAnalysis.setOverallConfidence(overallConfidence);
+
+        partitionType.setPartitionAnalysis(partitionAnalysis);
+
+        updateOrImportOutlierObject(roleAnalysisService, session, memberOid, partitionType, analysisCache, task, result);
+    }
+
+    public static void resolveOutlierAnomalies(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull AttributeAnalysisCache analysisCache,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull MiningRoleTypeChunk miningRoleTypeChunk,
+            @NotNull ZScoreData zScoreData,
+            @NotNull FrequencyItem frequencyItem,
+            @NotNull List<String> members,
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            @NotNull RoleAnalysisSessionType session,
+            @Nullable List<RoleAnalysisAttributeDef> attributesForUserAnalysis,
+            int userCountInRepo,
+            @NotNull ListMultimap<String, DetectedAnomalyResult> userRoleMap) {
+        List<String> roles = miningRoleTypeChunk.getMembers();
+        for (String role : roles) {
+            DetectedAnomalyResult anomalyResult = new DetectedAnomalyResult();
+            anomalyResult.setTargetObjectRef(new ObjectReferenceType().oid(role).type(RoleType.COMPLEX_TYPE));
+
+            anomalyResult.setStatistics(new DetectedAnomalyStatistics());
+            DetectedAnomalyStatistics statistics = anomalyResult.getStatistics();
+            anomalyResult.setCreateTimestamp(
+                    XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+
+            double confidence = roleAnalysisService.calculateZScoreConfidence(miningRoleTypeChunk, zScoreData);
+            statistics.setConfidenceDeviation(confidence);
+            statistics.setFrequency(frequencyItem.getFrequency());
+
+            for (String member : members) {
+                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(
+                        member, task, result);
+
+                List<String> allowedProperties = miningRoleTypeChunk.getProperties();
+                RoleAnalysisPatternAnalysis patternAnalysis = detectAndLoadPatternAnalysis(member, miningRoleTypeChunks, session,
+                        roleAnalysisService, task, result, allowedProperties, analysisCache, false);
+
+                statistics.setPatternAnalysis(patternAnalysis);
+
+                double anomalyConfidence = calculateAssignmentAnomalyConfidence(
+                        roleAnalysisService, attributesForUserAnalysis,
+                        userTypeObject, userCountInRepo, anomalyResult, analysisCache, task, result);
+
+                statistics.setConfidence(anomalyConfidence);
+                userRoleMap.put(member, anomalyResult);
             }
         }
     }

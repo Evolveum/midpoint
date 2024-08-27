@@ -80,7 +80,8 @@ public class PatternResolver implements DetectionOperation, Serializable {
         innerPatternPreparation(handler,
                 outerIntersections,
                 preparedObjects,
-                userBasedDetection, minOccupancy,
+                userBasedDetection,
+                minOccupancy,
                 intersections
         );
 
@@ -169,7 +170,8 @@ public class PatternResolver implements DetectionOperation, Serializable {
             @NotNull Set<List<String>> innerIntersections,
             @NotNull List<List<String>> outerIntersectionsList,
             @NotNull List<T> preparedObjects,
-            @NotNull List<DetectedPattern> intersections, int minOccupancy,
+            @NotNull List<DetectedPattern> intersections,
+            int minOccupancy,
             boolean userBasedDetection) {
         handler.enterNewStep("Outer Pattern Preparation");
         handler.setOperationCountToProcess(innerIntersections.size());

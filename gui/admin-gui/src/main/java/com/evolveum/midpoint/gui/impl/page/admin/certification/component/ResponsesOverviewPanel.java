@@ -74,7 +74,7 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
     protected void initLayout() {
         SimpleContainerPanel responsesContainer = new SimpleContainerPanel(ID_RESPONSES_CONTAINER,
                 createStringResource("PageCertCampaign.statistics.responses"));
-        responsesContainer.add(AttributeModifier.append("class", "card p-4"));
+//        responsesContainer.add(AttributeModifier.append("class", "card p-4"));
         responsesContainer.setOutputMarkupId(true);
         add(responsesContainer);
 

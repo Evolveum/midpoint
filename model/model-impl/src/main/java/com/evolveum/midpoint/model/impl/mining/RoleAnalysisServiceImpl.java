@@ -1907,6 +1907,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
     }
 
+    //NOTE used only outside session build process. Inside session build process is used userTypeAttributeAnalysisCached
     @Override
     public List<AttributeAnalysisStructure> userTypeAttributeAnalysis(
             @NotNull Set<PrismObject<UserType>> prismUsers,
@@ -1924,9 +1925,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Set<PrismObject<UserType>> prismUsers,
             Double membershipDensity,
             @NotNull AttributeAnalysisCache userAnalysisCache,
-            @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet) {
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet, @NotNull Task task,
+            @NotNull OperationResult result) {
         List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
         runUserAttributeAnalysisCached(this, prismUsers, attributeAnalysisStructures,
                 userAnalysisCache, task, result, attributeDefSet);
@@ -2087,6 +2087,118 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
             detectedPattern.setItemConfidence(itemsConfidence);
         }
+    }
+
+    @Override
+    public void resolveDetectedPatternsAttributesCached(
+            @NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns,
+            @NotNull Map<String, PrismObject<UserType>> userExistCache,
+            @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
+            @Nullable List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @Nullable List<RoleAnalysisAttributeDef> attributeUserDefSet,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        long start = System.currentTimeMillis();
+        for (RoleAnalysisDetectionPatternType detectedPattern : detectedPatterns) {
+
+            List<ObjectReferenceType> userOccupancy = detectedPattern.getUserOccupancy();
+            List<ObjectReferenceType> roleOccupancy = detectedPattern.getRolesOccupancy();
+            Set<PrismObject<UserType>> users;
+            Set<PrismObject<RoleType>> roles;
+
+            users = userOccupancy.stream().map(objectReferenceType -> this
+                            .cacheUserTypeObject(userExistCache, objectReferenceType.getOid(), task, result, null))
+                    .filter(Objects::nonNull).collect(Collectors.toSet());
+
+            roles = roleOccupancy.stream().map(objectReferenceType -> this
+                            .cacheRoleTypeObject(roleExistCache, objectReferenceType.getOid(), task, result, null))
+                    .filter(Objects::nonNull).collect(Collectors.toSet());
+
+            List<AttributeAnalysisStructure> userAttributeAnalysisStructures = null;
+            if (attributeUserDefSet != null) {
+                userAttributeAnalysisStructures = this.userTypeAttributeAnalysisCached(
+                        users, 100.0, userAnalysisCache, attributeUserDefSet, task, result);
+            }
+
+            List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = null;
+            if (attributeRoleDefSet != null) {
+                roleAttributeAnalysisStructures = this
+                        .roleTypeAttributeAnalysis(roles, 100.0, task, result, attributeRoleDefSet);
+            }
+
+            double totalDensity = 0.0;
+            int totalCount = 0;
+
+            if (userAttributeAnalysisStructures != null) {
+                RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
+                for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
+                    double density = userAttributeAnalysisStructure.getDensity();
+                    if (density == 0) {
+                        continue;
+                    }
+
+                    totalDensity += density;
+
+                    RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+                    roleAnalysisAttributeAnalysis.setDensity(density);
+                    roleAnalysisAttributeAnalysis.setItemPath(userAttributeAnalysisStructure.getItemPath());
+                    roleAnalysisAttributeAnalysis.setIsMultiValue(userAttributeAnalysisStructure.isMultiValue());
+                    roleAnalysisAttributeAnalysis.setDescription(userAttributeAnalysisStructure.getDescription());
+                    roleAnalysisAttributeAnalysis.setParentType(userAttributeAnalysisStructure.getComplexType());
+
+                    List<RoleAnalysisAttributeStatistics> attributeStatistics = userAttributeAnalysisStructure.getAttributeStatistics();
+                    for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                        roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                    }
+
+                    userAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
+                }
+
+                detectedPattern.setUserAttributeAnalysisResult(userAnalysis);
+                totalCount += userAnalysis.getAttributeAnalysis().size();
+            }
+
+            if (roleAttributeAnalysisStructures != null) {
+                RoleAnalysisAttributeAnalysisResult roleAnalysis = new RoleAnalysisAttributeAnalysisResult();
+                for (AttributeAnalysisStructure roleAttributeAnalysisStructure : roleAttributeAnalysisStructures) {
+                    double density = roleAttributeAnalysisStructure.getDensity();
+                    if (density == 0) {
+                        continue;
+                    }
+
+                    totalDensity += density;
+
+                    RoleAnalysisAttributeAnalysis roleAnalysisAttributeAnalysis = new RoleAnalysisAttributeAnalysis();
+                    roleAnalysisAttributeAnalysis.setDensity(density);
+                    roleAnalysisAttributeAnalysis.setItemPath(roleAttributeAnalysisStructure.getItemPath());
+                    roleAnalysisAttributeAnalysis.setIsMultiValue(roleAttributeAnalysisStructure.isMultiValue());
+                    roleAnalysisAttributeAnalysis.setDescription(roleAttributeAnalysisStructure.getDescription());
+                    roleAnalysisAttributeAnalysis.setParentType(roleAttributeAnalysisStructure.getComplexType());
+                    List<RoleAnalysisAttributeStatistics> attributeStatistics = roleAttributeAnalysisStructure.getAttributeStatistics();
+                    for (RoleAnalysisAttributeStatistics attributeStatistic : attributeStatistics) {
+                        roleAnalysisAttributeAnalysis.getAttributeStatistics().add(attributeStatistic);
+                    }
+                    roleAnalysis.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis);
+                }
+
+                detectedPattern.setRoleAttributeAnalysisResult(roleAnalysis);
+                totalCount += roleAnalysis.getAttributeAnalysis().size();
+            }
+
+            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = detectedPattern.getRoleAttributeAnalysisResult();
+            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
+
+            int itemCount = (roleAttributeAnalysisResult != null
+                    ? roleAttributeAnalysisResult.getAttributeAnalysis().size() : 0)
+                    + (userAttributeAnalysisResult != null ? userAttributeAnalysisResult.getAttributeAnalysis().size() : 0);
+
+            double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
+            detectedPattern.setItemConfidence(itemsConfidence);
+        }
+        long end = System.currentTimeMillis();
+        LOGGER.info("Time to resolve detected patterns attributes: {} ms", (end - start));
     }
 
     private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
@@ -2461,7 +2573,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         List<AttributeAnalysisStructure> userAttributeAnalysisStructures = this
-                .userTypeAttributeAnalysisCached(users, 100.0, userAnalysisCache, task, result, attributeDefSet);
+                .userTypeAttributeAnalysisCached(users, 100.0, userAnalysisCache, attributeDefSet, task, result);
 
         RoleAnalysisAttributeAnalysisResult userAnalysis = new RoleAnalysisAttributeAnalysisResult();
         for (AttributeAnalysisStructure userAttributeAnalysisStructure : userAttributeAnalysisStructures) {
@@ -2491,6 +2603,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull List<T> data,
             @Nullable RangeType range,
             @Nullable Double sensitivity) {
+        double defaultMaxFrequency = 0.5;
 
         if (sensitivity == null) {
             sensitivity = 0.0;
@@ -2542,26 +2655,35 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             item.getFrequencyItem().setConfidence(confidence);
             item.getFrequencyItem().setzScore(zScore);
             // -1 OR -2 should it be fixed or configurable. Now it is good to identify unusual values like TODO
-            if (zScore <= -negativeThreshold) {
+            //Temporary disable thing about it later
+//            if (zScore <= -negativeThreshold) {
+//                item.getFrequencyItem().setNegativeExclude();
+//            } else if (zScore >= positiveThreshold) {
+//                item.getFrequencyItem().setPositiveExclude();
+//            } else {
+//                item.getFrequencyItem().setInclude();
+//            }
+
+            double frequencyValue = item.getFrequencyValue();
+            if (zScore <= -negativeThreshold && frequencyValue <= defaultMaxFrequency) {
                 item.getFrequencyItem().setNegativeExclude();
-            } else if (zScore >= positiveThreshold) {
-                item.getFrequencyItem().setPositiveExclude();
             } else {
                 item.getFrequencyItem().setInclude();
             }
         }
 
         //TODO experiment
-        resolveNeighbours(data);
+        resolveNeighbours(data, defaultMaxFrequency);
         return zScoreData;
     }
 
-    public <T extends MiningBaseTypeChunk> void resolveNeighbours(@NotNull List<T> data) {
+    public <T extends MiningBaseTypeChunk> void resolveNeighbours(@NotNull List<T> data, double maxFrequency) {
 //        List<T> negativeExcludeChunks = new ArrayList<>();
         ListMultimap<FrequencyItem.Status, T> itemMap = ArrayListMultimap.create();
         for (T chunk : data) {
+            double frequency = chunk.getFrequencyValue();
             double status = chunk.getFrequencyItem().getzScore();
-            if (status <= -1) {
+            if (status <= -1 && frequency <= maxFrequency) {
                 itemMap.put(FrequencyItem.Status.NEGATIVE_EXCLUDE, chunk);
             }
 //            if (status.equals(FrequencyItem.Status.NEGATIVE_EXCLUDE)) {

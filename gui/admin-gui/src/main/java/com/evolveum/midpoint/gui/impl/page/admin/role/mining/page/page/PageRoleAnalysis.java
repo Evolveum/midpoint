@@ -129,27 +129,29 @@ public class PageRoleAnalysis extends PageAdmin {
             return;
         }
 
+        PageBase pageBase = (PageBase) getPage();
+        ModelService modelService = pageBase.getModelService();
+        Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
+        OperationResult result = task.getResult();
+        SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchResultList;
+        try {
+            searchResultList = modelService
+                    .searchObjects(RoleAnalysisOutlierType.class, null, null, task, result);
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
+                CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<RoleAnalysisOutlierType> topFiveOutliers = getTopFiveOutliers(searchResultList);
+
         RoleAnalysisInfoPanel roleAnalysisInfoPanel = new RoleAnalysisInfoPanel(ID_CHART_PANEL) {
             @Override
             protected @NotNull IModel<List<IdentifyWidgetItem>> getModelOutliers() {
-                PageBase pageBase = (PageBase) getPage();
-                ModelService modelService = pageBase.getModelService();
-                Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
-                OperationResult result = task.getResult();
-                SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchResultList;
-                try {
-                    searchResultList = modelService
-                            .searchObjects(RoleAnalysisOutlierType.class, null, null, task, result);
-                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
-                        CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                    throw new RuntimeException(e);
-                }
 
-                if (searchResultList == null || searchResultList.isEmpty()) {
+                if (searchResultList.isEmpty()) {
                     return Model.ofList(List.of());
                 }
 
-                List<RoleAnalysisOutlierType> topFiveOutliers = getTopFiveOutliers(searchResultList);
                 List<IdentifyWidgetItem> detailsModel = new ArrayList<>();
 
                 for (RoleAnalysisOutlierType topFiveOutlier : topFiveOutliers) {
@@ -193,9 +195,9 @@ public class PageRoleAnalysis extends PageAdmin {
                             Model.of("name")) {
                         @Override
                         public void onActionComponentClick(AjaxRequestTarget target) {
-                            RoleAnalysisPartitionOverviewPanel panel =  new RoleAnalysisPartitionOverviewPanel(
+                            RoleAnalysisPartitionOverviewPanel panel = new RoleAnalysisPartitionOverviewPanel(
                                     ((PageBase) getPage()).getMainPopupBodyId(),
-                                    Model.of(finalTopPartition),Model.of(topFiveOutlier)){
+                                    Model.of(finalTopPartition), Model.of(topFiveOutlier)) {
                                 @Override
                                 public IModel<String> getTitle() {
                                     return createStringResource(
@@ -233,7 +235,6 @@ public class PageRoleAnalysis extends PageAdmin {
             @Override
             protected IModel<List<IdentifyWidgetItem>> getModelPatterns() {
                 PageBase pageBase = (PageBase) getPage();
-
                 OperationResult result = new OperationResult("loadRoleAnalysisInfo");
                 RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
                 int allUserOwnedRoleAssignments = roleAnalysisService.countUserOwnedRoleAssignment(result);
@@ -284,7 +285,7 @@ public class PageRoleAnalysis extends PageAdmin {
 
                         @Override
                         public Component createTitleComponent(String id) {
-                                AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, Model.of(patternName)) {
+                            AjaxLinkPanel linkPanel = new AjaxLinkPanel(id, Model.of(patternName)) {
                                 @Override
                                 public void onClick(AjaxRequestTarget target) {
                                     PageParameters parameters = new PageParameters();
