@@ -202,7 +202,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             @Override
             protected String load() {
                 CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getCampaign());
-                return campaignStateHelper.getNextAction().getActionIcon().getCssClass();
+                return campaignStateHelper.getNextAction().getActionCssClass();
             }
         };
     }
