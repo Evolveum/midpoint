@@ -19,10 +19,17 @@ import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.repo.api.AggregateQuery;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -540,5 +547,57 @@ public class CertMiscUtil {
         CampaignStateHelper helper = new CampaignStateHelper(campaign);
         List<CampaignStateHelper.CampaignAction> actionsList = helper.getAvailableActions();
         return actionsList.contains(action);
+    }
+
+    public static List<ObjectReferenceType> loadCampaignReviewers(String campaignOid, PageBase pageBase) {
+        OperationResult result = new OperationResult("loadCampaignReviewers");
+        try {
+            var outcomePath = ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME);
+            var spec = AggregateQuery.forType(AccessCertificationWorkItemType.class)
+                    .resolveNames()
+                    .retrieve(AccessCertificationWorkItemType.F_ASSIGNEE_REF) // Resolver assignee
+                    .retrieve(AbstractWorkItemOutputType.F_OUTCOME, outcomePath)
+                    .count(AccessCertificationCaseType.F_WORK_ITEM, ItemPath.SELF_PATH);
+
+            spec.filter(PrismContext.get().queryFor(AbstractWorkItemType.class)
+                    .ownerId(campaignOid)
+                    .buildFilter()
+            );
+            spec.orderBy(spec.getResultItem(AccessCertificationWorkItemType.F_ASSIGNEE_REF), OrderDirection.DESCENDING);
+
+            SearchResultList<PrismContainerValue<?>> reviewersOutcomes = pageBase.getRepositoryService().searchAggregate(spec, result);
+            return collectReviewers(reviewersOutcomes);
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't load campaign reviewers", ex);
+            pageBase.showResult(result);
+        }
+        return new ArrayList<>();
+    }
+
+    private static List<ObjectReferenceType> collectReviewers(SearchResultList<PrismContainerValue<?>> reviewersOutcomes) {
+        List<ObjectReferenceType> reviewersList = new ArrayList<>();
+        reviewersOutcomes.forEach(reviewersOutcome -> {
+            Item assigneeItem = reviewersOutcome.findItem(AccessCertificationWorkItemType.F_ASSIGNEE_REF);
+            if (assigneeItem == null) {
+                return;
+            }
+            assigneeItem.getValues()
+                    .forEach(refValue -> {
+                        PrismReferenceValueImpl assignee = (PrismReferenceValueImpl) refValue;
+                        ObjectReferenceType assigneeRef = new ObjectReferenceType();
+                        assigneeRef.setOid(assignee.getOid());
+                        assigneeRef.setType(assignee.getTargetType());
+                        if (!alreadyExistInList(reviewersList, assigneeRef)) {
+                            reviewersList.add(assigneeRef);
+                        }
+                    });
+        });
+        return reviewersList;
+    }
+
+    private static boolean alreadyExistInList(List<ObjectReferenceType> reviewersList, ObjectReferenceType ref) {
+        return reviewersList
+                .stream()
+                .anyMatch(r -> r.getOid().equals(ref.getOid()));
     }
 }
