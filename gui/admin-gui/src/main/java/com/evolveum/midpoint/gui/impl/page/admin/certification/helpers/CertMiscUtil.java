@@ -15,6 +15,7 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -483,7 +485,7 @@ public class CertMiscUtil {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        List<AccessCertificationCampaignType> campaigns = selectedCampaignsModel.getObject();
+                        final List<AccessCertificationCampaignType> campaigns = new ArrayList<>(selectedCampaignsModel.getObject());
                         if (campaigns.isEmpty()) {
                             IModel<?> rowModel = getRowModel();
                             if (rowModel == null || rowModel.getObject() == null) {
@@ -493,9 +495,29 @@ public class CertMiscUtil {
                             }
                             AccessCertificationCampaignType campaign =
                                     (AccessCertificationCampaignType) ((SelectableBean) rowModel.getObject()).getValue();
-                            campaigns = Collections.singletonList(campaign);
+                            campaigns.add(campaign);
                         }
-                        CampaignProcessingHelper.campaignActionPerformed(campaigns, action, pageBase, target);
+
+                        IModel<String> confirmModel;
+                        if (campaigns.size() == 1) {
+                            String campaignName = LocalizationUtil.translatePolyString(campaigns.get(0).getName());
+                            confirmModel = pageBase.createStringResource(action.getConfirmation().getSingleConfirmationMessageKey(),
+                                    campaignName);
+                        } else {
+                            confirmModel = pageBase.createStringResource(action.getConfirmation().getMultipleConfirmationMessageKey(),
+                                    campaigns.size());
+                        }
+                        ConfirmationPanel confirmationPanel = new ConfirmationPanel(pageBase.getMainPopupBodyId(), confirmModel) {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void yesPerformed(AjaxRequestTarget target) {
+                                OperationResult result = new OperationResult("certificationItemAction");
+                                CampaignProcessingHelper.campaignActionConfirmed(campaigns, action, pageBase, target, result);
+                                target.add(pageBase);
+                            }
+                        };
+                        pageBase.showMainPopup(confirmationPanel, target);
                     }
                 };
             }

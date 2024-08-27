@@ -16,7 +16,11 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertCampaign;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,13 +34,17 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignP
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignStateHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -52,6 +60,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
     private static final String ID_SELECT_TILE_CHECKBOX = "selectTileCheckbox";
     private static final String ID_STATUS = "status";
+    private static final String ID_REDIRECT_TO_TASK_BUTTON = "redirectToTaskButton";
     private static final String ID_MENU = "menu";
     private static final String ID_TITLE = "title";
     private static final String ID_DESCRIPTION = "description";
@@ -60,12 +69,10 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private static final String ID_STAGE = "stage";
     private static final String ID_ITERATION = "iteration";
     private static final String ID_ACTION_BUTTON = "actionButton";
-    private static final String ID_ACTION_BUTTON_LABEL = "actionButtonLabel";
-    private static final String ID_ACTION_BUTTON_ICON = "actionButtonIcon";
     private static final String ID_DETAILS = "details";
     private static final String ID_DETAILS_LABEL = "detailsLabel";
 
-    CampaignStateHelper campaignStateHelper;
+    String runningTaskOid;
 
     public CampaignTilePanel(String id, IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
         super(id, model);
@@ -74,9 +81,6 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     @Override
     protected void onInitialize() {
         super.onInitialize();
-
-        campaignStateHelper = new CampaignStateHelper(getCampaign());
-
         initLayout();
     }
 
@@ -95,6 +99,20 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         status.setOutputMarkupId(true);
         status.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
         add(status);
+
+        AjaxLink<Void> redirectToTaskButton = new AjaxLink<>(ID_REDIRECT_TO_TASK_BUTTON) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(runningTaskOid, ObjectTypes.TASK);
+                DetailsPageUtil.dispatchToObjectDetailsPage(ref, CampaignTilePanel.this, false);
+            }
+        };
+        redirectToTaskButton.setOutputMarkupId(true);
+        redirectToTaskButton.add(AttributeAppender.append("title", createStringResource("PageCertCampaign.button.showRunningTask")));
+        redirectToTaskButton.add(new VisibleBehaviour(() -> isAuthorizedForCampaignActions() && StringUtils.isNotEmpty(runningTaskOid)));
+        add(redirectToTaskButton);
 
         DropdownButtonPanel menu = new DropdownButtonPanel(ID_MENU, createMenuDropDownButtonModel().getObject()) {
             @Serial private static final long serialVersionUID = 1L;
@@ -140,27 +158,26 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         iteration.setOutputMarkupId(true);
         add(iteration);
 
-        AjaxLink<Void> actionButton = new AjaxLink<>(ID_ACTION_BUTTON) {
+        LoadableDetachableModel<String> buttonLabelModel = getActionButtonTitleModel();
+
+        CampaignActionButton actionButton = new CampaignActionButton(ID_ACTION_BUTTON, getPageBase(), getCampaignModel(), buttonLabelModel) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                CampaignProcessingHelper.campaignActionPerformed(getCampaign(), getPageBase(), target);
+            protected void refresh(AjaxRequestTarget target) {
+                runningTaskOid = getRunningTaskOid();
+                buttonLabelModel.detach();
+                target.add(CampaignTilePanel.this);
+                Component feedbackPanel = getPageBase().getFeedbackPanel();
+                target.add(feedbackPanel);
             }
+
         };
-        actionButton.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionCssClass()));
+        actionButton.setOutputMarkupPlaceholderTag(true);
+        actionButton.add(AttributeModifier.append("class", getActionButtonCssModel()));
         actionButton.setOutputMarkupId(true);
         actionButton.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
         add(actionButton);
-
-        Label actionButtonLabel = new Label(ID_ACTION_BUTTON_LABEL, getActionButtonModel());
-        actionButtonLabel.setOutputMarkupId(true);
-        actionButton.add(actionButtonLabel);
-
-        WebMarkupContainer actionButtonIcon = new WebMarkupContainer(ID_ACTION_BUTTON_ICON);
-        actionButtonIcon.add(AttributeModifier.append("class", campaignStateHelper.getNextAction().getActionIcon().getCssClass()));
-        actionButtonIcon.setOutputMarkupId(true);
-        actionButton.add(actionButtonIcon);
 
         AjaxLink<Void> details = new AjaxLink<>(ID_DETAILS) {
             @Serial private static final long serialVersionUID = 1L;
@@ -178,13 +195,14 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
     }
 
-    private LoadableModel<String> getActionButtonModel() {
+    private LoadableModel<String> getActionButtonCssModel() {
         return new LoadableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected String load() {
-                return createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()).getString();
+                CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getCampaign());
+                return campaignStateHelper.getNextAction().getActionIcon().getCssClass();
             }
         };
     }
@@ -204,12 +222,13 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         };
     }
 
-    private LoadableModel<Badge> getStatusModel() {
-        return new LoadableModel<>() {
+    private LoadableDetachableModel<Badge> getStatusModel() {
+        return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected Badge load() {
+                CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getCampaign());
                 return campaignStateHelper.createBadge();
             }
         };
@@ -235,6 +254,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             @Override
             protected List<InlineMenuItem> load() {
                 List<AccessCertificationCampaignType> campaignList = Collections.singletonList(getCampaign());
+                CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getCampaign());
                 List<CampaignStateHelper.CampaignAction> actionsList = campaignStateHelper.getAvailableActions();
                 return actionsList
                         .stream()
@@ -252,6 +272,15 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             @Override
             protected String load() {
                 return WebComponentUtil.getName(getCampaign());
+            }
+        };
+    }
+
+    public LoadableDetachableModel<AccessCertificationCampaignType> getCampaignModel() {
+        return new LoadableDetachableModel<AccessCertificationCampaignType>() {
+            @Override
+            protected AccessCertificationCampaignType load() {
+                return getCampaign();
             }
         };
     }
@@ -305,5 +334,17 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
      */
     protected LoadableModel<List<ProgressBar>> createCampaignProgressModel() {
         return null;
+    }
+
+    private LoadableDetachableModel<String> getActionButtonTitleModel() {
+        return new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                CampaignStateHelper campaignStateHelper = new CampaignStateHelper(getCampaign());
+                return createStringResource(campaignStateHelper.getNextAction().getActionLabelKey()).getString();
+            }
+        };
     }
 }

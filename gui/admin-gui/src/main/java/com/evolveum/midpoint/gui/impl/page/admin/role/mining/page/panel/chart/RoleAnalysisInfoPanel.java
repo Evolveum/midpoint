@@ -86,13 +86,6 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         PageBase pageBase = (PageBase) getPage();
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
 
-//        if (getModelDistribution() == null) {
-//            WebMarkupContainer roleAnalysisInfoOutlierPanel = new WebMarkupContainer(ID_DISTRIBUTION_PANEL);
-//            roleAnalysisInfoOutlierPanel.setOutputMarkupId(true);
-//            add(roleAnalysisInfoOutlierPanel);
-//            return;
-//        }
-
         RoleAnalysisIdentifyWidgetPanel distributionPanel = new RoleAnalysisIdentifyWidgetPanel(ID_DISTRIBUTION_PANEL,
                 createStringResource("Distribution.access.title"), getModelDistribution()) {
 
@@ -104,9 +97,11 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
-                List<ProgressBar> progressBars = new ArrayList<>();
+                PageBase pageBase = RoleAnalysisInfoPanel.this.getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
                 Task task = pageBase.createSimpleTask("Count objects");
                 OperationResult result = task.getResult();
+
                 Integer rolesInSystem = roleAnalysisService.countObjects(RoleType.class, null, null, task, result);
                 if (rolesInSystem == null) {
                     rolesInSystem = 0;
@@ -119,6 +114,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
                 int allObjects = rolesInSystem + usersInSystem;
 
+                List<ProgressBar> progressBars = new ArrayList<>();
                 progressBars.add(new ProgressBar(rolesInSystem * 100 / (double) allObjects, ProgressBar.State.SUCCESS));
                 progressBars.add(new ProgressBar(usersInSystem * 100 / (double) allObjects, ProgressBar.State.DANGER));
 
@@ -249,10 +245,6 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             return;
         }
 
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        Task task = getPageBase().createSimpleTask("Prepare data");
-        OperationResult result = task.getResult();
-
         RoleAnalysisIdentifyWidgetPanel patternPanel = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERN_PANEL,
                 createStringResource("Pattern.suggestions.title"), getModelPatterns()) {
 
@@ -265,7 +257,10 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
                 List<ProgressBar> progressBars = new ArrayList<>();
-
+                PageBase pageBase = RoleAnalysisInfoPanel.this.getPageBase();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                Task task = pageBase.createSimpleTask("Prepare data");
+                OperationResult result = task.getResult();
                 int[] resolvedAndCandidateRoles = roleAnalysisService.computeResolvedAndCandidateRoles(task, result);
 
                 int resolved = resolvedAndCandidateRoles[0];

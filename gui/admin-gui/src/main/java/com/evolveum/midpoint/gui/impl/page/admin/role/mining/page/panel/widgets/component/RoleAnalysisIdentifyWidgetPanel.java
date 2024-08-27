@@ -17,6 +17,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -82,6 +83,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
         IModel<String> titleModel = getTitleModel();
 
         WebMarkupContainer card = new WebMarkupContainer(ID_CARD);
+        card.add(AttributeAppender.append("class", " m-0"));
         card.setOutputMarkupId(true);
         add(card);
 
@@ -250,7 +252,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
     }
 
     protected String initDefaultCssClass() {
-        return "col-4";
+        return ""; /* col-4 */
     }
 
     protected String getBodyHeaderPanelStyle() {
