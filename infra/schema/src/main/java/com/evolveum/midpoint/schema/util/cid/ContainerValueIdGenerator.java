@@ -63,7 +63,7 @@ public class ContainerValueIdGenerator {
             assignMissingContainerIds();
         }
         if (containerIdSeq <= maxUsedId) {
-            LOGGER.warn("Current CID sequence ({}) is not above max used CID ({}) for {}/{}. "
+            LOGGER.debug("Current CID sequence ({}) is not above max used CID ({}) for {}/{}. "
                     + "CID sequence will be fixed, but it's suspicious!",
                     containerIdSeq, maxUsedId, object.toDebugType(), object.getOid());
         } else {
