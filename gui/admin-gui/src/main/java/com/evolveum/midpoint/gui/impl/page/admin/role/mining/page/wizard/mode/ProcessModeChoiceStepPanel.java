@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode;
 
 import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
 import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_ICON;
@@ -12,9 +12,18 @@ import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
+
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.util.visit.ClassVisitFilter;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,10 +37,6 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 @PanelType(name = "rm-process")
 @PanelInstance(identifier = "rm-process",
@@ -44,8 +49,8 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
     public static final String PANEL_TYPE = "rm-process";
 
     /**
-     * @param id
-     * @param resourceModel
+     * @param id Panel ID
+     * @param resourceModel AssignmentHolderDetailsModel
      **/
     public ProcessModeChoiceStepPanel(String id, AssignmentHolderDetailsModel<RoleAnalysisSessionType> resourceModel) {
         super(id, resourceModel, ProcessMode.class);
@@ -70,12 +75,33 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
             mode = RoleAnalysisProcessModeType.USER;
         }
 
-        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapper();
+        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getAssignmentHolderDetailsModel()
+                .getObjectWrapperModel();
+
+        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = getAssignmentHolderDetailsModel()
+                .getObjectWrapper();
+
         PrismContainer<Containerable> property = objectWrapper.getObject()
                 .findContainer(RoleAnalysisSessionType.F_ANALYSIS_OPTION);
-
         property.findProperty(RoleAnalysisOptionType.F_PROCESS_MODE)
                 .setRealValue(mode);
+
+        Containerable realValue = property.getRealValue();
+
+        if (realValue instanceof RoleAnalysisOptionType analysisOptionType) {
+            RoleAnalysisCategoryType analysisCategory = analysisOptionType.getAnalysisCategory();
+            if (analysisCategory != null) {
+                Task task = getPageBase().createSimpleTask("prepare options");
+                OperationResult result = task.getResult();
+                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                AnalysisCategory.generateConfiguration(
+                        roleAnalysisService, analysisCategory, objectWrapperModel, task, result);
+            } else {
+                throw new IllegalStateException("Unexpected null value (expected RoleAnalysisCategoryType != null): " + realValue);
+            }
+        } else {
+            throw new IllegalStateException("Unexpected value (expected RoleAnalysisOptionType): " + realValue);
+        }
 
         onSubmitPerformed(target);
     }
