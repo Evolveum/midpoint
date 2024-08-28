@@ -204,7 +204,11 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public String debugDump(int indent) {
-            return DebugUtil.debugDump(shadow, indent);
+            StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+            DebugUtil.debugDumpWithLabelLn(sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
+            DebugUtil.debugDumpWithLabelLn(sb, "shadow", shadow, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "aPrioriShadowDelta", aPrioriShadowDelta, indent + 1);
+            return sb.toString();
         }
     }
 

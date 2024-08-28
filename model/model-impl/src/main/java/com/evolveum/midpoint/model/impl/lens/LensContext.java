@@ -1395,7 +1395,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
             for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
                 bean.getRottenExecutedDeltas()
-                        .add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
+                        .add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationBean());
             }
         }
         if (!getSequences().isEmpty()) {
@@ -1792,7 +1792,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     ObjectDeltaSchemaLevelUtil.NameResolver getNameResolver() {
-        return (objectClass, oid) -> {
+        return (objectClass, oid, lResult) -> {
             if (ResourceType.class.equals(objectClass) || ShadowType.class.equals(objectClass)) {
                 for (LensProjectionContext projectionContext : projectionContexts) {
                     PolyString name = projectionContext.resolveNameIfKnown(objectClass, oid);

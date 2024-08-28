@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 import static java.util.Collections.emptySet;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.config.AssignmentConfigItem;
 
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -690,17 +693,18 @@ public class LensUtil {
         }
     }
 
-    public static <F extends ObjectType> LensObjectDeltaOperation<F> createObjectDeltaOperation(ObjectDelta<F> focusDelta, OperationResult result,
-                                                                                                LensElementContext<F> focusContext, LensProjectionContext projCtx) {
-        return createObjectDeltaOperation(focusDelta, result, focusContext, projCtx, null);
-    }
-
-    // projCtx may or may not be present (object itself can be focus or projection)
-    public static <T extends ObjectType> LensObjectDeltaOperation<T> createObjectDeltaOperation(ObjectDelta<T> objectDelta, OperationResult result,
+    public static <T extends ObjectType> LensObjectDeltaOperation<T> createObjectDeltaOperation(
+            ObjectDelta<T> objectDelta,
+            OperationResult result,
             LensElementContext<T> objectContext,
-            LensProjectionContext projCtx,
             ResourceType resource) {
         LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<>(objectDelta.clone());
+        objectDeltaOp.setWave(objectContext.getLensContext().getExecutionWave());
+        if (objectContext instanceof LensProjectionContext) {
+            objectDeltaOp.setBaseObject(
+                    CloneUtil.cloneCloneable(
+                            asObjectable(objectContext.getObjectCurrent())));
+        }
         objectDeltaOp.setExecutionResult(result);
         PrismObject<T> object = objectContext.getObjectAny();
         if (object != null) {
@@ -715,24 +719,21 @@ public class LensUtil {
                         name.recompute(PrismContext.get().getDefaultPolyStringNormalizer());
                     }
                 } catch (SchemaException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine name for shadow -- continuing with no name; shadow:\n{}", e, object.debugDump());
+                    LoggingUtils.logUnexpectedException(
+                            LOGGER, "Couldn't determine name for shadow -- continuing with no name; shadow:\n{}",
+                            e, object.debugDump());
                 }
             }
             objectDeltaOp.setObjectName(name);
         }
-        if (resource == null && projCtx != null) {
-            resource = projCtx.getResource();
-        }
-
         if (resource != null) {
             objectDeltaOp.setResourceOid(resource.getOid());
             objectDeltaOp.setResourceName(PolyString.toPolyString(resource.getName()));
-            if (object.asObjectable() instanceof ShadowType shadow) {
+            if (object != null && object.asObjectable() instanceof ShadowType shadow) {
                 objectDeltaOp.setShadowKind(shadow.getKind());
                 objectDeltaOp.setShadowIntent(shadow.getIntent());
             }
         } else if (objectContext instanceof LensProjectionContext ctx) {
-
             objectDeltaOp.setResourceOid(ctx.getResourceOid());
             objectDeltaOp.setShadowKind(ctx.getKind());
             objectDeltaOp.setShadowIntent(ctx.getKey().getIntent());

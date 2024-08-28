@@ -651,4 +651,20 @@ public interface ResourceObjectDefinition
         }
         return passwordCachingPolicy.getCachingStrategy();
     }
+
+    default boolean isEffectivelyCached(ItemPath itemPath) {
+        if (itemPath.startsWith(ShadowType.F_ATTRIBUTES)) {
+            var attrDef = findAttributeDefinition(itemPath.rest().asSingleNameOrFail());
+            return attrDef != null && attrDef.isEffectivelyCached(this);
+        } else if (itemPath.startsWith(ShadowType.F_ASSOCIATIONS)) {
+            var assocDef = findAssociationDefinition(itemPath.rest().asSingleNameOrFail());
+            return assocDef != null && assocDef.getReferenceAttributeDefinition().isEffectivelyCached(this);
+        } else if (itemPath.startsWith(ShadowType.F_ACTIVATION)) {
+            return isActivationCached(); // FIXME what about sub-items that are always stored in the shadow?
+        } else if (itemPath.startsWith(ShadowType.F_CREDENTIALS)) {
+            return areCredentialsCached(); // FIXME what about sub-items that are always stored in the shadow?
+        } else {
+            return itemPath.equivalent(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+        }
+    }
 }

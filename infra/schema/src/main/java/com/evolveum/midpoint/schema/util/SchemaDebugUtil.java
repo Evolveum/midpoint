@@ -526,6 +526,11 @@ public class SchemaDebugUtil {
         sb.append(ref.getOid());
         sb.append(",");
         sb.append(prettyPrint(ref.getType()));
+        var targetName = ref.getTargetName();
+        if (targetName != null) {
+            sb.append(",");
+            sb.append(targetName.getOrig());
+        }
         sb.append(")");
         return sb.toString();
     }

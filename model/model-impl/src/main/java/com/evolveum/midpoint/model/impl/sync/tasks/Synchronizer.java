@@ -89,12 +89,15 @@ public class Synchronizer {
             return;
         }
         // TODO later, we may start requiring contentDescription presence
-        if (shadowObject.asObjectable().getContentDescription() == FROM_REPOSITORY
-                && !ShadowUtil.isShadowFresh(shadowObject, ModelBeans.get().clock.currentTimeXMLGregorianCalendar())) {
-            LOGGER.trace("Skipping {} because it was obtained from the cache and is not fresh enough", shadowObject);
-            workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.EXPIRED);
-            result.recordNotApplicable("Skipped because it's expired");
-            return;
+        if (shadowObject.asObjectable().getContentDescription() == FROM_REPOSITORY) {
+            var status = ShadowUtil.getShadowCachedStatus(shadowObject, ModelBeans.get().clock.currentTimeXMLGregorianCalendar());
+            if (!status.isFresh()) {
+                LOGGER.trace("Skipping {} because it was obtained from the cache and is not fresh enough: {}",
+                        shadowObject, status);
+                workerTask.onSynchronizationExclusion(itemProcessingIdentifier, SynchronizationExclusionReasonType.EXPIRED);
+                result.recordNotApplicable("Skipped because it's expired: " + status);
+                return;
+            }
         }
         handleObjectInternal(shadowObject, itemProcessingIdentifier, workerTask, result);
     }

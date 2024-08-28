@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.mappings.predefinedActiv
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingLoader;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
@@ -54,7 +55,7 @@ public class DisableInsteadOfDeleteEvaluator extends PredefinedActivationMapping
     public <F extends FocusType> void defineAdministratorStatus(
             LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException, ObjectNotFoundException, MappingLoader.NotLoadedException {
         setTargetPropertyValue(
                 projCtx,
                 SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED,

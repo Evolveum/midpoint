@@ -539,8 +539,11 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                     .build();
             LOGGER.trace("Loading shadow {} from linkRef, options={}", oid, options);
             try {
-                return provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                var shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                LOGGER.trace("Found {}", ShadowUtil.getDiagInfoLazily(shadow));
+                return shadow;
             } catch (ObjectNotFoundException e) {
+                LOGGER.trace("Got 'not found exception'", e);
                 getOrCreateEmptyGoneProjectionContext(oid);
                 result.getLastSubresult()
                         .muteErrorsRecursively();
@@ -811,7 +814,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             ProjectionContextKey key = beans.projectionContextKeyFactory.createKey(shadow, task, result);
 
             GetOrCreateProjectionContextResult projCtxResult = getOrCreateProjectionContext(context, key);
-            LOGGER.trace("Projection context for {}: {}", key, projCtxResult);
+            LOGGER.trace("Projection context for {} ({}): {}", shadow, key, projCtxResult);
 
             LensProjectionContext projCtx = projCtxResult.context;
             if (projCtx.getOid() != null && shadow.getOid() != null && !projCtx.getOid().equals(shadow.getOid())) {
