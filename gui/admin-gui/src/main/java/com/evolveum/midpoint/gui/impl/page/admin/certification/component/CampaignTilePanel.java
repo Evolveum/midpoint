@@ -173,22 +173,23 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
         LoadableDetachableModel<String> buttonLabelModel = getActionButtonTitleModel();
 
-        CampaignActionButton actionButton = new CampaignActionButton(ID_ACTION_BUTTON, getPageBase(), getCampaignModel(), buttonLabelModel) {
+        CampaignActionButton actionButton = new CampaignActionButton(ID_ACTION_BUTTON, getPageBase(), getCampaignModel(),
+                buttonLabelModel, runningTaskOid) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void refresh(AjaxRequestTarget target) {
-                runningTaskOid = getRunningTaskOid();
+                CampaignTilePanel.this.runningTaskOid = getRunningTaskOid();
                 buttonLabelModel.detach();
                 target.add(CampaignTilePanel.this);
                 Component feedbackPanel = getPageBase().getFeedbackPanel();
                 target.add(feedbackPanel);
             }
 
-            @Override
-            protected boolean isEmptyTaskOid() {
-                return StringUtils.isEmpty(runningTaskOid);
-            }
+//            @Override
+//            protected boolean isEmptyTaskOid() {
+//                return StringUtils.isEmpty(runningTaskOid);
+//            }
         };
         actionButton.setOutputMarkupPlaceholderTag(true);
         actionButton.add(AttributeModifier.append("class", getActionButtonCssModel()));

@@ -181,7 +181,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         buttonLabelModel = getActionButtonTitleModel();
 
         CampaignActionButton actionButton = new CampaignActionButton(rightButtonsView.newChildId(), PageCertCampaign.this,
-                getCampaignModel(), buttonLabelModel) {
+                getCampaignModel(), buttonLabelModel, runningTaskOid) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -191,10 +191,10 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
                 buttonLabelModel.detach();
             }
 
-            @Override
-            protected boolean isEmptyTaskOid() {
-                return StringUtils.isEmpty(runningTaskOid);
-            }
+//            @Override
+//            protected boolean isEmptyTaskOid() {
+//                return StringUtils.isEmpty(runningTaskOid);
+//            }
 
         };
         actionButton.setOutputMarkupPlaceholderTag(true);

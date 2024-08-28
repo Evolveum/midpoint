@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,8 +53,13 @@ public abstract class ReloadableButton extends AjaxIconButton {
     }
 
     public ReloadableButton(String id, PageBase pageBase, IModel<String> buttonLabel) {
+        this(id, pageBase, buttonLabel, null);
+    }
+
+    public ReloadableButton(String id, PageBase pageBase, IModel<String> buttonLabel, String taskOidForReloaded) {
         super(id, Model.of(""), buttonLabel);
         this.pageBase = pageBase;
+        this.taskOidForReloaded = taskOidForReloaded;
     }
 
     @Override
@@ -64,15 +70,17 @@ public abstract class ReloadableButton extends AjaxIconButton {
 
         setModel(createIconModel());
 
-        add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
+        add(AttributeAppender.append("class", getButtonCssClass()));
         setOutputMarkupId(true);
         showTitleAsLabel(true);
 
-        add(AttributeAppender.append("class", (IModel<String>) () -> isEmptyTaskOid() ? "" : "disabled"));
+        add(AttributeAppender.append("class", getDisabledClassModel()));
+        //todo this behavior causes exception
+//        add(new EnableBehaviour(this::isEmptyTaskOid));
 
-        if (!isEmptyTaskOid()) {
+//        if (!isEmptyTaskOid()) {
             add(reloadedBehaviour);
-        }
+//        }
     }
 
     private void initReloadBehavior() {
@@ -125,7 +133,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
 
     private void onClickReloadButton(AjaxRequestTarget target) {
         taskOidForReloaded = getCreatedTaskOid(target);
-        add(reloadedBehaviour);
+        reloadedBehaviour.restart(target);
         refresh(target);
     }
 
@@ -195,5 +203,13 @@ public abstract class ReloadableButton extends AjaxIconButton {
 
     protected boolean isEmptyTaskOid() {
         return StringUtils.isEmpty(taskOidForReloaded);
+    }
+
+    protected String getButtonCssClass() {
+        return "btn btn-primary btn-sm mr-2";
+    }
+
+    protected IModel<String> getDisabledClassModel() {
+        return () -> isEmptyTaskOid() ? "" : "disabled";
     }
 }
