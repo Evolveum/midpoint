@@ -4,11 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode;
 
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
@@ -41,8 +43,16 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
 
     public static final String PANEL_TYPE = "rm-category";
 
+    LoadableModel<AnalysisCategory> analysisCategoryModel;
+
     public AnalysisCategoryChoiceStepPanel(String id, AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
         super(id, model, AnalysisCategory.class);
+        this.analysisCategoryModel = new LoadableModel<>(false) {
+            @Override
+            protected AnalysisCategory load() {
+                return null;
+            }
+        };
     }
 
     @Override
@@ -57,19 +67,35 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
 
     @Override
     protected void onTileClickPerformed(AnalysisCategory value, AjaxRequestTarget target) {
-        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper = getAssignmentHolderDetailsModel().getObjectWrapperModel();
-        RoleAnalysisCategoryType roleAnalysisCategoryType = value.resolveCategoryMode();
-        RoleAnalysisSessionType realValue = objectWrapper.getObject().getValue().getRealValue();
-        RoleAnalysisOptionType analysisOption = realValue.getAnalysisOption();
-        analysisOption.setAnalysisCategory(roleAnalysisCategoryType);
+        analysisCategoryModel.setObject(value);
+        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getAssignmentHolderDetailsModel()
+                .getObjectWrapperModel();
 
-        Task task = getPageBase().createSimpleTask("prepare options");
-        OperationResult result = task.getResult();
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        value.generateConfiguration(
-                roleAnalysisService, objectWrapper, task, result);
+        PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = objectWrapperModel
+                .getObject();
 
+        PrismContainer<Containerable> property = objectWrapper.getObject()
+                .findContainer(RoleAnalysisSessionType.F_ANALYSIS_OPTION);
+
+        property.findProperty(RoleAnalysisOptionType.F_ANALYSIS_CATEGORY)
+                .setRealValue(value.resolveCategoryMode());
+        if (!value.requiresProcessModeConfiguration()) {
+            property.findProperty(RoleAnalysisOptionType.F_PROCESS_MODE)
+                    .setRealValue(value.getRequiredProcessModeConfiguration());
+            Task task = getPageBase().createSimpleTask("prepare options");
+            OperationResult result = task.getResult();
+            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+            value.generateConfiguration(
+                    roleAnalysisService, objectWrapperModel, task, result);
+        }
         onSubmitPerformed(target);
+    }
+
+    protected boolean isRequiresProcessModeConfiguration() {
+        if (analysisCategoryModel.getObject() == null) {
+            return true;
+        }
+        return analysisCategoryModel.getObject().requiresProcessModeConfiguration();
     }
 
     @Override
@@ -102,14 +128,14 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
 //            isVisible = false;
 //        }
 
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            if (category.equals(AnalysisCategory.DEPARTMENT)) {
-                isVisible = false;
-            }
-            if(category.equals(AnalysisCategory.OUTLIER)){
-                isVisible = false;
-            }
-        }
+//        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+//            if (category.equals(AnalysisCategory.DEPARTMENT)) {
+//                isVisible = false;
+//            }
+//            if(category.equals(AnalysisCategory.OUTLIER)){
+//                isVisible = false;
+//            }
+//        }
         Component tilePanel = super.createTilePanel(id, tileModel);
         tilePanel.setVisible(isVisible);
         return tilePanel;

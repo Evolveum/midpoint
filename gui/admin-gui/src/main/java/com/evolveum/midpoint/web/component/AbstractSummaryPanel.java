@@ -8,13 +8,13 @@ package com.evolveum.midpoint.web.component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
-import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
+import com.evolveum.midpoint.util.logging.Trace;
 
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,26 +31,33 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
+import com.evolveum.midpoint.gui.api.component.BadgeListPanel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.model.FlexibleLabelModel;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.checkerframework.checker.units.qual.C;
-
 /**
  * @author semancik
  */
 public abstract class AbstractSummaryPanel<C extends Containerable> extends BasePanel<C> {
+
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractSummaryPanel.class);
 
     protected static final String ID_BOX = "summaryBox";
     protected static final String ID_ICON_BOX = "summaryIconBox";
@@ -332,18 +339,26 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     }
 
     private SummaryTag<C> getArchetypeSummaryTag() {
+        IModel<String> archetypeLabelModel = new LoadableDetachableModel<String>() {
+
+            @Override
+            protected String load() {
+                return getArchetypeLabel();
+            }
+        };
+
         SummaryTag<C> archetypeSummaryTag = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void initialize(C object) {
                 setIconCssClass(getArchetypeIconCssClass());
-                setLabel(createStringResource(getArchetypeLabel()).getString());
+                setLabel(archetypeLabelModel.getObject());
                 setColor(getArchetypePolicyAdditionalCssClass());
             }
 
         };
-        archetypeSummaryTag.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getArchetypeLabel())));
+        archetypeSummaryTag.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(archetypeLabelModel.getObject())));
         return archetypeSummaryTag;
     }
 
@@ -380,11 +395,47 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     }
 
     private String getArchetypeLabel() {
-        if (getModelObject() instanceof AssignmentHolderType) {
-            DisplayType displayType = getArchetypePolicyDisplayType();
-            return displayType == null || displayType.getLabel() == null ? "" : displayType.getLabel().getOrig();
+        if (!(getModelObject() instanceof AssignmentHolderType holder)) {
+            return "";
         }
-        return "";
+
+        StringBuilder sb = new StringBuilder();
+
+        DisplayType displayType = getArchetypePolicyDisplayType();
+        sb.append(translateDisplayLabelOrDefault(displayType, ""));
+
+        try {
+            OperationResult result = new OperationResult("Determine archetypes");
+            List<ArchetypeType> archetypes = getPageBase().getModelInteractionService().determineArchetypes(holder, result);
+            String auxiliary = archetypes.stream()
+                    .filter(a -> Objects.equals(ArchetypeTypeType.AUXILIARY, a.getArchetypeType()))
+                    .map(a -> {
+                        DisplayType display = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(a, getPageBase());
+                        return translateDisplayLabelOrDefault(display, WebComponentUtil.getName(a));
+                    })
+                    .filter(l -> StringUtils.isNotEmpty(l))
+                    .collect(Collectors.joining(", "));
+
+            if (StringUtils.isNotEmpty(auxiliary)) {
+                sb.append(" (");
+                sb.append(auxiliary);
+                sb.append(")");
+            }
+        } catch (SchemaException ex) {
+            LOGGER.debug("Cannot determine archetypes for {}", holder);
+            LOGGER.trace("Cannot determine archetypes", ex);
+        }
+
+        return sb.toString();
+    }
+
+    private String translateDisplayLabelOrDefault(DisplayType display, String defValue) {
+        if (display == null || display.getLabel() == null) {
+            return defValue;
+        }
+        String label = display.getLabel().getOrig();
+
+        return getString(label, Model.of(), label);
     }
 
     private String getArchetypeIconCssClass() {
@@ -395,7 +446,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return "";
     }
 
-    private DisplayType getArchetypePolicyDisplayType(){
+    private DisplayType getArchetypePolicyDisplayType() {
         return GuiDisplayTypeUtil.getArchetypePolicyDisplayType(
                 getAssignmentHolderTypeObjectForArchetypeDisplayType(),
                 getPageBase());
