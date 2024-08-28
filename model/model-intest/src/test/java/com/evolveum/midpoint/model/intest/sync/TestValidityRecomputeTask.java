@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -1386,8 +1387,18 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         then();
         assertSuccess(result);
 
+        assertElaineShadowAdministrativeStatus();
+    }
+
+    private void assertElaineShadowAdministrativeStatus() throws CommonException {
         PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
-        assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        // The same as TestActivation.test130, see MID-9955.
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            assertShadow(accountShadow, "after")
+                    .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+        } else {
+            assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        }
     }
 
     /**
@@ -1686,8 +1697,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
         // THEN
 
-        PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
-        assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        assertElaineShadowAdministrativeStatus();
     }
 
     private XMLGregorianCalendar judgeAssignmentValidFrom;
