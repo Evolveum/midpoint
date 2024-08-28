@@ -22,8 +22,7 @@ public enum ItemCachedStatus {
     SHADOW_EXPIRED(false),
     SHADOW_FRESH(true),
     ITEM_NOT_CACHED(false),
-    ITEM_CACHED_AND_FRESH(true),
-    SHADOW_IDENTIFIER(true);
+    ITEM_CACHED_AND_FRESH(true);
 
     private final boolean fresh;
 

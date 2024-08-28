@@ -36,9 +36,7 @@ public enum ItemLoadedStatus {
 
     ITEM_NOT_CACHED(false),
 
-    ITEM_CACHED_AND_FRESH(true),
-
-    SHADOW_IDENTIFIER(true);
+    ITEM_CACHED_AND_FRESH(true);
 
     private final boolean loaded;
 
@@ -54,7 +52,6 @@ public enum ItemLoadedStatus {
             case SHADOW_FRESH -> SHADOW_FRESH;
             case ITEM_NOT_CACHED -> ITEM_NOT_CACHED;
             case ITEM_CACHED_AND_FRESH -> ITEM_CACHED_AND_FRESH;
-            case SHADOW_IDENTIFIER -> SHADOW_IDENTIFIER;
         };
     }
 
