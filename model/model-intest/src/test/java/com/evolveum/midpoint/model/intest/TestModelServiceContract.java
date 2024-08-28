@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.*;
 
 import jakarta.xml.bind.JAXBElement;
@@ -4198,6 +4199,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     boolean isCached() {
-        return false;
+        return InternalsConfig.isShadowCachingOnByDefault();
     }
 }
