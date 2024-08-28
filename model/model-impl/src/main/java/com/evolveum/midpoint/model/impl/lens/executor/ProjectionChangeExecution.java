@@ -176,7 +176,8 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
                 // TODO: do something smarter here
                 LOGGER.debug("Repeated ObjectAlreadyExistsException detected, marking projection {} as broken",
                         projCtx.toHumanReadableString());
-                recordProjectionExecutionException(e, result);
+                recordProjectionExecutionException(e);
+                result.recordException(e);
                 return;
             }
 
@@ -195,16 +196,17 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
 
         } catch (Throwable t) {
 
-            recordProjectionExecutionException(t, result);
+            recordProjectionExecutionException(t);
 
             // We still want to update the links here. E.g. this may be live sync case where we discovered new account
             // try to reconcile, but the reconciliation fails. We still want this shadow linked to user.
             updateLinks(result);
 
+            result.recordException(t); // Maybe we can skip it - is it done below?
             ModelImplUtils.handleConnectorErrorCriticality(projCtx.getResource(), t, result);
 
         } finally {
-            result.computeStatusIfUnknown(); // just to be sure the result is closed
+            result.close();
             context.reportProgress(
                     new ProgressInformation(RESOURCE_OBJECT_OPERATION, projCtx.getKey(), result));
 
@@ -246,8 +248,7 @@ public class ProjectionChangeExecution<O extends ObjectType> extends ElementChan
                 .createDeleteDelta(projCtx.getObjectTypeClass(), projCtx.getOid());
     }
 
-    private void recordProjectionExecutionException(Throwable e, OperationResult result) {
-        result.recordFatalError(e);
+    private void recordProjectionExecutionException(Throwable e) {
         LOGGER.error("Error executing changes for {}: {}", projCtx.toHumanReadableString(), e.getMessage(), e);
         projCtx.setBroken();
     }
