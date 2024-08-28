@@ -600,4 +600,16 @@ public class CertMiscUtil {
                 .stream()
                 .anyMatch(r -> r.getOid().equals(ref.getOid()));
     }
+
+    public static List<PrismObject<TaskType>> loadRunningCertTask(String campaignOid, OperationResult result, PageBase pageBase) {
+        ObjectQuery query = PrismContext.get().queryFor(TaskType.class)
+                .item(ItemPath.create(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY,
+                        ActivityAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_OBJECT_REF))
+                .ref(campaignOid)
+                .and()
+                .item(TaskType.F_EXECUTION_STATE)
+                .eq(TaskExecutionStateType.RUNNING)
+                .build();
+        return WebModelServiceUtils.searchObjects(TaskType.class, query, null, result, pageBase);
+    }
 }
