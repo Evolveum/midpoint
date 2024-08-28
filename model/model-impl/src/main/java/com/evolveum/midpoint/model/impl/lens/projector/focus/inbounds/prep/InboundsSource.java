@@ -62,6 +62,7 @@ public abstract class InboundsSource implements DebugDumpable {
     /**
      * A priori delta is a delta that was executed in a previous "step".
      * That means it is either delta from a previous wave or a sync delta (in wave 0).
+     * Taken from {@link #sourceData} just for clarity.
      */
     @Nullable final ObjectDelta<ShadowType> aPrioriDelta;
 

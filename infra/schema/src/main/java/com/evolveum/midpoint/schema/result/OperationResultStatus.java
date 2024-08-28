@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.schema.result;
 
-import com.evolveum.midpoint.util.exception.CommonException;
-
+import com.evolveum.midpoint.util.exception.SeverityAwareException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyViolationSeverityType;
 
 import org.jetbrains.annotations.Contract;
@@ -127,14 +126,14 @@ public enum OperationResultStatus {
     }
 
     static OperationResultStatus forThrowable(Throwable cause) {
-        if (cause instanceof CommonException) {
-            return forCommonExceptionStatus(((CommonException) cause).getSeverity());
+        if (cause instanceof SeverityAwareException severityAwareException) {
+            return forCommonExceptionStatus(severityAwareException.getSeverity());
         } else {
             return FATAL_ERROR;
         }
     }
 
-    private static OperationResultStatus forCommonExceptionStatus(@NotNull CommonException.Severity severity) {
+    private static OperationResultStatus forCommonExceptionStatus(@NotNull SeverityAwareException.Severity severity) {
         return switch (severity) {
             case FATAL_ERROR -> FATAL_ERROR;
             case PARTIAL_ERROR -> PARTIAL_ERROR;

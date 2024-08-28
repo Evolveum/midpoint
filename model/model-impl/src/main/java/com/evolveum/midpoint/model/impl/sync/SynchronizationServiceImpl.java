@@ -91,9 +91,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
             syncCtx.getUpdater().updateCoordinates();
 
-            if (shouldSkipSynchronization(syncCtx, result)) {
+            var skipSyncReason = shouldSkipSynchronization(syncCtx, result);
+            if (skipSyncReason != null) {
                 // sync metadata updates are prepared by the above method
                 syncCtx.getUpdater().commit(result);
+                result.recordNotApplicable(skipSyncReason);
                 return;
             }
             // FIXME: Somewhere here we should validate preFocus
@@ -128,13 +130,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         } catch (SystemException ex) {
             // avoid unnecessary re-wrap
-            result.recordFatalError(ex);
+            result.recordException(ex);
             throw ex;
         } catch (Exception ex) {
-            result.recordFatalError(ex);
+            result.recordException(ex);
             throw new SystemException(ex);
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -192,8 +194,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      *  Why not: technically, this is NOT a full synchronization
      *  Why yes: we want to avoid re-processing of these objects in 3rd stage of reconciliation (that looks after full sync ts)
      *  For the time being, let us keep this. But should decide on it some day.
+     *
+     * @return non-null reason for sync skip (or null if it should not be skipped)
      */
-    private boolean shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
+    private String shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
             throws SchemaException, ConfigurationException {
         ShadowType shadow = syncCtx.getShadowedResourceObject();
         QName objectClass = shadow.getObjectClass();
@@ -206,9 +210,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     shadow, objectClass, resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater().updateBasicSyncTimestamp();
-            result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY); // at least temporary
-            return true;
+            return message;
         }
 
         if (!syncCtx.isComplete()) {
@@ -219,9 +222,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                             + "ignoring change from channel %s", shadow, objectClass, resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
-            result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY);
-            return true;
+            return message;
         }
 
         if (!syncCtx.isSynchronizationEnabled()) {
@@ -229,9 +231,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     "SYNCHRONIZATION is not enabled for %s, ignoring change from channel %s", resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
-            result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(SYNCHRONIZATION_DISABLED);
-            return true;
+            return message;
         }
 
         if (syncCtx.isMarkedSkipSynchronization(result) || syncCtx.isProtected()) {
@@ -239,12 +240,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     "SYNCHRONIZATION is skipped for marked/protected shadow %s, ignoring change from channel %s", shadow, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater().updateBothSyncTimestamps(); // TODO see the above question on full sync timestamp
-            result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(PROTECTED);
-            return true;
+            return message;
         }
 
-        return false;
+        return null;
     }
 
     private void checkConsistence(ResourceObjectShadowChangeDescription change) {

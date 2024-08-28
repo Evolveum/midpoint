@@ -60,37 +60,22 @@ public abstract class ReloadableButton extends AjaxIconButton {
     protected void onInitialize() {
         super.onInitialize();
 
+        initReloadBehavior();
+
         setModel(createIconModel());
 
         add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
         setOutputMarkupId(true);
         showTitleAsLabel(true);
 
-        add(AttributeAppender.append("class", (IModel<String>) () -> taskOidForReloaded != null ? "disabled" : ""));
+        add(AttributeAppender.append("class", (IModel<String>) () -> isEmptyTaskOid() ? "" : "disabled"));
 
-        if (taskOidForReloaded != null) {
+        if (!isEmptyTaskOid()) {
             add(reloadedBehaviour);
         }
     }
 
-    private LoadableDetachableModel<String> createIconModel() {
-        return new LoadableDetachableModel<String>() {
-            @Override
-            protected String load() {
-                if (taskOidForReloaded == null) {
-                    return getIconCssClass();
-                }
-                return "fa fa-spinner fa-spin-pulse";
-            }
-        };
-    }
-
-    protected String getIconCssClass() {
-        return "fa fa-refresh";
-    }
-
-    private void onClickReloadButton(AjaxRequestTarget target) {
-        taskOidForReloaded = getCreatedTaskOid(target);
+    private void initReloadBehavior() {
         reloadedBehaviour = new AjaxSelfUpdatingTimerBehavior(Duration.ofSeconds(5)) {
 
             @Override
@@ -120,6 +105,26 @@ public abstract class ReloadableButton extends AjaxIconButton {
                 refresh(target);
             }
         };
+    }
+
+    private LoadableDetachableModel<String> createIconModel() {
+        return new LoadableDetachableModel<String>() {
+            @Override
+            protected String load() {
+                if (taskOidForReloaded == null) {
+                    return getIconCssClass();
+                }
+                return "fa fa-spinner fa-spin-pulse";
+            }
+        };
+    }
+
+    protected String getIconCssClass() {
+        return "fa fa-refresh";
+    }
+
+    private void onClickReloadButton(AjaxRequestTarget target) {
+        taskOidForReloaded = getCreatedTaskOid(target);
         add(reloadedBehaviour);
         refresh(target);
     }

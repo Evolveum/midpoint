@@ -12,6 +12,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * @author semancik
  *
@@ -22,6 +24,17 @@ public interface MappingLoader<O extends ObjectType> {
 
     PrismObject<O> load(String loadReason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException;
+            SecurityViolationException, ExpressionEvaluationException, NotLoadedException;
 
+    /** To be used when the exact reason of not-loaded state is not known. */
+    class NotLoadedException extends Exception implements SeverityAwareException {
+        NotLoadedException(String message) {
+            super(message);
+        }
+
+        @Override
+        public @NotNull SeverityAwareException.Severity getSeverity() {
+            return SeverityAwareException.Severity.WARNING; // To be recorded in the operation result mildly
+        }
+    }
 }

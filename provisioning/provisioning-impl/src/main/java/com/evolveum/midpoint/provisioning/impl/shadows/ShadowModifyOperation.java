@@ -10,12 +10,11 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.getAdditionalOperationDesc;
 import static com.evolveum.midpoint.schema.util.ShadowUtil.getNonResourceModifications;
 import static com.evolveum.midpoint.schema.util.ShadowUtil.getResourceModifications;
-import static com.evolveum.midpoint.util.exception.CommonException.Severity.PARTIAL_ERROR;
+import static com.evolveum.midpoint.util.exception.SeverityAwareException.Severity.PARTIAL_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 

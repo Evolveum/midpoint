@@ -140,7 +140,7 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
         if (inboundsSource.hasDependentContext()) {
             // TODO reconsider this ugly hack
             LOGGER.trace("{}: There is a depending context (not necessarily for this item, though), we need to know"
-                    + "the current value of it", itemPath);
+                    + " the current value of it", itemPath);
             return true;
         }
         return false;

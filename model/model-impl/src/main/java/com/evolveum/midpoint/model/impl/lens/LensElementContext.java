@@ -8,13 +8,11 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
-import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 import java.io.Serial;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.ElementState.CurrentObjectAdjuster;
@@ -23,9 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.ElementState.ObjectDefinitionRefine
 import com.evolveum.midpoint.model.impl.lens.executor.ItemChangeApplicationModeConfiguration;
 import com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import com.evolveum.midpoint.repo.common.EvaluatedPolicyStatements;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -81,7 +77,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * List of all executed deltas (in fact, {@link LensObjectDeltaOperation} objects).
      * Updated by {@link ChangeExecutor}.
      */
-    @NotNull private final List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
+    @NotNull private final ExecutedDeltas<O> executedDeltas = new ExecutedDeltas<>();
 
     /**
      * Result of the last call to {@link ChangeExecutor} related to this element.
@@ -279,10 +275,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public ObjectDelta<O> getSummaryExecutedDelta() throws SchemaException {
-        List<ObjectDelta<O>> executedDeltasPlain = executedDeltas.stream()
-                .map(odo -> odo.getObjectDelta())
-                .collect(Collectors.toList());
-        return ObjectDeltaCollectionsUtil.summarize(executedDeltasPlain);
+        return executedDeltas.getSummaryExecutedDelta();
     }
 
     /** For limitations please see {@link ObjectDelta#hasRelatedDelta(ItemPath)}. */
@@ -602,30 +595,28 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //region Executed deltas
     @Override
     public @NotNull List<LensObjectDeltaOperation<O>> getExecutedDeltas() {
-        return executedDeltas;
+        return executedDeltas.getDeltas();
     }
 
     List<LensObjectDeltaOperation<O>> getExecutedDeltas(Boolean audited) {
-        if (audited == null) {
-            return executedDeltas;
-        }
-        List<LensObjectDeltaOperation<O>> deltas = new ArrayList<>();
-        for (LensObjectDeltaOperation<O> delta: executedDeltas) {
-            if (delta.isAudited() == audited) {
-                deltas.add(delta);
-            }
-        }
-        return deltas;
+        return executedDeltas.getDeltasStream()
+                .filter(odo -> audited == null || odo.isAudited() == audited)
+                .toList();
+    }
+
+    public List<LensObjectDeltaOperation<O>> getExecutedDeltas(int wave) {
+        return List.copyOf(executedDeltas.getDeltas(wave));
     }
 
     void markExecutedDeltasAudited() {
-        for (LensObjectDeltaOperation<O> executedDelta: executedDeltas) {
-            executedDelta.setAudited(true);
-        }
+        executedDeltas
+                .getDeltasStream()
+                .forEach(odo -> odo.setAudited(true));
     }
 
     public void addToExecutedDeltas(LensObjectDeltaOperation<O> executedDelta) {
-        executedDeltas.add(executedDelta.clone()); // must be cloned because e.g. for ADD deltas the object gets modified afterwards
+        executedDeltas.add(
+                executedDelta.clone()); // must be cloned because e.g. for ADD deltas the object gets modified afterwards
     }
 
     /**
@@ -633,15 +624,16 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      */
     @Experimental
     boolean wasAnythingReallyExecuted() {
-        return executedDeltas.stream()
+        return executedDeltas.getDeltasStream()
                 .anyMatch(ObjectDeltaOperation::wasReallyExecuted);
     }
 
     public boolean wasAddExecuted() {
         for (LensObjectDeltaOperation<O> executedDeltaOperation : getExecutedDeltas()) {
             ObjectDelta<O> executedDelta = executedDeltaOperation.getObjectDelta();
-            if (executedDelta.isAdd() && executedDelta.getObjectToAdd() != null &&
-                    executedDelta.getObjectTypeClass().equals(getObjectTypeClass())) {
+            if (executedDelta.isAdd()
+                    && executedDelta.getObjectToAdd() != null
+                    && executedDelta.getObjectTypeClass().equals(getObjectTypeClass())) {
                 return true;
             }
         }
@@ -729,7 +721,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     void copyValues(LensElementContext<O> clone) {
-        CloneUtil.cloneMembersToCollection(clone.executedDeltas, executedDeltas);
+        clone.executedDeltas.fillClonedFrom(executedDeltas);
         clone.iteration = this.iteration;
         clone.iterationToken = this.iterationToken;
         clone.securityPolicy = this.securityPolicy;
@@ -814,9 +806,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             ObjectDelta<O> secondaryDelta = state.getSecondaryDelta();
             bean.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta.clone()) : null);
             bean.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta.clone()) : null);
-            for (LensObjectDeltaOperation<?> executedDelta : executedDeltas) {
-                bean.getExecutedDeltas()
-                        .add(LensContext.simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
+            for (var odo : getExecutedDeltas()) {
+                bean.getExecutedDeltas().add(
+                        LensContext.simplifyExecutedDelta(odo)
+                                .toLensObjectDeltaOperationBean());
             }
             bean.setObjectTypeClass(state.getObjectTypeClass().getName());
             bean.setOid(state.getOid());
@@ -849,7 +842,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         for (LensObjectDeltaOperationType eDeltaOperationBean : bean.getExecutedDeltas()) {
             //noinspection unchecked
             LensObjectDeltaOperation<O> objectDeltaOperation =
-                    LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationBean);
+                    (LensObjectDeltaOperation<O>) LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationBean);
             if (objectDeltaOperation.getObjectDelta() != null) {
                 applyProvisioningDefinition(objectDeltaOperation.getObjectDelta(), object, task, result);
             }
