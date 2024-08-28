@@ -854,7 +854,7 @@ public abstract class AbstractResourceObjectDefinitionImpl
             scope.setActivation(ShadowItemsCachingScopeType.ALL);
         }
         if (scope.getCredentials() == null) {
-            scope.setCredentials(ShadowItemsCachingScopeType.NONE); // TODO reconsider
+            scope.setCredentials(ShadowItemsCachingScopeType.ALL);
         }
         if (scope.getAuxiliaryObjectClasses() == null) {
             scope.setAuxiliaryObjectClasses(ShadowItemsCachingScopeType.ALL);
