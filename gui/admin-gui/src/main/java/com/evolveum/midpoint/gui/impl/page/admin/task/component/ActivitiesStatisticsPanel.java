@@ -67,7 +67,9 @@ public class ActivitiesStatisticsPanel extends AbstractObjectMainPanel<TaskType,
         super(id, model, config);
 
         statisticsModel = LoadableModel.create(
-                () -> ActivitiesStatisticsDto.fromTaskTree(getObjectDetailsModels().getObjectType()),
+                // changed to wrapper "old object" since this panel uses data that aren't modified by the user
+                // also "new object" contains a lot of new empty/null containers/properties
+                () -> ActivitiesStatisticsDto.fromTaskTree(getObjectDetailsModels().getObjectWrapper().getObjectOld().asObjectable()),
                 true);
     }
 
