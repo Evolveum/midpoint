@@ -358,6 +358,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
             }
 
         };
+        archetypeSummaryTag.add(AttributeModifier.replace("title", archetypeLabelModel));
         archetypeSummaryTag.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(archetypeLabelModel.getObject())));
         return archetypeSummaryTag;
     }
