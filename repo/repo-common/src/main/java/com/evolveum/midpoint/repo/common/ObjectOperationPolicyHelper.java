@@ -379,13 +379,13 @@ public class ObjectOperationPolicyHelper {
             Collection<MarkType> marks = resolveMarkRefs(effectiveMarkRefs, context, result);
 
             try {
-                disableOperationIfRequiredByMarks(ret, PATH_ADD, marks, defaultPolicy);
-                disableOperationIfRequiredByMarks(ret, PATH_MODIFY, marks, defaultPolicy);
-                disableOperationIfRequiredByMarks(ret, PATH_DELETE, marks, defaultPolicy);
-                disableOperationIfRequiredByMarks(ret, PATH_SYNC_INBOUND, marks, defaultPolicy);
-                disableOperationIfRequiredByMarks(ret, PATH_SYNC_OUTBOUND, marks, defaultPolicy);
-                disableOperationIfRequiredByMarks(ret, PATH_MEMBERSHIP_SYNC_INBOUND, marks, defaultPolicy);
-                disableOperationIfRequiredByMarks(ret, PATH_MEMBERSHIP_SYNC_OUTBOUND, marks, defaultPolicy);
+                computeEffectiveStatus(ret, PATH_ADD, marks, defaultPolicy);
+                computeEffectiveStatus(ret, PATH_MODIFY, marks, defaultPolicy);
+                computeEffectiveStatus(ret, PATH_DELETE, marks, defaultPolicy);
+                computeEffectiveStatus(ret, PATH_SYNC_INBOUND, marks, defaultPolicy);
+                computeEffectiveStatus(ret, PATH_SYNC_OUTBOUND, marks, defaultPolicy);
+                computeEffectiveStatus(ret, PATH_MEMBERSHIP_SYNC_INBOUND, marks, defaultPolicy);
+                computeEffectiveStatus(ret, PATH_MEMBERSHIP_SYNC_OUTBOUND, marks, defaultPolicy);
 
                 var toleranceOverride = computeToleranceOverride(marks, defaultPolicy, context);
                 if (toleranceOverride != null) {
@@ -401,38 +401,37 @@ public class ObjectOperationPolicyHelper {
         }
 
         /**
-         * Collects "disable" instructions for specific operation (represented by `path`) from a set of marks.
-         * Selects the one with the highest severity and applies it onto current policy.
+         * Collects restrictions for specific operation (represented by `path`) from a set of marks.
+         * Selects the most restrictive one with the highest severity and applies it onto current policy.
          */
-        private void disableOperationIfRequiredByMarks(
+        private void computeEffectiveStatus(
                 @NotNull ObjectOperationPolicyType resultingPolicy,
                 @NotNull ItemPath path,
                 @NotNull Collection<MarkType> marks,
                 @Nullable ObjectOperationPolicyType defaultPolicy) throws SchemaException {
-            OperationPolicyConfigurationType highestSeverityBlocker = null;
-            boolean isEnabled = false;
+
+            AbstractOperationPolicyConfigurationType mostRestricted = null;
+            AbstractOperationPolicyConfigurationType fullyEnabled = null;
             for (MarkType mark : marks) {
                 var markPolicyItemValue = getPolicyItemValue(mark.getObjectOperationPolicy(), path);
-                if (markPolicyItemValue == null) {
-                    continue;
-                }
-                var enabledValue = markPolicyItemValue.getEnabled();
-                if (Boolean.FALSE.equals(enabledValue)) {
-                    var severity = Objects.requireNonNullElse(markPolicyItemValue.getSeverity(), ERROR);
-                    if (highestSeverityBlocker == null || isHigher(severity, highestSeverityBlocker.getSeverity())) {
-                        highestSeverityBlocker = markPolicyItemValue.clone();
-                        highestSeverityBlocker.setSeverity(severity); // to treat null values
+                if (isEmpty(markPolicyItemValue)) {
+                    // ignoring this one
+                } else if (isFullyEnabled(markPolicyItemValue)) {
+                    if (fullyEnabled == null) {
+                        // Any "no restriction" item is OK for us
+                        fullyEnabled = markPolicyItemValue.clone();
                     }
-                } else if (Boolean.TRUE.equals(enabledValue)) {
-                    isEnabled = true;
+                } else if (isMoreRestricted(markPolicyItemValue, mostRestricted)) {
+                    mostRestricted = markPolicyItemValue.clone();
                 }
             }
-            if (highestSeverityBlocker != null) {
-                // Blocker takes precedence over enabler
-                setPolicyItemValue(resultingPolicy, path, highestSeverityBlocker);
-            } else if (isEnabled) {
-                // Enabler takes precedence over default
-                setPolicyItemValue(resultingPolicy, path, new OperationPolicyConfigurationType().enabled(true));
+
+            if (mostRestricted != null) {
+                // Restrictions take precedence
+                setPolicyItemValue(resultingPolicy, path, mostRestricted);
+            } else if (fullyEnabled != null) {
+                // "No restriction" takes precedence over default
+                setPolicyItemValue(resultingPolicy, path, fullyEnabled);
             } else {
                 // Now applying the default, if there's any
                 var defaultPolicyItemValue = getPolicyItemValue(defaultPolicy, path);
@@ -442,23 +441,79 @@ public class ObjectOperationPolicyHelper {
             }
         }
 
-        private static @Nullable OperationPolicyConfigurationType getPolicyItemValue(
+        private boolean isEmpty(AbstractOperationPolicyConfigurationType value) {
+            if (value instanceof OperationPolicyConfigurationType booleanStyle) {
+                return booleanStyle.getEnabled() == null;
+            } else if (value instanceof SyncInboundOperationPolicyConfigurationType syncInboundStyle) {
+                return syncInboundStyle.getEnabled() == null;
+            } else if (value == null) {
+                return true;
+            } else {
+                throw unsupported(value);
+            }
+        }
+
+        private static @NotNull AssertionError unsupported(AbstractOperationPolicyConfigurationType value) {
+            return new AssertionError("Unsupported policy configuration type: " + value);
+        }
+
+        private boolean isMoreRestricted(
+                @NotNull AbstractOperationPolicyConfigurationType value1,
+                @Nullable AbstractOperationPolicyConfigurationType value2) {
+            if (value2 == null) {
+                return true;
+            }
+            // Both value1 and value2 are "not empty" and "restricting something" here (due to caller's logic)
+            // We have to compare non-boolean restriction levels here
+            if (value1 instanceof SyncInboundOperationPolicyConfigurationType syncInboundStyle1) {
+                var level1 = getRestrictionValue(syncInboundStyle1.getEnabled());
+                if (value2 instanceof SyncInboundOperationPolicyConfigurationType syncInboundStyle2) {
+                    var level2 = getRestrictionValue(syncInboundStyle2.getEnabled());
+                    if (level1 > level2) {
+                        return true;
+                    } else if (level1 < level2) {
+                        return false;
+                    }
+                } else {
+                    throw unsupported(value2);
+                }
+            } else {
+                throw unsupported(value1);
+            }
+            // Restrictions levels are the same, let's compare severities
+            var severity1 = Objects.requireNonNullElse(value1.getSeverity(), ERROR);
+            var severity2 = Objects.requireNonNullElse(value2.getSeverity(), ERROR);
+            return isHigher(severity1, severity2);
+        }
+
+        private boolean isFullyEnabled(@NotNull AbstractOperationPolicyConfigurationType value) {
+            if (value instanceof OperationPolicyConfigurationType booleanStyle) {
+                return Boolean.TRUE.equals(booleanStyle.isEnabled());
+            } else if (value instanceof SyncInboundOperationPolicyConfigurationType syncInboundStyle) {
+                return syncInboundStyle.getEnabled() == SyncInboundOperationPolicyEnabledType.TRUE;
+            } else {
+                throw unsupported(value);
+            }
+        }
+
+        private static @Nullable AbstractOperationPolicyConfigurationType getPolicyItemValue(
                 @Nullable ObjectOperationPolicyType policy, @NotNull ItemPath path) {
             if (policy == null) {
                 return null;
             }
             //noinspection unchecked
-            var policyItem = (PrismContainer<OperationPolicyConfigurationType>) policy.asPrismContainerValue().findItem(path);
+            var policyItem = (PrismContainer<? extends AbstractOperationPolicyConfigurationType>)
+                    policy.asPrismContainerValue().findItem(path);
             if (policyItem == null || policyItem.hasNoValues()) {
                 return null;
             }
-            return policyItem.getRealValue(OperationPolicyConfigurationType.class);
+            return policyItem.getRealValue(AbstractOperationPolicyConfigurationType.class);
         }
 
         private static void setPolicyItemValue(
                 @NotNull ObjectOperationPolicyType policy,
                 @NotNull ItemPath path,
-                @NotNull OperationPolicyConfigurationType value) throws SchemaException {
+                @NotNull AbstractOperationPolicyConfigurationType value) throws SchemaException {
             //noinspection unchecked
             policy.asPrismContainerValue().findOrCreateItem(path, PrismContainer.class, null)
                     .add(value.asPrismContainerValue());
@@ -474,6 +529,14 @@ public class ObjectOperationPolicyHelper {
             return switch (s) {
                 case INFO -> 1;
                 case ERROR -> 2;
+            };
+        }
+
+        private int getRestrictionValue(@NotNull SyncInboundOperationPolicyEnabledType s) {
+            return switch (s) {
+                case TRUE -> 0;
+                case EXCEPT_FOR_MAPPINGS -> 1;
+                case FALSE -> 2;
             };
         }
 
@@ -708,7 +771,7 @@ public class ObjectOperationPolicyHelper {
             if (containsOid(effectiveMarkRefs, MARK_PROTECTED_OID)) {
                 return new ObjectOperationPolicyType()
                         .synchronize(new SynchronizeOperationPolicyConfigurationType()
-                                .inbound(disabled(OperationPolicyViolationSeverityType.INFO))
+                                .inbound(syncDisabled(OperationPolicyViolationSeverityType.INFO))
                                 .outbound(disabled(OperationPolicyViolationSeverityType.INFO)))
                         .add(disabled(ERROR))
                         .modify(disabled(ERROR))
@@ -722,6 +785,13 @@ public class ObjectOperationPolicyHelper {
         private OperationPolicyConfigurationType disabled(OperationPolicyViolationSeverityType severity) {
             return new OperationPolicyConfigurationType()
                     .enabled(false)
+                    .severity(severity);
+        }
+
+        @SuppressWarnings("SameParameterValue")
+        private SyncInboundOperationPolicyConfigurationType syncDisabled(OperationPolicyViolationSeverityType severity) {
+            return new SyncInboundOperationPolicyConfigurationType()
+                    .enabled(SyncInboundOperationPolicyEnabledType.FALSE)
                     .severity(severity);
         }
     }

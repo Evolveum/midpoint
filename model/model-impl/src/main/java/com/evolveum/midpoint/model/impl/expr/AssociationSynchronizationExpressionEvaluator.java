@@ -6,18 +6,16 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.mergeCorrelationDefinition;
 import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.isMembershipSyncInboundDisabled;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-import static com.evolveum.midpoint.util.MiscUtil.*;
+import static com.evolveum.midpoint.util.MiscUtil.castSafely;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
 
 import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSingleShadowInboundsProcessingContextImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
-
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,21 +26,28 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.DefaultSingleShadowInboundsProcessingContextImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.SingleShadowInboundsProcessing;
 import com.evolveum.midpoint.model.impl.sync.ItemSynchronizationState;
 import com.evolveum.midpoint.model.impl.sync.PreMappingsEvaluator;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.CorrelatorDiscriminator;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
 import com.evolveum.midpoint.schema.processor.SynchronizationReactionDefinition.ItemSynchronizationReactionDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -59,8 +64,10 @@ class AssociationSynchronizationExpressionEvaluator
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationSynchronizationExpressionEvaluatorFactory.class);
 
-    private static final String OP_PROCESS_ASSOCIATION_VALUE = AssociationSynchronizationExpressionEvaluator.class.getName()
-            + ".processAssociationValue";
+    private static final String OP_PROCESS_ASSOCIATION_VALUE =
+            AssociationSynchronizationExpressionEvaluator.class.getName() + ".processAssociationValue";
+
+    private Evaluation lastEvaluation;
 
     AssociationSynchronizationExpressionEvaluator(
             QName elementName,
@@ -85,17 +92,24 @@ class AssociationSynchronizationExpressionEvaluator
                         ShadowAssociationDefinition.class);
 
         var inputTriple = defaultSource.getDeltaSetTriple();
-        if (inputTriple == null) {
-            return null;
-        }
 
-        return new Evaluation(inputTriple, associationDefinition, context)
-                .process(result);
+        // Currently we take only non-negative values
+        Collection<? extends PrismValue> inputValues = inputTriple != null ? inputTriple.getNonNegativeValues() : List.of();
+
+        // Actually, this should be called only once; at least for mappings
+        lastEvaluation = new Evaluation(inputValues, associationDefinition, context);
+        return lastEvaluation.process(result);
+    }
+
+    @Override
+    public boolean doesVetoTargetValueRemoval(@NotNull PrismContainerValue<AssignmentType> value, @NotNull OperationResult result) {
+        return stateNonNull(lastEvaluation, "No last evaluation?")
+                .doesVetoTargetValueRemoval(value, result);
     }
 
     class Evaluation {
 
-        @NotNull private final PrismValueDeltaSetTriple<?> inputTriple;
+        @NotNull private final Collection<? extends PrismValue> inputValues;
         @NotNull private final AssociationSynchronizationResult<PrismContainerValue<AssignmentType>> evaluatorResult =
                 new AssociationSynchronizationResult<>();
         @NotNull private final ShadowAssociationDefinition associationDefinition;
@@ -113,11 +127,11 @@ class AssociationSynchronizationExpressionEvaluator
 //        @NotNull private final Set<Long> assignmentsIdsSeen = new HashSet<>();
 
         Evaluation(
-                @NotNull PrismValueDeltaSetTriple<?> inputTriple,
+                @NotNull Collection<? extends PrismValue> inputValues,
                 @NotNull ShadowAssociationDefinition associationDefinition,
                 @NotNull ExpressionEvaluationContext context)
                 throws ConfigurationException {
-            this.inputTriple = inputTriple;
+            this.inputValues = inputValues;
             this.associationDefinition = associationDefinition;
             this.context = context;
             this.inboundDefinition =
@@ -133,11 +147,10 @@ class AssociationSynchronizationExpressionEvaluator
                 ConfigurationException, ObjectNotFoundException {
 
             LOGGER.trace("Processing {} individual values of the association '{}'",
-                    inputTriple.size(), associationDefinition.getItemName());
+                    inputValues.size(), associationDefinition.getItemName());
 
-            // Currently we take only non-negative values
-            for (var value : inputTriple.getNonNegativeValues()) {
-                var associationValue = (ShadowAssociationValue) value;
+            for (var inputValue : inputValues) {
+                var associationValue = (ShadowAssociationValue) inputValue;
                 LOGGER.trace("Processing association value: {}", associationValue);
                 new ValueProcessing(associationValue)
                         .process(result);
@@ -161,6 +174,93 @@ class AssociationSynchronizationExpressionEvaluator
                     .filter(a -> assignmentSubtype == null
                             || a.getSubtype().contains(assignmentSubtype))
                     .toList();
+        }
+
+        /**
+         * The mapping considers to remove the assignment that belongs to the range of this mapping.
+         * Maybe it was created by this mapping before?
+         *
+         * We consent, unless the assignment points to a role which has a projection of relevant type (resource, kind, intent)
+         * that prevents inbound membership synchronization.
+         *
+         * We don't support multi-tag resources here. Nor fancy assignments with filters etc.
+         */
+        boolean doesVetoTargetValueRemoval(PrismContainerValue<AssignmentType> value, OperationResult result) {
+            LOGGER.trace("Considering whether to veto the removal of {}", value);
+            try {
+                var assignmentTargetRef = value.asContainerable().getTargetRef();
+                if (assignmentTargetRef == null || assignmentTargetRef.getOid() == null) {
+                    LOGGER.trace("-> No targetRef or OID, just remove it.");
+                    return false; // We don't care about assignments without OID, why should we veto their deletion?
+                }
+                var type = assignmentTargetRef.getType();
+                Class<? extends ObjectType> clazz;
+                if (type != null) {
+                    clazz = ObjectTypes.getObjectTypeClass(type);
+                    if (!FocusType.class.isAssignableFrom(clazz)) {
+                        LOGGER.trace("-> Not a focus, just remove it.");
+                        return false; // no shadows
+                    }
+                } else {
+                    clazz = AssignmentHolderType.class;
+                }
+                var target = ModelBeans.get().cacheRepositoryService.getObject(
+                        clazz,
+                        assignmentTargetRef.getOid(),
+                        createReadOnlyCollection(),
+                        result);
+                List<ObjectReferenceType> linkRefs =
+                        target.asObjectable() instanceof FocusType focus ? focus.getLinkRef() : List.of();
+                LOGGER.trace("-> Target {} with {} shadows: {}", target, linkRefs.size(), linkRefs);
+                if (linkRefs.isEmpty()) {
+                    LOGGER.trace("-> No shadows, just remove it.");
+                    return false;
+                }
+                var shadows = new ArrayList<AbstractShadow>();
+                var noFetchOptions = createNoFetchCollection();
+                for (var linkRef : linkRefs) {
+                    shadows.add(
+                            ModelBeans.get().provisioningService.getShadow(
+                                    linkRef.getOid(), noFetchOptions, context.getTask(), result));
+                }
+                var matchingShadows = shadows.stream()
+                        .filter(shadow -> associationDefinition.matches(shadow.getBean()))
+                        .toList();
+                LOGGER.trace("-> Matching shadows: {}", matchingShadows);
+                var liveShadows = matchingShadows.stream()
+                        .filter(s -> !s.isDead())
+                        .toList();
+                var fromLiveShadows = new HashSet<Boolean>();
+                for (var liveShadow : liveShadows) {
+                    fromLiveShadows.add(
+                            isMembershipSyncInboundDisabled(liveShadow.getEffectiveOperationPolicyRequired()));
+                }
+                if (fromLiveShadows.size() == 1) {
+                    boolean answer = fromLiveShadows.iterator().next();
+                    LOGGER.trace("-> Answer from live shadows: {}", answer);
+                    return answer;
+                } else if (fromLiveShadows.size() > 1) {
+                    LOGGER.trace("-> Contradicting answers from live shadows; NOT vetoing the removal");
+                    return false;
+                }
+                // Now let's have a look at the last dead shadow
+                var lastDeadShadowOptional = matchingShadows.stream()
+                        .filter(s -> s.isDead() && s.getBean().getDeathTimestamp() != null)
+                        .max(Comparator.comparingLong(s -> XmlTypeConverter.toMillis(s.getBean().getDeathTimestamp())));
+                if (lastDeadShadowOptional.isPresent()) {
+                    var lastDeadShadow = lastDeadShadowOptional.get();
+                    var answer = isMembershipSyncInboundDisabled(lastDeadShadow.getEffectiveOperationPolicyRequired());
+                    LOGGER.trace("-> Answer from last dead shadow: {} (from {})", answer, lastDeadShadow);
+                    return answer;
+                }
+                LOGGER.trace("-> No shadow found, not vetoing the removal.");
+                return false;
+            } catch (CommonException e) {
+                LoggingUtils.logUnexpectedException(
+                        LOGGER, "Error while determining whether to remove assignment {}; so we will remove it", e, value);
+                //return false;
+                throw new SystemException(e); // TODO remove before 4.9 release
+            }
         }
 
         /**

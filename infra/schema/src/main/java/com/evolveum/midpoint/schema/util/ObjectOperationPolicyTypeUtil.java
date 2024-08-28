@@ -63,8 +63,16 @@ public class ObjectOperationPolicyTypeUtil {
         return isDisabled(policy, PATH_DELETE);
     }
 
+    /** Returns {@code true} if the sync inbound is completely disabled. */
     public static boolean isSyncInboundDisabled(@NotNull ObjectOperationPolicyType policy) {
-        return isDisabled(policy, PATH_SYNC_INBOUND);
+        return getSyncInboundPolicyEnabled(policy) == SyncInboundOperationPolicyEnabledType.FALSE;
+    }
+
+    public static boolean areSyncInboundMappingsDisabled(@NotNull ObjectOperationPolicyType policy) {
+        var status = getSyncInboundPolicyEnabled(policy);
+        // Note this is the same as "status != TRUE", but more explicit
+        return status == SyncInboundOperationPolicyEnabledType.FALSE
+                || status == SyncInboundOperationPolicyEnabledType.EXCEPT_FOR_MAPPINGS;
     }
 
     public static boolean isSyncOutboundDisabled(@NotNull ObjectOperationPolicyType policy) {
@@ -80,15 +88,24 @@ public class ObjectOperationPolicyTypeUtil {
     }
 
     private static boolean isDisabled(@NotNull ObjectOperationPolicyType policy, @NotNull ItemPath path) {
-        var operationPolicy = getOperationPolicy(policy, path);
+        var operationPolicy = (OperationPolicyConfigurationType) getOperationPolicy(policy, path);
         return operationPolicy != null && Boolean.FALSE.equals(operationPolicy.isEnabled());
     }
 
-    private static OperationPolicyConfigurationType getOperationPolicy(
+    private static @NotNull SyncInboundOperationPolicyEnabledType getSyncInboundPolicyEnabled(
+            @NotNull ObjectOperationPolicyType policy) {
+        var operationPolicy = (SyncInboundOperationPolicyConfigurationType) getOperationPolicy(policy, PATH_SYNC_INBOUND);
+        return Objects.requireNonNullElse(
+                operationPolicy != null ? operationPolicy.getEnabled() : null,
+                SyncInboundOperationPolicyEnabledType.TRUE);
+    }
+
+    private static AbstractOperationPolicyConfigurationType getOperationPolicy(
             @NotNull ObjectOperationPolicyType objectPolicy, @NotNull ItemPath path) {
         //noinspection unchecked
-        var item = (PrismContainer<OperationPolicyConfigurationType>) objectPolicy.asPrismContainerValue().findItem(path);
-        return item != null && item.hasAnyValue() ? item.getRealValue(OperationPolicyConfigurationType.class) : null;
+        var item = (PrismContainer<? extends AbstractOperationPolicyConfigurationType>)
+                objectPolicy.asPrismContainerValue().findItem(path);
+        return item != null && item.hasAnyValue() ? item.getRealValue(AbstractOperationPolicyConfigurationType.class) : null;
     }
 
     public static Boolean getToleranceOverride(@NotNull ObjectOperationPolicyType objectPolicy) {

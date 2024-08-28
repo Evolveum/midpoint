@@ -32,11 +32,18 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 
 public abstract class ReferenceNameResolver {
 
-    protected abstract <S> S resolve(S object, JdbcSession session);
+    public abstract <S> S resolve(S object, JdbcSession session);
 
     public static ReferenceNameResolver from(Collection<SelectorOptions<GetOperationOptions>> options) {
         @NotNull
         List<? extends ItemPath> paths = getPathsToResolve(options);
+        if (paths.isEmpty()) {
+            return new Noop();
+        }
+        return new Impl(paths);
+    }
+
+    public static ReferenceNameResolver from(List<ItemPath> paths) {
         if (paths.isEmpty()) {
             return new Noop();
         }
@@ -61,7 +68,7 @@ public abstract class ReferenceNameResolver {
     private static final class Noop extends ReferenceNameResolver {
 
         @Override
-        protected <S> S resolve(S object, JdbcSession session) {
+        public  <S> S resolve(S object, JdbcSession session) {
             return object;
         }
     }
@@ -80,14 +87,19 @@ public abstract class ReferenceNameResolver {
         }
 
         @Override
-        protected <S> S resolve(S object, JdbcSession session) {
-
-            if (!(object instanceof Containerable)) {
+        public  <S> S resolve(S object, JdbcSession session) {
+            PrismContainerValue<?> container = null;
+            if (object instanceof Containerable cont) {
+                container = cont.asPrismContainerValue();
+            } else if (object instanceof PrismContainerValue<?> pcv) {
+                container = pcv;
+            }
+            if (container == null) {
                 return object;
             }
+
             var result = SqlBaseOperationTracker.resolveNames();
             try {
-                PrismContainerValue<?> container = ((Containerable) object).asPrismContainerValue();
                 Visitor initialWalk = visitable -> {
                     if (visitable instanceof PrismReferenceValue) {
                         initialVisit((PrismReferenceValue) visitable);

@@ -65,7 +65,7 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
 
             @Override
             protected String getComponentCssStyle() {
-                return "font-size:20px;";
+                return "";
             }
         };
         container.add(iconWithLabel);

@@ -31,7 +31,8 @@
         </delete>
         <synchronize>
             <inbound>
-                <enabled>false</enabled>
+                <!-- inbound as such is enabled, as we'd like to react to situations like account deleted, changed, etc. -->
+                <enabled>exceptForMappings</enabled>
                 <severity>info</severity>
             </inbound>
             <outbound>

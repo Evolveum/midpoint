@@ -376,7 +376,10 @@ public class CertCampaignTypeUtil {
         aCase.getWorkItem().forEach(certItem -> {
             for (ObjectReferenceType assigneeRef : certItem.getAssigneeRef()) {
                 if (Objects.equals(certItem.getStageNumber(), certCaseStageNumber)) {
-                    rv.add(assigneeRef);
+                    boolean alreadyInList = rv.stream().anyMatch(r -> r.getOid().equals(assigneeRef.getOid()));
+                    if (!alreadyInList) {
+                        rv.add(assigneeRef);
+                    }
                 }
             }
         });

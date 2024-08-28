@@ -9,10 +9,11 @@ import java.util.Map;
 
 //TODO think tmp
 public class AttributeAnalysisCache {
-    private  UserAttributeAnalyseCache userCache;
-    private  RoleMemberAttributeAnalyseCache roleMemberAttributeCache;
-    private  MemberUserAttributeAnalysisCache memberUserCache;
 
+    //TODO RoleAttributeAnalyseCache
+    private UserAttributeAnalyseCache userCache;
+    private RoleMemberAttributeAnalyseCache roleMemberAttributeCache;
+    private MemberUserAttributeAnalysisCache memberUserCache;
     private ListMultimap<String, String> roleMemberCache;
     private final RoleMemberCountCache roleMemberCountCache;
 
@@ -27,6 +28,7 @@ public class AttributeAnalysisCache {
         this.roleMemberCountCache = roleMemberCountCache;
         this.roleMemberCache = roleMemberCache;
     }
+
     public AttributeAnalysisCache() {
         this.userCache = new UserAttributeAnalyseCache();
         this.roleMemberAttributeCache = new RoleMemberAttributeAnalyseCache();

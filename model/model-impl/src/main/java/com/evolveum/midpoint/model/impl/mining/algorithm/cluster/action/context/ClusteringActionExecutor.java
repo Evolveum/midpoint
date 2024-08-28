@@ -87,9 +87,10 @@ public class ClusteringActionExecutor extends BaseAction {
             return;
         }
 
-
         RoleAnalysisSessionType session = prismSession.asObjectable();
         List<ObjectReferenceType> effectiveMarkRef = session.getEffectiveMarkRef();
+        //TODO this is brutal hack. Change it.
+        // Start *
         boolean isDecomissioned = false;
 
         if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
@@ -124,13 +125,14 @@ public class ClusteringActionExecutor extends BaseAction {
             handler.finish();
             return;
         }
+        //End *
 
         roleAnalysisService.deleteSessionClustersMembers(prismSession.getOid(), task, result, false);
 
         this.clusterable = new ClusteringBehavioralResolver();
 
-        List<PrismObject<RoleAnalysisClusterType>> clusterObjects =
-                clusterable.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
+        List<PrismObject<RoleAnalysisClusterType>> clusterObjects = clusterable.executeClustering(
+                roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
 
         if (!clusterObjects.isEmpty()) {
             importObjects(roleAnalysisService, clusterObjects, session, task, result);
@@ -151,9 +153,15 @@ public class ClusteringActionExecutor extends BaseAction {
         sessionRef.setTargetName(session.getName());
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         int processedObjectCount = 0;
-        QName complexType = analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)
-                ? RoleType.COMPLEX_TYPE
-                : UserType.COMPLEX_TYPE;
+        SearchFilterType sessionUserQuery;
+        QName complexType;
+        if (analysisOption.getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
+            sessionUserQuery = session.getRoleModeOptions().getQuery();
+            complexType = RoleType.COMPLEX_TYPE;
+        } else {
+            sessionUserQuery = session.getUserModeOptions().getQuery();
+            complexType = UserType.COMPLEX_TYPE;
+        }
 
         double meanDensity = 0;
 
@@ -188,9 +196,8 @@ public class ClusteringActionExecutor extends BaseAction {
 
         }
 
-
         ModelService modelService = ModelBeans.get().modelService;
-        ListMultimap<String, String> roleMembersMap = loadRoleMembersMap(modelService, session.getUserModeOptions().getQuery(), task, result);
+        ListMultimap<String, String> roleMembersMap = loadRoleMembersMap(modelService, sessionUserQuery, task, result);
         attributeAnalysisCache.setRoleMemberCache(roleMembersMap);
 
         //TODO not just basic it must be connected to in and out outlier analysis (experimental)

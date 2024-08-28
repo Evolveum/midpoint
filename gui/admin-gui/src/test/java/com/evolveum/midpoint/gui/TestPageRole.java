@@ -41,6 +41,8 @@ import java.util.concurrent.TimeUnit;
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
 public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
 
+    public static final int ARCHEYPE_CHOICE_ALL_ROLES = 2;
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -58,7 +60,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test002testAddNewRole() throws Exception {
         renderPage(PageRole.class);
-        choiceArchetype(4);
+        choiceArchetype(ARCHEYPE_CHOICE_ALL_ROLES);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);
         formTester.setValue(PATH_FORM_NAME, "newRole");
@@ -81,7 +83,7 @@ public class TestPageRole extends AbstractInitializedGuiIntegrationTest {
         String role1Oid = addObject(role1);
         Task task = createTask("assign");
         // Assign Role0001 with orgRef P0001
-//        assignParametricRole(USER_JACK_OID, role1Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult()); //TODO uncomment after fixing search for members without org/project
+        assignParametricRole(USER_JACK_OID, role1Oid, ORG_SAVE_ELAINE_OID, null, task, task.getResult());
         assignRole(USER_JACK_OID, role1Oid);
         assignRole(USER_ADMINISTRATOR_OID, role1Oid);
 

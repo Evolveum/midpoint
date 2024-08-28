@@ -678,9 +678,9 @@ public interface RoleAnalysisService {
             @NotNull Set<PrismObject<UserType>> prismUsers,
             Double membershipDensity,
             @NotNull AttributeAnalysisCache userAnalysisCache,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet,
             @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
+            @NotNull OperationResult result);
 
     /**
      * Performs attribute analysis for role objects.
@@ -752,6 +752,31 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             @Nullable List<RoleAnalysisAttributeDef> attributeRoleDefSet,
             @Nullable List<RoleAnalysisAttributeDef> attributeUserDefSet);
+
+    /**
+     * Processes attribute analysis for the detected patterns.
+     * This method analyzes attribute usage patterns for both users and roles in the detected patterns.
+     * It retrieves user and role occupancy information from the detected patterns, then performs attribute
+     * analysis for both user and role types based on the specified attribute paths.
+     *
+     * @param detectedPatterns List of detected patterns to process.
+     * @param userExistCache Map containing cached PrismObject of UserType for efficient retrieval.
+     * @param roleExistCache Map containing cached PrismObject of RoleType for efficient retrieval.
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * Any errors or status information will be recorded here.
+     * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
+     * @param attributeUserDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for user analysis.
+     */
+    void resolveDetectedPatternsAttributesCached(
+            @NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns,
+            @NotNull Map<String, PrismObject<UserType>> userExistCache,
+            @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
+            @Nullable List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @Nullable List<RoleAnalysisAttributeDef> attributeUserDefSet,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 
     /**
      * Searches for clusters associated with a specific role analysis session.

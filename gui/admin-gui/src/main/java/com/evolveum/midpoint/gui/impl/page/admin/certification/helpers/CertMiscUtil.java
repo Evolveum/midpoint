@@ -15,13 +15,21 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
+import com.evolveum.midpoint.repo.api.AggregateQuery;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -30,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -483,7 +492,7 @@ public class CertMiscUtil {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        List<AccessCertificationCampaignType> campaigns = selectedCampaignsModel.getObject();
+                        final List<AccessCertificationCampaignType> campaigns = new ArrayList<>(selectedCampaignsModel.getObject());
                         if (campaigns.isEmpty()) {
                             IModel<?> rowModel = getRowModel();
                             if (rowModel == null || rowModel.getObject() == null) {
@@ -493,9 +502,29 @@ public class CertMiscUtil {
                             }
                             AccessCertificationCampaignType campaign =
                                     (AccessCertificationCampaignType) ((SelectableBean) rowModel.getObject()).getValue();
-                            campaigns = Collections.singletonList(campaign);
+                            campaigns.add(campaign);
                         }
-                        CampaignProcessingHelper.campaignActionPerformed(campaigns, action, pageBase, target);
+
+                        IModel<String> confirmModel;
+                        if (campaigns.size() == 1) {
+                            String campaignName = LocalizationUtil.translatePolyString(campaigns.get(0).getName());
+                            confirmModel = pageBase.createStringResource(action.getConfirmation().getSingleConfirmationMessageKey(),
+                                    campaignName);
+                        } else {
+                            confirmModel = pageBase.createStringResource(action.getConfirmation().getMultipleConfirmationMessageKey(),
+                                    campaigns.size());
+                        }
+                        ConfirmationPanel confirmationPanel = new ConfirmationPanel(pageBase.getMainPopupBodyId(), confirmModel) {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void yesPerformed(AjaxRequestTarget target) {
+                                OperationResult result = new OperationResult("certificationItemAction");
+                                CampaignProcessingHelper.campaignActionConfirmed(campaigns, action, pageBase, target, result);
+                                target.add(pageBase);
+                            }
+                        };
+                        pageBase.showMainPopup(confirmationPanel, target);
                     }
                 };
             }
@@ -518,5 +547,69 @@ public class CertMiscUtil {
         CampaignStateHelper helper = new CampaignStateHelper(campaign);
         List<CampaignStateHelper.CampaignAction> actionsList = helper.getAvailableActions();
         return actionsList.contains(action);
+    }
+
+    public static List<ObjectReferenceType> loadCampaignReviewers(String campaignOid, PageBase pageBase) {
+        OperationResult result = new OperationResult("loadCampaignReviewers");
+        try {
+            var outcomePath = ItemPath.create(AccessCertificationWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME);
+            var spec = AggregateQuery.forType(AccessCertificationWorkItemType.class)
+                    .resolveNames()
+                    .retrieve(AccessCertificationWorkItemType.F_ASSIGNEE_REF) // Resolver assignee
+                    .retrieve(AbstractWorkItemOutputType.F_OUTCOME, outcomePath)
+                    .count(AccessCertificationCaseType.F_WORK_ITEM, ItemPath.SELF_PATH);
+
+            spec.filter(PrismContext.get().queryFor(AbstractWorkItemType.class)
+                    .ownerId(campaignOid)
+                    .buildFilter()
+            );
+            spec.orderBy(spec.getResultItem(AccessCertificationWorkItemType.F_ASSIGNEE_REF), OrderDirection.DESCENDING);
+
+            SearchResultList<PrismContainerValue<?>> reviewersOutcomes = pageBase.getRepositoryService().searchAggregate(spec, result);
+            return collectReviewers(reviewersOutcomes);
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't load campaign reviewers", ex);
+            pageBase.showResult(result);
+        }
+        return new ArrayList<>();
+    }
+
+    private static List<ObjectReferenceType> collectReviewers(SearchResultList<PrismContainerValue<?>> reviewersOutcomes) {
+        List<ObjectReferenceType> reviewersList = new ArrayList<>();
+        reviewersOutcomes.forEach(reviewersOutcome -> {
+            Item assigneeItem = reviewersOutcome.findItem(AccessCertificationWorkItemType.F_ASSIGNEE_REF);
+            if (assigneeItem == null) {
+                return;
+            }
+            assigneeItem.getValues()
+                    .forEach(refValue -> {
+                        PrismReferenceValueImpl assignee = (PrismReferenceValueImpl) refValue;
+                        ObjectReferenceType assigneeRef = new ObjectReferenceType();
+                        assigneeRef.setOid(assignee.getOid());
+                        assigneeRef.setType(assignee.getTargetType());
+                        if (!alreadyExistInList(reviewersList, assigneeRef)) {
+                            reviewersList.add(assigneeRef);
+                        }
+                    });
+        });
+        return reviewersList;
+    }
+
+    private static boolean alreadyExistInList(List<ObjectReferenceType> reviewersList, ObjectReferenceType ref) {
+        return reviewersList
+                .stream()
+                .anyMatch(r -> r.getOid().equals(ref.getOid()));
+    }
+
+    public static List<PrismObject<TaskType>> loadRunningCertTask(String campaignOid, OperationResult result, PageBase pageBase) {
+        ObjectQuery query = PrismContext.get().queryFor(TaskType.class)
+                .item(ItemPath.create(TaskType.F_AFFECTED_OBJECTS, TaskAffectedObjectsType.F_ACTIVITY,
+                        ActivityAffectedObjectsType.F_OBJECTS, BasicObjectSetType.F_OBJECT_REF))
+                .ref(campaignOid)
+                .and()
+                .item(TaskType.F_EXECUTION_STATE)
+                .eq(TaskExecutionStateType.RUNNING)
+                .build();
+        return WebModelServiceUtils.searchObjects(TaskType.class, query, null, result, pageBase);
     }
 }

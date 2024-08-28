@@ -72,7 +72,7 @@ public class AccCertResponseComputationHelper {
 //        return !amongStopped;
 //    }
 
-    List<AccessCertificationResponseType> getOutcomesToStopOn(AccessCertificationCampaignType campaign) {
+    public List<AccessCertificationResponseType> getOutcomesToStopOn(AccessCertificationCampaignType campaign) {
         List<AccessCertificationResponseType> rv;
         AccessCertificationStageDefinitionType stageDefinition = CertCampaignTypeUtil.getCurrentStageDefinition(campaign);
         if (!stageDefinition.getStopReviewOn().isEmpty() || !stageDefinition.getAdvanceToNextStageOn().isEmpty()) {
@@ -102,7 +102,7 @@ public class AccCertResponseComputationHelper {
     }
 
     @NotNull
-    AccessCertificationResponseType computeOutcomeForStage(AccessCertificationCaseType aCase,
+    public AccessCertificationResponseType computeOutcomeForStage(AccessCertificationCaseType aCase,
             AccessCertificationCampaignType campaign, int stageNumber) {
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stageNumber);
         List<AccessCertificationResponseType> allResponses = getResponses(aCase, stageNumber, norm(campaign.getIteration()));
@@ -140,7 +140,7 @@ public class AccCertResponseComputationHelper {
     // aCase contains outcomes from previous (closed) stages. Outcome from the current (not yet closed) stage (additionalStageNumber)
     // is in additionalStageResponse.
     @NotNull
-    AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase,
+    public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase,
             AccessCertificationCampaignType campaign, int additionalStageNumber, AccessCertificationResponseType additionalStageOutcome) {
         List<AccessCertificationResponseType> stageOutcomes = getOutcomesFromCompletedStages(aCase, additionalStageNumber, additionalStageOutcome);
         return normalizeToNonNull(getOverallOutcomeStrategy(campaign).computeOutcome(summarize(stageOutcomes)));
@@ -187,7 +187,7 @@ public class AccCertResponseComputationHelper {
         return rv;
     }
 
-    AccessCertificationResponseType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
+    public AccessCertificationResponseType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
         Set<AccessCertificationResponseType> stageOutcomes = aCase.getEvent().stream()
                 .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber)
                 .map(e -> normalizeToNonNull(fromUri(((StageCompletionEventType) e).getOutcome())))

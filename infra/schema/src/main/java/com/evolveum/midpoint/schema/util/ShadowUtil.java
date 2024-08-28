@@ -1316,10 +1316,6 @@ public class ShadowUtil {
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) throws SchemaException {
-        if (shadow != null && definition.isIdentifier(attrName)) {
-            // TODO revisit this: identifiers are supposed to be always up-to-date (is this correct?)
-            return ItemCachedStatus.SHADOW_IDENTIFIER;
-        }
         var shadowStatus = getShadowCachedStatus(shadow, definition, now);
         if (!shadowStatus.isFresh()) {
             return shadowStatus;

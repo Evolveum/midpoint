@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.expression.ExpressionProfileManager;
 import com.evolveum.midpoint.model.impl.controller.transformer.DataAccessProcessor;
 import com.evolveum.midpoint.model.impl.lens.tasks.TaskOperationalDataManager;
@@ -96,6 +97,7 @@ public class ModelBeans {
     @Autowired public PrismContext prismContext;
     @Autowired public SchemaService schemaService;
     @Autowired public ModelObjectResolver modelObjectResolver;
+    @Autowired public ReferenceResolver referenceResolver;
     @Autowired public ModelService modelService;
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService cacheRepositoryService;
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;

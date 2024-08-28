@@ -96,6 +96,11 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
                 }
                 return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
             }
+            @Override
+            protected String getLabelComponentCssClass() {
+                return "pl-1 text-sm text-truncate";
+            }
+
         };
         processedObjectCount.setOutputMarkupId(true);
         processedObjectCount.add(AttributeAppender.replace("title", () -> "Processed objects: " + getModelObject().getProcessedObjectCount()));
@@ -109,6 +114,11 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             public String getIconCssClass() {
                 return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
             }
+            @Override
+            protected String getLabelComponentCssClass() {
+                return "pl-1 text-sm text-truncate";
+            }
+
         };
 
         clusterCount.setOutputMarkupId(true);
@@ -125,6 +135,12 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             public String getIconCssClass() {
                 return "fa fa-cogs";
             }
+
+            @Override
+            protected String getLabelComponentCssClass() {
+                return "pl-1 text-sm text-truncate";
+            }
+
         };
         mode.add(AttributeAppender.replace("title", () -> "Process mode: " + processModeTitle));
         mode.add(new TooltipBehavior());
@@ -152,13 +168,19 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             }
 
             @Override
+            protected String getLabelComponentCssClass() {
+                return "pl-2 text-truncate";
+            }
+
+            @Override
             protected void onClickPerform(AjaxRequestTarget target) {
                 RoleAnalysisTilePanel.this.onDetails();
             }
 
         };
         objectTitle.setOutputMarkupId(true);
-        objectTitle.add(AttributeAppender.replace("style", "font-size:20px"));
+        objectTitle.add(AttributeAppender.replace("style", "font-size:18px"));
+        objectTitle.add(AttributeAppender.append("class", ""));
         objectTitle.add(AttributeAppender.replace("title", () -> getModelObject().getName()));
         objectTitle.add(new TooltipBehavior());
         add(objectTitle);
@@ -166,7 +188,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
     private void initToolBarPanel() {
         DropdownButtonPanel barMenu = new DropdownButtonPanel(ID_BUTTON_BAR, new DropdownButtonDto(
-                null, "fa fa-ellipsis-v", null, createMenuItems())) {
+                null, "fa-ellipsis-v ml-1", null, createMenuItems())) {
             @Override
             protected boolean hasToggleIcon() {
                 return false;
@@ -174,8 +196,9 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
             @Override
             protected String getSpecialButtonClass() {
-                return " p-0 ";
+                return " px-1 py-0 "; /* p-0 */
             }
+
 
         };
         barMenu.setOutputMarkupId(true);
@@ -189,9 +212,9 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
         add(AttributeAppender.append("class", "bg-white "
                 + "d-flex flex-column align-items-center"
-                + " rounded  w-100 h-100 p-3 elevation-1"));
+                + " rounded w-100 h-100 p-3 card-shadow"));
 
-        add(AttributeAppender.append("style", "width:25%"));
+        add(AttributeAppender.append("style", "")); /* width:25%; */
     }
 
     protected void onDetails() {
@@ -324,7 +347,6 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             }
 
         });
-
         return items;
     }
 }

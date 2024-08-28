@@ -20,6 +20,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 
+import com.evolveum.midpoint.security.api.SecurityUtil;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -131,7 +133,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
-        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        List<PrismObject<TaskType>> tasks = getFirstStageTasks(campaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid());
 
@@ -231,6 +233,11 @@ public class TestManualEscalation extends AbstractCertificationTest {
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         assertPercentCompleteAll(campaign, Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f), Math.round(100.0f / 7.0f));      // 1 reviewer per case (always administrator)
+    }
+
+    @Override
+    protected PrismObject<UserType> getDefaultActor() {
+        return (PrismObject<UserType>) SecurityUtil.getPrincipalSilent().getFocus().asPrismObject();
     }
 
     @Test

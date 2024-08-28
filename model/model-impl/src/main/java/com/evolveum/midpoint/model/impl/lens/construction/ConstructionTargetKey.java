@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextFilter;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -79,6 +80,11 @@ public class ConstructionTargetKey
 
     public String getTag() {
         return tag;
+    }
+
+    /** Return filter to match this key; `gone` and `order` are irrelevant, `tag` is relevant. */
+    public @NotNull ProjectionContextFilter asFilter() {
+        return new ProjectionContextFilter(resourceOid, kind, intent, tag);
     }
 
     @Override

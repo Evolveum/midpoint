@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.cluster
 
 import java.util.List;
 
+import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,7 @@ public class OutlierClustering implements Clusterable {
             @NotNull ModelService modelService,
             @NotNull RoleAnalysisSessionType session,
             @NotNull RoleAnalysisProgressIncrement handler,
+            @NotNull AttributeAnalysisCache attributeAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
 
@@ -65,7 +67,7 @@ public class OutlierClustering implements Clusterable {
             }
         };
 
-        return advancedClustering.executeClustering(roleAnalysisService, modelService, session, handler, task, result);
+        return advancedClustering.executeClustering(roleAnalysisService, modelService, session, handler, attributeAnalysisCache, task, result);
 
     }
 

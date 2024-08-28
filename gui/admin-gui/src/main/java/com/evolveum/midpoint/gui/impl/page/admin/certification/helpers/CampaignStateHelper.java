@@ -35,49 +35,96 @@ public class CampaignStateHelper implements Serializable {
         campaignStateClassMap = Collections.unmodifiableMap(map);
     }
 
+    public enum CampaignActionConfirmation {
+        START_CAMPAIGN_CONFIRMATION(new DisplayType()
+                .singularLabel("PageCertCampaigns.message.startCampaignConfirmSingle")
+                .pluralLabel("PageCertCampaigns.message.startCampaignConfirmMultiple")),
+        OPEN_NEXT_STAGE_CONFIRMATION(new DisplayType()
+                .singularLabel("PageCertCampaigns.message.startCampaignConfirmSingle")
+                .pluralLabel("PageCertCampaigns.message.openNextStageConfirmMultiple")),
+        CLOSE_STAGE_CONFIRMATION(new DisplayType()
+                .singularLabel("PageCertCampaigns.message.closeStageConfirmSingle")
+                .pluralLabel("PageCertCampaigns.message.closeStageConfirmMultiple")),
+        START_REMEDIATION_CONFIRMATION(new DisplayType()
+                .singularLabel("PageCertCampaigns.message.remediationConfirmSingle")
+                .pluralLabel("PageCertCampaigns.message.remediationConfirmMultiple")),
+        REITERATE_CAMPAIGN_CONFIRMATION(new DisplayType()
+                .singularLabel("PageCertCampaigns.message.reiterateCampaignConfirmSingle")
+                .pluralLabel("PageCertCampaigns.message.reiterateCampaignConfirmMultiple")),
+        CLOSE_CAMPAIGN_CONFIRMATION(new DisplayType()
+                .singularLabel("PageCertCampaigns.message.closeCampaignConfirmSingle")
+                .pluralLabel("PageCertCampaigns.message.closeCampaignConfirmMultiple")),
+        REMOVE_CAMPAIGN_CONFIRMATION(new DisplayType()
+                .singularLabel("PageCertCampaigns.message.deleteCampaignConfirmSingle")
+                .pluralLabel("PageCertCampaigns.message.deleteCampaignConfirmMultiple"));
+
+        private final DisplayType confirmationDisplayType;
+
+        CampaignActionConfirmation(DisplayType confirmationDisplayType) {
+            this.confirmationDisplayType = confirmationDisplayType;
+        }
+
+        public String getSingleConfirmationMessageKey() {
+            return confirmationDisplayType.getSingularLabel().getOrig();
+        }
+
+        public String getMultipleConfirmationMessageKey() {
+            return confirmationDisplayType.getPluralLabel().getOrig();
+        }
+    }
+
     public enum CampaignAction {
         START_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.startCampaign")
                 .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-play")),
-                true),
+                true,
+                CampaignActionConfirmation.START_CAMPAIGN_CONFIRMATION),
         OPEN_NEXT_STAGE(new DisplayType()
                 .label("CampaignAction.openNextStage")
                 .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-play")),
-                false),
+                false,
+                CampaignActionConfirmation.OPEN_NEXT_STAGE_CONFIRMATION),
         CLOSE_STAGE(new DisplayType()
                 .label("CampaignAction.closeStage")
                 .cssClass("btn-secondary")
                 .icon(new IconType().cssClass("fa fa-regular fa-circle-xmark")),
-                false),
+                false,
+                CampaignActionConfirmation.CLOSE_STAGE_CONFIRMATION),
         START_REMEDIATION(new DisplayType()
                 .label("CampaignAction.startRemediation")
                 .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-solid fa-badge-check")),
-                false),
+                false,
+                CampaignActionConfirmation.START_REMEDIATION_CONFIRMATION),
         REITERATE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.reiterateCampaign")
                 .cssClass("btn-primary")
                 .icon(new IconType().cssClass("fa fa-rotate-right")),
-                true),
+                true,
+                CampaignActionConfirmation.REITERATE_CAMPAIGN_CONFIRMATION),
         CLOSE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.closeCampaign")
                 .cssClass("btn-secondary")
                 .icon(new IconType().cssClass("fa fa-solid fa-circle-xmark")),
-                true),
+                true,
+                CampaignActionConfirmation.CLOSE_CAMPAIGN_CONFIRMATION),
         REMOVE_CAMPAIGN(new DisplayType()
                 .label("CampaignAction.removeCampaign")
                 .cssClass("btn-danger")
                 .icon(new IconType().cssClass("fa fa-minus-circle")),
-                true);
+                true,
+                CampaignActionConfirmation.REMOVE_CAMPAIGN_CONFIRMATION);
 
-        private DisplayType displayType;
-        private boolean isBulkAction;
+        private final DisplayType displayType;
+        private final boolean isBulkAction;
+        private final CampaignActionConfirmation confirmation;
 
-        CampaignAction(DisplayType displayType, boolean isBulkAction) {
+        CampaignAction(DisplayType displayType, boolean isBulkAction, CampaignActionConfirmation confirmation) {
             this.displayType = displayType;
             this.isBulkAction = isBulkAction;
+            this.confirmation = confirmation;
         }
 
         public String getActionLabelKey() {
@@ -94,6 +141,10 @@ public class CampaignStateHelper implements Serializable {
 
         public boolean isBulkAction() {
             return isBulkAction;
+        }
+
+        public CampaignActionConfirmation getConfirmation() {
+            return confirmation;
         }
     }
 

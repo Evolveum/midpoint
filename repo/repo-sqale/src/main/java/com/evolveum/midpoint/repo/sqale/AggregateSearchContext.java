@@ -1,10 +1,13 @@
 package com.evolveum.midpoint.repo.sqale;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.api.AggregateQuery;
 import com.evolveum.midpoint.repo.sqale.filtering.RefItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.filtering.RefTableItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqale.mapping.ReferenceNameResolver;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObject;
@@ -13,21 +16,18 @@ import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.RepositoryException;
 import com.evolveum.midpoint.repo.sqlbase.SqlQueryContext;
 import com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor;
+import com.evolveum.midpoint.repo.sqlbase.filtering.item.SimpleItemFilterProcessor;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.PathMetadataFactory;
+import com.querydsl.core.types.*;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.SQLQuery;
 
@@ -47,6 +47,8 @@ public class AggregateSearchContext {
     private final List<Expression<?>> groupExpressions = new ArrayList<>();
     private final List<OrderSpecifier<?>> orderSpecifiers = new ArrayList<>();
 
+    private final List<ItemPath> resolveNamesPath = new ArrayList<>();
+
 
     public AggregateSearchContext(AggregateQuery<?> query, SqaleQueryContext<? extends Containerable, FlexibleRelationalPathBase<Object>, Object> queryContext, OperationResult result) {
         apiQuery = query;
@@ -56,6 +58,8 @@ public class AggregateSearchContext {
 
     public SearchResultList<PrismContainerValue<?>> search() throws SchemaException, RepositoryException {
         computeMapping();
+
+        var nameResolver = ReferenceNameResolver.from(apiQuery.isResolveNames() ? resolveNamesPath : Collections.emptyList());
         if (apiQuery.getFilter() != null) {
             context.processFilter(apiQuery.getFilter());
         }
@@ -66,7 +70,8 @@ public class AggregateSearchContext {
             List<Tuple> results = query.fetch();
             SearchResultList<PrismContainerValue<?>> ret = new SearchResultList<>();
             for (var partial: results) {
-                ret.add(toPrismContainerValue(partial, jdbcSession));
+                var pcv = toPrismContainerValue(partial, jdbcSession);
+                ret.add(nameResolver.resolve(pcv,jdbcSession));
             }
             return ret;
         }
@@ -100,7 +105,13 @@ public class AggregateSearchContext {
                 mapped = new CountMapping(count, context);
             } else if (item instanceof AggregateQuery.Dereference) {
                 resolved = context.resolvePathWithJoins(item.getPath());
-                mapped = new ReferenceMapping(item, resolved, true);
+                var processor = resolved.mapper.createFilterProcessor(resolved.context);
+                if (processor instanceof RefItemFilterProcessor refItem) {
+                    mapped = new ReferenceItemMapping(item, refItem, true);
+                }
+                if (processor instanceof RefTableItemFilterProcessor refTable) {
+                    mapped = new ReferenceTableMapping(item, refTable, true);
+                }
             } else if (item instanceof AggregateQuery.Retrieve) {
                 resolved = context.resolvePathWithJoins(item.getPath());
                 // Here we should somehow cleverly map select fields to reader
@@ -137,13 +148,23 @@ public class AggregateSearchContext {
     private ResultMapping mappedFromResolved(AggregateQuery.ResultItem item, SqlQueryContext.ResolveResult<?,?> resolved) {
         // Simple Types handling
         if (item.getDefinition() instanceof PrismReferenceDefinition) {
-            return new ReferenceMapping(item, resolved, false);
+            var processor = resolved.mapper.createFilterProcessor(resolved.context);
+            if (processor instanceof RefTableItemFilterProcessor tableRef) {
+                processor = tableRef.asSingleItemFilterUsingJoin();
+            }
+            if (processor instanceof RefItemFilterProcessor refItem) {
+                resolveNamesPath.add(item.getName());
+                return new ReferenceItemMapping(item, refItem, false);
+            }
         } else if (item.getDefinition() instanceof PrismObjectDefinition) {
             // Handle prism object definition
         } else if (item.getDefinition() instanceof PrismPropertyDefinition) {
-            if (PolyStringType.COMPLEX_TYPE.equals(item.getDefinition().getTypeName())) {
-                // Handle PolyString
-                return new PolyStringMapping(item, resolved);
+            var processor = resolved.mapper.createFilterProcessor(resolved.context);
+            if (processor instanceof PolyStringItemFilterProcessor poly) {
+                return new PolyStringMapping(item, poly);
+            }
+            if (processor instanceof SimpleItemFilterProcessor simple) {
+                return new SimpleValueMapping(item, simple);
             }
             // Handle prism property definition
         }
@@ -237,17 +258,11 @@ public class AggregateSearchContext {
 
         private final List<Expression<?>> expressions;
 
-        public PolyStringMapping(AggregateQuery.ResultItem item, SqlQueryContext.ResolveResult<?, ?> resolved) {
+        public PolyStringMapping(AggregateQuery.ResultItem item, PolyStringItemFilterProcessor poly) {
             super(item);
             normPath = Expressions.stringPath(pathName("norm"));
             origPath = Expressions.stringPath(pathName("orig"));
-            var processor = resolved.mapper.createFilterProcessor(resolved.context);
-            //noinspection rawtypes
-            if (processor instanceof PolyStringItemFilterProcessor poly) {
-                expressions = ImmutableList.of(poly.getNormPath().as(normPath), poly.getOrigPath().as(origPath));
-            } else {
-                throw new UnsupportedOperationException("Only Polystring filter is supported");
-            }
+            expressions = ImmutableList.of(poly.getNormPath().as(normPath), poly.getOrigPath().as(origPath));
         }
 
         @Override
@@ -272,7 +287,40 @@ public class AggregateSearchContext {
         }
     }
 
-    private class ReferenceMapping extends ResultMapping {
+    private class SimpleValueMapping extends ResultMapping {
+        private final StringPath path;
+
+        private final List<Expression<?>> expressions;
+
+        public SimpleValueMapping(AggregateQuery.ResultItem item, SimpleItemFilterProcessor processor) {
+            super(item);
+            path = Expressions.stringPath(pathName("norm"));
+            expressions = ImmutableList.of(ExpressionUtils.as(processor.getPath(), path));
+        }
+
+        @Override
+        public Collection<Expression<?>> selectExpressions() {
+            return expressions;
+        }
+
+        @Override
+        public Collection<? extends Expression<?>> groupExpressions() {
+            return ImmutableList.of(path);
+        }
+
+        @Override
+        public Item<?, ?> prismItemFrom(Tuple partial, JdbcSession session) {
+            var property = PrismContext.get().itemFactory().createProperty(item.getName());
+            var value = partial.get(path);
+            if (value != null) {
+                property.setRealValue(value);
+            }
+            return property;
+        }
+    }
+
+    private abstract class ReferenceMapping extends ResultMapping {
+
 
         private final UuidPath oidPath;
 
@@ -282,46 +330,40 @@ public class AggregateSearchContext {
 
         private final boolean dereference;
 
-        private final List<Expression<?>> expressions = new ArrayList<>();
-        private final List<Expression<?>> groupExpressions =  new ArrayList<>();
-
-
         private QObject<com.evolveum.midpoint.repo.sqale.qmodel.object.MObject> derefPath;
         private QObjectMapping<ObjectType, QObject<MObject>, MObject> derefMapping;
 
-        public ReferenceMapping(AggregateQuery.ResultItem item, SqlQueryContext.ResolveResult<?, ?> resolved, boolean dereference) {
+        private final List<Expression<?>> expressions = new ArrayList<>();
+        private final List<Expression<?>> groupExpressions =  new ArrayList<>();
+
+        public ReferenceMapping(AggregateQuery.ResultItem item, UuidPath oidPath, NumberPath<Integer> relationPath, EnumPath<MObjectType> typePath, boolean dereference) {
             super(item);
             this.dereference = dereference;
-            oidPath = new UuidPath(PathMetadataFactory.forVariable(pathName("oid")));
-            typePath = Expressions.enumPath(MObjectType.class, pathName("type"));
-            relationPath = Expressions.numberPath(Integer.class, pathName( "relation_id"));
+            this.oidPath = new UuidPath(PathMetadataFactory.forVariable(pathName("oid")));
+            this.typePath = Expressions.enumPath(MObjectType.class, pathName("type"));
+            this.relationPath = Expressions.numberPath(Integer.class, pathName( "relation_id"));
             groupExpressions.add(oidPath);
             groupExpressions.add(typePath);
             groupExpressions.add(relationPath);
 
-            var processor = resolved.mapper.createFilterProcessor(resolved.context);
-            if (processor instanceof RefItemFilterProcessor ref) {
-                expressions.add(ref.getOidPath().as(oidPath));
-                expressions.add(ref.getRelationIdPath().as(relationPath));
-                expressions.add(ref.getTypePath().as(typePath));
+            expressions.add(oidPath.as(this.oidPath));
+            expressions.add(typePath.as(this.typePath));
+            expressions.add(relationPath.as(this.relationPath));
 
-                if (dereference) {
-                    var schemaTargetType = ((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName();
-                    schemaTargetType = schemaTargetType != null ? schemaTargetType : ObjectType.COMPLEX_TYPE;
-                    var targetClass = PrismContext.get().getSchemaRegistry().getCompileTimeClassForObjectType(schemaTargetType);
-                    //noinspection rawtypes,unchecked
-                    derefMapping = (QObjectMapping) sqlRepoContext.getMappingBySchemaType(targetClass);
-                    derefPath = derefMapping.newAlias(pathName( "deref"));
-                    resolved.context.sqlQuery().leftJoin(derefPath).on(derefPath.oid.eq(ref.getOidPath()));
+            if (dereference) {
+                var schemaTargetType = ((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName();
+                schemaTargetType = schemaTargetType != null ? schemaTargetType : ObjectType.COMPLEX_TYPE;
+                var targetClass = PrismContext.get().getSchemaRegistry().getCompileTimeClassForObjectType(schemaTargetType);
+                //noinspection rawtypes,unchecked
+                derefMapping = (QObjectMapping) sqlRepoContext.getMappingBySchemaType(targetClass);
+                derefPath = derefMapping.newAlias(pathName( "deref"));
+                context.sqlQuery().leftJoin(derefPath).on(derefPath.oid.eq(oidPath));
 
-                    // Add everything from selectExpressions
-                    for (var expr: derefMapping.selectExpressions(derefPath,null)) {
-                        expressions.add(expr);
-                        groupExpressions.add(expr);
-                    }
+                // Add everything from selectExpressions
+                for (var expr: derefMapping.selectExpressions(derefPath,null)) {
+                    expressions.add(expr);
+                    groupExpressions.add(expr);
                 }
-            } else {
-                throw new UnsupportedOperationException("Only Polystring filter is supported");
             }
         }
 
@@ -343,10 +385,7 @@ public class AggregateSearchContext {
             if (oid != null) {
                 var typeClass = Objects.requireNonNull(partial.get(typePath)).getSchemaType();
                 var typeQName = PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(typeClass).getTypeName();
-
-
                 var refValue = PrismContext.get().itemFactory().createReferenceValue(oid, typeQName);
-
                 var relationRepo = partial.get(relationPath);
                 if (relationRepo != null) {
                     var relationQName =  sqlRepoContext.resolveUriIdToQName(relationRepo);
@@ -361,6 +400,19 @@ public class AggregateSearchContext {
                 property.add(refValue);
             }
             return property;
+        }
+
+    }
+    private class ReferenceItemMapping extends ReferenceMapping {
+        public ReferenceItemMapping(AggregateQuery.ResultItem item, RefItemFilterProcessor ref, boolean dereference) {
+            super(item, ref.getOidPath(), ref.getRelationIdPath(), ref.getTypePath(), dereference);
+        }
+
+    }
+
+    private class ReferenceTableMapping extends ReferenceMapping {
+        public ReferenceTableMapping(AggregateQuery.ResultItem item, RefTableItemFilterProcessor ref, boolean dereference) {
+            super(item, null, null, null, dereference);
         }
 
     }

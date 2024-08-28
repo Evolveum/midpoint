@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.context;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.BasicOutlierDetectionStrategy;
-import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.ClusteringOutlierDetectionStrategy;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.inline.BasicOutlierDetectionStrategy;
+import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.outline.OutlineOutlierDetectionStrategy;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutlierDetectionStrategyResolver;
 
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +62,7 @@ public class OutlierDetectionActionExecutor {
 
         OutlierDetectionStrategyResolver detectionExecutionUtil;
         if (cluster.getCategory().equals(RoleAnalysisClusterCategory.OUTLIERS) && detailedAnalysis) {
-            detectionExecutionUtil = new OutlierDetectionStrategyResolver(new ClusteringOutlierDetectionStrategy());
+            detectionExecutionUtil = new OutlierDetectionStrategyResolver(new OutlineOutlierDetectionStrategy());
         } else {
             detectionExecutionUtil = new OutlierDetectionStrategyResolver(new BasicOutlierDetectionStrategy());
 

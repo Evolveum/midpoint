@@ -377,6 +377,7 @@ public class Projector {
                 recordSkipReason(result, "Skipping projection because it is has outbound sync disabled.");
                 return;
             }
+
             // Here we skip complete processing of shadow (no outbounds)
             if (projectionContext.isMarkedReadOnly(result)) {
                 recordSkipReason(result, "Skipping projection because it is marked read-only.");
