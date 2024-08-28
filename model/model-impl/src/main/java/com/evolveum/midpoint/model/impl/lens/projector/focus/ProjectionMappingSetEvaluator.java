@@ -157,7 +157,10 @@ public class ProjectionMappingSetEvaluator {
             }
 
             UniformItemPath mappingOutputPathUniform = prismContext.toUniformPathKeepNull(mapping.getOutputPath());
-            if (params.isFixTarget() && mappingOutputPathUniform != null && defaultTargetItemPath != null && !mappingOutputPathUniform.equivalent(defaultTargetItemPath)) {
+            if (params.isFixTarget()
+                    && mappingOutputPathUniform != null
+                    && defaultTargetItemPath != null
+                    && !mappingOutputPathUniform.equivalent(defaultTargetItemPath)) {
                 throw new ExpressionEvaluationException("Target cannot be overridden in " + mappingDesc);
             }
 
@@ -236,7 +239,10 @@ public class ProjectionMappingSetEvaluator {
                 LOGGER.trace("Evaluating weak mapping: {}", mapping.getContextDescription());
 
                 UniformItemPath mappingOutputPath = prismContext.toUniformPathKeepNull(mapping.getOutputPath());
-                if (params.isFixTarget() && mappingOutputPath != null && defaultTargetItemPath != null && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
+                if (params.isFixTarget()
+                        && mappingOutputPath != null
+                        && defaultTargetItemPath != null
+                        && !mappingOutputPath.equivalent(defaultTargetItemPath)) {
                     throw new ExpressionEvaluationException("Target cannot be overridden in " + mappingDesc);
                 }
 
@@ -264,6 +270,8 @@ public class ProjectionMappingSetEvaluator {
                 }
                 if (hasNoValue(aPrioriTargetItem)) {
 
+                    LOGGER.trace("A priori target item has no value, going to evaluate the mapping; item: {}", aPrioriTargetItem);
+
                     mappingOutputStruct.setWeakMappingWasUsed(true);
 
                     mappingEvaluator.evaluateMapping(mapping, forModelContext(params.getContext()), task, result);
@@ -286,8 +294,12 @@ public class ProjectionMappingSetEvaluator {
                         }
                         if (aPrioriTargetObject != null && mappingOutputPath != null) {
                             aPrioriTargetItem = aPrioriTargetObject.findItem(mappingOutputPath);
+                            if (targetValueAvailable) {
+                                LOGGER.trace("A priori target item after object loaded: {}", aPrioriTargetItem);
+                            }
                         }
                         if (!hasNoValue(aPrioriTargetItem)) {
+                            LOGGER.trace("A priori target item has a value, ignoring mapping output; item: {}", aPrioriTargetItem);
                             continue;
                         }
 
@@ -297,7 +309,8 @@ public class ProjectionMappingSetEvaluator {
                             outputTriple.merge(mappingOutputTriple);
                         }
                     }
-
+                } else {
+                    LOGGER.trace("A priori target item has a value, skipping mapping evaluation; item: {}", aPrioriTargetItem);
                 }
             }
         }
@@ -345,6 +358,7 @@ public class ProjectionMappingSetEvaluator {
                 } else {
                     aPrioriTargetItem = null;
                 }
+                LOGGER.trace("A priori target item: {}", aPrioriTargetItem);
 
                 // WARNING
                 // Following code seems to be wrong. It is not very relativistic. It seems to always
