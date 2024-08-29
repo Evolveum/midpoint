@@ -145,8 +145,8 @@ In this way, by creating task templates with the appropriate archetype, you allo
 WARNING: The security of this approach rests on the fact that the authorizations do not allow unprivileged users to create tasks with arbitrary activity definitions and arbitrary archetypes.
 Otherwise, any such user could circumvent the security measures by using an archetype with any expression profile they would wish, allowing to run arbitrary code.
 
-// Since 4.8, the expression profile is determined for each bulk action upon its execution.
-// The default expression profile used to run bulk actions by non-root users _forbids_ using expressions, including Groovy scripts.
+// Since 4.8, the expression profile is determined for each action upon its execution.
+// The default expression profile used to run actions by non-root users _forbids_ using expressions, including Groovy scripts.
 // This behavior is more or less equivalent to the one present before 4.8.
 //
 // For actions residing in repository objects, the profile is based on the structural archetype of the object.

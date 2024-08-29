@@ -133,6 +133,12 @@ public class ObjectCleanerTest extends AbstractUnitTest {
                 .isNull();
         Assertions.assertThat(user.findItem(UserType.F_OPERATION_EXECUTION))
                 .isNull();
+
+        Assertions.assertThat(user.getValue().getValueMetadata().getValues()).isNotEmpty();
+
+        user.findProperty(UserType.F_GIVEN_NAME).getValues().forEach(value -> {
+            Assertions.assertThat(value.getValueMetadata().getValues()).isEmpty();
+        });
     }
 
     @Test

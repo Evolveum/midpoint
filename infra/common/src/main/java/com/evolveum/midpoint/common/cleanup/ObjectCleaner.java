@@ -10,6 +10,7 @@ package com.evolveum.midpoint.common.cleanup;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
@@ -153,6 +154,13 @@ public class ObjectCleaner {
             Item<?, ?> item, ItemPath currentPath, Map<Item<?, ?>, CleanupPathAction> customItemActions,
             Object source, CleanupResult result) {
 
+        Boolean remove = fireItemCleanup(createEvent(source, currentPath, item, result));
+        if (BooleanUtils.isTrue(remove)) {
+            return true;
+        } else if (BooleanUtils.isFalse(remove)) {
+            return false;
+        }
+
         final ItemDefinition<?> def = item.getDefinition();
         if (def != null) {
             updateCustomItemActions(item, customItemActions, def.getTypeName());
@@ -252,6 +260,14 @@ public class ObjectCleaner {
 
     private <T> CleanupEvent<T> createEvent(Object source, ItemPath path, T item, CleanupResult result) {
         return new CleanupEvent<>(source, path, item, result);
+    }
+
+    private Boolean fireItemCleanup(CleanupEvent<Item<?, ?>> event) {
+        if (listener == null) {
+            return null;
+        }
+
+        return listener.onItemCleanup(event);
     }
 
     private void fireReferenceCleanup(CleanupEvent<PrismReference> event) {

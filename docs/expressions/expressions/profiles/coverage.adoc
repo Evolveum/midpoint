@@ -101,23 +101,23 @@ As an *experimental feature*, expressions profiles (EPs for short) are supported
 // | `inducement/targetRef/filter/.../expression`
 // | `test260RestrictedRoleBadInducementTargetFilter`
 //
-// | Explicit script in bulk action
+// | Explicit script in action
 // | `executeScript/.../execute`
 // | `test310UntrustedBulkExecutingScriptDirectly`
 //
-// | Explicit expression in bulk action
+// | Explicit expression in action
 // | `executeScript/.../evaluateExpression`
 // | `test315UntrustedBulkExecutingScriptViaExpression`
 //
-// | Script embedded in a custom notification in bulk action
+// | Script embedded in a custom notification in action
 // | `executeScript/.../notify/handler/expressionFilter`
 // | `test320UntrustedBulkExecutingScriptViaNotification`
 //
-// | Script in object query in `search` bulk action
+// | Script in object query in `search` action
 // | `executeScript/.../search/query/filter/.../expression`
 // | `test325UntrustedBulkExecutingScriptViaSearchFilter`
 //
-// | Script in filter in `unassign` bulk action
+// | Script in filter in `unassign` action
 // | `executeScript/.../unassign/filter/.../expression`
 // | `test330UntrustedBulkExecutingScriptViaUnassignFilter`
 //

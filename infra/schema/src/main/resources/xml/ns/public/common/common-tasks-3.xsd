@@ -1983,14 +1983,14 @@
                 <xsd:element name="iterativeScripting" type="tns:IterativeScriptingWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Executes a script (a.k.a. bulk action) over a set of objects.
+                            Executes a script (a.k.a. action) over a set of objects.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="nonIterativeScripting" type="tns:NonIterativeScriptingWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Executes a script (a.k.a. bulk action) on an empty or explicitly specified input.
+                            Executes a script (a.k.a. action) on an empty or explicitly specified input.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
@@ -7206,7 +7206,7 @@
     <xsd:complexType name="IterativeScriptingWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Executes a script (a.k.a. bulk action) over a set of objects.
+                Executes a script (a.k.a. action) over a set of objects.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -7226,7 +7226,7 @@
     <xsd:complexType name="NonIterativeScriptingWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Executes a script (a.k.a. bulk action) on an empty or explicitly specified input.
+                Executes a script (a.k.a. action) on an empty or explicitly specified input.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>

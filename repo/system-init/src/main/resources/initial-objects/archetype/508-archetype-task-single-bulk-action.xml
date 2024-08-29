@@ -8,12 +8,12 @@
            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-    <name>Single bulk action task</name>
+    <name>Single action task</name>
     <archetypePolicy>
         <display>
-            <label>Single bulk action task</label>
+            <label>Single action task</label>
             <pluralLabel>
-                <orig>Single bulk action tasks</orig>
+                <orig>Single action tasks</orig>
                 <translation>
                     <key>SingleBulkActionTasks.title</key>
                 </translation>
