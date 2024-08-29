@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.web.component.data;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +24,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -48,6 +49,7 @@ public class RoleAnalysisObjectDto implements Serializable {
     private RoleAnalysisClusterType cluster;
 
     private Set<String> markedUsers = new HashSet<>();
+    SearchFilterType filter;
 
     public RoleAnalysisObjectDto(RoleAnalysisClusterType cluster, List<DetectedPattern> detectedPatterns, Integer parameterTableSetting, PageBase pageBase) {
         loadObject(cluster, detectedPatterns, parameterTableSetting, pageBase);
@@ -63,6 +65,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         RoleAnalysisProcessModeType mode;
         PrismObject<RoleAnalysisSessionType> getParent = roleAnalysisService.
                 getSessionTypeObject(cluster.getRoleAnalysisSessionRef().getOid(), task, result);
+
         if (getParent != null) {
             RoleAnalysisSessionType session = getParent.asObjectable();
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
@@ -78,6 +81,17 @@ public class RoleAnalysisObjectDto implements Serializable {
                     .resolveAnalysisAttributes(session, UserType.COMPLEX_TYPE);
             roleAnalysisAttributes = roleAnalysisService
                     .resolveAnalysisAttributes(session, RoleType.COMPLEX_TYPE);
+            if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
+                RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+                if (roleModeOptions != null) {
+                    this.filter = roleModeOptions.getQuery();
+                }
+            } else if (mode.equals(RoleAnalysisProcessModeType.USER)) {
+                UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+                if (userModeOptions != null) {
+                    this.filter = userModeOptions.getQuery();
+                }
+            }
 
         }
 
@@ -86,6 +100,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         //chunk mode
         this.miningOperationChunk = roleAnalysisService.prepareMiningStructure(
                 cluster,
+                filter,
                 displayValueOption,
                 isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER,
                 detectedPatterns,
@@ -199,6 +214,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         OperationResult result = task.getResult();
         this.miningOperationChunk = pageBase.getRoleAnalysisService().prepareMiningStructure(
                 cluster,
+                filter,
                 displayValueOption,
                 isRoleMode ? RoleAnalysisProcessModeType.ROLE : RoleAnalysisProcessModeType.USER,
                 selectedPatterns,
@@ -209,13 +225,13 @@ public class RoleAnalysisObjectDto implements Serializable {
     public void updateWithPatterns(List<DetectedPattern> selectedPatterns, PageBase pageBase) {
         List<MiningUserTypeChunk> users = miningOperationChunk.getMiningUserTypeChunks();
         List<MiningRoleTypeChunk> roles = miningOperationChunk.getMiningRoleTypeChunks();
-
-        refreshCells(miningOperationChunk.getProcessMode(), users, roles, miningOperationChunk.getMinFrequency(), miningOperationChunk.getMaxFrequency());
+        RoleAnalysisProcessModeType processMode = miningOperationChunk.getProcessMode();
+        refreshCells(processMode, users, roles, miningOperationChunk.getMinFrequency(), miningOperationChunk.getMaxFrequency());
 
         if (CollectionUtils.isNotEmpty(selectedPatterns)) {
             Task task = pageBase.createSimpleTask("InitPattern"); //TODO task name
             OperationResult result = task.getResult();
-            pageBase.getRoleAnalysisService().updateChunkWithPatterns(miningOperationChunk, selectedPatterns, task, result);
+            pageBase.getRoleAnalysisService().updateChunkWithPatterns(miningOperationChunk, processMode, selectedPatterns, task, result);
         }
     }
 

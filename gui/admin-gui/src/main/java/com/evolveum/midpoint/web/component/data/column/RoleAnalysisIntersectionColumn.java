@@ -293,8 +293,8 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
     }
 
     @Override
-    protected <T extends MiningBaseTypeChunk> List<String> getElements(T miningBaseTypeChunk) {
-        return miningBaseTypeChunk.getUsers();
+    protected <T extends MiningBaseTypeChunk> List<String> getElements(@NotNull T miningBaseTypeChunk) {
+        return miningBaseTypeChunk.getMembers();
     }
 
     private MiningOperationChunk getMiningChunk() {

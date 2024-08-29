@@ -19,6 +19,8 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
@@ -114,18 +116,20 @@ public abstract class BasePrepareAction implements MiningStructure {
      *
      * @param roleAnalysisService The role analysis service for performing the operation.
      * @param cluster The role analysis cluster to process.
+     * @param objectFilter The additional user filter.
      * @param fullProcess Indicates whether a full process should be performed.
      * @param mode The role analysis process Mode.
      * @param handler The progress increment handler.
      * @param task The task associated with this operation.
      * @param result The operation result.
-     * @param option
+     * @param option Display options chunk preparation.
      * @return The MiningOperationChunk containing the prepared structure.
      */
     @NotNull
     protected MiningOperationChunk executeAction(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
+            SearchFilterType objectFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType mode,
             @NotNull RoleAnalysisProgressIncrement handler,
@@ -139,22 +143,23 @@ public abstract class BasePrepareAction implements MiningStructure {
         this.option = option;
 
         if (fullProcess) {
-            return resolveFullChunkStructures(roleAnalysisService, cluster, mode, option);
+            return resolveFullChunkStructures(roleAnalysisService, cluster, objectFilter, mode, option);
         } else {
-            return resolvePartialChunkStructures(roleAnalysisService, cluster, mode);
+            return resolvePartialChunkStructures(roleAnalysisService, objectFilter, cluster, mode);
         }
     }
 
     @NotNull
     private MiningOperationChunk resolvePartialChunkStructures(
             @NotNull RoleAnalysisService roleAnalysisService,
+            @Nullable SearchFilterType objectFilter,
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull RoleAnalysisProcessModeType mode) {
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            return preparePartialUserBasedStructure(roleAnalysisService, cluster, handler, task, result);
+            return preparePartialUserBasedStructure(roleAnalysisService, cluster, objectFilter, handler, task, result);
 
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return preparePartialRoleBasedStructure(roleAnalysisService, cluster, handler, task, result);
+            return preparePartialRoleBasedStructure(roleAnalysisService, cluster, objectFilter, handler, task, result);
         }
 
         return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
@@ -164,20 +169,20 @@ public abstract class BasePrepareAction implements MiningStructure {
     private MiningOperationChunk resolveFullChunkStructures(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
+            SearchFilterType objectFilter,
             @NotNull RoleAnalysisProcessModeType mode,
             @Nullable DisplayValueOption option) {
-
         if (mode.equals(RoleAnalysisProcessModeType.USER)) {
-            return prepareUserBasedStructure(roleAnalysisService, cluster, handler, task, result, option);
-
+            return prepareUserBasedStructure(roleAnalysisService, cluster, objectFilter, handler, task, result, option);
         } else if (mode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            return prepareRoleBasedStructure(roleAnalysisService, cluster, handler, task, result, option);
+            return prepareRoleBasedStructure(roleAnalysisService, cluster, objectFilter, handler, task, result, option);
         }
         return new MiningOperationChunk(new ArrayList<>(), new ArrayList<>());
     }
 
     protected void loadRoleMap(
             @NotNull RoleAnalysisService roleAnalysisService,
+            @Nullable SearchFilterType objectFilter,
             @NotNull List<ObjectReferenceType> members,
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
@@ -204,7 +209,7 @@ public abstract class BasePrepareAction implements MiningStructure {
         }
 
         ListMultimap<String, String> mapRoleMembers = roleAnalysisService.extractUserTypeMembers(
-                userExistCache, null, membersOidSet, task, result);
+                userExistCache, objectFilter, membersOidSet, task, result);
 
         for (String clusterMember : membersOidSet) {
             List<String> users = mapRoleMembers.get(clusterMember);
