@@ -53,7 +53,6 @@ public class OutlierDetectionOutlineClusterModel {
     RoleAnalysisOutlierNoiseCategoryType noiseCategory = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
     OutlierCategory outlierCategory = OutlierCategory.OUTER_OUTLIER;
 
-
     public OutlierDetectionOutlineClusterModel(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull OutlierDetectionOutlineModel outlineModel,
@@ -104,7 +103,7 @@ public class OutlierDetectionOutlineClusterModel {
         if (jaccardCloseObject == null || jaccardCloseObject.isEmpty()) {
             this.isSuitableForDetection = false;
             return;
-        }else {
+        } else {
             this.isSuitableForDetection = true;
         }
         RoleAnalysisSessionType session = outlineModel.getSession();
@@ -210,7 +209,7 @@ public class OutlierDetectionOutlineClusterModel {
         }
 
         return roleAnalysisService.prepareBasicChunkStructure(
-                tempCluster, displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
+                tempCluster, null, displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
     }
 
     private void processClusterAttributeAnalysis(

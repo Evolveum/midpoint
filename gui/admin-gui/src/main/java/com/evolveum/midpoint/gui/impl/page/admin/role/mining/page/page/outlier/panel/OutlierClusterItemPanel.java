@@ -180,8 +180,8 @@ public class OutlierClusterItemPanel<T extends Serializable>
         detectionOption.setFrequencyRange(new RangeType().min(minFrequency).max(maxFrequency));
         cluster.setDetectionOption(detectionOption);
 
-        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster, displayValueOption,
-                RoleAnalysisProcessModeType.USER, null, result, task);
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster, null,
+                displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
 
         RangeType frequencyRange = detectionOption.getFrequencyRange();
         Double sensitivity = detectionOption.getSensitivity();

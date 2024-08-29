@@ -55,7 +55,7 @@ public class OutlierDetectionBasicModel {
         this.analysisOption = session.getAnalysisOption();
         this.processMode = analysisOption.getProcessMode();
 
-        this.miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster, true,
+        this.miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(cluster, null, true,
                 processMode, result, task);
 
         RoleAnalysisDetectionOptionType defaultDetectionOption = session.getDefaultDetectionOption();

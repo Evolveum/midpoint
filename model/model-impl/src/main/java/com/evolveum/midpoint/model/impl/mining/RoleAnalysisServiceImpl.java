@@ -82,7 +82,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -220,21 +219,29 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull ListMultimap<String, String> extractUserTypeMembers(
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
-            @Nullable ObjectFilter userFilter,
+            @Nullable SearchFilterType userFilter,
             @NotNull Set<String> clusterMembers,
             @NotNull Task task,
             @NotNull OperationResult result) {
         ListMultimap<String, String> roleMemberCache = ArrayListMultimap.create();
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
-                .exists(AssignmentHolderType.F_ASSIGNMENT)
+                .exists(F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(clusterMembers.toArray(new String[0]))
                 .endBlock().build();
 
         if (userFilter != null) {
-            query.addFilter(userFilter);
+            try {
+                ObjectFilter objectFilter = PrismContext.get().getQueryConverter()
+                        .createObjectFilter(UserType.class, userFilter);
+                if (objectFilter != null) {
+                    query.addFilter(objectFilter);
+                }
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't create object filter", e);
+            }
         }
 
         ResultHandler<UserType> resultHandler = (userObject, lResult) -> {
@@ -282,7 +289,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result) {
         int memberCount = 0;
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
-                .exists(AssignmentHolderType.F_ASSIGNMENT)
+                .exists(F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(clusterMembers.toArray(new String[0]))
@@ -782,7 +789,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result) {
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
-                .exists(AssignmentHolderType.F_ASSIGNMENT)
+                .exists(F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(objectId)
@@ -823,7 +830,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         if (!assignmentTypes.isEmpty()) {
             role.getInducement().addAll(assignmentTypes);
         }
-        role.getAssignment().add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(),
+        role.getAssignment().add(createAssignmentTo(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(),
                 ObjectTypes.ARCHETYPE));
 
         return roleTypePrismObject;
@@ -942,17 +949,19 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull MiningOperationChunk prepareCompressedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            SearchFilterType objectFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
             @NotNull Task task) {
         return new CompressedMiningStructure().executeOperation(this,
-                cluster, fullProcess, processMode, result, task);
+                cluster, objectFilter, fullProcess, processMode, result, task);
     }
 
     @Override
     public MiningOperationChunk prepareBasicChunkStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType objectFilter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable List<DetectedPattern> detectedPatterns,
@@ -966,29 +975,29 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         switch (chunkMode) {
             case EXPAND_ROLE -> {
                 miningRoleTypeChunks = new ExpandedMiningStructure()
-                        .executeOperation(this, cluster, true, processMode, result, task, option)
+                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task, option)
                         .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
                 miningUserTypeChunks = new CompressedMiningStructure()
-                        .executeOperation(this, cluster, true, processMode, result, task)
+                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
                 chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
             }
             case EXPAND_USER -> {
                 miningRoleTypeChunks = new CompressedMiningStructure()
-                        .executeOperation(this, cluster, true, processMode, result, task)
+                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task)
                         .getMiningRoleTypeChunks(RoleAnalysisSortMode.NONE);
                 miningUserTypeChunks = new ExpandedMiningStructure()
-                        .executeOperation(this, cluster, true, processMode, result, task, option)
+                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task, option)
                         .getMiningUserTypeChunks(RoleAnalysisSortMode.NONE);
                 chunk = new MiningOperationChunk(miningUserTypeChunks, miningRoleTypeChunks);
             }
             case COMPRESS -> {
                 chunk = new CompressedMiningStructure()
-                        .executeOperation(this, cluster, true, processMode, result, task);
+                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task);
             }
             default -> {
                 chunk = new ExpandedMiningStructure()
-                        .executeOperation(this, cluster, true, processMode, result, task, option);
+                        .executeOperation(this, cluster, objectFilter, true, processMode, result, task, option);
             }
         }
         chunk.setProcessMode(processMode);
@@ -1002,7 +1011,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         //TODO think about it
         if (detectedPatterns != null && !detectedPatterns.isEmpty()) {
-            updateChunkWithPatterns(chunk, detectedPatterns, task, result);
+            updateChunkWithPatterns(chunk, processMode, detectedPatterns, task, result);
         }
 
         chunk.setSortMode(option.getSortMode());
@@ -1012,13 +1021,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull MiningOperationChunk prepareMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType filter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull OperationResult result,
             @NotNull Task task) {
 
-        MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, option, processMode, detectedPatterns, result, task);
+        MiningOperationChunk basicChunk = prepareBasicChunkStructure(cluster, filter, option, processMode, detectedPatterns, result, task);
 
         RoleAnalysisDetectionOptionType detectionOption = cluster.getDetectionOption();
         RangeType frequencyRange = detectionOption.getFrequencyRange();
@@ -1029,7 +1039,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public void updateChunkWithPatterns(MiningOperationChunk basicChunk, List<DetectedPattern> detectedPatterns, Task task, OperationResult result) {
+    public void updateChunkWithPatterns(MiningOperationChunk basicChunk,
+            RoleAnalysisProcessModeType processMode,
+            List<DetectedPattern> detectedPatterns,
+            Task task,
+            OperationResult result) {
         List<MiningRoleTypeChunk> miningRoleTypeChunks = basicChunk.getMiningRoleTypeChunks();//basicChunk.getMiningRoleTypeChunks(option.getSortMode());
         List<MiningUserTypeChunk> miningUserTypeChunks = basicChunk.getMiningUserTypeChunks();
 
@@ -1048,6 +1062,28 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             candidateRolesIds.add(detectedPattern.getIdentifier());
         }
 
+//        resolveUserModeChunkPattern(basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
+        resolveRoleModeChunkPattern(basicChunk, miningRoleTypeChunks, detectedPatternsRoles, candidateRolesIds, miningUserTypeChunks, detectedPatternsUsers);
+        int size = detectedPatternsUsers.size();
+
+        IntStream.range(0, size).forEach(i -> {
+            List<String> detectedPatternRoles = detectedPatternsRoles.get(i);
+            List<String> detectedPatternUsers = detectedPatternsUsers.get(i);
+            String candidateRoleId = candidateRolesIds.get(i);
+            addAdditionalObject(candidateRoleId, detectedPatternUsers, detectedPatternRoles, miningUserTypeChunks,
+                    miningRoleTypeChunks,
+                    task,
+                    result);
+        });
+    }
+
+    private static void resolveUserModeChunkPattern(
+            MiningOperationChunk basicChunk,
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            List<List<String>> detectedPatternsRoles,
+            List<String> candidateRolesIds,
+            List<MiningUserTypeChunk> miningUserTypeChunks,
+            List<List<String>> detectedPatternsUsers) {
         for (MiningRoleTypeChunk role : miningRoleTypeChunks) {
             FrequencyItem frequencyItem = role.getFrequencyItem();
             double frequency = frequencyItem.getFrequency();
@@ -1060,7 +1096,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
                     objectStatus.addContainerId(candidateRolesIds.get(i));
                     detectedPatternsRole.removeAll(chunkRoles);
-                } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency() && !role.getStatus().isInclude()) {
+                } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency()
+                        && !role.getStatus().isInclude()) {
                     role.setStatus(RoleAnalysisOperationMode.DISABLE);
                 } else if (!role.getStatus().isInclude()) {
                     role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
@@ -1082,18 +1119,50 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 }
             }
         }
+    }
 
-        int size = detectedPatternsUsers.size();
+    private static void resolveRoleModeChunkPattern(
+            MiningOperationChunk basicChunk,
+            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
+            List<List<String>> detectedPatternsRoles,
+            List<String> candidateRolesIds,
+            @NotNull List<MiningUserTypeChunk> miningUserTypeChunks,
+            List<List<String>> detectedPatternsUsers) {
+        for (MiningUserTypeChunk user : miningUserTypeChunks) {
+            FrequencyItem frequencyItem = user.getFrequencyItem();
+            double frequency = frequencyItem.getFrequency();
 
-        IntStream.range(0, size).forEach(i -> {
-            List<String> detectedPatternRoles = detectedPatternsRoles.get(i);
-            List<String> detectedPatternUsers = detectedPatternsUsers.get(i);
-            String candidateRoleId = candidateRolesIds.get(i);
-            addAdditionalObject(candidateRoleId, detectedPatternUsers, detectedPatternRoles, miningUserTypeChunks,
-                    miningRoleTypeChunks,
-                    task,
-                    result);
-        });
+            for (int i = 0; i < detectedPatternsUsers.size(); i++) {
+                List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
+                List<String> chunkUsers = user.getUsers();
+                if (new HashSet<>(detectedPatternsUser).containsAll(chunkUsers)) {
+                    RoleAnalysisObjectStatus objectStatus = user.getObjectStatus();
+                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
+                    objectStatus.addContainerId(candidateRolesIds.get(i));
+                    detectedPatternsUser.removeAll(chunkUsers);
+                } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency()
+                        && !user.getStatus().isInclude()) {
+                    user.setStatus(RoleAnalysisOperationMode.DISABLE);
+                } else if (!user.getStatus().isInclude()) {
+                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
+                }
+            }
+        }
+
+        for (MiningRoleTypeChunk role : miningRoleTypeChunks) {
+            for (int i = 0; i < detectedPatternsRoles.size(); i++) {
+                List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
+                List<String> chunkRoles = role.getRoles();
+                if (new HashSet<>(detectedPatternsRole).containsAll(chunkRoles)) {
+                    RoleAnalysisObjectStatus objectStatus = role.getObjectStatus();
+                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
+                    objectStatus.addContainerId(candidateRolesIds.get(i));
+                    detectedPatternsRole.removeAll(chunkRoles);
+                } else if (!role.getStatus().isInclude()) {
+                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
+                }
+            }
+        }
     }
 
     private void addAdditionalObject(
@@ -1106,7 +1175,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result) {
 
         RoleAnalysisObjectStatus roleAnalysisObjectStatus = new RoleAnalysisObjectStatus(RoleAnalysisOperationMode.INCLUDE);
-        roleAnalysisObjectStatus.setContainerId(Collections.singleton(candidateRoleId));
+        roleAnalysisObjectStatus.setContainerId(singleton(candidateRoleId));
 
         if (!detectedPatternRoles.isEmpty()) {
             Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
@@ -1168,12 +1237,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public @NotNull MiningOperationChunk prepareExpandedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType searchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
             @NotNull Task task,
             @Nullable DisplayValueOption option) {
-        return new ExpandedMiningStructure().executeOperation(this, cluster, fullProcess,
+        return new ExpandedMiningStructure().executeOperation(this, cluster, searchFilter, fullProcess,
                 processMode, result, task, option);
     }
 
@@ -1953,7 +2023,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         this.extractUserTypeMembers(
                 userExistCache, null,
-                new HashSet<>(Collections.singleton(objectOid)),
+                new HashSet<>(singleton(objectOid)),
                 task, result);
 
         Set<PrismObject<UserType>> prismUsers = new HashSet<>(userExistCache.values());
@@ -2274,7 +2344,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         var spec = AggregateQuery.forType(AssignmentType.class);
         try {
             spec.count(F_NAME, ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(), F_NAME))
-                    .filter(PrismContext.get().queryFor(AssignmentType.class).ownedBy(UserType.class, UserType.F_ASSIGNMENT)
+                    .filter(PrismContext.get().queryFor(AssignmentType.class).ownedBy(UserType.class, F_ASSIGNMENT)
                             .and().ref(AssignmentType.F_TARGET_REF).type(RoleType.class).buildFilter())
                     .count(F_ASSIGNMENT, ItemPath.SELF_PATH);
 
@@ -2477,7 +2547,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
         this.extractUserTypeMembers(
                 userExistCache, null,
-                new HashSet<>(Collections.singleton(objectOid)),
+                new HashSet<>(singleton(objectOid)),
                 task, result);
 
         Set<PrismObject<UserType>> users = new HashSet<>(userExistCache.values());
@@ -2525,7 +2595,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
             this.extractUserTypeMembers(
                     userExistCache, null,
-                    new HashSet<>(Collections.singleton(objectOid)),
+                    new HashSet<>(singleton(objectOid)),
                     task, result);
 
             users = new HashSet<>(userExistCache.values());

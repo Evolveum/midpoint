@@ -149,7 +149,7 @@ public interface RoleAnalysisService {
      */
     @NotNull ListMultimap<String, String> extractUserTypeMembers(
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
-            @Nullable ObjectFilter userFilter,
+            @Nullable SearchFilterType userFilter,
             @NotNull Set<String> clusterMembers,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -349,6 +349,7 @@ public interface RoleAnalysisService {
      * Method for preparing a compressed mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
+     * @param objectFilter The additional user filter.
      * @param fullProcess The full process flag.
      * If true, the entire structure is prepared.
      * If false, only a partial structure (members) is prepared.
@@ -359,6 +360,7 @@ public interface RoleAnalysisService {
      */
     @NotNull MiningOperationChunk prepareCompressedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType objectFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
@@ -366,6 +368,7 @@ public interface RoleAnalysisService {
 
     MiningOperationChunk prepareBasicChunkStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType objectFilter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable List<DetectedPattern> detectedPatterns,
@@ -375,6 +378,7 @@ public interface RoleAnalysisService {
      * Method for preparing a mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
+     * @param filter The additional user filter.
      * @param option The display value option.
      * @param processMode The process mode.
      * @param result The operation result.
@@ -383,7 +387,8 @@ public interface RoleAnalysisService {
      */
     @NotNull MiningOperationChunk prepareMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            DisplayValueOption option,
+            @Nullable SearchFilterType filter,
+            @Nullable DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull OperationResult result,
@@ -391,6 +396,7 @@ public interface RoleAnalysisService {
 
     void updateChunkWithPatterns(
             MiningOperationChunk chunk,
+            RoleAnalysisProcessModeType processMode,
             List<DetectedPattern> detectedPatterns,
             Task task,
             OperationResult result);
@@ -399,6 +405,7 @@ public interface RoleAnalysisService {
      * Method for preparing an expanded mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
+     * @param searchFilter The additional user filter.
      * @param fullProcess The full process flag.
      * If true, the entire structure is prepared.
      * If false, only a partial structure (members) is prepared.
@@ -410,6 +417,7 @@ public interface RoleAnalysisService {
      */
     @NotNull MiningOperationChunk prepareExpandedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType searchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
@@ -1120,6 +1128,6 @@ public interface RoleAnalysisService {
             @NotNull Task task,
             @NotNull OperationResult result);
 
-    double calculatePossibleAssignmentReduction(RoleAnalysisSessionType session,Task task, OperationResult result);
+    double calculatePossibleAssignmentReduction(RoleAnalysisSessionType session, Task task, OperationResult result);
 
 }
