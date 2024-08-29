@@ -108,20 +108,7 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
                     objects.add(getPageBase().getRoleAnalysisService()
                             .getFocusTypeObject(objectOid, task, task.getResult()));
                 }
-//                            if (isOutlierDetection() && cluster.getOid() != null && !elements.isEmpty()) {
-//
-//                                //TODO session option min members
-//
-//                                OutlierAnalyseActionDetailsPopupPanel detailsPanel = new OutlierAnalyseActionDetailsPopupPanel(
-//                                        ((PageBase) getPage()).getMainPopupBodyId(),
-//                                        Model.of("Analyzed members details panel"), elements.get(0), cluster.getOid(), 10) {
-//                                    @Override
-//                                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-//                                        super.onClose(ajaxRequestTarget);
-//                                    }
-//                                };
-//                                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
-//                            } else {
+
                 MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(
                         getPageBase().getMainPopupBodyId(),
                         createStringResource("RoleAnalysis.analyzed.members.details.panel"),
