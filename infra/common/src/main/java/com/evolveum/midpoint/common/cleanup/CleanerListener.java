@@ -25,7 +25,21 @@ public interface CleanerListener {
         return true;
     }
 
+    /**
+     * Method that allows consumers to clean up references, e.g. oids, filteres, etc.
+     *
+     * @param event
+     */
     default void onReferenceCleanup(CleanupEvent<PrismReference> event) {
+        // intentionally empty
+    }
 
+    /**
+     * Method that allows consumers to decide whether item should be removed
+     *
+     * @return true if the item should be removed, false otherwise. If null is returned, the default behaviour is used.
+     */
+    default Boolean onItemCleanup(CleanupEvent<Item<?, ?>> event) {
+        return null;
     }
 }

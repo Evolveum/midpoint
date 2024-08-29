@@ -12,9 +12,12 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class TestCleanupListener extends DefaultCleanupListener {
 
@@ -58,5 +61,20 @@ public class TestCleanupListener extends DefaultCleanupListener {
 
     public List<CleanupEvent<PrismReference>> getReferenceCleanupEvents() {
         return referenceCleanupEvents;
+    }
+
+    @Override
+    public Boolean onItemCleanup(CleanupEvent<Item<?, ?>> event) {
+        Item<?,?> item = event.item();
+        if (!QNameUtil.match(item.getElementName(), UserType.F_GIVEN_NAME)) {
+            return super.onItemCleanup(event);
+        }
+
+        item.getValues().forEach(value -> {
+            PrismPropertyValue ppv = (PrismPropertyValue) value;
+            ppv.deleteValueMetadata();
+        });
+
+        return null;
     }
 }
