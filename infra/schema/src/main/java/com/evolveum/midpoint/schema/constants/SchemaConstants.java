@@ -296,6 +296,45 @@ public abstract class SchemaConstants {
     public static final String MODEL_DISABLE_REASON_MAPPED =
             qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
 
+    public enum ModelDisableReason {
+
+        EXPLICIT(MODEL_DISABLE_REASON_EXPLICIT),
+        DEPROVISION(MODEL_DISABLE_REASON_DEPROVISION),
+        MAPPED(MODEL_DISABLE_REASON_MAPPED);
+
+        public final String uri;
+
+        ModelDisableReason(String uri) {
+            this.uri = uri;
+        }
+
+        public static ModelDisableReason fromUri(String uri) {
+            return fromUri(uri, false);
+        }
+
+        public static ModelDisableReason fromUriRelaxed(String uri) {
+            return fromUri(uri, true);
+        }
+
+        public static ModelDisableReason fromUri(String uri, boolean relaxed) {
+            if (uri == null) {
+                return null;
+            }
+
+            for (ModelDisableReason value : values()) {
+                if (value.uri.equals(uri)) {
+                    return value;
+                }
+            }
+
+            if (relaxed){
+                return null;
+            }
+
+            throw new IllegalArgumentException("Unknown disable reason URI: " + uri);
+        }
+    }
+
     public static final String NS_MODEL_POLICY = NS_MODEL + "/policy";
     public static final String NS_MODEL_POLICY_SITUATION = NS_MODEL_POLICY + "/situation";
     public static final String MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION =
