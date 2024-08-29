@@ -1135,7 +1135,7 @@
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Scripting expression (bulk action) to be used to determine the state. Mutually exclusive with filter, expression and messageExpression.
+                                Scripting expression (action) to be used to determine the state. Mutually exclusive with filter, expression and messageExpression.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>StatePolicyConstraintType.executeScript</a:displayName>
@@ -1590,7 +1590,7 @@
             <xsd:element name="scriptExecution" type="tns:ScriptExecutionPolicyActionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Execute script (bulk action). The operation will proceed. Script(s) are executed at the end of the operation.
+                        Execute script (action). The operation will proceed. Script(s) are executed at the end of the operation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>PolicyActionsType.scriptExecution</a:displayName>
@@ -3106,7 +3106,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Uses single-run scripting action. Input for this action contains
-                        references to objects that should serve as bulk action inputs.
+                        references to objects that should serve as action inputs.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SINGLE_RUN"/>

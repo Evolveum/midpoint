@@ -12105,7 +12105,7 @@
             <xsd:element name="bulkActionsProfile" type="tns:BulkActionsProfileType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Profiles concerning the use of bulk actions.
+                        Profiles concerning the use of actions.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>SystemConfigurationExpressionsType.bulkActionsProfile</a:displayName>
@@ -12212,7 +12212,7 @@
             <xsd:element name="bulkActionsProfile" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        ID of the bulk actions profile to be used with this expression profile.
+                        ID of the actions profile to be used with this expression profile.
                         If not specified, the "allow all" profile is assumed.
                         (TODO - or should we take the "decision" property into account? But what about backwards
                         compatibility? The same for `functionLibrariesProfile`.)
@@ -12653,7 +12653,7 @@
             <xsd:element name="bulkActions" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for midPoint bulk actions running under an unprivileged principal.
+                        Expression profile for midPoint actions running under an unprivileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.bulkActions</a:displayName>
@@ -12663,7 +12663,7 @@
             <xsd:element name="privilegedBulkActions" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Expression profile for midPoint bulk actions running under a privileged principal.
+                        Expression profile for midPoint actions running under a privileged principal.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>DefaultExpressionProfilesConfigurationType.privilegedBulkActions</a:displayName>
@@ -12702,7 +12702,7 @@
     <xsd:complexType name="BulkActionsProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                A profile concerning the use of bulk actions.
+                A profile concerning the use of actions.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -12732,7 +12732,7 @@
     <xsd:complexType name="BulkActionProfileType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies restrictions and permissions for a specific bulk action.
+                Specifies restrictions and permissions for a specific action.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
