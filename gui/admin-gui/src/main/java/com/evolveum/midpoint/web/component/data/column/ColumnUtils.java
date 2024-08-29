@@ -20,18 +20,18 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.*;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectClassDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.SelectObjectClassesStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
-import com.evolveum.midpoint.gui.impl.util.TableUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -43,22 +43,19 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.Certifica
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,9 +64,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -928,11 +922,125 @@ public class ColumnUtils {
                 AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
                 ProgressBarPanel progressBar = new ProgressBarPanel(componentId,
                         CertMiscUtil.createCampaignCasesProgressBarModel(campaign, null, pageBase));
+                progressBar.add(AttributeModifier.append("class", "mt-1"));
                 progressBar.setOutputMarkupId(true);
                 item.add(progressBar);
             }
         };
         columns.add(column);
+
+        //running task icon column
+        columns.add(new AbstractColumn<>(Model.of("")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> cellItem,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+
+                LoadableDetachableModel<AccessCertificationCampaignType> campaignModel = new LoadableDetachableModel<>(campaign) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected AccessCertificationCampaignType load() {
+                        return campaign;
+                    }
+                };
+
+                Task task = pageBase.createSimpleTask("loadRunningCertTask");
+                OperationResult result = new OperationResult("loadRunningCertTask");
+                List<PrismObject<TaskType>> runningTasks = CertMiscUtil.loadRunningCertTask(campaign.getOid(), result, pageBase);
+
+                final String[] runningTaskOid = { runningTasks.isEmpty() ? null : runningTasks.get(0).getOid() };
+                IModel<String> runningTaskOidModel = new IModel<>() {
+                    @Override
+                    public String getObject() {
+                        return runningTaskOid[0];
+                    }
+
+                    @Override
+                    public void setObject(String object) {
+                        runningTaskOid[0] = object;
+                    }
+                };
+
+                LoadableDetachableModel<String> buttonLabelModel = new LoadableDetachableModel<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected String load() {
+                        if (StringUtils.isEmpty(runningTaskOidModel.getObject())) {
+                            return "";
+                        }
+
+                        PrismObject<TaskType> runningTask = WebModelServiceUtils.loadObject(TaskType.class,
+                                runningTaskOidModel.getObject(), pageBase, task, result);
+                        TaskType task = runningTask.asObjectable();
+
+                        TaskInformation taskInformation = TaskInformation.createForTask(task, task);
+                        String info = WebComponentUtil.getTaskProgressDescription(taskInformation, true, pageBase);
+                        return StringUtils.isEmpty(info) ? "" : info;
+                    }
+                };
+
+                CampaignActionButton actionButton = new CampaignActionButton(componentId, pageBase, campaignModel,
+                        buttonLabelModel, runningTaskOid[0]) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void refresh(AjaxRequestTarget target) {
+                        runningTaskOid[0] = getRunningTaskOid();
+                        buttonLabelModel.detach();
+                        target.add(pageBase);
+                    }
+
+//                    @Override
+//                    protected boolean isEmptyTaskOid() {
+//                        return StringUtils.isEmpty(runningTaskOid[0]);
+//                    }
+
+                    @Override
+                    protected LoadableDetachableModel<String> getActionButtonCssModel() {
+                        return new LoadableDetachableModel<>() {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected String load() {
+                                return "fa fa-spinner fa-spin-pulse";
+                            }
+                        };
+                    }
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (StringUtils.isEmpty(runningTaskOid[0])) {
+                            return;
+                        }
+
+                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(runningTaskOid[0], ObjectTypes.TASK);
+                        DetailsPageUtil.dispatchToObjectDetailsPage(ref, pageBase, false);
+                    }
+
+                    protected IModel<String> getDisabledClassModel() {
+                        return () -> "";
+                    }
+
+                    @Override
+                    protected String getButtonCssClass() {
+                        return "btn btn-sm";
+                    }
+
+                };
+                actionButton.setOutputMarkupPlaceholderTag(true);
+                actionButton.add(AttributeAppender.append("title",
+                        createStringResource("PageCertCampaign.button.showRunningTask")));
+                actionButton.setOutputMarkupId(true);
+                actionButton.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(runningTaskOid[0])));
+                cellItem.add(actionButton);
+            }
+
+        });
 
         return columns;
     }
@@ -1025,7 +1133,8 @@ public class ColumnUtils {
         return columns;
     }
 
-    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertCaseColumns(int stageNumber) {
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertCaseColumns(
+            int stageNumber, PageBase pageBase) {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns = new ArrayList<>();
 
         //todo progress column
@@ -1098,6 +1207,7 @@ public class ColumnUtils {
 
        });
 
+       //comment icon column
        columns.add(new IconColumn<>(Model.of("")) {
 
            @Serial private static final long serialVersionUID = 1L;

@@ -2472,4 +2472,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throw new SystemException(e);
         }
     }
+
+    @Override
+    public @NotNull List<ArchetypeType> determineArchetypes(@Nullable ObjectType object, OperationResult result)
+            throws SchemaException {
+        return archetypeManager.determineArchetypes(object, result);
+    }
 }

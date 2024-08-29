@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collection;
@@ -15,7 +16,6 @@ import java.util.List;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.model.api.InboundSourceData;
-import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.*;
 
@@ -153,6 +153,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
 
         if (wave == 0) {
             return InboundSourceData.forShadow(
+                    currentShadow, // TODO reconsider old vs new here
                     currentShadow,
                     projectionContext.getSyncDelta(),
                     definition);
@@ -163,6 +164,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
             if (projectionContext.getLensContext().isPreview()) {
                 // ... unless we are in legacy preview, where are no executions. So we must take what was provided + computed.
                 return InboundSourceData.forShadow(
+                        currentShadow, // TODO reconsider old vs new here
                         currentShadow,
                         projectionContext.getSummaryDelta(),
                         definition);
@@ -170,6 +172,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                 var odos = projectionContext.getExecutedDeltas(projectionContext.getWave());
                 if (odos.isEmpty()) {
                     return InboundSourceData.forShadow(
+                            currentShadow,
                             currentShadow,
                             null,
                             definition);
@@ -179,12 +182,14 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                 var odo = odos.get(odos.size() - 1);
                 var baseObject = odo.getBaseObject(); // should be non-null, except for ADD delta
                 return InboundSourceData.forShadow(
-                        baseObject != null ? baseObject.asPrismObject() : currentShadow, // TODO reconsider
+                        asPrismObject(baseObject),
+                        currentShadow,
                         odo.getObjectDelta(),
                         definition);
             }
         }
         return InboundSourceData.forShadow(
+                currentShadow,
                 currentShadow,
                 null,
                 definition);

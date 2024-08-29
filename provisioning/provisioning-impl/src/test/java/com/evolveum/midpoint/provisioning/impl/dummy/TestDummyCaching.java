@@ -459,9 +459,7 @@ public class TestDummyCaching extends TestDummy {
     @Override
     protected void assertRepoShadowPasswordValue(RawRepoShadow shadowRepo, PasswordType passwordBean,
             String expectedPassword) throws SchemaException, EncryptionException {
-        ProtectedStringType protectedStringType = passwordBean.getValue();
-        assertNotNull("No password value in repo shadow " + shadowRepo, protectedStringType);
-        assertProtectedString("Wrong password value in repo shadow " + shadowRepo, expectedPassword, protectedStringType, CredentialsStorageTypeType.HASHING);
+        assertRepoShadowCachePasswordValue(shadowRepo, passwordBean, expectedPassword, true);
     }
 
     @Override

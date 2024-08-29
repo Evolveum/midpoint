@@ -121,7 +121,7 @@ campaigns, output reports, and dead nodes.
 | Obligatory.
 
 .2+| `iterativeScripting`
-.2+| Executes a script (a.k.a. bulk action) over a set of objects.
+.2+| Executes a script (a.k.a. action) over a set of objects.
 .2+| Simple
 .2+| Y
 .2+| Y
@@ -134,7 +134,7 @@ but it is ignored.
 | Obligatory.
 
 | `nonIterativeScripting`
-| Executes a script (a.k.a. bulk action) on an empty or explicitly specified input. NOTE: not implemented yet, but hopefully will be in 4.4.
+| Executes a script (a.k.a. action) on an empty or explicitly specified input. NOTE: not implemented yet, but hopefully will be in 4.4.
 | Simple
 | N
 | N

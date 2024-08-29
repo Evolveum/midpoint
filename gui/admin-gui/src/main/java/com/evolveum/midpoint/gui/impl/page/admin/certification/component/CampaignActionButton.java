@@ -35,8 +35,8 @@ public abstract class CampaignActionButton extends ReloadableButton {
 
     public CampaignActionButton(String id, PageBase pageBase,
             LoadableDetachableModel<AccessCertificationCampaignType> campaignModel,
-            LoadableDetachableModel<String> buttonLabelModel) {
-        super(id, pageBase, buttonLabelModel);
+            LoadableDetachableModel<String> buttonLabelModel, String runningTaskOid) {
+        super(id, pageBase, buttonLabelModel, runningTaskOid);
         this.campaignModel = campaignModel;
     }
 
@@ -50,8 +50,6 @@ public abstract class CampaignActionButton extends ReloadableButton {
         OpResult opResult = OpResult.getOpResult(pageBase, result);
         return opResult.getBackgroundTaskOid();
     }
-
-
 
     @Override
     protected IModel<String> getConfirmMessage() {
@@ -71,7 +69,7 @@ public abstract class CampaignActionButton extends ReloadableButton {
         return pageBase.createStringResource(messageKey, campaignNameTranslated);
     }
 
-    private LoadableDetachableModel<String> getActionButtonCssModel() {
+    protected LoadableDetachableModel<String> getActionButtonCssModel() {
         return new LoadableDetachableModel<>() {
             @Serial private static final long serialVersionUID = 1L;
 

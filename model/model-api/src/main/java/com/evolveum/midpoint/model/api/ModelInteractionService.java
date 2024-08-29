@@ -521,6 +521,9 @@ public interface ModelInteractionService {
      */
     <O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result) throws SchemaException, ConfigurationException;
 
+    @NotNull List<ArchetypeType> determineArchetypes(@Nullable ObjectType object, OperationResult result)
+            throws SchemaException;
+
     /**
      * Returns all policy rules that apply to the collection.
      * Later, the policy rules are compiled from all the applicable sources (target, meta-roles, etc.).
