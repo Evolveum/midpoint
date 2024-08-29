@@ -3180,8 +3180,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull ListMultimap<List<String>, String> chunkMap,
             @NotNull MutableDouble usedFrequency,
             @NotNull List<String> outliersMembers,
-            double minThreshold, int minMembers,
-            @NotNull Task task, @NotNull OperationResult result) {
+            double minThreshold,
+            int minMembers,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         PrismObject<UserType> userTypeObject = this.getUserTypeObject(userOid, task, result);
         if (userTypeObject == null) {
             return new ArrayList<>();
@@ -3206,8 +3208,10 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         List<Double> sortedKeys = new ArrayList<>(similarityStats.keySet());
         sortedKeys.sort(Collections.reverseOrder());
 
+        List<String> elements = new ArrayList<>();
         for (Double similarityScore : sortedKeys) {
-            List<String> elements = similarityStats.get(similarityScore);
+            List<String> thresholdElements = similarityStats.get(similarityScore);
+            elements.addAll(thresholdElements);
             if (elements.size() >= minMembers) {
                 usedFrequency.setValue(similarityScore);
                 return elements;
@@ -3234,6 +3238,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             Map.Entry<List<String>, String> entry = iterator.next();
             List<String> key = entry.getKey();
 
+            //TODO is it correct way to remove the outliers cluster members for comparison?
             for (String member : key) {
                 if (outliersMembers.contains(member)) {
                     iterator.remove();
