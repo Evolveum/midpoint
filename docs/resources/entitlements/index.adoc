@@ -901,7 +901,7 @@ Also assume that the tolerance for the association is set to `false`.
 
 When an association value pointing to the `guests` group is present on the resource, but not provided by any outbound mapping (which are turned off by the `Unmanaged` mark anyway), it is tolerated because the value of `true` in the object mark overrides the value of `false` set in the association.
 
-Please see xref:/midpoint/reference/concepts/mark/managed-and-unmanaged/shadows[] for more information.
+Please see xref:/midpoint/reference/concepts/mark/managed-and-unmanaged-shadows[] for more information.
 
 ==== Tolerance, Deltas, and Reconciliation
 
