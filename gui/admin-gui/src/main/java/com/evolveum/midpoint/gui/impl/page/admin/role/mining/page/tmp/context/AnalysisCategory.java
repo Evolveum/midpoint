@@ -37,7 +37,10 @@ public enum AnalysisCategory implements TileEnum {
             null),
     OUTLIER("fa fa-wrench",
             "RoleAnalysisCategoryType.OUTLIER.description",
-            RoleAnalysisProcessModeType.USER);
+            RoleAnalysisProcessModeType.USER),
+    BIRTHRIGHT_ROLE("fa fa-briefcase",
+            "RoleAnalysisCategoryType.BIRTHRIGHT_ROLE.description",
+            RoleAnalysisProcessModeType.ROLE);
 
     private final String iconClass;
     private final String descriptionKey;
@@ -58,6 +61,10 @@ public enum AnalysisCategory implements TileEnum {
         return this.requiredProcessModeConfiguration == null;
     }
 
+    public boolean requiresAdditionalConfiguration() {
+        return this == BIRTHRIGHT_ROLE;
+    }
+
     public void generateConfiguration(
             @NotNull RoleAnalysisService service,
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
@@ -71,6 +78,7 @@ public enum AnalysisCategory implements TileEnum {
             case DEPARTMENT -> new DepartmentModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
             case ADVANCED -> new AdvancedModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
             case OUTLIER -> new OutlierModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case BIRTHRIGHT_ROLE -> new BirthrightCoverageModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
         }
     }
 
@@ -86,11 +94,13 @@ public enum AnalysisCategory implements TileEnum {
             case DEPARTMENT -> new DepartmentModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
             case ADVANCED -> new AdvancedModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
             case OUTLIERS -> new OutlierModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
+            case BIRTHRIGHT -> new BirthrightCoverageModeConfiguration(service, objectWrapper, task, result).updateConfiguration();
         }
     }
 
     public RoleAnalysisCategoryType resolveCategoryMode() {
         return switch (this) {
+            case BIRTHRIGHT_ROLE -> RoleAnalysisCategoryType.BIRTHRIGHT;
             case BALANCED_COVERAGE -> RoleAnalysisCategoryType.BALANCED;
             case EXACT_ACCESS_SIMILARITY -> RoleAnalysisCategoryType.EXACT;
             case DEPARTMENT -> RoleAnalysisCategoryType.DEPARTMENT;

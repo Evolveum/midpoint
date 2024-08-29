@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  ~ Copyright (c) 2024 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <wicket:extend>
+        <div wicket:id="feedbackContainer" class="col-8 feedbackContainer">
+            <div wicket:id="feedback" class="messagePanel"></div>
+        </div>
+
+        <div class="card col-8 mx-auto p-0">
+            <div class="bg-white p-2 pl-3 pr-3 mb-0 btn w-100 card-header">
+                <div wicket:id="card-title"></div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                 <span class="mt-4 text-center">
+                    <span class="text-gray font-weight-bold text-center">
+                        <div class="d-flex align-items-center" wicket:id="label-archetype"></div>
+                    </span>
+                </span>
+                    <div class="d-flex d-flex gap-2 w-100">
+                        <div class="form-control form-control-sm col-6" wicket:id="selected-archetype"></div>
+                        <div class="form-control form-control-sm" wicket:id="input-archetype"></div>
+                        <div wicket:id="remove-archetype"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                <span class="mt-4 text-center">
+                    <span class="text-gray font-weight-bold text-center">
+                        <div class="d-flex align-items-center" wicket:id="label-membership"></div>
+                    </span>
+                </span>
+                    <div class="d-flex d-flex gap-2 w-100">
+                        <div class="w-100" wicket:id="input-membership"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                <span class="mt-4 text-center">
+                    <span class="text-gray font-weight-bold text-center">
+                        <div class="d-flex align-items-center" wicket:id="label-roles"></div>
+                    </span>
+                </span>
+                    <div class="d-flex d-flex gap-2 w-100">
+                        <div class="w-100" wicket:id="selected-roles"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!--        <div class="card col-6 mx-auto p-1">-->
+        <!--            <div class="card-header ">-->
+        <!--                <div class="" wicket:id="title-archetype"></div>-->
+        <!--            </div>-->
+        <!--            <div class="card-body">-->
+        <!--                <span class="mt-4 text-center">-->
+        <!--                    <span style="text-decoration: none;">-->
+        <!--                        <div class="d-flex align-items-center" wicket:id="label-archetype"></div>-->
+        <!--                    </span>-->
+        <!--                </span>-->
+        <!--                <div class="d-flex d-flex gap-2 w-100">-->
+        <!--                    <div class="form-control form-control-sm col-6" wicket:id="selected-archetype"></div>-->
+        <!--                    <div class="form-control form-control-sm" wicket:id="input-archetype"></div>-->
+        <!--                    <div wicket:id="remove-archetype"></div>-->
+        <!--                </div>-->
+        <!--            </div>-->
+        <!--        </div>-->
+
+        <!--        <div class="card col-6 mx-auto p-1">-->
+        <!--            <div class="card-header ">-->
+        <!--                <div class="" wicket:id="title-membership"></div>-->
+        <!--            </div>-->
+        <!--            <div class="card-body">-->
+        <!--                <span class="mt-4 text-center">-->
+        <!--                    <span style="text-decoration: none;">-->
+        <!--                        <div class="d-flex align-items-center" wicket:id="label-membership"></div>-->
+        <!--                    </span>-->
+        <!--                </span>-->
+        <!--                <div class="d-flex d-flex gap-2 w-100">-->
+        <!--                    <div class="form-control form-control-sm" style="max-width:100px" wicket:id="selected-membership"></div>-->
+        <!--                    <div class="w-100" wicket:id="input-membership"></div>-->
+        <!--                </div>-->
+        <!--            </div>-->
+        <!--        </div>-->
+
+        <!--        <div class="card col-6 mx-auto p-1">-->
+        <!--            <div class="card-header ">-->
+        <!--                <div class="" wicket:id="title-roles"></div>-->
+        <!--            </div>-->
+        <!--            <div class="card-body">-->
+        <!--                <span class="mt-4 text-center">-->
+        <!--                    <span style="text-decoration: none;">-->
+        <!--                        <div class="d-flex align-items-center" wicket:id="label-roles"></div>-->
+        <!--                    </span>-->
+        <!--                </span>-->
+        <!--                <div class="d-flex d-flex gap-2 w-100">-->
+        <!--                    <div class="w-100" wicket:id="selected-roles"></div>-->
+        <!--                </div>-->
+        <!--            </div>-->
+        <!--        </div>-->
+
+
+    </wicket:extend>
+</wicket:panel>

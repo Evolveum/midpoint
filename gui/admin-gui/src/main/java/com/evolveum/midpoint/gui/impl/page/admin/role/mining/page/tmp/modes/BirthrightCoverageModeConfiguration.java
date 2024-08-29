@@ -18,14 +18,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class BalancedCoverageModeConfiguration extends AbstractRoleAnalysisConfiguration {
+public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisConfiguration {
 
     RoleAnalysisService service;
     Task task;
     OperationResult result;
     LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
 
-    public BalancedCoverageModeConfiguration(
+    public BirthrightCoverageModeConfiguration(
             RoleAnalysisService service,
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
             Task task,
@@ -48,16 +48,16 @@ public class BalancedCoverageModeConfiguration extends AbstractRoleAnalysisConfi
                 propertyRange,
                 getDefaultAnalysisAttributes(),
                 null,
-                80.0,
-                2,
-                2,
+                70.0,
+                5,
+                30,
                 false);
 
-        updateDetectionOptions(2,
+        updateDetectionOptions(5,
                 2,
                 null,
                 new RangeType()
-                        .min(10.0)
+                        .min(30.0)
                         .max(100.0),
                 RoleAnalysisDetectionProcessType.FULL);
     }

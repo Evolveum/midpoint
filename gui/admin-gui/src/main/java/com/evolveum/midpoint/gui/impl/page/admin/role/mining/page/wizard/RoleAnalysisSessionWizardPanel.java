@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode.RoleAnalysisSessionBasicRoleModeWizardPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
@@ -69,6 +71,11 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                 showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
                 super.onSubmitPerformed(target);
             }
+
+            @Override
+            protected boolean isBackButtonVisible() {
+                return true;
+            }
         };
 
         Fragment choiceFragment = createChoiceFragment(new AnalysisCategoryChoiceStepPanel(idOfChoicePanel, getHelper().getDetailsModel()) {
@@ -124,6 +131,33 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
         RoleAnalysisSessionType session = getHelper().getDetailsModel().getObjectType();
 
         RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
+
+        if (analysisCategory.equals(RoleAnalysisCategoryType.BIRTHRIGHT)) {
+
+            steps.add(new RoleAnalysisSessionBasicRoleModeWizardPanel(getHelper().getDetailsModel()) {
+                @Override
+                public IModel<String> getTitle() {
+                    return createStringResource("RoleAnalysisSessionBasicRoleModeWizardPanel.title");
+                }
+
+                @Override
+                public boolean onBackPerformed(AjaxRequestTarget target) {
+                    return super.onBackPerformed(target);
+                }
+
+                @Override
+                protected void onExitPerformed(AjaxRequestTarget target) {
+                    RoleAnalysisSessionWizardPanel.this.onExitPerformed();
+                }
+
+                @Override
+                protected void onSubmitPerformed(AjaxRequestTarget target) {
+                    finalSubmitPerform(target, taskType);
+                }
+            });
+
+        }
+
         if (!analysisCategory.equals(RoleAnalysisCategoryType.ADVANCED)
                 && !analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
 //                    || analysisCategory.equals(RoleAnalysisCategoryType.STANDARD)
