@@ -60,7 +60,7 @@
 
                                 DummyInterruptedSyncResource.onMappingExecution()
 
-                                if (input == DummyInterruptedSyncResource.errorOn) {
+                                if (input != null &amp;&amp; input == DummyInterruptedSyncResource.errorOn) {
                                     throw new IllegalStateException("Got error!")
                                 } else {
                                     try {
