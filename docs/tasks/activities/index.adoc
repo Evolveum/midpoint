@@ -23,7 +23,7 @@ the activities.
 An _activity_ describes the real work that should be carried out. It can be either simple or composite.
 
 _Simple activities_ consist of a single _action_, carried out on a set of input _items_ (zero, one,
-or more ones). Typical examples are recomputation, import from resource, or iterative bulk action.
+or more ones). Typical examples are recomputation, import from resource, or iterative action.
 
 On the other hand, _composite activities_ consist of a set of other activities - again, either simple
 or composite. Composite activities can be _predefined_ (like reconciliation or cleanup) or
@@ -44,12 +44,12 @@ image::activity-user-recomputation.png[alt="User recomputation activity", width=
 
 This activity runs a `recomputation` action over a set of all users.
 
-==== Example 2: Non-iterative bulk action - a simple activity with no input items
+==== Example 2: Non-iterative action - a simple activity with no input items
 
-image::activity-non-iterative-bulk-action.png[width=400,alt="Non-iterative bulk action"]
+image::activity-non-iterative-bulk-action.png[width=400,alt="Non-iterative action"]
 
-This activity runs a `nonIterativeScripting` action (i.e. non-iterative bulk action).
-The bulk action does not expect any input items. It simply runs provided Groovy script (in this case).
+This activity runs a `nonIterativeScripting` action (i.e. non-iterative action).
+The action does not expect any input items. It simply runs provided Groovy script (in this case).
 
 ==== Example 3: Reconciliation - a (predefined) composite activity
 
@@ -60,12 +60,12 @@ the third one (remaining shadows reconciliation) depends on the second one (reso
 
 Each of the sub-activities has a different action, and a different item set.
 
-==== Example 4: User recomputation + custom bulk action - a (custom) composite activity
+==== Example 4: User recomputation + custom action - a (custom) composite activity
 
-image::activity-user-recomputation-with-custom-bulk-action.png[width=700,alt="User recomputation with bulk action"]
+image::activity-user-recomputation-with-custom-bulk-action.png[width=700,alt="User recomputation with action"]
 
 The custom activity consists of two sub-activities. Both of them are defined by the user:
-a recomputation, followed by a custom bulk action.
+a recomputation, followed by a custom action.
 
 == Configuring the Activities
 

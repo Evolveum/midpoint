@@ -153,7 +153,7 @@ This selector specifies e.g.
 ... reference to the main task(s),
 ... or the time interval when the error occurred.
 
-.. Other significant parameters, like specific bulk action to execute, should also match.
+.. Other significant parameters, like specific action to execute, should also match.
 
 . The recoverer then goes through failed objects, according to the original set specification combined with failed object selector, and tries to process them.
 The errors occurring in this task can be later handled again.
@@ -161,8 +161,8 @@ The errors occurring in this task can be later handled again.
 === Special Cases
 
 . Although, in general, the recoverer runs the same type of activity as the main task, there can be situations when they differ.
-For example, the main activity can be a bulk action execution, and the recoverer can be a recomputation activity.
-Or the recoverer can use a different bulk action than was used in the main activity.
+For example, the main activity can be an action execution, and the recoverer can be a recomputation activity.
+Or the recoverer can use a different action than was used in the main activity.
 
 . In general, one recoverer is connected to one main task.
 However, there can be recoverers that treat multiple main tasks.

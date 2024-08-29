@@ -61,6 +61,6 @@ This property can be set explicitly to force task cleanup after a specific inter
 
 == See Also
 
-* xref:/midpoint/reference/misc/bulk/variables/[Variables in bulk actions]
+* xref:/midpoint/reference/misc/bulk/variables/[Variables in actions]
 
 * xref:/midpoint/reference/tasks/task-manager/[Task Manager]

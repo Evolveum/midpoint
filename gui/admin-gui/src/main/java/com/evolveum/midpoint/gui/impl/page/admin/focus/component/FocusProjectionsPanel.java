@@ -11,15 +11,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowAssociationsPanel;
-
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
-import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -27,6 +24,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -34,9 +32,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
+import com.evolveum.midpoint.gui.api.component.*;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
@@ -44,6 +40,7 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -60,7 +57,9 @@ import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
 import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowAssociationsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
@@ -74,6 +73,7 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -89,9 +89,8 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerValueWrapperModel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -537,7 +536,93 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             }
         });
 
+        columns.add(new AbstractColumn<>(Model.of("")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ShadowType>>> item, String id, IModel<PrismContainerValueWrapper<ShadowType>> model) {
+                item.add(new BadgeListPanel(id, createBadgeListModel(model)));
+            }
+        });
         return columns;
+    }
+
+    private IModel<List<Badge>> createBadgeListModel(IModel<PrismContainerValueWrapper<ShadowType>> model) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<Badge> load() {
+                PrismContainerValueWrapper<ShadowType> wrapper = model.getObject();
+                ShadowType shadow = wrapper.getRealValue();
+
+                if (shadow == null) {
+                    return List.of();
+                }
+
+                List<Badge> badges = new ArrayList<>();
+
+                ActivationType activation = shadow.getActivation();
+                if (activation != null && Objects.equals(activation.getAdministrativeStatus(), ActivationStatusType.DISABLED)) {
+                    badges.add(createDisabledBadge(activation));
+                }
+
+                badges.addAll(createTriggerBadges(shadow));
+
+                if (shadow.getPurpose() != null && shadow.getPurpose() != ShadowPurposeType.REGULAR) {
+                    badges.add(new Badge(Badge.State.INFO.getCss(), LocalizationUtil.translateEnum(shadow.getPurpose())));
+                }
+
+                return badges;
+            }
+        };
+    }
+
+    private List<Badge> createTriggerBadges(ShadowType shadow) {
+        List<Badge> badges = new ArrayList<>();
+
+        Map<String, List<TriggerType>> triggersMap = shadow.getTrigger().stream()
+                .collect(Collectors.groupingBy(TriggerType::getHandlerUri));
+
+        List<String> handlerUris = new ArrayList<>(triggersMap.keySet());
+        handlerUris.sort(Comparator.naturalOrder());
+
+        for (String handlerUri : handlerUris) {
+            String dates = triggersMap.get(handlerUri).stream()
+                    .filter(t -> t.getTimestamp() != null)
+                    .map(TriggerType::getTimestamp)
+                    .map(t -> t.toGregorianCalendar().getTime())
+                    .sorted()
+                    .map(t -> WebComponentUtil.formatDate(t))
+                    .collect(Collectors.joining(", \n"));
+
+            String tooltip = handlerUri + ", \n" + dates;
+
+            badges.add(new Badge(Badge.State.PRIMARY.getCss(), null, getString(TriggerType.class.getSimpleName()), tooltip));
+        }
+
+        return badges;
+    }
+
+    private Badge createDisabledBadge(ActivationType activation) {
+        StringBuilder sb = new StringBuilder();
+        if (activation.getDisableReason() != null) {
+            SchemaConstants.ModelDisableReason reason = SchemaConstants.ModelDisableReason.fromUriRelaxed(activation.getDisableReason());
+            String reasonStr = reason != null ?
+                    LocalizationUtil.translateEnum(reason) :
+                    QNameUtil.uriToQName(activation.getDisableReason()).getLocalPart();
+            sb.append(reasonStr);
+        }
+        if (!sb.isEmpty()) {
+            sb.append(", ");
+        }
+        if (activation.getDisableTimestamp() != null) {
+            sb.append(WebComponentUtil.formatDate(activation.getDisableTimestamp()));
+        }
+
+        return new Badge(
+                Badge.State.SECONDARY.getCss(),
+                null,
+                LocalizationUtil.translateEnum(ActivationStatusType.DISABLED),
+                sb.toString());
     }
 
     private IModel<String> loadObjectTypeDisplayNameModel(IModel<PrismContainerValueWrapper<ShadowType>> shadowModel) {

@@ -97,8 +97,8 @@ Each individual created object also needs to pass through authorization for `add
 (deprecated)
 | N/A
 | N/A
-| Allows to execute xref:/midpoint/reference/misc/bulk/[midPoint scripts a.k.a. bulk actions]
-| Authorizes the possibility to execute the bulk actions.
+| Allows to execute xref:/midpoint/reference/misc/bulk/[midPoint scripts a.k.a. actions]
+| Authorizes the possibility to execute the actions.
 See xref:bulk-actions.adoc[].
 |===
 

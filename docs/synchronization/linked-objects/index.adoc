@@ -212,12 +212,12 @@ We usually use policy rule with `scriptExecution` policy action for this.
 
 === Selecting objects to be recomputed
 
-The `scriptExecution` policy action has an option to specify object(s) on which given midPoint script (bulk action) should be applied.
+The `scriptExecution` policy action has an option to specify object(s) on which given midPoint script (action) should be applied.
 This option is called `object` and has the following values:
 
 [%autowidth]
 |===
-| Option | Cardinality | Bulk action will be run on | Option value type | Note
+| Option | Cardinality | action will be run on | Option value type | Note
 
 | `currentObject`
 | single
@@ -458,7 +458,7 @@ The following modes are available:
 
 | `singleRun`
 | Uses single-run scripting action.
-Input for this action contains references to objects that should serve as bulk action inputs.
+Input for this action contains references to objects that should serve as action inputs.
 .2+| To be used in special cases only.
 
 | `singleRunNoInput`
@@ -494,7 +494,7 @@ The following items are set for the final task (so overwriting ones present in t
 
 | archetype assignment
 | Task archetype
-| `00000000-0000-0000-0000-000000000509` (Iterative bulk action task) for iterative execution mode and `00000000-0000-0000-0000-000000000508` (Single bulk action task) for other execution modes.
+| `00000000-0000-0000-0000-000000000509` (Iterative action task) for iterative execution mode and `00000000-0000-0000-0000-000000000508` (Single action task) for other execution modes.
 
 
 |===
@@ -553,7 +553,7 @@ An example:
 There are situations when you want to delay the recomputation.
 A typical case is when you want to recompute members of abstract roles that are (potentially) changed on larger scale.
 For example when they are synchronized from a resource.
-Or if they are modified using a bulk action.
+Or if they are modified using an action.
 Or if it is simply expected that users are going to edit more roles via GUI in short period of time (relative to the time needed to recompute members of these roles).
 
 In such cases you can simply set a recompute trigger on relevant objects instead of recomputing them immediately.
@@ -640,7 +640,7 @@ And then you could check for this option in conditions related to the particular
 ----
 
 The specific options cannot be (now) set via GUI.
-However, they can be specified in bulk actions, synchronization reactions, or anywhere where model API is called from Java or groovy code.
+However, they can be specified in actions, synchronization reactions, or anywhere where model API is called from Java or groovy code.
 In the near future we implement support also for REST calls.
 
 [TIP]
@@ -672,7 +672,7 @@ An example of setting the options within synchronization reaction:
 . The `midpoint.findLinkedSources` and `findLinkedTargets` methods use model API to retrieve objects, so they are executed under privileges of currently logged-in user.
 You can use `runAsRef` mechanism in expressions to use a different user, if needed.
 
-. Scripts (bulk actions) in scripting policy rules also execute under privileges of currently logged-in user.
+. Scripts (actions) in scripting policy rules also execute under privileges of currently logged-in user.
 You can use `scriptExecution.runAsRef` to use a different user.
 There is one exception, though: the search for relevant objects (linked sources or targets) is currently done directly via repository because of the performance.
 So the security is not being applied there.

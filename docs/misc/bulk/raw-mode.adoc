@@ -7,7 +7,7 @@
 :page-wiki-metadata-modify-date: 2019-10-14T15:19:05.432+02:00
 :page-upkeep-status: yellow
 
-When running bulk actions that needs to be fast and alter only data stored in midPoint, you may use parameter raw=true to avoid midPoint's business logic and touching resources.
+When running actions that needs to be fast and alter only data stored in midPoint, you may use parameter raw=true to avoid midPoint's business logic and touching resources.
 Its exactly like editing objects via GUI Repository Objects.
 
 [source,xml]
