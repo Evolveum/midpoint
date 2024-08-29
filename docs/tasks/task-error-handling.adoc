@@ -39,7 +39,7 @@ this kind of failures (errors).
 
 In midPoint 4.2 and before, the error handling in tasks was quite rudimentary.
 
-For common tasks like reconciliation, recomputation, bulk actions execution, or import from
+For common tasks like reconciliation, recomputation, actions execution, or import from
 resource, the only option how to handle failures that had occurred was to re-run the task.
 That way, all the objects were re-processed: those that had been processed successfully, were
 (most often) processed successfully again, and those that had failed, were (hopefully) processed
@@ -85,9 +85,9 @@ Respective operation execution records are created for them.
 objects. Let's call this task the recoverer (`R`). It has the following characteristics:
 
 * It usually has the same type as `M`. For example, if `M` is an import task, then `R` is usually
-import task as well. Other significant parameters, like specific bulk action to execute, should
-also match.footnote:[This is not a strict rule. There can be situations when, for example, the main task is a bulk action
-task, and the recoverer is recomputation task. Or the recoverer can use a different bulk action
+import task as well. Other significant parameters, like specific action to execute, should
+also match.footnote:[This is not a strict rule. There can be situations when, for example, the main task is an action
+task, and the recoverer is recomputation task. Or the recoverer can use a different action
 than was used in the main task, if needed.]
 
 * It operates on the same set of objects (specified e.g. by resource reference, object class,
