@@ -9,12 +9,12 @@
            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
            xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
-    <name>Iterative bulk action task</name>
+    <name>Iterative action task</name>
     <archetypePolicy>
         <display>
-            <label>Iterative bulk action task</label>
+            <label>Iterative action task</label>
             <pluralLabel>
-                <orig>Iterative bulk action tasks</orig>
+                <orig>Iterative action tasks</orig>
                 <translation>
                     <key>IterativeBulkActionTasks.title</key>
                 </translation>
