@@ -97,6 +97,14 @@ public class AceEditor extends TextArea<String> {
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
+    public void updateMode(AjaxRequestTarget target, Mode mode) {
+        setMode(mode);
+
+        String module = mode!= null? mode.module : "";
+
+        target.appendJavaScript("window.MidPointAceEditor.changeMode('" + getMarkupId() + "','" + module + "');");
+    }
+
     public int getMinHeight() {
         return minHeight;
     }
