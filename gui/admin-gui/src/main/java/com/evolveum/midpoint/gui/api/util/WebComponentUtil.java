@@ -845,11 +845,6 @@ public final class WebComponentUtil {
         }
     }
 
-    public static IModel<String> createCategoryNameModel(final IModel<String> categorySymbolModel) {
-        return () -> createStringResourceStatic(
-                "pageTasks.category." + categorySymbolModel.getObject()).getString();
-    }
-
     public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
             final IModel<E> model, final Component component) {
         return createEnumPanel(clazz, id, model, component, true);

@@ -591,7 +591,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMainMenuItem(createObjectTemplatesItems());
         item.addMainMenuItem(createMarkItems());
         item.addMainMenuItem(createSchemaItems());
-        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
+        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.actions", "fa fa-bullseye", PageAction.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.importObject", "fa fa-upload", PageImportObject.class));
         item.addMainMenuItem(createRepositoryObjectsMenu());
 
