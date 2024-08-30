@@ -127,7 +127,7 @@ public class PageAction extends PageAdminConfiguration {
             }
         } catch (SchemaException | RuntimeException e) {
             result.recordFatalError(createStringResource("PageAction.message.startPerformed.fatalError.parse").getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse bulk action object", e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse action object", e);
         }
 
         if (typed != null) {
@@ -143,7 +143,7 @@ public class PageAction extends PageAdminConfiguration {
                     result.recordFatalError(
                             createStringResource(
                                     "PageAction.message.startPerformed.fatalError.submit").getString(), e);
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit action to execution", e);
                 }
             } else {
                 try {
@@ -164,7 +164,7 @@ public class PageAction extends PageAdminConfiguration {
                     result.addArbitraryObjectCollectionAsReturn("data", executionResult.getDataOutput());
                 } catch (Exception e) {
                     result.recordFatalError(createStringResource("PageAction.message.startPerformed.fatalError.execute").getString(), e);
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute bulk action", e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute action", e);
                 }
             }
         }
