@@ -19,7 +19,10 @@ import com.evolveum.midpoint.model.api.ActivitySubmissionOptions;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.repo.common.subscription.JarSignatureHolder;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
+
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.catalina.util.ServerInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -96,6 +99,8 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE = DOT_CLASS + "testRepositoryCheckOrgClosure";
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
     private static final String OPERATION_SUBMIT_REINDEX = DOT_CLASS + "submitReindex";
+
+    private static final String OPERATION_SUBMIT_REPARTITION = DOT_CLASS + "submitRepartition";
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
     private static final String OPERATION_DELETE_ALL_OBJECTS = DOT_CLASS + "deleteAllObjects";
     private static final String OPERATION_LOAD_NODE = DOT_CLASS + "loadNode";
@@ -132,6 +137,8 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_NODE_NAME = "nodeName";
     private static final String ID_NODE_ID = "nodeId";
     private static final String ID_NODE_URL = "nodeUrl";
+
+    private static final String ID_REPOSITORY_ENABLE_PARTITIONING = "repositoryEnablePartitioning";
 
     private static final String[] PROPERTIES = new String[] { "file.separator", "java.class.path",
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
@@ -374,6 +381,18 @@ public class PageAbout extends PageAdminConfiguration {
         };
         add(reindexRepositoryObjects);
 
+        AjaxButton enableShadowPartitioning = new AjaxButton(ID_REPOSITORY_ENABLE_PARTITIONING,
+                createStringResource("PageAbout.button.enableShadowPartitioning")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                enableShadowPartitioningPerformed(target);
+            }
+        };
+
+        add(enableShadowPartitioning);
+
         AjaxButton testProvisioning = new AjaxButton(ID_TEST_PROVISIONING,
                 createStringResource("PageAbout.button.testProvisioning")) {
             private static final long serialVersionUID = 1L;
@@ -541,6 +560,48 @@ public class PageAbout extends PageAdminConfiguration {
         showResult(result);
         target.add(getFeedbackPanel());
     }
+
+    private void enableShadowPartitioningPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_SUBMIT_REPARTITION);
+        try {
+            Task task = getTaskManager().createTaskInstance();
+            authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, result);
+
+            var enablePartitioningDelta = PrismContext.get().deltaFor(SystemConfigurationType.class)
+                    .item(SystemConfigurationType.F_INTERNALS, InternalsConfigurationType.F_REPOSITORY, RepositoryConfigurationType.F_AUTO_CREATE_PARTITIONS_ON_ADD)
+                    .add(true)
+                    .asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+            var activity = new ActivityDefinitionType()
+                    .composition(new ActivityCompositionType()
+                            .activity(new ActivityDefinitionType()
+                                    .order(1)
+                                    .work(new WorkDefinitionsType()
+                                            .explicitChangeExecution(new ExplicitChangeExecutionWorkDefinitionType()
+                                                    .delta(DeltaConvertor.toObjectDeltaType(enablePartitioningDelta))
+                                            )
+                                    ))
+                            .activity(new ActivityDefinitionType()
+                                    .order(2)
+                                    .work(new WorkDefinitionsType()
+                                            .repartitioning(new RepartitioningWorkDefinitionType())
+                                    )));
+
+            getModelInteractionService().submit(
+                    activity,
+                    ActivitySubmissionOptions.create().withTaskTemplate(
+                            new TaskType()
+                                    .name("Repartition Repository")
+                                    .channel(SchemaConstants.CHANNEL_USER_URI)),
+                    task, result);
+        } catch (CommonException | RuntimeException e) {
+            result.recordFatalError(e);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
+
 
     private void testProvisioningPerformed(AjaxRequestTarget target) {
         Task task = createSimpleTask(OPERATION_TEST_REPOSITORY);
