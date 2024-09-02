@@ -15,6 +15,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,15 +27,17 @@ public interface MiningStructure {
      *
      * @param roleAnalysisService The role analysis service.
      * @param cluster The cluster representing a group of roles.
+     * @param objectFilter The additional user filter.
      * @param handler The progress handler for role analysis.
      * @param task The task associated with the operation.
      * @param result The result object for tracking the operation's outcome.
-     * @param option
+     * @param option Display option for preparation chunk structures.
      * @return A MiningOperationChunk containing user and role chunks for further processing.
      */
     @NotNull MiningOperationChunk prepareRoleBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType objectFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result,
@@ -44,15 +48,17 @@ public interface MiningStructure {
      *
      * @param roleAnalysisService The role analysis service.
      * @param cluster The cluster representing a group of roles.
+     * @param objectFilter The additional user filter.
      * @param handler The progress handler for role analysis.
      * @param task The task associated with the operation.
      * @param result The result object for tracking the operation's outcome.
-     * @param option
+     * @param option Display option for preparation chunk structures.
      * @return A MiningOperationChunk containing user and role chunks for further processing.
      */
     @NotNull MiningOperationChunk prepareUserBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType objectFilter,
             @NotNull RoleAnalysisProgressIncrement handler,
             @NotNull Task task,
             @NotNull OperationResult result,
@@ -66,6 +72,7 @@ public interface MiningStructure {
      *
      * @param roleAnalysisService The role analysis service.
      * @param cluster The cluster representing a group of roles for analysis.
+     * @param objectFilter The additional user filter.
      * @param state The progress handler for monitoring role analysis.
      * @param task The task associated with this operation.
      * @param result The result object for tracking the operation's outcome.
@@ -74,6 +81,7 @@ public interface MiningStructure {
     @NotNull MiningOperationChunk preparePartialRoleBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType objectFilter,
             @NotNull RoleAnalysisProgressIncrement state,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -86,6 +94,7 @@ public interface MiningStructure {
      *
      * @param roleAnalysisService The role analysis service.
      * @param cluster The cluster representing a group of roles for analysis.
+     * @param objectFilter The additional user filter.
      * @param state The progress handler for monitoring role analysis.
      * @param task The task associated with this operation.
      * @param result The result object for tracking the operation's outcome.
@@ -94,6 +103,7 @@ public interface MiningStructure {
     @NotNull MiningOperationChunk preparePartialUserBasedStructure(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType objectFilter,
             @NotNull RoleAnalysisProgressIncrement state,
             @NotNull Task task,
             @NotNull OperationResult result);

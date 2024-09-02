@@ -126,7 +126,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
-        List<PrismObject<TaskType>> tasks = getNextStageTasks(roleInducementCampaignOid, startTime, result);
+        List<PrismObject<TaskType>> tasks = getFirstStageTasks(roleInducementCampaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid());
 
@@ -292,7 +292,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         result.computeStatus();
         TestUtil.assertInProgressOrSuccess(result);
 
-        List<PrismObject<TaskType>> tasks = getNextStageTasks(campaignOid, startTime, result);
+        List<PrismObject<TaskType>> tasks = getFirstStageTasks(campaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
         waitForTaskFinish(tasks.get(0).getOid());
 
@@ -730,6 +730,9 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     public void test152CloseFirstStageAllow() throws Exception {
         login(getUserFromRepo(USER_BOB_OID));
 
+        clock.resetOverride();
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+
         given();
         Task task = getTestTask();
         task.setOwner(getUserFromRepo(USER_BOB_OID));
@@ -740,7 +743,11 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         then();
         result.computeStatus();
-        TestUtil.assertSuccess(result);
+        TestUtil.assertInProgressOrSuccess(result);
+
+        List<PrismObject<TaskType>> tasks = getCloseStageTask(campaignOid, startTime, result);
+        assertEquals("unexpected number of related tasks", 1, tasks.size());
+        waitForTaskFinish(tasks.get(0).getOid());
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign in stage 1", campaign);

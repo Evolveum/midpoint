@@ -845,11 +845,6 @@ public final class WebComponentUtil {
         }
     }
 
-    public static IModel<String> createCategoryNameModel(final IModel<String> categorySymbolModel) {
-        return () -> createStringResourceStatic(
-                "pageTasks.category." + categorySymbolModel.getObject()).getString();
-    }
-
     public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
             final IModel<E> model, final Component component) {
         return createEnumPanel(clazz, id, model, component, true);
@@ -4211,5 +4206,19 @@ public final class WebComponentUtil {
             icon.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(iconCss)));
             return icon;
         }
+    }
+
+    public static String createMarkList(List<ObjectReferenceType> markRefs, PageBase page) {
+        if (markRefs == null) {
+            return null;
+        }
+
+        Object[] marks = markRefs.stream()
+                .map(ref -> WebModelServiceUtils.loadObject(ref, page))
+                .filter(mark -> mark != null)
+                .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
+                .toArray();
+
+        return StringUtils.joinWith(", ", marks);
     }
 }

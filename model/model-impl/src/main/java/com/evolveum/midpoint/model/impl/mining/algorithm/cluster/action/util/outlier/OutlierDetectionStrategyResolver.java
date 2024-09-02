@@ -24,7 +24,7 @@ public class OutlierDetectionStrategyResolver {
      * @param roleAnalysisService The role analysis service for performing role analysis operations.
      * @param cluster The role analysis cluster to process.
      * @param session The role analysis session.
-     * @param userAnalysisCache
+     * @param userAnalysisCache The cache for storing the analysis results.
      * @param task The current task.
      * @param result The operation result.
      */

@@ -28,6 +28,7 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_TITLE = "title";
+    private static final String ID_PANEL_CONTAINER = "panel-container";
     private static final String ID_PANEL = "panel";
     private static final String ID_FOOTER = "footer";
     private static final String ID_FOOTER_CONTENT = "footer-container";
@@ -44,6 +45,11 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
         container.add(AttributeAppender.replace("class", getContainerCssClass()));
         container.add(AttributeAppender.replace("style", getContainerCssStyle()));
         add(container);
+
+        WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
+        panelContainer.setOutputMarkupId(true);
+        panelContainer.add(AttributeAppender.replace("class", getPanelContainerCssClass()));
+        container.add(panelContainer);
         IconWithLabel iconWithLabel = new IconWithLabel(ID_TITLE, getModel()) {
             @Contract(pure = true)
             @Override
@@ -59,14 +65,14 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
 
             @Override
             protected String getComponentCssStyle() {
-                return "font-size:20px;";
+                return "";
             }
         };
         container.add(iconWithLabel);
 
         Component panelComponent = getPanelComponent(ID_PANEL);
         panelComponent.setOutputMarkupId(true);
-        container.add(panelComponent);
+        panelContainer.add(panelComponent);
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTENT);
         footerContainer.setOutputMarkupId(true);
@@ -76,6 +82,10 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
         Component footerComponent = getFooterComponent(ID_FOOTER);
         footerComponent.setOutputMarkupId(true);
         footerContainer.add(footerComponent);
+    }
+
+    protected String getPanelContainerCssClass() {
+        return null;
     }
 
     protected Component getPanelComponent(String id) {

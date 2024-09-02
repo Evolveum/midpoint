@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.aspects;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModelMain;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierPartitionPanel.PARAM_ANOMALY_OID;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.OutlierPartitionPanel.PARAM_ANOMALY_OID;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
@@ -499,6 +499,12 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                 return false;
             }
 
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getPanelContainerCssClass() {
+                return "p-0 h-100 border-top w-100";
+            }
+
             @SuppressWarnings("rawtypes")
             @Override
             protected @NotNull Component getPanelComponent(String id) {
@@ -574,7 +580,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
                 int finalIndirectAssignment = indirectAssignment;
                 int finalDuplicatedRoleAssignmentCount = duplicatedRoleAssignmentCount;
                 return new RoleAnalysisAccessDistributionPanel(id) { //TODO create model - this overriding is not very good. might be oneliner when the model is properly created
-
                     @Override
                     protected String getCount() {
                         return String.valueOf(allAssignmentCount);

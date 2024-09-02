@@ -1605,8 +1605,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public List<ShadowType> getShadowsToActivate(Collection<? extends ModelProjectionContext> projectionContexts) {
         List<ShadowType> shadows = new ArrayList<>();
         for (ModelProjectionContext projectionCtx : projectionContexts) {
-            List<? extends ObjectDeltaOperation<ShadowType>> executedOperations = projectionCtx.getExecutedDeltas();
-            for (ObjectDeltaOperation<ShadowType> executedOperation : executedOperations) {
+            for (ObjectDeltaOperation<ShadowType> executedOperation : projectionCtx.getExecutedDeltas()) {
                 ObjectDelta<ShadowType> shadowDelta = executedOperation.getObjectDelta();
                 if (isAdd(shadowDelta) && executedOperation.getStatus() == OperationResultStatus.SUCCESS) {
                     ShadowType shadow = shadowDelta.getObjectToAdd().asObjectable();

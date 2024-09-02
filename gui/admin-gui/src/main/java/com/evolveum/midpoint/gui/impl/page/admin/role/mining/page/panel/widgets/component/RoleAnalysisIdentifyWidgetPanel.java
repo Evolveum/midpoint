@@ -17,10 +17,12 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -81,6 +83,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
         IModel<String> titleModel = getTitleModel();
 
         WebMarkupContainer card = new WebMarkupContainer(ID_CARD);
+        card.add(AttributeAppender.append("class", " m-0"));
         card.setOutputMarkupId(true);
         add(card);
 
@@ -166,11 +169,28 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
 
         WebMarkupContainer bodyHeaderPanelContainer = new WebMarkupContainer(ID_BODY_HEADER_PANEL_CONTAINER);
         bodyHeaderPanelContainer.setOutputMarkupId(true);
+        bodyHeaderPanelContainer.add(AttributeModifier.append("style", getBodyHeaderPanelStyle()));
         bodyContainer.add(bodyHeaderPanelContainer);
 
         Component bodyHeaderPanel = getBodyHeaderPanel(ID_BODY_HEADER_PANEL);
         bodyHeaderPanelContainer.add(new VisibleBehaviour(this::isHeaderVisible));
         bodyHeaderPanelContainer.add(bodyHeaderPanel);
+
+        if(getModel() == null){
+            WebMarkupContainer details = new WebMarkupContainer(ID_BODY_ITEM_CONTAINER);
+            details.setOutputMarkupId(true);
+            details.add(new VisibleBehaviour(() -> false));
+            bodyContainer.add(details);
+
+            details.add(new EmptyPanel(ID_IMAGE));
+            details.add(new EmptyPanel(ID_TITLE));
+            details.add(new EmptyPanel(ID_VALUE));
+            details.add(new EmptyPanel(ID_SCORE));
+            details.add(new EmptyPanel(ID_VALUE_TITLE));
+            details.add(new EmptyPanel(ID_SCORE_ACTION));
+            return;
+        }
+
         ListView<IdentifyWidgetItem> details = new ListView<>(ID_BODY_ITEM_CONTAINER, getModel()) {
 
             @Override
@@ -185,7 +205,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
         IdentifyWidgetItem data = item.getModelObject();
         item.add(data.createImageComponent(ID_IMAGE));
         item.add(data.createTitleComponent(ID_TITLE));
-        item.add(data.createValueComponent(ID_VALUE));
+        item.add(data.createDescriptionComponent(ID_VALUE));
         item.add(data.createScoreComponent(ID_SCORE));
         item.add(data.createValueTitleComponent(ID_VALUE_TITLE));
         item.add(data.createActionComponent(ID_SCORE_ACTION));
@@ -232,6 +252,10 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
     }
 
     protected String initDefaultCssClass() {
-        return "col-4";
+        return ""; /* col-4 */
+    }
+
+    protected String getBodyHeaderPanelStyle() {
+        return null;
     }
 }

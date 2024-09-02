@@ -6,7 +6,7 @@
 :page-wiki-metadata-modify-user: mederly
 :page-wiki-metadata-modify-date: 2020-03-03T13:35:28.883+01:00
 :page-upkeep-status: green
-:page-alias: { "parent" : "/midpoint/reference/tasks/", "slug" : "bulk",  "title" : "Scripting Tasks (Bulk Actions)" }
+:page-alias: { "parent" : "/midpoint/reference/tasks/", "slug" : "bulk",  "title" : "Scripting Tasks (Actions)" }
 
 There are two ways of executing scripts within tasks:
 
@@ -25,7 +25,7 @@ Therefore, for considerable number of objects (e.g. thousands) the traditional t
 
 === An example
 
-.*Traditional bulk action that sets preferredLanguage for all users*
+.*Traditional action that sets preferredLanguage for all users*
 [%collapsible]
 ====
 link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/set-preferred-language-all-users.xml[Git]
@@ -45,7 +45,7 @@ However, the work cannot be segmented into buckets, and therefore cannot be dist
 
 === An example (single-node)
 
-.*Iterative bulk action that sets preferredLanguage for all users*
+.*Iterative action that sets preferredLanguage for all users*
 
 [%collapsible]
 ====
@@ -64,7 +64,7 @@ An example of distribution on cluster nodes is shown below:
 
 === An example (multi-node)
 
-.Iterative bulk action that sets preferredLanguage for all users (multi-node)
+.Iterative action that sets preferredLanguage for all users (multi-node)
 [%collapsible]
 ====
 link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/set-preffered-language-all-users-multinode.xml[Git]

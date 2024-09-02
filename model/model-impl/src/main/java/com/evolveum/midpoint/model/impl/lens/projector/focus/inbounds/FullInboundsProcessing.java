@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.Collection;
@@ -15,14 +16,10 @@ import java.util.List;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.model.api.InboundSourceData;
-import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.*;
 
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluatorParams;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingInitializer;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingOutputProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingTimeEval;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -112,10 +109,7 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                     PrismObject<F> objectCurrentOrNew = lensContext.getFocusContext().getObjectCurrentOrNew();
                     var inboundsContext = new FullInboundsContext(lensContext, env);
                     var inboundsSource = new FullInboundsSource(
-                            InboundSourceData.forShadow(
-                                    projectionContext.getObjectCurrent(),
-                                    getAPrioriDelta(projectionContext),
-                                    projectionContext.getCompositeObjectDefinitionRequired()),
+                            getInboundSourceData(projectionContext),
                             projectionContext.getCompositeObjectDefinition(),
                             projectionContext,
                             inboundsContext);
@@ -146,32 +140,59 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
     }
 
     /**
-     * Computes a priori delta for given projection context.
+     * Computes the source data (object + delta) for given projection context.
      *
      * TODO revise this method
      */
-    private static ObjectDelta<ShadowType> getAPrioriDelta(@NotNull LensProjectionContext projectionContext) {
+    private static InboundSourceData getInboundSourceData(@NotNull LensProjectionContext projectionContext)
+            throws SchemaException, ConfigurationException {
+        var currentShadow = projectionContext.getObjectCurrent();
+        var definition = projectionContext.getCompositeObjectDefinitionRequired();
+
         int wave = projectionContext.getLensContext().getProjectionWave();
+
         if (wave == 0) {
-            return projectionContext.getSyncDelta();
+            return InboundSourceData.forShadow(
+                    currentShadow, // TODO reconsider old vs new here
+                    currentShadow,
+                    projectionContext.getSyncDelta(),
+                    definition);
         }
         if (wave == projectionContext.getWave() + 1) {
-            // If this resource was processed in a previous wave ....
-            // Normally, we take executed delta. However, there are situations (like preview changes - i.e. projector without execution),
-            // when there is no executed delta. In that case we take standard primary + secondary delta.
-            // TODO is this really correct? Think if the following can happen:
-            // - NOT previewing
-            // - no executed deltas but
-            // - existing primary/secondary delta.
-            List<LensObjectDeltaOperation<ShadowType>> executed = projectionContext.getExecutedDeltas();
-            if (!executed.isEmpty()) {
-                // TODO why the last one?
-                return executed.get(executed.size() - 1).getObjectDelta();
+            // We are in the wave that follows right after this projection context was projected/executed in.
+            // So, we would like to use the delta that was executed in that wave.
+            if (projectionContext.getLensContext().isPreview()) {
+                // ... unless we are in legacy preview, where are no executions. So we must take what was provided + computed.
+                return InboundSourceData.forShadow(
+                        currentShadow, // TODO reconsider old vs new here
+                        currentShadow,
+                        projectionContext.getSummaryDelta(),
+                        definition);
             } else {
-                return projectionContext.getSummaryDelta(); // TODO check this
+                var odos = projectionContext.getExecutedDeltas(projectionContext.getWave());
+                if (odos.isEmpty()) {
+                    return InboundSourceData.forShadow(
+                            currentShadow,
+                            currentShadow,
+                            null,
+                            definition);
+                }
+                // Normally, here should be only one delta. But sometimes the waves are repeated.
+                // So, let's take the last one.
+                var odo = odos.get(odos.size() - 1);
+                var baseObject = odo.getBaseObject(); // should be non-null, except for ADD delta
+                return InboundSourceData.forShadow(
+                        asPrismObject(baseObject),
+                        currentShadow,
+                        odo.getObjectDelta(),
+                        definition);
             }
         }
-        return null;
+        return InboundSourceData.forShadow(
+                currentShadow,
+                currentShadow,
+                null,
+                definition);
     }
 
     @Override
@@ -415,7 +436,13 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
             params.setEvaluateCurrent(MappingTimeEval.CURRENT);
             params.setContext(lensContext);
             params.setTargetValueAvailable(true);
-            beans.projectionMappingSetEvaluator.evaluateMappingsToTriples(params, inboundsContext.getEnv().task, result);
+            try {
+                beans.projectionMappingSetEvaluator.evaluateMappingsToTriples(params, inboundsContext.getEnv().task, result);
+            } catch (MappingLoader.NotLoadedException e) {
+                // FIXME Originally, NotLoadedException was ObjectNotFoundException anyway. This brings that old behavior here.
+                //  Please fix this some day.
+                throw new ObjectNotFoundException("Projection was not loaded: " + e.getMessage(), e);
+            }
         }
 
         private List<MappingType> getActivationInbound(ItemName itemName) {

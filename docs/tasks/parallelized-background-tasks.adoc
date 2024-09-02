@@ -19,7 +19,7 @@ It is applicable to the following tasks:
 
 * recomputation,
 
-* iterative bulk actions (see xref:/midpoint/reference/misc/bulk/scripting-tasks/[Scripting tasks]),
+* iterative actions (see xref:/midpoint/reference/misc/bulk/scripting-tasks/[Scripting tasks]),
 
 * reindex.
 

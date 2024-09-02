@@ -21,7 +21,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -140,9 +140,7 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
 
     private void setNewPrimaryOptionValue(@NotNull PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType,
             ItemName itemName, Object realValue) throws SchemaException {
-
         sessionType.findProperty(itemName).getValue().setRealValue(realValue);
-
     }
 
     private void setNewDetectionOptionValue(@NotNull PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType,
@@ -156,7 +154,7 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
     }
 
     public void updatePrimaryOptions(
-            QueryType query,
+            SearchFilterType query,
             boolean isIndirect,
             RangeType propertiesRange,
             AnalysisAttributeSettingType analysisAttributeSetting,

@@ -100,7 +100,7 @@ The use of collections in midPoint 4.0 is somehow limited.
 In future midPoint releases, Collections may be reused in authorizations and policy rules.
 E.g. It would be nice to use just "employees" as a criterion in xref:/midpoint/reference/security/authorization/[authorizations] instead of copying the search filter everywhere.
 Similarly, this collection may be reused in policy rule specifications.
-In the future there may be scanner tasks that scan just the objects that belong to the collections, bulk actions for the collections and similar improvements.
+In the future there may be scanner tasks that scan just the objects that belong to the collections, actions for the collections and similar improvements.
 
 Reusing the definition on many places is not just convenience.
 It is important for consistency of configuration.

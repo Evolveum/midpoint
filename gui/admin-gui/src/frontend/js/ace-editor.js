@@ -11,7 +11,18 @@ $.aceEditors = {};
 
 export default class MidPointAceEditor {
 
+    changeMode(textAreaId, mode) {
+        console.info("Updating editor mode for " + textAreaId + " mode: " + mode);
+
+        var editorId = textAreaId + ACE_EDITOR_POSTFIX;
+
+        var editor = $.aceEditors[editorId];
+        editor.session.setMode(mode);
+    }
+
     initEditor(textAreaId, readonly, resize, height, minHeight, mode, dark) {
+        console.info("Initializing editor " + textAreaId + " readonly: " + readonly + " mode: " + mode + " dark: " + dark);
+
         var jqTextArea = '#' + textAreaId;
         var editorId = textAreaId + ACE_EDITOR_POSTFIX;
         var jqEditor = '#' + editorId;
@@ -39,7 +50,7 @@ export default class MidPointAceEditor {
 
         var editor = ace.edit(editorId,{
             theme: themeValue,
-            mode: 'ace/mode/xml',
+            mode: mode,
             highlightActiveLine : true,
             highlightSelectedWord: true,
             autoScrollEditorIntoView: true,

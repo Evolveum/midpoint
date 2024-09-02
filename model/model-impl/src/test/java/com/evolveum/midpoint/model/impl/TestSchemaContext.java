@@ -5,6 +5,8 @@ import static org.testng.Assert.assertNotNull;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -35,8 +37,8 @@ public class TestSchemaContext extends AbstractInternalModelIntegrationTest {
             new File(MidPointTestConstants.TEST_RESOURCES_DIR, "lens"), "role-judge.xml", "12345111-1111-2222-1111-121212111111");
 
     @Test
-    public void testResourceObjectContextResolver() {
-        PrismObject<ResourceType> resourceObj = DUMMY_RESOURCE_SOURCE.get();
+    public void testResourceObjectContextResolver() throws SchemaException, ExpressionEvaluationException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectNotFoundException {
+        PrismObject<ResourceType> resourceObj = getObject(ResourceType.class, RESOURCE_DUMMY_OID);
         Item<?, ?> objectItem = resourceObj.findItem(ItemPath.create(new QName("schemaHandling"), new QName("objectType")));
         PrismValue objectPrismValue = objectItem.getAnyValue();
         ItemDefinition<?> itemDefinition = objectPrismValue.getSchemaContext().getItemDefinition();

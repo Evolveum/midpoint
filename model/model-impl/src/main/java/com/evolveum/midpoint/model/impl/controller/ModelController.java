@@ -2514,12 +2514,13 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+//        getCertificationManagerRequired().closeCampaignTask(campaignOid, task, result);
         getCertificationManagerRequired().closeCampaign(campaignOid, task, result);
     }
 
     @Override
     public void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerRequired().reiterateCampaign(campaignOid, task, result);
+        getCertificationManagerRequired().reiterateCampaignTask(campaignOid, task, result);
     }
 
     @Override
@@ -2529,13 +2530,19 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerRequired().closeCurrentStage(campaignOid, task, parentResult);
+        getCertificationManagerRequired().closeCurrentStageTask(campaignOid, task, parentResult);
     }
 
     @Override
     public void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         getCertificationManagerRequired().createNextStageTask(campaignOid, task, parentResult);
     }
+
+    @Override
+    public void openNextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        getCertificationManagerRequired().createNextStageTask(campaign, task, parentResult);
+    }
+
 
     @Override
     public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {

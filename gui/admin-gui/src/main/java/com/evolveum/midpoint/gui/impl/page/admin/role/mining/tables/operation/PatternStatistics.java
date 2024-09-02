@@ -39,7 +39,6 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
     private double topPatternCoverage = 0;
     private DetectedPattern detectedPattern;
 
-
     public PatternStatistics(RoleAnalysisObjectDto roleAnalysisObjectDto, List<String> members, List<String> mustMeet, ModelServiceLocator serviceLocator) {
         loadStatistics(roleAnalysisObjectDto, members, mustMeet, serviceLocator);
 
@@ -51,7 +50,6 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
         List<SimpleHeatPattern> totalRelationOfPatternsForCell;
 //        List<String> mustMeet = roleChunk.getProperties();
         List<String> topPattern = new ArrayList<>();
-
 
         List<T> additionalObjects = roleAnalysisObjectDto.getAdditionalMiningChunk();
 
@@ -134,29 +132,31 @@ public class PatternStatistics<T extends MiningBaseTypeChunk> implements Seriali
 //            List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = roleAnalysisService
 //                    .resolveAnalysisAttributes(session.asObjectable(), RoleType.COMPLEX_TYPE);
 
-            roleAnalysisService.resolveDetectedPatternsAttributes(Collections.singletonList(pattern), userExistCache,
-                    roleExistCache, task, task.getResult(), roleAnalysisObjectDto.getRoleAnalysisAttributes(), roleAnalysisObjectDto.getUserAnalysisAttributes());
+        List<RoleAnalysisAttributeDef> roleAnalysisAttributes = roleAnalysisObjectDto.getRoleAnalysisAttributes();
+        List<RoleAnalysisAttributeDef> userAnalysisAttributes = roleAnalysisObjectDto.getUserAnalysisAttributes();
+        roleAnalysisService.resolveDetectedPatternsAttributes(Collections.singletonList(pattern), userExistCache,
+                roleExistCache, task, task.getResult(), roleAnalysisAttributes, userAnalysisAttributes);
 
-            double totalDensity = 0.0;
-            int totalCount = 0;
-            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
-            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
+        double totalDensity = 0.0;
+        int totalCount = 0;
+        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
+        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
 
-            if (roleAttributeAnalysisResult != null) {
-                totalDensity += calculateDensity(roleAttributeAnalysisResult.getAttributeAnalysis());
-                totalCount += roleAttributeAnalysisResult.getAttributeAnalysis().size();
-            }
-            if (userAttributeAnalysisResult != null) {
-                totalDensity += calculateDensity(userAttributeAnalysisResult.getAttributeAnalysis());
-                totalCount += userAttributeAnalysisResult.getAttributeAnalysis().size();
-            }
+        if (roleAttributeAnalysisResult != null) {
+            totalDensity += calculateDensity(roleAttributeAnalysisResult.getAttributeAnalysis());
+            totalCount += roleAttributeAnalysisResult.getAttributeAnalysis().size();
+        }
+        if (userAttributeAnalysisResult != null) {
+            totalDensity += calculateDensity(userAttributeAnalysisResult.getAttributeAnalysis());
+            totalCount += userAttributeAnalysisResult.getAttributeAnalysis().size();
+        }
 
-            int itemCount = (roleAttributeAnalysisResult != null
-                    ? roleAttributeAnalysisResult.getAttributeAnalysis().size() : 0)
-                    + (userAttributeAnalysisResult != null ? userAttributeAnalysisResult.getAttributeAnalysis().size() : 0);
+        int itemCount = (roleAttributeAnalysisResult != null
+                ? roleAttributeAnalysisResult.getAttributeAnalysis().size() : 0)
+                + (userAttributeAnalysisResult != null ? userAttributeAnalysisResult.getAttributeAnalysis().size() : 0);
 
-            double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
-            pattern.setItemConfidence(itemsConfidence);
+        double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
+        pattern.setItemConfidence(itemsConfidence);
 //        }
 
         detectedPattern = transformPatternWithAttributes(pattern);

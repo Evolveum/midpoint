@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.o
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -236,6 +237,9 @@ public class OutlierAttributeItemPanel<T extends Serializable>
 
                         double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
 
+                        BigDecimal bd = new BigDecimal(itemsConfidence);
+                        bd = bd.setScale(2, RoundingMode.HALF_UP);
+                        itemsConfidence = bd.doubleValue();
                         Label label = new Label(id, itemsConfidence + "%");
                         label.add(AttributeAppender.append("class", " h4"));
                         return label;

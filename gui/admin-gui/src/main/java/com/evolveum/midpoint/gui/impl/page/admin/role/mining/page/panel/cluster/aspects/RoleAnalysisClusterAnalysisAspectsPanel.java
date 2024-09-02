@@ -190,7 +190,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
 
         int finalResolvedPatternCount = resolvedPatternCount;
         RoleAnalysisOutlierDashboardPanel<?> statusHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
-                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.session.status")) {
+                createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.cluster.status")) {
             @Contract(pure = true)
             @Override
             protected @NotNull String getIconCssClass() {
@@ -226,7 +226,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                     }
                 };
 
-                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 m-4 justify-content-center"));
+                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
                 iconWithLabel.add(AttributeAppender.append("style", "background-color: #dcf1f4;"));
                 return iconWithLabel;
             }
@@ -599,7 +599,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                     }
                 };
 
-                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 m-4 justify-content-center"));
+                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
                 iconWithLabel.add(AttributeAppender.append("style", "background-color: #dcf1f4;"));
                 return iconWithLabel;
             }
@@ -1012,7 +1012,6 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         }
         return searchResultList;
     }
-
 
     private void initInfoOutlierPanelOld(WebMarkupContainer container) {
         RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERNS,

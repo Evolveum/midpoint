@@ -223,7 +223,7 @@ class OperationExecutionRecorderForClockwork {
     private <F extends ObjectType> ObjectDeltaOperationType createObjectDeltaOperation(LensObjectDeltaOperation<F> deltaOperation) {
         ObjectDeltaOperationType odo;
         try {
-            odo = simplifyOperation(deltaOperation).toLensObjectDeltaOperationType().getObjectDeltaOperation();
+            odo = simplifyOperation(deltaOperation).toLensObjectDeltaOperationBean().getObjectDeltaOperation();
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create operation information", e);
             odo = new ObjectDeltaOperationType();

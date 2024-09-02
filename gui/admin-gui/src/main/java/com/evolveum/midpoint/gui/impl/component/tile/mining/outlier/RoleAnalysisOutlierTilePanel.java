@@ -36,7 +36,7 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarNew;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisOutlier;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
@@ -151,6 +151,8 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 };
 
                 sessionLink.setOutputMarkupId(true);
+                sessionLink.add(AttributeAppender.append("style", "max-width:150px"));
+                sessionLink.add(AttributeAppender.append("class", "text-truncate"));
                 view.add(sessionLink);
 
                 Label separator = new Label(view.newChildId(), "/");
@@ -166,6 +168,8 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                     }
                 };
                 clusterLink.setOutputMarkupId(true);
+                clusterLink.add(AttributeAppender.append("style", "max-width:150px"));
+                clusterLink.add(AttributeAppender.append("class", "text-truncate"));
                 view.add(clusterLink);
                 return view;
             }
@@ -191,7 +195,7 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
 
         String colorClass = confidenceBasedTwoColor(finalProgress);
 
-        ProgressBarNew progressBar = new ProgressBarNew(ID_PROGRESS_BAR) {
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR) {
 
             @Override
             public double getActualValue() {

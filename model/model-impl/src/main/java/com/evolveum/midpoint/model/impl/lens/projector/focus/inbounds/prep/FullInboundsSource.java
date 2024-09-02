@@ -87,8 +87,8 @@ public class FullInboundsSource extends InboundsSource {
         LOGGER.trace("Starting determination if we should process inbound mappings. A priori delta present: {}.",
                 aPrioriDelta != null);
 
-        if (projectionContext.isInboundSyncDisabled(result)) {
-            LOGGER.trace("Skipping processing of inbound mappings because shadow policy marked shadow inbound disabled.");
+        if (projectionContext.areInboundSyncMappingsDisabled(result)) {
+            LOGGER.trace("Skipping processing of inbound mappings because of the shadow operations policy.");
             return false;
         }
         if (projectionContext.isBroken()) {
@@ -193,6 +193,7 @@ public class FullInboundsSource extends InboundsSource {
         try {
             beans.contextLoader.loadFullShadow(projectionContext, "inbound", context.env.task, result);
             sourceData = InboundSourceData.forShadow(
+                    projectionContext.getObjectCurrentRequired(), // TODO reconsider old vs new here
                     projectionContext.getObjectCurrentRequired(),
                     sourceData.getAPrioriDelta(),
                     sourceData.getShadowObjectDefinition());

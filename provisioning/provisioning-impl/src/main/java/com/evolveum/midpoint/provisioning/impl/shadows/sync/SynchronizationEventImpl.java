@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 /**
- * TODO
+ * Abstract {@link SynchronizationEvent} implementation.
  */
 public abstract class SynchronizationEventImpl<AC extends ShadowedChange<?>> implements SynchronizationEvent {
 

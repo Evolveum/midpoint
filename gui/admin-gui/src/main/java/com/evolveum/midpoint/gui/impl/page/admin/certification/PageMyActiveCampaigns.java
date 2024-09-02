@@ -11,6 +11,8 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
+import org.apache.wicket.model.IModel;
+
 import java.io.Serial;
 
 @PageDescriptor(
@@ -36,8 +38,14 @@ public class PageMyActiveCampaigns extends PageActiveCampaigns {
         return false;
     }
 
+    @Override
     protected Class<? extends PageCertItems> getCertItemsPage() {
         return PageMyCertItems.class;
+    }
+
+    @Override
+    protected IModel<String> getActiveCampaignsPanelTitleModel() {
+        return createStringResource("MyActiveCampaignsPanel.title");
     }
 
 }

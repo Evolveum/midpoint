@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale.filtering;
 
+import com.evolveum.midpoint.repo.sqlbase.querydsl.UuidPath;
+
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
 
@@ -63,4 +65,12 @@ public class RefTableItemFilterProcessor<Q extends QReference<R, OR>, R extends 
     protected Predicate corellationPredicate(Q ref) {
         return referenceMapping.correlationPredicate().apply(context.path(), ref);
     }
+
+
+    public RefItemFilterProcessor asSingleItemFilterUsingJoin() {
+        SqlQueryContext<?, Q, R> refContext = context.leftJoin(referenceMapping, referenceMapping.correlationPredicate());
+        Q ref = refContext.path();
+        return new RefItemFilterProcessor(context, ref.targetOid, ref.targetType, ref.relationId, null);
+    }
+
 }

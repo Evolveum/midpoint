@@ -19,18 +19,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
 /**
- Resolves references in intelligent way: taking filters (and embedded expressions) into account.
+ * Resolves references in intelligent way: taking filters (and embedded expressions) into account.
  *
  * Different from ObjectResolver:
- * 1) more focused (resolving references only, no additional methods)
- * 2) advanced functionality (filters with expressions)
-*/
+ *
+ * 1. more focused (resolving references only, no additional methods)
+ * 2. advanced functionality (filters with expressions)
+ */
 @Experimental
 public interface ReferenceResolver {
 
@@ -45,9 +47,13 @@ public interface ReferenceResolver {
                 ConfigurationException, SecurityViolationException;
     }
 
-    List<PrismObject<? extends ObjectType>> resolve(@NotNull ObjectReferenceType reference,
-            Collection<SelectorOptions<GetOperationOptions>> options, @NotNull Source source,
-            FilterExpressionEvaluator filterExpressionEvaluator, Task task, OperationResult result)
+    List<PrismObject<? extends ObjectType>> resolve(
+            @NotNull ObjectReferenceType reference,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Source source,
+            @Nullable FilterExpressionEvaluator filterExpressionEvaluator,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 }

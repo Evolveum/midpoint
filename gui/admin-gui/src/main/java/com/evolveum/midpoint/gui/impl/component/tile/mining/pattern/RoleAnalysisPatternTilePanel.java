@@ -41,7 +41,7 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarNew;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
@@ -116,7 +116,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
         String colorClass = confidenceBasedTwoColor(finalItemsConfidence);
 
-        ProgressBarNew progressBar = new ProgressBarNew(ID_PROGRESS_BAR) {
+        ProgressBarSecondStyle progressBar = new ProgressBarSecondStyle(ID_PROGRESS_BAR) {
 
             @Override
             public double getActualValue() {
@@ -286,6 +286,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         };
 
         sessionLink.setOutputMarkupId(true);
+        sessionLink.add(AttributeAppender.append("style", "max-width:150px"));
+        sessionLink.add(AttributeAppender.append("class", "text-truncate"));
         add(sessionLink);
 
         AjaxLinkPanel clusterLink = new AjaxLinkPanel(ID_CLUSTER, Model.of(clusterRef.getTargetName().getOrig())) {
@@ -297,6 +299,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             }
         };
         clusterLink.setOutputMarkupId(true);
+        clusterLink.add(AttributeAppender.append("style", "max-width:150px"));
+        clusterLink.add(AttributeAppender.append("class", "text-truncate"));
         add(clusterLink);
     }
 

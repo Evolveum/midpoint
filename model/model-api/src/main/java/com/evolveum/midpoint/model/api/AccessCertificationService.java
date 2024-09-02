@@ -73,6 +73,20 @@ public interface AccessCertificationService {
     void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
+            * Opens the next review stage in the certification campaign.
+     *
+             * If the stage being opened is the first stage, certification cases will be generated for the campaign,
+     * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
+     * to cases, based again on the definition (reviewer specification in stage definition and handler).
+            * @param campaign Certification campaign.
+            * @param task Task in context of which all operations will take place.
+     * @param parentResult Result for the operations.
+            */
+    void openNextStage(AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+
+
+    /**
      * Opens the next stage in the certification campaign.
      *
      * If the stage being opened is the first stage, certification cases will be generated for the campaign,

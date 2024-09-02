@@ -74,6 +74,31 @@ public interface CommonInitialObjects {
             ARCHETYPES, "022-archetype-business-role.xml",
             SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value());
 
+    //Certification tasks
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_PARENT = TestObject.classPath(
+            ARCHETYPES, "520-archetype-task-certification.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_OPEN_NEXT_STAGE = TestObject.classPath(
+            ARCHETYPES, "534-archetype-task-certification-open-next-stage.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_OPEN_NEXT_STAGE_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_REMEDIATION = TestObject.classPath(
+            ARCHETYPES, "535-archetype-task-certification-remediation.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_REMEDIATION_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_START_CAMPAIGN = TestObject.classPath(
+            ARCHETYPES, "536-archetype-task-certification-start-campaign.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_CLOSE_CURRENT_STAGE = TestObject.classPath(
+            ARCHETYPES, "537-archetype-task-certification-close-current-stage.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_START_CAMPAIGN_TASK.value());
+
+    TestObject<ArchetypeType> ARCHETYPE_CERTIFICATION_TASK_REITERATE_CAMPAIGN = TestObject.classPath(
+            ARCHETYPES, "538-archetype-task-certification-reiterate-campaign.xml",
+            SystemObjectsType.ARCHETYPE_CERTIFICATION_REITERATE_CAMPAIGN_TASK.value());
+
     TestObject<MarkType> MARK_FOCUS_ACTIVATED = TestObject.classPath(
             MARKS, "710-mark-focus-activated.xml", SystemObjectsType.MARK_FOCUS_ACTIVATED.value());
 
@@ -268,6 +293,22 @@ public interface CommonInitialObjects {
             "00000000-0000-0000-0000-000000000600"
     );
 
+    static void addCertificationTasks(AbstractModelIntegrationTest test, Task task, OperationResult result) throws CommonException, IOException{
+        try {
+            test.initTestObjects(
+                    task, result,
+                    ARCHETYPE_CERTIFICATION_TASK_PARENT,
+                    ARCHETYPE_CERTIFICATION_TASK_OPEN_NEXT_STAGE,
+                    ARCHETYPE_CERTIFICATION_TASK_REMEDIATION,
+                    ARCHETYPE_CERTIFICATION_TASK_START_CAMPAIGN,
+                    ARCHETYPE_CERTIFICATION_TASK_CLOSE_CURRENT_STAGE,
+                    ARCHETYPE_CERTIFICATION_TASK_REITERATE_CAMPAIGN);
+        } catch (CommonException | IOException | RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw SystemException.unexpected(e);
+        }
+    }
 
     /** To be used when needed. */
     static void addMarks(AbstractModelIntegrationTest test, Task task, OperationResult result)

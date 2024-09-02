@@ -1826,6 +1826,14 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         // WHEN
         when();
+
+        // We need to make inbound mappings from dummy resource to be evaluated.
+        //  - For the non-cached scenario, this is done automatically (in click #4) because we have full shadow from previous
+        //    computations, so it is used.
+        //  - For the cached scenario, we have the data, but (formally) we don't have the full (freshly loaded) shadow.
+        //    We are careful (coward?) enough to skip inbounds even if cached data are there. So in order to make inbounds
+        //    executed, let us invalidate the shadow cache, so that the full shadow is loaded.
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
         recomputeUser(USER_JACK_OID, task, result);
 
         // THEN

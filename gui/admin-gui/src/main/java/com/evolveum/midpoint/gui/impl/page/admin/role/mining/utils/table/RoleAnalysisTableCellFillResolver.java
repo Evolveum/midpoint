@@ -492,7 +492,8 @@ public class RoleAnalysisTableCellFillResolver {
             @NotNull List<MiningUserTypeChunk> users,
             @NotNull List<MiningRoleTypeChunk> roles,
             @NotNull Task task,
-            @NotNull OperationResult result, PageBase pageBase) {
+            @NotNull OperationResult result,
+            @NotNull PageBase pageBase) {
 
         RoleAnalysisObjectStatus roleAnalysisObjectStatus = new RoleAnalysisObjectStatus(RoleAnalysisOperationMode.INCLUDE);
         roleAnalysisObjectStatus.setContainerId(Collections.singleton(candidateRoleId));

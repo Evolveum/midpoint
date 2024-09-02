@@ -388,11 +388,11 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
      * Changes in the resource definition:
      *
      * . added outbound mappings for the association
-     * . added marking of the new groups as `tolerated`, and switched default tolerance to `false`
+     * . added marking of the new groups as `unmanaged` (tolerated), and switched default tolerance to `false`
      *
      * Actions in this test:
      *
-     * . creating new group `operators` right on the resource, and importing the groups (it should get the `tolerated` mark)
+     * . creating new group `operators` right on the resource, and importing the groups (it should get the `unmanaged` mark)
      * . adding `jack` to `operators` (on the resource)
      * . remove `jack` from `testers`, to induce a change in the account
      * . the membership of `operators` should be kept intact, and an assignment should be created in midPoint
@@ -573,6 +573,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                 .assertValuesCount(1);
     }
 
+    /** The user `alice` is created with an assignment of `testers` role. */
     @Test
     public void test350ProvisionNewAccount() throws Exception {
         Task task = getTestTask();
@@ -612,6 +613,7 @@ public class TestAssociationsFirstStepsActiveDirectory extends AbstractStoryTest
                 .by().objectType(ShadowType.class).find().assertState(ObjectProcessingStateType.UNMODIFIED).end();
     }
 
+    /** New user is created, then `administrator` role is assigned to them (via simulation and preview changes). */
     @Test
     public void test360AddNewAssignment() throws Exception {
         Task task = getTestTask();

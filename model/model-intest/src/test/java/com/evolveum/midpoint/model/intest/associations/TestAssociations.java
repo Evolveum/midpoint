@@ -31,7 +31,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
@@ -377,7 +376,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_HR.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_PERSON))
                 .withNameValue(PERSON_JOHN_NAME)
-                .withTracing()
                 .executeOnForeground(result);
 
         then("orgs are there (they were created on demand)");
@@ -516,7 +514,6 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .withResourceOid(RESOURCE_DUMMY_DMS.oid)
                 .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
                 .withNameValue("jack")
-                .withTracing()
                 .executeOnForeground(result);
 
         then("jack is found");
@@ -614,7 +611,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         dmsScenario.accountAccess.add(dmsScenario.account.getByNameRequired(userName), dummyAdminAccess);
         dmsScenario.accessDocument.add(dummyAdminAccess, dmsScenario.document.getByNameRequired(documentName));
 
-        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_DMS.oid);
+        invalidateShadowCacheIfNeeded(resource.oid);
 
         and("provisioning the user with write access to the document");
         executeChanges(
@@ -1019,6 +1016,100 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         assertUser(secondUserOid, "second user after creation")
                 .display()
                 .withObjectResolver(createSimpleModelObjectResolver())
+                .assignments()
+                .assertRole(roleOid)
+                .assertAssignments(1)
+                .end()
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .assertShadowOids(groupShadowOid);
+
+        when("second user's group membership is deleted on the resource and the user is reconciled");
+        adScenario.accountGroup.delete(
+                adScenario.account.getByNameRequired(secondUserName),
+                adScenario.group.getByNameRequired(groupName));
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AD.oid);
+        reconcileUser(secondUserOid, task, result);
+
+        then("the second user's assignment is untouched and the group membership is restored");
+        assertUser(secondUserOid, "second user after reconciliation")
+                .display()
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assignments()
+                .assertRole(roleOid)
+                .assertAssignments(1)
+                .end()
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .assertShadowOids(groupShadowOid);
+    }
+
+    /**
+     * A group membership is first imported (into assignment), then managed via midPoint.
+     *
+     * We make sure that even if the membership is deleted on the resource, it is restored by midPoint.
+     */
+    @Test
+    public void test370TestInboundToManagedMembership() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "user-" + getTestNameShort();
+        var groupName = "group-" + getTestNameShort();
+
+        given("account and group on the resource");
+        var dummyAccount = adScenario.account.add(userName);
+        var dummyGroup = adScenario.group.add(groupName);
+        adScenario.accountGroup.add(dummyAccount, dummyGroup);
+
+        and("group and user account are imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withWholeObjectClass(adScenario.group.getObjectClassName().xsd())
+                .withNameValue(groupName)
+                .executeOnForeground(result);
+        var roleAsserter = assertRoleByName(groupName, "after first import")
+                .display();
+        var groupShadowOid = roleAsserter
+                .singleLink()
+                .getOid();
+        var roleOid = roleAsserter.getOid();
+
+        when("account (member of the group) is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withNameValue(userName)
+                .executeOnForeground(result);
+
+        then("the assignment to the role is created");
+        var userOid = assertUserAfterByUsername(userName)
+                .assignments()
+                .assertRole(roleOid)
+                .assertAssignments(1)
+                .end()
+                .getOid();
+
+        when("group is marked as managed");
+        markShadow(groupShadowOid, MARK_MANAGED.oid, task, result);
+
+        and("user's group membership is deleted on the resource and the user is reconciled");
+        adScenario.accountGroup.delete(dummyAccount, dummyGroup);
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AD.oid);
+        reconcileUser(userOid, task, result);
+
+        then("the second user's assignment is untouched and the group membership is restored");
+        assertUser(userOid, "user after reconciliation")
+                .display()
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assignments()
+                .assertRole(roleOid)
+                .assertAssignments(1)
+                .end()
                 .singleLink()
                 .resolveTarget()
                 .display()

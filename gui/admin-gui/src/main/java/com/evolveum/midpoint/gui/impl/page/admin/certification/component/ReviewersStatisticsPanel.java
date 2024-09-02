@@ -122,7 +122,9 @@ public class ReviewersStatisticsPanel extends BasePanel {
             @Override
             protected List<StatisticBoxDto<ObjectReferenceType>> load() {
                 List<StatisticBoxDto<ObjectReferenceType>> list = new ArrayList<>();
-                List<ObjectReferenceType> reviewers = loadReviewers();
+                AccessCertificationCampaignType campaign = model.getObjectType();
+                List<ObjectReferenceType> reviewers = CertMiscUtil.loadCampaignReviewers(campaign.getOid(),
+                        ReviewersStatisticsPanel.this.getPageBase());
                 if (restricted) {
                     realReviewersCount = reviewers.size();
                     reviewers.stream().limit(MAX_REVIEWERS).forEach(r -> list.add(createReviewerStatisticBoxDto(r)));

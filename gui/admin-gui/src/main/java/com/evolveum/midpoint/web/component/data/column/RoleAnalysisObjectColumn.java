@@ -211,6 +211,6 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
 
     @Override
     protected <T extends MiningBaseTypeChunk> List<String> getElements(T miningBaseTypeChunk) {
-        return miningBaseTypeChunk.getRoles();
+        return miningBaseTypeChunk.getMembers();
     }
 }

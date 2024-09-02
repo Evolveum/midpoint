@@ -6,24 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.component.tile.mining.session;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.densityBasedColor;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
-
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,19 +21,26 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.Nullable;
-
-public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisSessionTile<T>> {
+public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisSessionTileModel<T>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -64,7 +59,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     private static final String DOT_CLASS = RoleAnalysisTilePanel.class.getName() + ".";
     private static final String OP_DELETE_SESSION = DOT_CLASS + "deleteSession";
 
-    public RoleAnalysisTilePanel(String id, IModel<RoleAnalysisSessionTile<T>> model) {
+    public RoleAnalysisTilePanel(String id, IModel<RoleAnalysisSessionTileModel<T>> model) {
         super(id, model);
 
         initLayout();
@@ -81,7 +76,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
         initDescriptionPanel();
 
-        initDensityProgressPanel(getModelObject().getDensity());
+        initDensityProgressPanel();
 
         initProcessModePanel();
 
@@ -101,6 +96,11 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
                 }
                 return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
             }
+            @Override
+            protected String getLabelComponentCssClass() {
+                return "pl-1 text-sm text-truncate";
+            }
+
         };
         processedObjectCount.setOutputMarkupId(true);
         processedObjectCount.add(AttributeAppender.replace("title", () -> "Processed objects: " + getModelObject().getProcessedObjectCount()));
@@ -114,6 +114,11 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             public String getIconCssClass() {
                 return GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON;
             }
+            @Override
+            protected String getLabelComponentCssClass() {
+                return "pl-1 text-sm text-truncate";
+            }
+
         };
 
         clusterCount.setOutputMarkupId(true);
@@ -130,6 +135,12 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             public String getIconCssClass() {
                 return "fa fa-cogs";
             }
+
+            @Override
+            protected String getLabelComponentCssClass() {
+                return "pl-1 text-sm text-truncate";
+            }
+
         };
         mode.add(AttributeAppender.replace("title", () -> "Process mode: " + processModeTitle));
         mode.add(new TooltipBehavior());
@@ -157,13 +168,19 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             }
 
             @Override
+            protected String getLabelComponentCssClass() {
+                return "pl-2 text-truncate";
+            }
+
+            @Override
             protected void onClickPerform(AjaxRequestTarget target) {
                 RoleAnalysisTilePanel.this.onDetails();
             }
 
         };
         objectTitle.setOutputMarkupId(true);
-        objectTitle.add(AttributeAppender.replace("style", "font-size:20px"));
+        objectTitle.add(AttributeAppender.replace("style", "font-size:18px"));
+        objectTitle.add(AttributeAppender.append("class", ""));
         objectTitle.add(AttributeAppender.replace("title", () -> getModelObject().getName()));
         objectTitle.add(new TooltipBehavior());
         add(objectTitle);
@@ -171,7 +188,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
     private void initToolBarPanel() {
         DropdownButtonPanel barMenu = new DropdownButtonPanel(ID_BUTTON_BAR, new DropdownButtonDto(
-                null, "fa fa-ellipsis-v", null, createMenuItems())) {
+                null, "fa-ellipsis-v ml-1", null, createMenuItems())) {
             @Override
             protected boolean hasToggleIcon() {
                 return false;
@@ -179,8 +196,9 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
             @Override
             protected String getSpecialButtonClass() {
-                return " p-0 ";
+                return " px-1 py-0 "; /* p-0 */
             }
+
 
         };
         barMenu.setOutputMarkupId(true);
@@ -194,9 +212,9 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
         add(AttributeAppender.append("class", "bg-white "
                 + "d-flex flex-column align-items-center"
-                + " bordered w-100 h-100 p-3 elevation-1"));
+                + " rounded w-100 h-100 p-3 card-shadow"));
 
-        add(AttributeAppender.append("style", "width:25%"));
+        add(AttributeAppender.append("style", "")); /* width:25%; */
     }
 
     protected void onDetails() {
@@ -211,21 +229,16 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         return (WebMarkupContainer) get(ID_ICON);
     }
 
-    private void initDensityProgressPanel(Double meanDensity) {
-        if (meanDensity == null) {
-            WebMarkupContainer progressBar = new WebMarkupContainer(RoleAnalysisTilePanel.ID_DENSITY);
-            progressBar.setVisible(false);
-            add(progressBar);
-            return;
-        }
-
-        String colorClass = densityBasedColor(meanDensity);
+    private void initDensityProgressPanel() {
+        double value = getModelObject().getProgressBarValue();
+        String colorClass = getModelObject().getProgressBarColor();
+        String title = getModelObject().getProgressBarTitle();
 
         ProgressBar progressBar = new ProgressBar(RoleAnalysisTilePanel.ID_DENSITY) {
 
             @Override
             public double getActualValue() {
-                return meanDensity;
+                return value;
             }
 
             @Override
@@ -235,11 +248,11 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
             @Override
             public String getBarTitle() {
-                return "Density";
+                return title;
             }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace("title", () -> "Density: " + meanDensity));
+        progressBar.add(AttributeModifier.replace("title", () -> title + " of " + value));
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }
@@ -334,7 +347,6 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             }
 
         });
-
         return items;
     }
 }

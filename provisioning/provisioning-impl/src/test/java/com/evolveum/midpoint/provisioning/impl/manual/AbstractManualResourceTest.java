@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
@@ -372,7 +373,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-                .assertNoPassword();
+                .assertNoPasswordIf(isNoPasswordExpected());
         assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
 
@@ -393,7 +394,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 .attributes()
                 .assertValue(ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME)
                 .end()
-                .assertNoPassword();
+                .assertNoPasswordIf(isNoPasswordExpected());
         assertAttributeFromCache(shadowProvisioningAsserter, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowProvisioningAsserter, ActivationStatusType.ENABLED);
 
@@ -402,6 +403,10 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         CaseType aCase = assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
         ObjectReferenceType targetRef = aCase.getTargetRef();
         assertThat(targetRef).as("case targetRef").isNotNull();
+    }
+
+    private boolean isNoPasswordExpected() {
+        return !InternalsConfig.isShadowCachingOnByDefault() && supportsBackingStore();
     }
 
     @Test
@@ -464,7 +469,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowRepo);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowRepo);
+        }
         assertShadowExists(shadowRepo, false);
 
         syncServiceMock.assertNoNotifyChange();
@@ -481,7 +488,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowProvisioning, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertNoAttribute(shadowProvisioning, ATTR_DESCRIPTION_QNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowProvisioning, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowProvisioning);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowProvisioning);
+        }
 
         PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 
@@ -528,7 +537,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowRepo);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowRepo);
+        }
         assertShadowExists(shadowRepo, supportsBackingStore());
     }
 
@@ -570,7 +581,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
         assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-        assertNoShadowPassword(shadowRepo);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowRepo);
+        }
         assertShadowExists(shadowRepo, supportsBackingStore());
     }
 
@@ -2268,7 +2281,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertNotNull("no OID", shadowProvisioningFuture.getOid());
         assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
         assertShadowDead(shadowProvisioningFuture);
-        assertNoShadowPassword(shadowProvisioningFuture);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadowProvisioningFuture);
+        }
     }
 
     /**
@@ -2455,7 +2470,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
                 .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
                 .end()
                 .end()
-                .assertNoPassword();
+                .assertNoPasswordIf(isNoPasswordExpected());
 
         syncServiceMock.assertNoNotifyChange();
         syncServiceMock.assertSingleNotifySuccessOnly();
@@ -2648,7 +2663,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
     protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
         // pure manual resource should never "read" password
-        assertNoShadowPassword(shadow);
+        if (isNoPasswordExpected()) {
+            assertNoShadowPassword(shadow);
+        }
     }
 
     private void assertManual(AbstractWriteCapabilityType cap) {

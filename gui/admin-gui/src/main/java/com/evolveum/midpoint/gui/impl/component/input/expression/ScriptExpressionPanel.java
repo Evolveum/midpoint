@@ -52,43 +52,54 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
     }
 
     protected void initLayout(MarkupContainer parent) {
+        IModel<ExpressionUtil.Language> languageModel =createLanguageModel();
+
+        SimpleAceEditorPanel codePanel = createCodeInputPanel(languageModel);
+
         parent.add(new Label(ID_LANGUAGE_LABEL, createStringResource("ScriptExpressionEvaluatorType.language")));
 
-        parent.add(createLanguageInputPanel());
+        parent.add(createLanguageInputPanel(languageModel, codePanel));
 
         parent.add(new Label(ID_CODE_LABEL, createStringResource("ScriptExpressionEvaluatorType.code")));
 
-        parent.add(createCodeInputPanel());
+        parent.add(codePanel);
     }
 
-    private Component createLanguageInputPanel() {
+    private IModel<ExpressionUtil.Language> createLanguageModel() {
         ExpressionUtil.Language defaultLanguage = getEvaluatorValue().language;
         if (defaultLanguage == null) {
             defaultLanguage = ExpressionUtil.Language.GROOVY;
         }
 
+        return Model.of(defaultLanguage);
+    }
+
+    private Component createLanguageInputPanel(IModel<ExpressionUtil.Language> languageModel, SimpleAceEditorPanel codePanel) {
         DropDownChoicePanel<ExpressionUtil.Language> languagePanel =
                 WebComponentUtil.createEnumPanel(
                         ID_LANGUAGE_INPUT,
                         WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
-                        Model.of(defaultLanguage),
+                        languageModel,
                         ScriptExpressionPanel.this,
                         false);
         languagePanel.setOutputMarkupId(true);
 
         languagePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("blur") {
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 ExpressionUtil.Language languageValue = languagePanel.getBaseFormComponent().getConvertedInput();
                 updateEvaluatorValue(languageValue);
                 target.add(getFeedback());
+
+                codePanel.getEditor().updateMode(target, AceEditor.Mode.forLanguage(languageValue.getLanguage()));
             }
         });
 
         return languagePanel;
     }
 
-    private WebMarkupContainer createCodeInputPanel() {
+    private SimpleAceEditorPanel createCodeInputPanel(IModel<ExpressionUtil.Language> languageModel) {
 
         IModel<String> model = new IModel<>() {
             @Override
@@ -121,12 +132,19 @@ public class ScriptExpressionPanel extends EvaluatorExpressionPanel {
         };
 
         SimpleAceEditorPanel editorPanel = new SimpleAceEditorPanel(ID_CODE_INPUT, model, 200) {
+
             protected AceEditor createEditor(String id, IModel<String> model, int minSize) {
                 AceEditor editor = new AceEditor(id, model);
                 editor.setReadonly(false);
                 editor.setMinHeight(minSize);
                 editor.setResizeToMaxHeight(false);
-                editor.setMode("ace/mode/groovy");
+
+                ExpressionUtil.Language lang = languageModel.getObject();
+                if (lang != null) {
+                    editor.setModeForDataLanguage(lang.getLanguage());
+                } else {
+                    editor.setMode(AceEditor.Mode.GROOVY);
+                }
                 add(editor);
                 return editor;
             }

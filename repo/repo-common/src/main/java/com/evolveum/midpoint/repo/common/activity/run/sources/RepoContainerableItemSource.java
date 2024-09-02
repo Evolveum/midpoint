@@ -49,15 +49,23 @@ class RepoContainerableItemSource implements SearchableItemSource {
     public <C extends Containerable> void searchIterative(@NotNull SearchSpecification<C> searchSpecification,
             @NotNull ContainerableResultHandler<C> handler, @NotNull RunningTask task, @NotNull OperationResult result)
             throws CommonException {
-        List<C> items = repositoryService.searchContainers(
-                searchSpecification.getType(),
-                searchSpecification.getQuery(),
-                searchSpecification.getSearchOptions(),
-                result);
-
-        for (C item : items) {
-            if (!handler.handle(item, result)) {
-                break;
+        if (repositoryService.isNative()) {
+            repositoryService.searchContainersIterative(
+                    searchSpecification.getType(),
+                    searchSpecification.getQuery(),
+                    handler,
+                    searchSpecification.getSearchOptions(),
+                    result);
+        } else {
+            List<C> items = repositoryService.searchContainers(
+                    searchSpecification.getType(),
+                    searchSpecification.getQuery(),
+                    searchSpecification.getSearchOptions(),
+                    result);
+            for (C item : items) {
+                if (!handler.handle(item, result)) {
+                    break;
+                }
             }
         }
     }

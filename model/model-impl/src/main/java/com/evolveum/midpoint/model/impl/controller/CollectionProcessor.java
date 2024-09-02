@@ -6,10 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule.TargetType;
@@ -348,6 +346,21 @@ public class CollectionProcessor {
                         existingView.setDisplay(viewDisplay);
                     }
                     MiscSchemaUtil.mergeDisplay(viewDisplay, archetypeDisplay);
+                }
+            }
+
+            if (targetTypeClass == null) {
+                // this should be currently case with widgets
+                Set<QName> holderTypes = archetype.getAssignment().stream()
+                        .map(a -> a.getAssignmentRelation())
+                        .flatMap(Collection::stream)
+                        .map(ar -> ar.getHolderType())
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toSet());
+                if (holderTypes.size() == 1) {
+                    existingView.setContainerType(holderTypes.iterator().next());
+                } else {
+                    existingView.setContainerType(AssignmentHolderType.COMPLEX_TYPE);
                 }
             }
         } catch (ObjectNotFoundException e) {

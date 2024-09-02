@@ -8,7 +8,14 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -318,6 +325,8 @@ public class PageDebugView extends PageAdminConfiguration {
 
                 ObjectDelta<? extends ObjectType> delta = oldObject.diff((PrismObject) newObject, EquivalenceStrategy.LITERAL);
 
+                hackShadowDelta(delta, oldObject, newObject);
+
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Delta to be applied:\n{}", delta.debugDump());
                 }
@@ -353,6 +362,52 @@ public class PageDebugView extends PageAdminConfiguration {
             } else {
                 redirectBack();
             }
+        }
+    }
+
+    /**
+     * A workaround for MID-9935. There are phantom changes of polystring shadow attributes.
+     * Moreover, we are not able to update them in a nice way.
+     */
+    private void hackShadowDelta(
+            ObjectDelta<? extends ObjectType> delta,
+            PrismObject<? extends ObjectType> oldObject,
+            PrismObject<? extends ObjectType> newObject) {
+        if (delta == null
+                || !ShadowType.class.equals(delta.getObjectTypeClass())
+                || !delta.isModify()
+                || oldObject == null // objectOld/New shouldn't be null for modify delta anyway
+                || newObject == null) {
+            return;
+        }
+        var iterator = delta.getModifications().iterator();
+        while (iterator.hasNext()) {
+            var modification = iterator.next();
+            if (!ShadowType.F_ATTRIBUTES.equivalent(modification.getParentPath())) {
+                continue;
+            }
+            var definition = modification.getDefinition();
+            if (definition == null || !PolyStringType.COMPLEX_TYPE.equals(definition.getTypeName())) {
+                continue;
+            }
+            var path = modification.getPath();
+            var oldValues = getOrigValues(oldObject.findProperty(path));
+            var newValues = getOrigValues(newObject.findProperty(path));
+            if (MiscUtil.unorderedCollectionEquals(oldValues, newValues)) {
+                LOGGER.trace("Removing phantom change of polystring attribute {}", path);
+                iterator.remove();
+            }
+        }
+    }
+
+    private Collection<String> getOrigValues(PrismProperty<?> property) {
+        if (property == null) {
+            return List.of();
+        } else {
+            // Hack - to avoid failing on non-polystring values
+            return property.getRealValues().stream()
+                    .map(value -> value instanceof PolyString polyString ? polyString.getOrig() : String.valueOf(value))
+                    .toList();
         }
     }
 

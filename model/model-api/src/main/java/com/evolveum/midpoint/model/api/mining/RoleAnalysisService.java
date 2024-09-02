@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.google.common.collect.ListMultimap;
@@ -148,7 +149,7 @@ public interface RoleAnalysisService {
      */
     @NotNull ListMultimap<String, String> extractUserTypeMembers(
             @NotNull Map<String, PrismObject<UserType>> userExistCache,
-            @Nullable ObjectFilter userFilter,
+            @Nullable SearchFilterType userFilter,
             @NotNull Set<String> clusterMembers,
             @NotNull Task task,
             @NotNull OperationResult result);
@@ -348,6 +349,7 @@ public interface RoleAnalysisService {
      * Method for preparing a compressed mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
+     * @param objectFilter The additional user filter.
      * @param fullProcess The full process flag.
      * If true, the entire structure is prepared.
      * If false, only a partial structure (members) is prepared.
@@ -358,6 +360,7 @@ public interface RoleAnalysisService {
      */
     @NotNull MiningOperationChunk prepareCompressedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType objectFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
@@ -365,6 +368,7 @@ public interface RoleAnalysisService {
 
     MiningOperationChunk prepareBasicChunkStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType objectFilter,
             @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @Nullable List<DetectedPattern> detectedPatterns,
@@ -374,6 +378,7 @@ public interface RoleAnalysisService {
      * Method for preparing a mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
+     * @param filter The additional user filter.
      * @param option The display value option.
      * @param processMode The process mode.
      * @param result The operation result.
@@ -382,7 +387,8 @@ public interface RoleAnalysisService {
      */
     @NotNull MiningOperationChunk prepareMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
-            DisplayValueOption option,
+            @Nullable SearchFilterType filter,
+            @Nullable DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull OperationResult result,
@@ -390,6 +396,7 @@ public interface RoleAnalysisService {
 
     void updateChunkWithPatterns(
             MiningOperationChunk chunk,
+            RoleAnalysisProcessModeType processMode,
             List<DetectedPattern> detectedPatterns,
             Task task,
             OperationResult result);
@@ -398,6 +405,7 @@ public interface RoleAnalysisService {
      * Method for preparing an expanded mining structure for role analysis.
      *
      * @param cluster The cluster for which the mining structure is prepared.
+     * @param searchFilter The additional user filter.
      * @param fullProcess The full process flag.
      * If true, the entire structure is prepared.
      * If false, only a partial structure (members) is prepared.
@@ -409,6 +417,7 @@ public interface RoleAnalysisService {
      */
     @NotNull MiningOperationChunk prepareExpandedMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable SearchFilterType searchFilter,
             boolean fullProcess,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull OperationResult result,
@@ -677,9 +686,9 @@ public interface RoleAnalysisService {
             @NotNull Set<PrismObject<UserType>> prismUsers,
             Double membershipDensity,
             @NotNull AttributeAnalysisCache userAnalysisCache,
+            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet,
             @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull List<RoleAnalysisAttributeDef> attributeDefSet);
+            @NotNull OperationResult result);
 
     /**
      * Performs attribute analysis for role objects.
@@ -751,6 +760,31 @@ public interface RoleAnalysisService {
             @NotNull OperationResult result,
             @Nullable List<RoleAnalysisAttributeDef> attributeRoleDefSet,
             @Nullable List<RoleAnalysisAttributeDef> attributeUserDefSet);
+
+    /**
+     * Processes attribute analysis for the detected patterns.
+     * This method analyzes attribute usage patterns for both users and roles in the detected patterns.
+     * It retrieves user and role occupancy information from the detected patterns, then performs attribute
+     * analysis for both user and role types based on the specified attribute paths.
+     *
+     * @param detectedPatterns List of detected patterns to process.
+     * @param userExistCache Map containing cached PrismObject of UserType for efficient retrieval.
+     * @param roleExistCache Map containing cached PrismObject of RoleType for efficient retrieval.
+     * @param task Task used for processing the attribute analysis.
+     * @param result OperationResult containing the result of the operation.
+     * Any errors or status information will be recorded here.
+     * @param attributeRoleDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for role analysis.
+     * @param attributeUserDefSet List of RoleAnalysisAttributeDef containing the attribute definitions for user analysis.
+     */
+    void resolveDetectedPatternsAttributesCached(
+            @NotNull List<RoleAnalysisDetectionPatternType> detectedPatterns,
+            @NotNull Map<String, PrismObject<UserType>> userExistCache,
+            @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
+            @Nullable List<RoleAnalysisAttributeDef> attributeRoleDefSet,
+            @Nullable List<RoleAnalysisAttributeDef> attributeUserDefSet,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 
     /**
      * Searches for clusters associated with a specific role analysis session.
@@ -1049,5 +1083,51 @@ public interface RoleAnalysisService {
             @NotNull RoleAnalysisClusterType cluster,
             @NotNull Task task,
             @NotNull OperationResult result);
+
+    /**
+     * Resolves the distribution of user access based on the user's role assignments.
+     * This method categorizes the user's role assignments into direct assignments, indirect assignments, and duplicates.
+     * Direct assignments are roles assigned directly to the user.
+     * Indirect assignments are roles assigned to the user through a group or another role.
+     * Duplicates are roles that are assigned to the user both directly and indirectly.
+     *
+     * @param user The user object for which the access distribution is to be resolved.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return A UserAccessDistribution object that contains the distribution of user access.
+     */
+    UserAccessDistribution resolveUserAccessDistribution(
+            @NotNull PrismObject<UserType> user,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Retrieves a list of FocusType objects based on a list of ObjectReferenceType references.
+     *
+     * @param references A list of ObjectReferenceType references. These references should point to the objects to be retrieved.
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return A list of PrismObject of type FocusType. Each PrismObject represents a FocusType
+     * object retrieved based on the provided references.
+     * If the references list is null, an empty list is returned.
+     */
+    @NotNull List<PrismObject<FocusType>> getAsFocusObjects(
+            @Nullable List<ObjectReferenceType> references,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    /**
+     * Computes the number of resolved patterns and candidate roles in all RoleAnalysisClusterType objects.
+     *
+     * @param task The task in which the operation is performed.
+     * @param result The operation result.
+     * @return An array of two integers where the first integer is the count of resolved patterns and
+     * the second integer is the count of candidate roles.
+     */
+    int[] computeResolvedAndCandidateRoles(
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    double calculatePossibleAssignmentReduction(RoleAnalysisSessionType session, Task task, OperationResult result);
 
 }

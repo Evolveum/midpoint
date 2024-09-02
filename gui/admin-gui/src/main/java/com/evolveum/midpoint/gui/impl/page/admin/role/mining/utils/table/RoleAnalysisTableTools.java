@@ -50,6 +50,16 @@ public class RoleAnalysisTableTools {
 
     }
 
+    public static @NotNull String reductionBasedColor(double density) {
+        if (density >= 50) {
+            return "#dc3444";
+        } else if (density > 30) {
+            return "#ffc007";
+        } else {
+            return "#528BB8";
+        }
+    }
+
     public static @NotNull String confidenceBasedTwoColor(double density) {
         if (density >= 50) {
             return "#528BB8";

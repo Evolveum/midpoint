@@ -46,15 +46,15 @@ public class ProjectionMappingLoader implements MappingLoader<ShadowType> {
     @Override
     public PrismObject<ShadowType> load(String loadReason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException, NotLoadedException {
         contextLoader.loadFullShadow(projectionContext, loadReason, task, result);
         if (projectionContext.isBroken()) {
-            LOGGER.debug("Attempt to load full object for {} failed, projection context is broken", projectionContext.getHumanReadableName());
-            throw new ObjectNotFoundException("Projection loading failed, projection broken"); // TODO is this correct exception?
+            LOGGER.debug("Attempt to load full object for {} failed, projection context is broken", projectionContext);
+            throw new NotLoadedException("Context is broken");
         }
         if (projectionContext.isGone()) {
             LOGGER.debug("Projection {} is gone", projectionContext.getHumanReadableName());
-            throw new ObjectNotFoundException("Projection loading failed, projection gone"); // TODO is this correct exception?
+            throw new NotLoadedException("Projection is gone");
         }
         return projectionContext.getObjectCurrent();
     }

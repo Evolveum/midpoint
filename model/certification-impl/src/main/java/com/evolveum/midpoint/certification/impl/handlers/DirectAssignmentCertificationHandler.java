@@ -51,7 +51,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     // converts assignments to cases
     @Override
-    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(
+    public <F extends AssignmentHolderType> Collection<? extends AccessCertificationCaseType> createCasesForObject(
             PrismObject<F> objectPrism, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {

@@ -615,7 +615,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
                         ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
                                 .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
+                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value(), SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value())
                                 .buildFilter();
 
                         ObjectBrowserPanel<MarkType> browser = new ObjectBrowserPanel<>(
@@ -715,7 +715,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
                         ObjectFilter marksFilter = PrismContext.get().queryFor(MarkType.class)
                                 .item(MarkType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value())
+                                .ref(SystemObjectsType.ARCHETYPE_OBJECT_MARK.value(), SystemObjectsType.ARCHETYPE_SHADOW_POLICY_MARK.value())
                                 .and()
                                 .id(selectedMarks)
                                 .buildFilter();

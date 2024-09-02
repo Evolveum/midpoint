@@ -764,24 +764,11 @@
             </objectCollectionView>
             <objectCollectionView id="69">
                 <identifier>certification-tasks-view</identifier>
-                <display>
-                    <label>Certification-related task</label>
-                    <pluralLabel>
-                        <orig>Certification-related tasks</orig>
-                        <norm>certificationrelated tasks</norm>
-                        <translation>
-                            <key>CertificationRelatedTasks.title</key>
-                        </translation>
-                    </pluralLabel>
-                    <icon>
-                        <cssClass>fa fa-certificate</cssClass>
-                        <color>green</color>
-                    </icon>
-                </display>
                 <refreshInterval>30</refreshInterval>
+                <applicableForOperation>modify</applicableForOperation>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0002-000000000008" relation="org:default" type="c:ObjectCollectionType"/>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000520" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView id="70">
@@ -824,7 +811,7 @@
             </objectCollectionView>
             <objectCollectionView id="75">
                 <identifier>application-role</identifier>
-                <applicableForOperation>add</applicableForOperation>
+                <displayOrder>180</displayOrder>
                 <type>RoleType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType"/>
@@ -832,7 +819,7 @@
             </objectCollectionView>
             <objectCollectionView id="76">
                 <identifier>business-role</identifier>
-                <applicableForOperation>add</applicableForOperation>
+                <displayOrder>190</displayOrder>
                 <type>RoleType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType"/>
@@ -949,34 +936,6 @@
                 <type>ResourceType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0001-000000000340" relation="org:default" type="c:ObjectCollectionType">
-                    </collectionRef>
-                </collection>
-            </objectCollectionView>
-            <objectCollectionView id="98"> <!-- TODO: change id as needed -->
-                <identifier>application-roles-view</identifier>
-                <display>
-                    <label>Application roles</label>
-                    <singularLabel>Application role</singularLabel>
-                    <tooltip>Application roles</tooltip>
-                </display>
-                <displayOrder>180</displayOrder>
-                <type>RoleType</type>
-                <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType">
-                    </collectionRef>
-                </collection>
-            </objectCollectionView>
-            <objectCollectionView id="99"> <!-- TODO: change id as needed -->
-                <identifier>business-roles-view</identifier>
-                <display>
-                    <label>Business roles</label>
-                    <singularLabel>Business role</singularLabel>
-                    <tooltip>Business roles</tooltip>
-                </display>
-                <displayOrder>190</displayOrder>
-                <type>RoleType</type>
-                <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
                     </collectionRef>
                 </collection>
             </objectCollectionView>

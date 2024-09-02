@@ -94,7 +94,7 @@ public class CertificationCasesPanel extends
 
     private List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns =
-                ColumnUtils.getDefaultCertCaseColumns(stageNumber);
+                ColumnUtils.getDefaultCertCaseColumns(stageNumber, getPageBase());
         columns.add(createShowDetailsColumn());
         return columns;
     }
