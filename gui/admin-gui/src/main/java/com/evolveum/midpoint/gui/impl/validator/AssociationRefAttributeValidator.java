@@ -75,6 +75,8 @@ public class AssociationRefAttributeValidator implements IValidator<String> {
         List<PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType>> associationValues =
                 ((PrismContainerWrapper<ShadowAssociationTypeDefinitionType>) associationTypeValue.getParent()).getValues();
 
+        int numberOfSameRef = 0;
+
         for (PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationValue : associationValues) {
             try {
                 PrismPropertyWrapper<ItemPathType> refProperty = associationValue.findProperty(
@@ -85,16 +87,29 @@ public class AssociationRefAttributeValidator implements IValidator<String> {
                 ItemPathType refItemName = refProperty.getValue().getRealValue();
 
                 if (refItemName != null && path.equivalent(refItemName.getItemPath())) {
-                    ValidationError error = new ValidationError();
-                    error.setMessage(LocalizationUtil.translate(
-                            "AssociationRefAttributeValidator.refAttributeExists",
-                            new Object[]{value}));
-                    validatable.error(error);
-                    return;
+                    numberOfSameRef++;
                 }
             } catch (SchemaException e) {
                 LOGGER.error("Couldn't find association ref attribute in associationType " + value, e);
             }
+        }
+
+        boolean containsSameValue = false;
+
+        try {
+            containsSameValue = item.getValue() != null
+                    && item.getValue().getRealValue() != null
+                    && item.getValue().getRealValue().getItemPath().equivalent(path);
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get value of " + item, e);
+        }
+
+        if ((containsSameValue && numberOfSameRef > 1) || (!containsSameValue && numberOfSameRef > 0)) {
+            ValidationError error = new ValidationError();
+            error.setMessage(LocalizationUtil.translate(
+                    "AssociationRefAttributeValidator.refAttributeExists",
+                    new Object[]{value}));
+            validatable.error(error);
         }
     }
 }
