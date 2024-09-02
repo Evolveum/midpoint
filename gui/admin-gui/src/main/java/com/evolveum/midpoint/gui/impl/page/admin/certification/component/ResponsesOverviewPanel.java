@@ -91,6 +91,10 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
             protected boolean isPercentageBar() {
                 return false;
             }
+
+            protected IModel<String> getFormattedProgressBarValueModel(ProgressBar progressBar) {
+                return () -> (int) progressBar.getValue() + "";
+            }
         };
         responsesPanel.setOutputMarkupId(true);
         responsesContainer.add(responsesPanel);
@@ -148,21 +152,6 @@ public class ResponsesOverviewPanel extends AbstractObjectMainPanel<AccessCertif
                 return progressBars;
             }
         };
-    }
-
-    private List<ReportDataType> loadReports() {
-        ObjectQuery query = getPrismContext().queryFor(ReportDataType.class).build();
-        try {
-            List<PrismObject<ReportDataType>> reports =
-                    WebModelServiceUtils.searchObjects(ReportDataType.class, query, null,
-                            new OperationResult("OPERATION_LOAD_REPORTS"), getPageBase());
-            return reports.stream()
-                    .map(r -> r.asObjectable())
-                    .collect(Collectors.toList());
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get reports", ex);
-        }
-        return null;
     }
 
     private void addOrReplaceCertItemsTabbedPanel() {
