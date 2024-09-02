@@ -94,6 +94,8 @@ public class PoliciesObjectTypeWizardPanel extends AbstractWizardWithChoicePanel
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                getAssignmentHolderModel().reloadPrismObjectModel();
+                getHelper().refreshValueModel();
                 showChoiceFragment(target, createTypePreview());
             }
 
