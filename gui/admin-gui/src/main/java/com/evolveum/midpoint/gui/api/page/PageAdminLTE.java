@@ -19,6 +19,7 @@ import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
 import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
@@ -258,6 +259,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean
     private SecretsProviderManager secretsProviderManager;
+
+    @SpringBean
+    private TriggerHandlerRegistry triggerHandlerRegistry;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -1070,5 +1074,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public SecretsProviderManager getSecretsProviderManager() {
         return secretsProviderManager;
+    }
+
+    @Override
+    public TriggerHandlerRegistry getTriggerHandlerRegistry() {
+        return triggerHandlerRegistry;
     }
 }
