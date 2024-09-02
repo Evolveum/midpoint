@@ -4215,6 +4215,7 @@ public final class WebComponentUtil {
         }
 
         Object[] marks = markRefs.stream()
+                .filter(ref -> ref != null && !ref.asReferenceValue().isEmpty())
                 .map(ref -> WebModelServiceUtils.loadObject(ref, page))
                 .filter(mark -> mark != null)
                 .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
