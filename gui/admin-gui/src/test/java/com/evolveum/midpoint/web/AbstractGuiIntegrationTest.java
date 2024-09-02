@@ -20,6 +20,7 @@ import java.util.Locale;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -294,6 +295,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public RoleAnalysisService getRoleAnalysisService() {
+                return null;
+            }
+
+            @Override
+            public TriggerHandlerRegistry getTriggerHandlerRegistry() {
                 return null;
             }
         };

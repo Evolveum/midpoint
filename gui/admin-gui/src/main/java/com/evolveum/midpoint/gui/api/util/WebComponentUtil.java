@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
 import com.evolveum.midpoint.gui.impl.component.action.GuiActionDto;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
@@ -4220,5 +4221,16 @@ public final class WebComponentUtil {
                 .toArray();
 
         return StringUtils.joinWith(", ", marks);
+    }
+
+    public static String translateTriggerUri(String uri, ModelServiceLocator locator) {
+        TriggerHandler handler = locator.getTriggerHandlerRegistry().getHandler(uri);
+        if (handler == null) {
+            return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate("TriggerKey");
+        }
+
+        String key = "trigger." + handler.getClass().getName();
+
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(key);
     }
 }

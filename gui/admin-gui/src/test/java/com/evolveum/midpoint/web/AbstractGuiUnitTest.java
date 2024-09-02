@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
 import com.evolveum.midpoint.model.api.correlation.CorrelationService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
@@ -153,6 +154,11 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 
             @Override
             public RoleAnalysisService getRoleAnalysisService() {
+                return null;
+            }
+
+            @Override
+            public TriggerHandlerRegistry getTriggerHandlerRegistry() {
                 return null;
             }
         };

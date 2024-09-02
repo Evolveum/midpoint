@@ -586,7 +586,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         handlerUris.sort(Comparator.naturalOrder());
 
         for (String handlerUri : handlerUris) {
-            String dates = triggersMap.get(handlerUri).stream()
+            String tooltip = triggersMap.get(handlerUri).stream()
                     .filter(t -> t.getTimestamp() != null)
                     .map(TriggerType::getTimestamp)
                     .map(t -> t.toGregorianCalendar().getTime())
@@ -594,35 +594,41 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     .map(t -> WebComponentUtil.formatDate(t))
                     .collect(Collectors.joining(", \n"));
 
-            String tooltip = handlerUri + ", \n" + dates;
-
-            badges.add(new Badge(Badge.State.PRIMARY.getCss(), null, getString(TriggerType.class.getSimpleName()), tooltip));
+            badges.add(
+                    new Badge(
+                            Badge.State.PRIMARY.getCss(),
+                            GuiStyleConstants.CLASS_TRIGGER_ICON,
+                            WebComponentUtil.translateTriggerUri(handlerUri, getPageBase()),
+                            tooltip));
         }
 
         return badges;
     }
 
     private Badge createDisabledBadge(ActivationType activation) {
-        StringBuilder sb = new StringBuilder();
+        String text;
         if (activation.getDisableReason() != null) {
             SchemaConstants.ModelDisableReason reason = SchemaConstants.ModelDisableReason.fromUriRelaxed(activation.getDisableReason());
-            String reasonStr = reason != null ?
+            text = reason != null ?
                     LocalizationUtil.translateEnum(reason) :
                     QNameUtil.uriToQName(activation.getDisableReason()).getLocalPart();
-            sb.append(reasonStr);
+        } else {
+            text = LocalizationUtil.translateEnum(ActivationStatusType.DISABLED);
         }
-        if (!sb.isEmpty()) {
-            sb.append(", ");
-        }
+
+        String tooltip;
         if (activation.getDisableTimestamp() != null) {
-            sb.append(WebComponentUtil.formatDate(activation.getDisableTimestamp()));
+            tooltip = getString(
+                    "FocusProjectionsPanel.disableReason", WebComponentUtil.formatDate(activation.getDisableTimestamp()), text);
+        } else {
+            tooltip = getString("FocusProjectionsPanel.disableReasonNoDate");
         }
 
         return new Badge(
                 Badge.State.SECONDARY.getCss(),
                 null,
-                LocalizationUtil.translateEnum(ActivationStatusType.DISABLED),
-                sb.toString());
+                text,
+                tooltip);
     }
 
     private IModel<String> loadObjectTypeDisplayNameModel(IModel<PrismContainerValueWrapper<ShadowType>> shadowModel) {
@@ -905,9 +911,17 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             return;
         }
 
+//        ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
+
         int markedToChangeActivation = 0;
         for (PrismContainerValueWrapper<ShadowType> account : accounts) {
             try {
+
+//                ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+//                        .item(ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)).replace(status)
+//                        .asObjectDelta(account.getRealValue().getOid());
+
+                // old code
                 PrismContainerWrapper<ActivationType> activation = account
                         .findContainer(ShadowType.F_ACTIVATION);
                 if (activation == null) {
