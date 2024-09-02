@@ -210,7 +210,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
             ObjectFilter axiomFilter = PrismContext.get()
                     .createQueryParser(PrismContext.get().getSchemaRegistry().staticNamespaceContext().allPrefixes())
                     .parseFilter(getModelObject().getTypeClass(), getModelObject().getDslQuery());
-            axiomSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(axiomFilter));
+            axiomSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(axiomFilter, true));
             return axiomSearchItem;
         } catch (SchemaException e) {
             LOGGER.error("Unable to parse axiom filter from query: {}, {}", getModelObject().getDslQuery(), e.getLocalizedMessage());
