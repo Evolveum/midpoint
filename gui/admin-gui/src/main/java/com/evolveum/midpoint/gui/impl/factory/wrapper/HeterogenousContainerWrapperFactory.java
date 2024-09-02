@@ -43,10 +43,10 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
 
     @Override
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
-        return parent.getDefinitions().stream().filter(def -> filterDefinitins(value, def)).collect(Collectors.toList());
+        return parent.getDefinitions().stream().filter(def -> filterDefinitions(value, def)).collect(Collectors.toList());
     }
 
-    private boolean filterDefinitins(PrismContainerValue<C> value, ItemDefinition<?> def) {
+    protected boolean filterDefinitions(PrismContainerValue<C> value, ItemDefinition<?> def) {
         Item<?, ?> child = value.findItem(def.getItemName());
         return (child != null && !child.isEmpty()) || !(def instanceof PrismContainerDefinition);
     }
