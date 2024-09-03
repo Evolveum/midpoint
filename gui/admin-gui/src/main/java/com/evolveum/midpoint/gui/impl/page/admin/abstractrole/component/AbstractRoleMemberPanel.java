@@ -365,6 +365,20 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 .collect(Collectors.joining(","));
     }
 
+    private <AH extends AssignmentHolderType> List<QName> getMembershipAvailableRelations(AH value) {
+        return value.getRoleMembershipRef().stream()
+                .filter(this::isApplicableRoleMembershipRef)
+                .map(ObjectReferenceType::getRelation)
+                .collect(Collectors.toList());
+    }
+
+    private <AH extends AssignmentHolderType> List<QName> getAllMembershipRelations(AH value) {
+        return value.getRoleMembershipRef().stream()
+                .filter(ref -> ref.getOid().equals(getModelObject().getOid()))
+                .map(ObjectReferenceType::getRelation)
+                .collect(Collectors.toList());
+    }
+
     private boolean isApplicableRoleMembershipRef(ObjectReferenceType roleMembershipRef) {
         List<QName> defaultRelations = getDefaultRelationsForActions();
         return roleMembershipRef.getOid().equals(getModelObject().getOid())
@@ -667,14 +681,14 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 target);
     }
 
-    protected void createUnassignMemberRowAction(List<InlineMenuItem> menu) {
+    protected <AH extends AssignmentHolderType> void createUnassignMemberRowAction(List<InlineMenuItem> menu) {
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
             InlineMenuItem menuItem = new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign")) {
                 @Serial private static final long serialVersionUID = 1L;
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<>() {
+                    return new ColumnMenuAction<SelectableBean<AH>>() {
                         @Serial private static final long serialVersionUID = 1L;
 
                         @Override
@@ -987,15 +1001,33 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         ((PageBase) getPage()).showMainPopup(dialog, target);
     }
 
-    protected void unassignMembersPerformed(IModel<?> rowModel, AjaxRequestTarget target) {
+    protected <AH extends AssignmentHolderType> void unassignMembersPerformed(IModel<SelectableBean<AH>> rowModel, AjaxRequestTarget target) {
         unassignMembersPerformed(rowModel, null, target);
     }
 
-    protected void unassignMembersPerformed(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
+    protected <AH extends AssignmentHolderType> void unassignMembersPerformed(IModel<SelectableBean<AH>> rowModel, QName relation, AjaxRequestTarget target) {
         QueryScope scope = getMemberQueryScope();
         StringResourceModel confirmModel;
 
         if (rowModel != null || getSelectedObjectsCount() > 0) {
+            var singleObj = rowModel != null ? rowModel.getObject() : null;
+            if (singleObj == null) {
+                singleObj = getSelectedObjectsCount() == 1 ? (SelectableBean<AH>) getMemberTable().getSelectedObjects().get(0) : null;
+            }
+            final List<QName> membershipAvailableRelations = new ArrayList<>();
+            if (singleObj != null) {
+                //there can be a situation when there is only one membership relation (for the current panel) but
+                //in general the object can have more membership relations assigned (e.g. one membership within Members panel and
+                // another membership within Governance panel)
+                // in this case we need to specify the relation to be unassigned (ticket #9936)
+                membershipAvailableRelations.addAll(getMembershipAvailableRelations(singleObj.getValue()));
+                final List<QName> allMembershipRelations = new ArrayList<>(getAllMembershipRelations(singleObj.getValue()));
+                if (membershipAvailableRelations.size() == 1 && allMembershipRelations.size() > 1 && relation == null) {
+                    relation = membershipAvailableRelations.get(0);
+                }
+
+            }
+
             String unassignActionTranslated =
                     createStringResource("abstractRoleMemberPanel.message.confirmationMessageForSingleObject.unassign")
                             .getString();
@@ -1005,7 +1037,49 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                     : createStringResource("abstractRoleMemberPanel.unassignSelectedMembersConfirmationLabel",
                     getSelectedObjectsCount());
 
-            showConfirmDialog(rowModel, relation, confirmModel, target);
+            if (membershipAvailableRelations.size() > 1) {
+                //if there are more than 1 membership's relation, we should give a possibility
+                //to the user to select which relation they want to unassign
+
+                ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
+                        getPageBase().getMainPopupBodyId(), confirmModel) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean isFocusTypeSelectorVisible() {
+                        return false;
+                    }
+
+                    @Override
+                    protected List<QName> getSupportedRelations() {
+                        return membershipAvailableRelations;
+                    }
+
+                    protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+                        unassignMembersPerformed(
+                                rowModel,
+                                type,
+                                scope,
+                                relations,
+                                target);
+                    }
+
+//                    @Override
+//                    protected IModel<String> getWarningMessageModel() {
+//                        if (isSubtreeScope()) {
+//                            return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
+//                        } else if (isIndirect()) {
+//                            return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.indirect");
+//                        }
+//                        return null;
+//                    }
+                };
+
+                getPageBase().showMainPopup(chooseTypePopupContent, target);
+
+            } else {
+                showConfirmDialog(rowModel, relation, confirmModel, target);
+            }
         } else {
             confirmModel = createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel");
 
