@@ -110,6 +110,7 @@ public class ProgressBarSecondStyle extends BasePanel<String> {
             container.add(progressBarText);
 
             WebMarkupContainer progressBarInline = new WebMarkupContainer(ID_BAR_PERCENTAGE_INLINE);
+            progressBarInline.add(new VisibleBehaviour(() -> false));
             progressBarInline.setOutputMarkupId(true);
             add(progressBarInline);
         }
