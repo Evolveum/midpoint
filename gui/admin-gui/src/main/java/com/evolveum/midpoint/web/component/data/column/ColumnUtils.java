@@ -20,13 +20,18 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.*;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.*;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement.InducedEntitlementsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 
@@ -34,12 +39,16 @@ import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
 import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.DeadlinePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
+
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,15 +73,10 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -96,7 +100,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ColumnUtils {
+
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
+
+    private static final String DOT_CLASS = ColumnUtils.class.getName() + ".";
+    private static final String OPERATION_LOAD_SHADOW_OBJECT = DOT_CLASS + "loadReferencedShadowObject";
+    private static final String OPERATION_LOAD_RESOURCE_OBJECT = DOT_CLASS + "loadResourceObject";
 
     public static <T> List<IColumn<T, String>> createColumns(List<ColumnTypeDto<String>> columns) {
         List<IColumn<T, String>> tableColumns = new ArrayList<>();
@@ -1825,4 +1834,115 @@ public class ColumnUtils {
         return name;
     }
 
+    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducedAssociationsColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
+
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+
+        columns.add(
+                new PrismPropertyWrapperColumn<AssignmentType, String>(
+                        containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), AbstractItemWrapperColumn.ColumnType.STRING, page));
+
+        columns.add(
+                new PrismPropertyWrapperColumn<AssignmentType, String>(
+                        containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), AbstractItemWrapperColumn.ColumnType.STRING, page));
+
+        columns.add(
+                new PrismContainerWrapperColumn<>(
+                        containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), page));
+
+        columns.add(new AbstractColumn<>(createStringResource("InducedEntitlements.value")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(
+                    org.apache.wicket.markup.repeater.Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                    String componentId,
+                    final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+
+                ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
+                List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
+                                expressionType,
+                                page.getPrismContext()),
+                        OPERATION_LOAD_SHADOW_OBJECT, page);
+
+                MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<>(componentId,
+                        Model.ofList(shadowsList), Collections.singletonList(ShadowType.class), false) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected ObjectFilter getCustomFilter() {
+                        ConstructionType construction = rowModel.getObject().getRealValue().getConstruction();
+                        return ProvisioningObjectsUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE_OBJECT,
+                                page);
+                    }
+
+                    @Override
+                    protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
+                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
+                            ExpressionType expression = ProvisioningObjectsUtil.getAssociationExpression(rowModel.getObject(), getPageBase());
+                            ExpressionUtil.removeShadowRefEvaluatorValue(expression, shadow.getOid(), getPageBase().getPrismContext());
+                        }
+                    }
+
+                    @Override
+                    protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
+                        ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
+                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
+                            ExpressionType expression = getExpressionFromRowModel(rowModel, true);
+                            ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid());
+                        }
+                    }
+
+                    @Override
+                    protected void selectPerformed(AjaxRequestTarget target, List<ShadowType> chosenValues) {
+                        addPerformed(target, chosenValues);
+                    }
+
+                };
+                valuesPanel.setOutputMarkupId(true);
+                item.add(valuesPanel);
+            }
+        });
+
+        return columns;
+    }
+
+    private static ExpressionType getExpressionFromRowModel(
+            IModel<PrismContainerValueWrapper<AssignmentType>> rowModel, boolean createIfNotExist) {
+        PrismContainerValueWrapper<AssignmentType> assignment = rowModel.getObject();
+        try {
+            ItemPath path = ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION);
+            PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = assignment.findContainer(path);
+            List<PrismContainerValue<ResourceObjectAssociationType>> associationValueList = associationWrapper.getItem().getValues();
+            PrismContainerValue<ResourceObjectAssociationType> associationValue;
+            if (CollectionUtils.isEmpty(associationValueList)) {
+                if (createIfNotExist) {
+                    associationValue = associationWrapper.createValue();
+                } else {
+                    return null;
+                }
+            } else {
+                associationValue = associationValueList.get(0);
+            }
+
+            ResourceObjectAssociationType association = associationValue.getRealValue();
+            MappingType outbound = association.getOutbound();
+            if (outbound == null) {
+                if (createIfNotExist) {
+                    outbound = association.beginOutbound();
+                } else {
+                    return null;
+                }
+            }
+            ExpressionType expressionType = outbound.getExpression();
+            if (expressionType == null && createIfNotExist) {
+                expressionType = outbound.beginExpression();
+            }
+            return expressionType;
+        } catch (SchemaException ex) {
+            LOGGER.error("Unable to find association container in the construction: {}", ex.getLocalizedMessage());
+        }
+        return null;
+    }
 }
