@@ -1,5 +1,5 @@
-MidPoint 4.9 Development Branch
--------------------------------
+MidPoint 4.9 "Verne" Release Candidate 1
+----------------------------------------
 
 General information:
 
