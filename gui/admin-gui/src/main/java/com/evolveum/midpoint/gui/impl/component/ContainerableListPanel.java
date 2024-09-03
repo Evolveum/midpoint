@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.impl.query.ObjectPagingImpl;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 
 import org.apache.commons.lang3.BooleanUtils;
