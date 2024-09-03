@@ -64,7 +64,7 @@ public abstract class AbstractWizardTable<C extends Containerable, CV extends Co
     }
 
     @Override
-    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
         createNewValue(value, target);
         refreshTable(target);
     }

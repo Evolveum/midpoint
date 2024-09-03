@@ -109,7 +109,7 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
                     }
 
                     @Override
-                    protected void newItemPerformed(PrismContainerValue<ShadowAssociationValueType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+                    protected void newItemPerformed(PrismContainerValue<ShadowAssociationValueType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
                         PrismContainerWrapper<ShadowAssociationValueType> container = getContainerModel().getObject();
                         PrismContainerValue<ShadowAssociationValueType> newValue = value;
                         if (newValue == null) {

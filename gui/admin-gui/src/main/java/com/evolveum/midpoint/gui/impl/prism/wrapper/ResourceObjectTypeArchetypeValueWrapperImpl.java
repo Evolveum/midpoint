@@ -58,6 +58,41 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
                                         ItemPath.create(
                                                 ArchetypeType.F_ARCHETYPE_POLICY,
                                                 ArchetypePolicyType.F_DISPLAY,
+                                                DisplayType.F_LABEL)))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(
+                                        ItemPath.create(
+                                                ArchetypeType.F_ARCHETYPE_POLICY,
+                                                ArchetypePolicyType.F_DISPLAY,
+                                                DisplayType.F_SINGULAR_LABEL)))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(
+                                        ItemPath.create(
+                                                ArchetypeType.F_ARCHETYPE_POLICY,
+                                                ArchetypePolicyType.F_DISPLAY,
+                                                DisplayType.F_PLURAL_LABEL)))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(
+                                        ItemPath.create(
+                                                ArchetypeType.F_ARCHETYPE_POLICY,
+                                                ArchetypePolicyType.F_DISPLAY,
+                                                DisplayType.F_TOOLTIP)))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(
+                                        ItemPath.create(
+                                                ArchetypeType.F_ARCHETYPE_POLICY,
+                                                ArchetypePolicyType.F_DISPLAY,
+                                                DisplayType.F_HELP)))
+                                .visibility(UserInterfaceElementVisibilityType.VISIBLE))
+                        .item(new VirtualContainerItemSpecificationType()
+                                .path(new ItemPathType(
+                                        ItemPath.create(
+                                                ArchetypeType.F_ARCHETYPE_POLICY,
+                                                ArchetypePolicyType.F_DISPLAY,
                                                 DisplayType.F_ICON,
                                                 IconType.F_CSS_CLASS)))
                                 .visibility(UserInterfaceElementVisibilityType.VISIBLE))

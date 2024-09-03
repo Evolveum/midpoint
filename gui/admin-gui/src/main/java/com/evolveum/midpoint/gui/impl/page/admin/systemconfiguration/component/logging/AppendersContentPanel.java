@@ -18,7 +18,6 @@ import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.application.Counter;
@@ -180,7 +179,7 @@ public class AppendersContentPanel extends MultivalueContainerListPanelWithDetai
     }
 
     @Override
-    protected void newItemPerformed(PrismContainerValue<AppenderConfigurationType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+    protected void newItemPerformed(PrismContainerValue<AppenderConfigurationType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
         PrismContainerValue<AppenderConfigurationType> container = value;
         if (container == null) {
             if (QNameUtil.match(newAppenderChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)) {

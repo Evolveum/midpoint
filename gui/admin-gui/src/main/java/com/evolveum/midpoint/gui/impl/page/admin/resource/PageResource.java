@@ -192,6 +192,12 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return showWizard(value, target, pathToValue, ResourceAssociationTypeWizardPanel.class);
     }
 
+    public ResourceAssociationTypeWizardPanel showAssociationTypeWizardForDuplicate(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, AjaxRequestTarget target, ItemPath pathToValue) {
+        ResourceAssociationTypeWizardPanel panel = showWizard(value, target, pathToValue, ResourceAssociationTypeWizardPanel.class);
+        panel.setPanelForDuplicate(true);
+        return panel;
+    }
+
     public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(AjaxRequestTarget target) {
         return showWizard(null, target, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE), ResourceAssociationTypeWizardPanel.class);
     }

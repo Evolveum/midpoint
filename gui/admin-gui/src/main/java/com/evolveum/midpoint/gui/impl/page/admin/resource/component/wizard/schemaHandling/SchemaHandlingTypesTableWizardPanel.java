@@ -13,10 +13,8 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceObjectTypesPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.SchemaHandlingObjectsPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -24,12 +22,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -59,7 +55,11 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
     protected abstract void initTable(String tableId);
 
     protected final void onNewValue(
-            PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> containerModel, WrapperContext context, AjaxRequestTarget target) {
+            PrismContainerValue<C> value,
+            IModel<PrismContainerWrapper<C>> containerModel,
+            WrapperContext context,
+            AjaxRequestTarget target,
+            boolean isDeprecate) {
         PageBase pageBase = getPageBase();
         PrismContainerWrapper<C> container = containerModel.getObject();
         PrismContainerValue<C> newValue = value;
@@ -75,7 +75,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
             LOGGER.error("Couldn't create new value for container " + container, e);
         }
         IModel<PrismContainerValueWrapper<C>> model = Model.of(newWrapper);
-        onCreateValue(model, target);
+        onCreateValue(model, target, isDeprecate);
     }
 
     public MultivalueContainerListPanel getTable() {
@@ -92,7 +92,7 @@ public abstract class SchemaHandlingTypesTableWizardPanel<C extends Containerabl
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target);
 
-    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target);
+    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<C>> value, AjaxRequestTarget target, boolean isDuplicate);
 
     @Override
     protected String getCssForWidthOfFeedbackPanel() {

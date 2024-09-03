@@ -29,15 +29,31 @@ import java.util.List;
  */
 public class ResourceAssociationTypeWizardPanel extends AbstractWizardChoicePanelWithSeparatedCreatePanel<ShadowAssociationTypeDefinitionType> {
 
+    boolean isPanelForDuplicate = false;
+
     public ResourceAssociationTypeWizardPanel(
             String id,
             WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
     }
 
+    public void setPanelForDuplicate(boolean panelForDuplicate) {
+        isPanelForDuplicate = panelForDuplicate;
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+        if (isPanelForDuplicate) {
+            addOrReplace(createChoiceFragment(createNewTypeWizard()));
+        }
+    }
+
     @Override
     protected ResourceAssociationTypeBasicWizardPanel createNewTypeWizard(String id, WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper) {
-        return new ResourceAssociationTypeBasicWizardPanel(id, helper);
+        ResourceAssociationTypeBasicWizardPanel panel = new ResourceAssociationTypeBasicWizardPanel(id, helper);
+        panel.setPanelForDuplicate(isPanelForDuplicate);
+        return panel;
     }
 
     @Override
