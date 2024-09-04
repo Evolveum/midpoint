@@ -2715,6 +2715,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return zScoreData;
     }
 
+    /**
+     * Resolves neighbors for the given list of data chunks based on their properties and frequency values.
+     *
+     * @param <T> The type of the data chunks, which must extend MiningBaseTypeChunk.
+     * @param data The list of data chunks to process.
+     * @param maxFrequency The maximum frequency value to consider for negative exclusion.
+     */
     public <T extends MiningBaseTypeChunk> void resolveNeighbours(@NotNull List<T> data, double maxFrequency) {
 //        List<T> negativeExcludeChunks = new ArrayList<>();
         ListMultimap<FrequencyItem.Status, T> itemMap = ArrayListMultimap.create();
@@ -3112,7 +3119,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @Override
     public List<RoleAnalysisOutlierType> getSessionOutliers(
             @NotNull String sessionOid,
-            @NotNull Task task,
+            @Nullable OutlierClusterCategoryType category, @NotNull Task task,
             @NotNull OperationResult result) {
         Map<RoleAnalysisOutlierType, Double> outlierMap = new HashMap<>();
         ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
@@ -3123,8 +3130,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
                 String oid = targetSessionRef.getOid();
                 if (sessionOid.equals(oid)) {
-                    Double overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
-                    outlierMap.put(outlier.asObjectable(), overallConfidence);
+                    if (category == null) {
+                        Double overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
+                        outlierMap.put(outlier.asObjectable(), overallConfidence);
+                    } else {
+                        RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+                        OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+                        if (category.equals(outlierCategory.getOutlierClusterCategory())) {
+                            Double overallConfidence = outlierPartition.getPartitionAnalysis().getOverallConfidence();
+                            outlierMap.put(outlier.asObjectable(), overallConfidence);
+                        }
+                    }
                     break;
                 }
             }
@@ -3175,7 +3191,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public List<String> findJaccardCloseObject(
+    public @Nullable ListMultimap<Double, String> findJaccardCloseObject(
             @NotNull String userOid,
             @NotNull ListMultimap<List<String>, String> chunkMap,
             @NotNull MutableDouble usedFrequency,
@@ -3186,7 +3202,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull OperationResult result) {
         PrismObject<UserType> userTypeObject = this.getUserTypeObject(userOid, task, result);
         if (userTypeObject == null) {
-            return new ArrayList<>();
+            return null;
         }
 
         ListMultimap<Double, String> similarityStats = ArrayListMultimap.create();
@@ -3205,6 +3221,17 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
         }
 
+        return similarityStats;
+    }
+
+    @NotNull
+    public static List<String> resolveJaccardCloseObjectResult(
+            int minMembers,
+            @NotNull MutableDouble usedFrequency,
+            @Nullable ListMultimap<Double, String> similarityStats) {
+        if (similarityStats == null) {
+            return new ArrayList<>();
+        }
         List<Double> sortedKeys = new ArrayList<>(similarityStats.keySet());
         sortedKeys.sort(Collections.reverseOrder());
 
@@ -3288,6 +3315,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     @NotNull
     public List<RoleAnalysisOutlierType> findClusterOutliers(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable OutlierSpecificCategoryType category,
             @NotNull Task task,
             @NotNull OperationResult result) {
         List<RoleAnalysisOutlierType> searchResultList = new ArrayList<>();
@@ -3301,7 +3329,16 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
                 String oid = targetClusterRef.getOid();
                 if (clusterOid.equals(oid)) {
-                    searchResultList.add(outlier.asObjectable());
+                    if (category != null) {
+                        RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
+                        OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+                        OutlierSpecificCategoryType outlierSpecificCategory = outlierCategory.getOutlierSpecificCategory();
+                        if (outlierSpecificCategory == category) {
+                            searchResultList.add(outlier.asObjectable());
+                        }
+                    } else {
+                        searchResultList.add(outlier.asObjectable());
+                    }
                 }
             }
             return true;
@@ -3563,5 +3600,37 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         return totalSystemPercentageReduction;
     }
+
+    public List<RoleAnalysisClusterType> getSessionClustersByType(
+            @NotNull String sessionOid,
+            @NotNull RoleAnalysisClusterCategory clusterType,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        List<RoleAnalysisClusterType> clusters = new ArrayList<>();
+        ObjectQuery query = PrismContext.get().queryFor(RoleAnalysisClusterType.class)
+                .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF).ref(sessionOid)
+                .build();
+
+        try {
+            SearchResultList<PrismObject<RoleAnalysisClusterType>> searchResultList = modelService.searchObjects(
+                    RoleAnalysisClusterType.class, query, null, task, result);
+            if (searchResultList == null || searchResultList.isEmpty()) {
+                return new ArrayList<>();
+            }
+
+            for (PrismObject<RoleAnalysisClusterType> prismCluster : searchResultList) {
+                RoleAnalysisClusterType cluster = prismCluster.asObjectable();
+                RoleAnalysisClusterCategory category = cluster.getCategory();
+                if (category == clusterType) {
+                    clusters.add(cluster);
+                }
+            }
+        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
+                ConfigurationException | ExpressionEvaluationException e) {
+            LOGGER.error("Couldn't search RoleAnalysisClusterType objects", e);
+        }
+        return clusters;
+    }
+
 }
 
