@@ -247,17 +247,28 @@ public class RoleAnalysisOutlierPartitionTable extends BasePanel<String> {
             public void populateItem(Item<ICellPopulator<RoleAnalysisOutlierPartitionType>> item, String componentId,
                     IModel<RoleAnalysisOutlierPartitionType> rowModel) {
                 if (rowModel.getObject() != null) {
-                    item.add(new Label(componentId, "TBD"));
+                    RoleAnalysisOutlierPartitionType object = rowModel.getObject();
+                    RoleAnalysisPartitionAnalysisType partitionAnalysis = object.getPartitionAnalysis();
+                    OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+                    String category = "";
+                    if (outlierCategory != null && outlierCategory.getOutlierNoiseCategory() != null) {
+                        OutlierNoiseCategoryType outlierNoiseCategory = outlierCategory.getOutlierNoiseCategory();
+                        category = outlierNoiseCategory.value();
+                    }
+                    Label label = new Label(componentId, category);
+                    label.add(AttributeAppender.append("class", "badge"));
+                    label.add(AttributeAppender.append("style", "background-color: #dcf1f4;"));
+                    item.add(label);
                 }
             }
 
             @Override
             public Component getHeader(String componentId) {
                 return new LabelWithHelpPanel(componentId,
-                        createStringResource("RoleAnalysisOutlierPartitionTable.column.state.title")) {
+                        createStringResource("RoleAnalysisOutlierPartitionTable.column.category.title")) {
                     @Override
                     protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisOutlierPartitionTable.column.state.title.help");
+                        return createStringResource("RoleAnalysisOutlierPartitionTable.column.category.title.help");
                     }
                 };
 

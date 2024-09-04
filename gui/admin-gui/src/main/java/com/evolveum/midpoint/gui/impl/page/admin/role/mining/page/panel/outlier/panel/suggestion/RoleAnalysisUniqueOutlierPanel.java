@@ -5,52 +5,49 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel;
-
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterAction;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierAssociatedTileTable;
-
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
-
-import org.apache.wicket.markup.html.WebMarkupContainer;
+package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.suggestion;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterAction;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierAssociatedTileTable;
+import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierSpecificCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-@PanelType(name = "outlierPanel")
+@PanelType(name = "uniqueOutlierPanel")
 @PanelInstance(
-        identifier = "outlierPanel",
+        identifier = "uniqueOutlierPanel",
         applicableForType = RoleAnalysisClusterType.class,
         childOf = RoleAnalysisClusterAction.class,
         display = @PanelDisplay(
-                label = "RoleAnalysisOutlierType.outlierPanel",
+                label = "RoleAnalysisOutlierType.unique.outlierPanel",
                 icon = GuiStyleConstants.CLASS_ICON_OUTLIER,
-                order = 70
+                order = 30
         )
 )
-public class RoleAnalysisOutlierPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
+public class RoleAnalysisUniqueOutlierPanel extends AbstractObjectMainPanel<RoleAnalysisClusterType, ObjectDetailsModels<RoleAnalysisClusterType>> {
 
     private static final String ID_CONTAINER = "container";
     private static final String ID_PANEL = "panelId";
 
-    public RoleAnalysisOutlierPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
-            ContainerPanelConfigurationType config) {
+    public RoleAnalysisUniqueOutlierPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model,
+                                          ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
 
@@ -81,7 +78,7 @@ public class RoleAnalysisOutlierPanel extends AbstractObjectMainPanel<RoleAnalys
         return new LoadableModel<>() {
             @Override
             protected List<RoleAnalysisOutlierType> load() {
-                return roleAnalysisService.findClusterOutliers(cluster, task, result);
+                return roleAnalysisService.findClusterOutliers(cluster, OutlierSpecificCategoryType.UNIQUE_OBJECT, task, result);
             }
         };
     }

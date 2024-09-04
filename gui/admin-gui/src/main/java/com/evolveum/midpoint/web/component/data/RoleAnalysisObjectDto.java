@@ -113,7 +113,7 @@ public class RoleAnalysisObjectDto implements Serializable {
     private void collectMarkedUsers(RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
         markedUsers = new HashSet<>();
         List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(
-                cluster, task, result);
+                cluster, null, task, result);
         if (searchResultList != null && !searchResultList.isEmpty()) {
             for (RoleAnalysisOutlierType outlier : searchResultList) {
                 ObjectReferenceType targetObjectRef = outlier.getTargetObjectRef();

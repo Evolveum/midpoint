@@ -260,6 +260,8 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                 .getObject()
                 .asObjectable();
 
+        RoleAnalysisClusterCategory category = cluster.getCategory();
+
         RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
         PageBase pageBase = (PageBase) getPage();
         Task task = pageBase.createSimpleTask("Resolving cluster option type");
@@ -277,13 +279,28 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
             if (containerPanelConfigurationType.getIdentifier().equals("actions")) {
                 List<ContainerPanelConfigurationType> panel = containerPanelConfigurationType.getPanel();
                 for (ContainerPanelConfigurationType panelType : panel) {
-                    if (panelType.getIdentifier().equals("outlierPanel")) {
-                        if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                            panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                    String identifier = panelType.getIdentifier();
+                    if (category == RoleAnalysisClusterCategory.OUTLIERS) {
+                        if (identifier.equals("outlierPanel")
+                                || identifier.equals("uniqueOutlierPanel")
+                                || identifier.equals("accessNoiseOutlierPanel")) {
+                            if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                                panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                            }
+                        } else {
+                            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                                panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                            }
                         }
-                    } else if (!panelType.getIdentifier().equals("outlierPanel")) {
-                        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                            panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                    } else {
+                        if (identifier.equals("outlierPanel")) {
+                            if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                                panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                            }
+                        } else {
+                            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                                panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+                            }
                         }
                     }
                 }
