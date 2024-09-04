@@ -69,10 +69,6 @@ public class OutlineOutlierDetectionStrategy implements OutlierDetectionStrategy
             OutlierDetectionOutlineClusterModel outlineClusterModel = new OutlierDetectionOutlineClusterModel(
                     roleAnalysisService, outlineModel, userAnalysisCache, analyzedObjectRef, task, result);
 
-            if (!outlineClusterModel.isSuitableForDetection()) {
-                continue;
-            }
-
             outlierAnalysisProcess(
                     roleAnalysisService,
                     outlineClusterModel,
@@ -92,13 +88,26 @@ public class OutlineOutlierDetectionStrategy implements OutlierDetectionStrategy
             @NotNull AttributeAnalysisCache analysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
-
-        ZScoreData zScoreData = analysisModel.getzScoreData();
-        ObjectReferenceType analyzedObjectRef = analysisModel.getAnalyzedObjectRef();
-        String memberOid = analyzedObjectRef.getOid();
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = analysisModel.getMiningRoleTypeChunks();
         OutlierDetectionOutlineModel outlineModel = analysisModel.getOutlineModel();
         RoleAnalysisSessionType session = outlineModel.getSession();
+        ObjectReferenceType analyzedObjectRef = analysisModel.getAnalyzedObjectRef();
+        String memberOid = analyzedObjectRef.getOid();
+        RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
+        Double sensitivity = detectionOption.getSensitivity();
+        double requiredConfidence = roleAnalysisService.calculateOutlierConfidenceRequired(sensitivity) * 100.0;
+
+        if (!analysisModel.isSuitableForDetection()) {
+            RoleAnalysisOutlierPartitionType partition = prepareTotalOutlierPartition(
+                    outlineModel.getClusterRef(),
+                    outlineModel.getSessionRef(),
+                    requiredConfidence
+            );
+            updateOrImportOutlierObject(roleAnalysisService, session, analysisModel.getAnalyzedObjectRef().getOid(), partition, analysisCache, task, result);
+            return;
+        }
+
+        ZScoreData zScoreData = analysisModel.getzScoreData();
+        List<MiningRoleTypeChunk> miningRoleTypeChunks = analysisModel.getMiningRoleTypeChunks();
         int userCountInRepo = outlineModel.getUserCountInRepo();
 
         List<RoleAnalysisAttributeDef> attributesForUserAnalysis = roleAnalysisService.resolveAnalysisAttributes(
@@ -130,16 +139,34 @@ public class OutlineOutlierDetectionStrategy implements OutlierDetectionStrategy
         }
 
         Collection<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(memberOid);
-        if (detectedAnomalyResults.isEmpty()) {
-            return;
+
+        RoleAnalysisOutlierPartitionType partition;
+        if (!detectedAnomalyResults.isEmpty()) {
+            //TODO duplicate access?
+            OutlierAnalyzeModel outlierAnalyzeModel = new OutlierAnalyzeModel(analysisModel);
+            partition = analyzeAndResolveOutlierObject(roleAnalysisService,
+                    analysisCache,
+                    outlierAnalyzeModel,
+                    detectedAnomalyResults,
+                    task,
+                    result);
+            RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+            Double partitionOverallConfidence = partitionAnalysis.getOverallConfidence();
+            if (partitionOverallConfidence == null || partitionOverallConfidence < requiredConfidence) {
+                partition = prepareTotalOutlierPartition(
+                        outlineModel.getClusterRef(),
+                        outlineModel.getSessionRef(),
+                        requiredConfidence
+                );
+            }
+        } else {
+            partition = prepareTotalOutlierPartition(
+                    outlineModel.getClusterRef(),
+                    outlineModel.getSessionRef(),
+                    requiredConfidence
+            );
         }
 
-        OutlierAnalyzeModel outlierAnalyzeModel = new OutlierAnalyzeModel(analysisModel);
-        analyzeAndResolveOutlierObject(roleAnalysisService,
-                analysisCache,
-                outlierAnalyzeModel,
-                detectedAnomalyResults,
-                task,
-                result);
+        updateOrImportOutlierObject(roleAnalysisService, session, memberOid, partition, analysisCache, task, result);
     }
 }

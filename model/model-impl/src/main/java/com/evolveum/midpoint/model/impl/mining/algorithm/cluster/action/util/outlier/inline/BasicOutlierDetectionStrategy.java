@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.inline;
 
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.analyzeAndResolveOutlierObject;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.resolveOutlierAnomalies;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +28,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.*;
 
 //TODO clean/remove duplicates implement role mode
 
@@ -118,12 +117,14 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                     .type(UserType.COMPLEX_TYPE);
 
             OutlierAnalyzeModel outlierAnalyzeModel = new OutlierAnalyzeModel(model, userObject, analyzedObjectRef);
-            analyzeAndResolveOutlierObject(roleAnalysisService,
+            RoleAnalysisOutlierPartitionType partition = analyzeAndResolveOutlierObject(roleAnalysisService,
                     analysisCache,
                     outlierAnalyzeModel,
                     detectedAnomalyResults,
                     task,
                     result);
+
+            updateOrImportOutlierObject(roleAnalysisService, session, memberOid, partition, analysisCache, task, result);
         }
 
         endTime = System.currentTimeMillis();

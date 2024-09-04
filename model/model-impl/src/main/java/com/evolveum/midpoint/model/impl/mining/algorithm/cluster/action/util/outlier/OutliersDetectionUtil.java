@@ -102,6 +102,15 @@ public class OutliersDetectionUtil {
 
         //TODO to *
 
+        importOrExtendOutlier(roleAnalysisService, userOid, partition, task, result);
+    }
+
+    public static void importOrExtendOutlier(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull String userOid,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         PrismObject<RoleAnalysisOutlierType> outlierObject = roleAnalysisService.searchOutlierObjectByUserOidClusters(
                 userOid, task, result);
 
@@ -507,7 +516,7 @@ public class OutliersDetectionUtil {
         return partitionAnomaliesConfidence;
     }
 
-    public static void analyzeAndResolveOutlierObject(
+    public static RoleAnalysisOutlierPartitionType analyzeAndResolveOutlierObject(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull AttributeAnalysisCache analysisCache,
             @NotNull OutlierAnalyzeModel analysisModel,
@@ -535,8 +544,17 @@ public class OutliersDetectionUtil {
 
         RoleAnalysisPartitionAnalysisType partitionAnalysis = new RoleAnalysisPartitionAnalysisType();
 
-        partitionAnalysis.setOutlierNoiseCategory(analysisModel.getNoiseCategory());
-        partitionAnalysis.setOutlierCategory(analysisModel.getOutlierCategory());
+        OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+        if (outlierCategory == null) {
+            outlierCategory = new OutlierCategoryType();
+            outlierCategory.setOutlierNoiseCategory(analysisModel.getNoiseCategory());
+            outlierCategory.setOutlierClusterCategory(analysisModel.getOutlierCategory());
+            partitionAnalysis.setOutlierCategory(outlierCategory);
+        } else {
+            outlierCategory.setOutlierNoiseCategory(analysisModel.getNoiseCategory());
+            outlierCategory.setOutlierClusterCategory(analysisModel.getOutlierCategory());
+        }
+        outlierCategory.setOutlierSpecificCategory(OutlierSpecificCategoryType.ACCESS_NOISE);
 
         //Resolve similar objects analysis
         RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = new RoleAnalysisOutlierSimilarObjectsAnalysisResult();
@@ -608,7 +626,7 @@ public class OutliersDetectionUtil {
 
         partitionType.setPartitionAnalysis(partitionAnalysis);
 
-        updateOrImportOutlierObject(roleAnalysisService, session, memberOid, partitionType, analysisCache, task, result);
+        return partitionType;
     }
 
     public static void resolveOutlierAnomalies(
@@ -659,6 +677,7 @@ public class OutliersDetectionUtil {
     }
 
     //TODO should we move other statistics computation to this method?
+
     /**
      * Partially prepares a DetectedAnomalyResult object based on the provided parameters.
      *
@@ -686,4 +705,24 @@ public class OutliersDetectionUtil {
         return anomalyResult;
     }
 
+    public static @NotNull RoleAnalysisOutlierPartitionType prepareTotalOutlierPartition(
+            @NotNull ObjectReferenceType clusterRef,
+            @NotNull ObjectReferenceType sessionRef,
+            double requiredConfidence) {
+        RoleAnalysisOutlierPartitionType partition = new RoleAnalysisOutlierPartitionType();
+        partition.setTargetClusterRef(clusterRef);
+        partition.setTargetSessionRef(sessionRef);
+        partition.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = new RoleAnalysisPartitionAnalysisType();
+        OutlierCategoryType outlierCategory = new OutlierCategoryType();
+        outlierCategory.setOutlierNoiseCategory(OutlierNoiseCategoryType.MEMBERS_NOISE);
+        outlierCategory.setOutlierClusterCategory(OutlierClusterCategoryType.OUTER_OUTLIER);
+        outlierCategory.setOutlierSpecificCategory(OutlierSpecificCategoryType.UNIQUE_OBJECT);
+        partitionAnalysis.setOutlierCategory(outlierCategory);
+        partitionAnalysis.setAnomalyObjectsConfidence(0.0);
+        partitionAnalysis.setOverallConfidence(requiredConfidence);
+        partition.setPartitionAnalysis(partitionAnalysis);
+        return partition;
+    }
 }

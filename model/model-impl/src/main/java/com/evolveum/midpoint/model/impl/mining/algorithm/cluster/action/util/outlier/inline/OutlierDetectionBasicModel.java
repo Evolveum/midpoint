@@ -40,8 +40,8 @@ public class OutlierDetectionBasicModel {
     List<MiningRoleTypeChunk> miningRoleTypeChunks;
     int countOfRoles;
 
-    RoleAnalysisOutlierNoiseCategoryType noiseCategory = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
-    OutlierCategory outlierCategory = OutlierCategory.INNER_OUTLIER;
+    OutlierNoiseCategoryType noiseCategory = OutlierNoiseCategoryType.SUITABLE;
+    OutlierClusterCategoryType outlierCategory = OutlierClusterCategoryType.INNER_OUTLIER;
 
     public OutlierDetectionBasicModel(
             @NotNull RoleAnalysisService roleAnalysisService,
@@ -155,11 +155,11 @@ public class OutlierDetectionBasicModel {
         return countOfRoles;
     }
 
-    public RoleAnalysisOutlierNoiseCategoryType getNoiseCategory() {
+    public OutlierNoiseCategoryType getNoiseCategory() {
         return noiseCategory;
     }
 
-    public OutlierCategory getOutlierCategory() {
+    public OutlierClusterCategoryType getOutlierCategory() {
         return outlierCategory;
     }
 }
