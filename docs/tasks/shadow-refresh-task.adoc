@@ -42,18 +42,15 @@ This may be achieved by shadow refresh task.
 Shadow refresh task is a lightweight task that executes shadow refresh on selected shadows.
 Refresh task is very simple:
 
-[source,xml]
-----
-<task>
-    <name>Shadow refresh</name>
-    ...
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/shadowRefresh/handler-3</handlerUri>
-    <recurrence>recurring</recurrence>
-    <schedule>
-        <interval>10</interval>
-    </schedule>
-</task>
-----
+.*Refresh shadows*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-shadow-refresh.xml[Git]
+
+sampleRef::samples/tasks/task-shadow-refresh.xml[]
+====
+
+
 
 Such refresh task will look for shadow objects that contain pending operations.
 The reason is that those are the objects that most likely need to be refreshed, e.g. failed operation has to be retried or the status of manual operation needs to be checked.
@@ -65,44 +62,21 @@ This is a reasonable default for sustained operation of midPoint.
 There are cases when refresh task needs to be run explicitly on a selected group of shadows (e.g. migration scenarios).
 In that case the search filter may be explicitly specified in the refresh task:
 
-.Refresh shadows with pending operations on specific resource
-[source,xml]
-----
-<task>
-    <name>Forced Shadow refresh</name>
-    <extension>
-		<modelext:objectQuery>
-			<q:filter>
-                <q:text>
-                    resourceRef matches (oid = "10000000-0000-0000-0000-000000000004") and pendinOperation exists
-                </q:text>
-			</q:filter>
-		</modelext:objectQuery>
-	</extension>
-    ...
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/shadowRefresh/handler-3</handlerUri>
-    <recurrence>single</recurrence>
-</task>
-----
+.*Refresh shadows with pending operations on specific resource*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-shadow-refresh-forced.xml[Git]
 
+sampleRef::samples/tasks/task-shadow-refresh-forced.xml[]
+====
 
-.Refresh shadows on specific resource (regardless of pending operations)
-[source,xml]
-----
-<task>
-    <name>Forced Shadow refresh</name>
-    <extension>
-		<modelext:objectQuery>
-			<q:filter>
-                <q:text>resourceRef matches (oid = "10000000-0000-0000-0000-000000000004")</q:text>
-			</q:filter>
-		</modelext:objectQuery>
-	</extension>
-    ...
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/shadowRefresh/handler-3</handlerUri>
-    <recurrence>single</recurrence>
-</task>
-----
+.*Refresh shadows on specific resource (regardless of pending operations)*
+[%collapsible]
+====
+link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-shadow-refresh-forced-n-p.xml[Git]
+
+sampleRef::samples/tasks/task-shadow-refresh-forced-n-p.xml[]
+====
 
 Whenever you specify query, it overrides the default query (all shadows on all resources with pending operations).
 
