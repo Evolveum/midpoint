@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -142,7 +143,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             int index = 1;
             while (AssociationChildWrapperUtil.existAssociationConfiguration(
                     refQName.getLocalPart(),
-                    getValueModel().getObject().getParent())) {
+                    (PrismContainer<ShadowAssociationTypeDefinitionType>) getValueModel().getObject().getParent().getItem())) {
 
                 refQName = new QName(refQName.getNamespaceURI(), origLocalPart + index, refQName.getPrefix());
                 index++;
