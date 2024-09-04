@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.component.form.CreateObjectForReferencePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.CreateObjectForReferenceValueWrapper;
 
@@ -22,8 +21,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import java.io.Serializable;
 
 /**
  * Factory for reference values that support creating of new object.
@@ -54,25 +51,26 @@ public class CreateObjectForReferencePanelFactory
 
     @Override
     public org.apache.wicket.Component createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
-
-        boolean isHeaderVisible;
-        if (panelCtx.getValueWrapperModel().getObject() instanceof CreateObjectForReferenceValueWrapper<?> createObjectForReferenceWrapper) {
-            isHeaderVisible = createObjectForReferenceWrapper.isHeaderOfCreateObjectVisible();
-        } else {
-            isHeaderVisible = false;
-        }
-
         CreateObjectForReferencePanel panel = new CreateObjectForReferencePanel(
                 panelCtx.getComponentId(),
                 panelCtx.getValueWrapperModel(),
                 createContainerConfiguration(panelCtx.getValueWrapperModel().getObject()),
-                isHeaderVisible);
+                isHeaderVisible(panelCtx.getValueWrapperModel().getObject()));
 
         panel.setFeedback(panelCtx.getFeedback());
         panel.setOutputMarkupId(true);
         return panel;
     }
-    private ContainerPanelConfigurationType createContainerConfiguration(PrismValueWrapper<ObjectReferenceType> valueWrapper) {
+
+    protected final boolean isHeaderVisible(PrismValueWrapper<ObjectReferenceType> value) {
+        if (value instanceof CreateObjectForReferenceValueWrapper<?> createObjectForReferenceWrapper) {
+            return createObjectForReferenceWrapper.isHeaderOfCreateObjectVisible();
+        } else {
+            return false;
+        }
+    }
+
+    protected final ContainerPanelConfigurationType createContainerConfiguration(PrismValueWrapper<ObjectReferenceType> valueWrapper) {
 
         if (valueWrapper instanceof CreateObjectForReferenceValueWrapper<?> createObjectForReferenceWrapper) {
             return createObjectForReferenceWrapper.createContainerConfiguration();
