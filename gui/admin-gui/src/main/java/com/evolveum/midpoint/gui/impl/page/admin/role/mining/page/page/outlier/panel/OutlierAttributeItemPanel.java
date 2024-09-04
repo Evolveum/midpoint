@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.panel;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -22,7 +20,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -33,10 +30,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributePanel;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
@@ -90,19 +85,7 @@ public class OutlierAttributeItemPanel<T extends Serializable>
     }
 
     private @NotNull Component buildDetailsPanel(@NotNull String id) {
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         Task task = getPageBase().createSimpleTask("loadOutlierDetails");
-
-        RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
-        RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
-
-        //TODO!
-        OutlierObjectModel outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier,
-                task, task.getResult(), partition, getPageBase());
-
-        if (outlierObjectModel == null) {
-            return new WebMarkupContainer(id);
-        }
 
         RoleAnalysisWidgetsPanel detailsPanel = loadDetailsPanel(id, task);
         detailsPanel.setOutputMarkupId(true);
@@ -114,6 +97,10 @@ public class OutlierAttributeItemPanel<T extends Serializable>
 
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
         AttributeAnalysis attributeAnalysis = partition.getPartitionAnalysis().getAttributeAnalysis();
+        if(attributeAnalysis == null) {
+            return new RoleAnalysisWidgetsPanel(id, loadDetailsModel());
+        }
+
         RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
         RoleAnalysisAttributeAnalysisResult clusterCompare = attributeAnalysis.getUserClusterCompare();
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
