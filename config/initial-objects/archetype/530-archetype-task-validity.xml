@@ -12,7 +12,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Validity scanner task</label>
+            <label>
+                <orig>Validity scanner task</orig>
+                <translation>
+                    <key>ValidityScannerTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Validity scanner task</orig>
                 <translation>

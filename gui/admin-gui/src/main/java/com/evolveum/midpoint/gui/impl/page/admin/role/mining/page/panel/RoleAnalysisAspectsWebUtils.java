@@ -150,7 +150,7 @@ public class RoleAnalysisAspectsWebUtils {
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         Task task = pageBase.createSimpleTask("Get top session outliers");
         OperationResult result = task.getResult();
-        List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(sessionOid, task, result);
+        List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(sessionOid, null, task, result);
         List<RoleAnalysisOutlierType> outliers = topSessionOutliers.subList(0, Math.min(topSessionOutliers.size(), 5));
 
         List<IdentifyWidgetItem> detailsModel = new ArrayList<>();

@@ -10,7 +10,12 @@
     <name>Certification-related task</name>
     <archetypePolicy>
         <display>
-            <label>Certification-related task</label>
+            <label>
+                <orig>Certification-related task</orig>
+                <translation>
+                    <key>CertificationRelatedTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Certification-related tasks</orig>
                 <translation>

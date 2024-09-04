@@ -7,11 +7,16 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.PrismQuerySerialization;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import javax.xml.namespace.QName;
@@ -35,6 +40,7 @@ public class DefinitionScopeDto implements Serializable {
     public static final String F_INCLUDE_ORGS = "includeOrgs";
     public static final String F_INCLUDE_SERVICES = "includeServices";
     public static final String F_INCLUDE_USERS = "includeUsers";
+    public static final String F_INCLUDE_POLICIES = "includePolicies";
     public static final String F_RELATION_LIST = "relationList";
     public static final String F_INCLUDE_ENABLED_ITEMS_ONLY = "enabledItemsOnly";
 
@@ -49,6 +55,7 @@ public class DefinitionScopeDto implements Serializable {
     private boolean includeOrgs;
     private boolean includeServices;
     private boolean includeUsers;
+    private boolean includePolicies;
     private boolean enabledItemsOnly;
     private ExpressionType itemSelectionExpression;
     private List<QName> relationList = new ArrayList<>();
@@ -58,11 +65,19 @@ public class DefinitionScopeDto implements Serializable {
             return;
         }
 
-        try {
-            RootXNode clause = searchFilterType.getFilterClauseAsRootXNode();
-            searchFilterText = prismContext.xmlSerializer().serialize(clause);
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot serialize search filter " + searchFilterType + ": " + e.getMessage(), e);
+        if (searchFilterType.getText() != null) {
+            searchFilterText = searchFilterType.getText();
+        } else if (searchFilterType.getFilterClauseXNode() != null) {
+            try {
+                QName objectTypeQname = objectType != null ? new QName(objectType.name()) : FocusType.COMPLEX_TYPE;
+                Class<?> objectType = WebComponentUtil.qnameToClass(objectTypeQname);
+
+                ObjectFilter objectFilter = prismContext.getQueryConverter().createObjectFilter(objectType, searchFilterType);
+                PrismQuerySerialization serializer = PrismContext.get().querySerializer().serialize(objectFilter);
+                searchFilterText = serializer.filterText();
+            } catch (Exception e) {
+                throw new SystemException("Cannot serialize search filter " + searchFilterType + ": " + e.getMessage(), e);
+            }
         }
     }
 
@@ -72,13 +87,7 @@ public class DefinitionScopeDto implements Serializable {
         }
 
         SearchFilterType rv = new SearchFilterType();
-        RootXNode filterClauseNode;
-        try {
-            filterClauseNode = context.parserFor(searchFilterText).xml().parseToXNode();
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot parse search filter " + searchFilterText + ": " + e.getMessage(), e);
-        }
-        rv.setFilterClauseXNode(filterClauseNode);
+        rv.setText(searchFilterText);
         return rv;
     }
 
@@ -168,6 +177,14 @@ public class DefinitionScopeDto implements Serializable {
 
     public void setIncludeUsers(boolean includeUsers) {
         this.includeUsers = includeUsers;
+    }
+
+    public boolean isIncludePolicies() {
+        return includePolicies;
+    }
+
+    public void setIncludePolicies(boolean includePolicies) {
+        this.includePolicies = includePolicies;
     }
 
     public boolean isEnabledItemsOnly() {

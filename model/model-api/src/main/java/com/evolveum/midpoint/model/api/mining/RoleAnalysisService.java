@@ -980,11 +980,12 @@ public interface RoleAnalysisService {
 
     List<RoleAnalysisOutlierType> getSessionOutliers(
             @NotNull String sessionOid,
+            @Nullable OutlierClusterCategoryType category,
             @NotNull Task task,
             @NotNull OperationResult result);
 
     //TODO: replace this method (experiment)
-    List<String> findJaccardCloseObject(
+    ListMultimap<Double, String> findJaccardCloseObject(
             @NotNull String userOid,
             @NotNull ListMultimap<List<String>, String> chunkMap,
             @NotNull MutableDouble usedFrequency,
@@ -1032,12 +1033,14 @@ public interface RoleAnalysisService {
      * This method is used to find all outliers associated with a specific cluster.
      *
      * @param cluster The cluster for which to find associated outliers. It should be a RoleAnalysisClusterType object.
+     * @param category The specific category of outliers to search for. It should be an OutlierSpecificCategoryType object.
      * @param task The task in context. It should be a Task object.
      * @param result The operation result. It should be an OperationResult object.
      * @return A list of RoleAnalysisOutlierType objects that are associated with the provided cluster.
      */
     List<RoleAnalysisOutlierType> findClusterOutliers(
             @NotNull RoleAnalysisClusterType cluster,
+            @Nullable OutlierSpecificCategoryType category,
             @NotNull Task task,
             @NotNull OperationResult result);
 
@@ -1130,4 +1133,9 @@ public interface RoleAnalysisService {
 
     double calculatePossibleAssignmentReduction(RoleAnalysisSessionType session, Task task, OperationResult result);
 
+    List<RoleAnalysisClusterType> getSessionClustersByType(
+            @NotNull String sessionOid,
+            @NotNull RoleAnalysisClusterCategory clusterType,
+            @NotNull Task task,
+            @NotNull OperationResult result);
 }

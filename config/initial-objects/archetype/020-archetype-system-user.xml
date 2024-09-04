@@ -16,8 +16,18 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>System user</label>
-            <pluralLabel>System users</pluralLabel>
+            <label>
+                <orig>System user</orig>
+                <translation>
+                    <key>systemUser.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>System users</orig>
+                <translation>
+                    <key>systemUser.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-user</cssClass>
                 <color>red</color>

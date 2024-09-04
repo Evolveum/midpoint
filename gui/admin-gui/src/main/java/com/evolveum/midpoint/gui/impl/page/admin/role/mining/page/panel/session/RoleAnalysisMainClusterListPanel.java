@@ -14,32 +14,37 @@ import java.io.Serial;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisObjectState;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -64,12 +69,16 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.RoleAnalysisTabbedPanel;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
@@ -78,6 +87,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
@@ -90,7 +100,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
         applicableForType = RoleAnalysisSessionType.class,
 //        defaultPanel = true,
         display = @PanelDisplay(
-                label = "RoleAnalysisSessionType.roleAnalysisClusterRef",
+                label = "RoleAnalysisSessionType.roleAnalysisCluster.result",
                 icon = GuiStyleConstants.CLASS_ROLE_ANALYSIS_CLUSTER_ICON,
                 order = 20
         )
@@ -112,38 +122,103 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         Form<?> form = new Form<>(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
-        form.add(clusterTable());
+
+        List<ITab> tabs = createTabs();
+        RoleAnalysisTabbedPanel<ITab> tabPanel = new RoleAnalysisTabbedPanel<>(ID_DATATABLE, tabs, null) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Contract("_, _ -> new")
+            @Override
+            protected @NotNull WebMarkupContainer newLink(String linkId, final int index) {
+                return new AjaxSubmitLink(linkId) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target) {
+                        super.onError(target);
+                        target.add(getPageBase().getFeedbackPanel());
+                    }
+
+                    @Override
+                    protected void onSubmit(AjaxRequestTarget target) {
+                        super.onSubmit(target);
+
+                        setSelectedTab(index);
+                        if (target != null) {
+                            target.add(findParent(TabbedPanel.class));
+                        }
+                        assert target != null;
+                        target.add(getPageBase().getFeedbackPanel());
+                    }
+
+                };
+            }
+        };
+        tabPanel.setOutputMarkupId(true);
+        tabPanel.setOutputMarkupPlaceholderTag(true);
+        tabPanel.add(AttributeAppender.append("class", "p-0 m-0"));
+        form.add(tabPanel);
+
+//        form.add(clusterTable());
     }
 
-    private ObjectQuery getCustomizeContentQuery() {
-        return getPrismContext().queryFor(RoleAnalysisClusterType.class)
-                .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF)
-                .ref(getObjectDetailsModels().getObjectWrapper().getOid(), RoleAnalysisSessionType.COMPLEX_TYPE)
-                .build();
+    protected List<ITab> createTabs() {
+        List<ITab> tabs = new ArrayList<>();
+        tabs.add(new PanelTab(getPageBase().createStringResource("Clusters"), new VisibleEnableBehaviour()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                MainObjectListPanel<RoleAnalysisClusterType> components = clusterTable(panelId, RoleAnalysisClusterCategory.INLIERS);
+                components.setOutputMarkupId(true);
+                return components;
+            }
+        });
+
+        tabs.add(new PanelTab(getPageBase().createStringResource("Noise"), new VisibleEnableBehaviour()) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                MainObjectListPanel<RoleAnalysisClusterType> components = clusterTable(panelId, RoleAnalysisClusterCategory.OUTLIERS);
+                components.setOutputMarkupId(true);
+                return components;
+            }
+        });
+        return tabs;
     }
 
-    protected MainObjectListPanel<RoleAnalysisClusterType> clusterTable() {
-        MainObjectListPanel<RoleAnalysisClusterType> basicTable = new MainObjectListPanel<>(ID_DATATABLE, RoleAnalysisClusterType.class) {
+    protected MainObjectListPanel<RoleAnalysisClusterType> clusterTable(String panelId, RoleAnalysisClusterCategory category) {
+        MainObjectListPanel<RoleAnalysisClusterType> basicTable = new MainObjectListPanel<>(panelId, RoleAnalysisClusterType.class) {
 
             @Override
             protected boolean isCollapsableTable() {
                 return true;
             }
 
+            @Contract(pure = true)
             @Override
-            public String getAdditionalBoxCssClasses() {
+            public @NotNull String getAdditionalBoxCssClasses() {
                 return " m-0";
             }
 
             @Override
-            protected ISelectableDataProvider<SelectableBean<RoleAnalysisClusterType>> createProvider() {
-                SelectableBeanObjectDataProvider<RoleAnalysisClusterType> provider = createSelectableBeanObjectDataProvider(() ->
-                        getCustomizeContentQuery(), null);
-                provider.setEmptyListOnNullQuery(true);
-                provider.setSort(null);
-                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
-                provider.setSort(RoleAnalysisClusterType.F_NAME.getLocalPart(), SortOrder.DESCENDING);
-                return provider;
+            protected boolean showTableAsCard() {
+                return false;
+            }
+
+            @Override
+            protected @NotNull ISelectableDataProvider<SelectableBean<RoleAnalysisClusterType>> createProvider() {
+                //                SelectableBeanObjectDataProvider<RoleAnalysisClusterType> provider = createSelectableBeanObjectDataProvider(() ->
+//                        getCustomizeContentQuery(), null);
+//                provider.setEmptyListOnNullQuery(true);
+//                provider.setSort(null);
+//                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
+//                provider.setSort(RoleAnalysisClusterType.F_NAME.getLocalPart(), SortOrder.DESCENDING);
+                return RoleAnalysisMainClusterListPanel.this
+                        .createProvider(category, RoleAnalysisMainClusterListPanel.this);
             }
 
             @Override
@@ -152,15 +227,16 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             }
 
             @Override
-            protected List<InlineMenuItem> createInlineMenu() {
+            protected @NotNull List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
                 menuItems.add(RoleAnalysisMainClusterListPanel.this.createDeleteInlineMenu());
                 menuItems.add(RoleAnalysisMainClusterListPanel.this.createPreviewInlineMenu());
                 return menuItems;
             }
 
+            @Contract("_, _, _ -> new")
             @Override
-            protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createNameColumn(IModel<String> displayModel,
+            protected @NotNull IColumn<SelectableBean<RoleAnalysisClusterType>, String> createNameColumn(IModel<String> displayModel,
                     GuiObjectColumnType customColumn, ExpressionType expression) {
                 return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                         customColumn, expression, getPageBase()) {
@@ -195,8 +271,9 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 };
             }
 
+            @Contract(" -> new")
             @Override
-            protected IColumn<SelectableBean<RoleAnalysisClusterType>, String> createIconColumn() {
+            protected @NotNull IColumn<SelectableBean<RoleAnalysisClusterType>, String> createIconColumn() {
                 return new CompositedIconColumn<>(Model.of("")) {
 
                     @Override
@@ -244,7 +321,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             }
 
             @Override
-            protected List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> createDefaultColumns() {
+            protected @NotNull List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> createDefaultColumns() {
 
                 RoleAnalysisSessionType session = getObjectWrapperObject().asObjectable();
                 RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
@@ -343,8 +420,9 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                         IModel<String> userObjectCount = extractUserObjectCount(model);
 
                         RoleAnalysisClusterOccupationPanel occupationPanel = new RoleAnalysisClusterOccupationPanel(componentId) {
+                            @Contract("_ -> new")
                             @Override
-                            public Component createFirstPanel(String idFirstPanel) {
+                            public @NotNull Component createFirstPanel(String idFirstPanel) {
                                 return new IconWithLabel(idFirstPanel, userObjectCount) {
                                     @Override
                                     public String getIconCssClass() {
@@ -353,8 +431,9 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 };
                             }
 
+                            @Contract("_ -> new")
                             @Override
-                            public Component createSecondPanel(String idSecondPanel) {
+                            public @NotNull Component createSecondPanel(String idSecondPanel) {
                                 return new IconWithLabel(idSecondPanel, roleObjectCount) {
                                     @Override
                                     public String getIconCssClass() {
@@ -364,7 +443,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                             }
 
                             @Override
-                            public Component createSeparatorPanel(String idSeparatorPanel) {
+                            public @NotNull Component createSeparatorPanel(String idSeparatorPanel) {
                                 Label separator = new Label(idSeparatorPanel, "");
                                 separator.add(AttributeModifier.replace("class",
                                         "d-flex align-items-center gap-3 fa-solid fa-grip-lines-vertical"));
@@ -406,8 +485,9 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
 
                             IconWithLabel icon = new IconWithLabel(componentId, extractReductionMetric(model)) {
+                                @Contract(pure = true)
                                 @Override
-                                public String getIconCssClass() {
+                                public @NotNull String getIconCssClass() {
                                     return "fa fa-leaf";
                                 }
                             };
@@ -429,48 +509,6 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 } else {
 
                     ListMultimap<String, String> mappedClusterOutliers = tmpMapClusterOutliers();
-                    columns.add(new AbstractExportableColumn<>(
-                            createStringResource("AnalysisClusterStatisticType.attribute.confidence")) {
-
-                        @Override
-                        public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
-                            return null;
-                        }
-
-                        @Override
-                        public String getSortProperty() {
-                            return DetectedPattern.F_METRIC;
-                        }
-
-                        @Override
-                        public boolean isSortable() {
-                            return true;
-                        }
-
-                        @Override
-                        public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
-                                String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> rowModel) {
-                            if (rowModel.getObject() != null) {
-                                SelectableBean<RoleAnalysisClusterType> object = rowModel.getObject();
-                                RoleAnalysisClusterType cluster = object.getValue();
-                                AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
-
-                                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                                RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-                                String confidence = roleAnalysisService.calculateAttributeConfidence(processMode, clusterStatistics);
-                                cellItem.add(new Label(componentId, confidence + "%"));
-                            }
-                        }
-
-                        @Override
-                        public Component getHeader(String componentId) {
-                            return new Label(
-                                    componentId,
-                                    createStringResource("RoleMining.cluster.table.column.header.items.confidence"));
-
-                        }
-
-                    });
 
                     column = new AbstractExportableColumn<>(Model.of("Outliers count")) {
 
@@ -509,115 +547,118 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                     columns.add(column);
                 }
 
-                column = new AbstractExportableColumn<>(
-                        createStringResource("")) {
+                if (category != RoleAnalysisClusterCategory.OUTLIERS) {
+                    column = new AbstractExportableColumn<>(
+                            createStringResource("")) {
 
-                    @Override
-                    public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
-                        return extractUserObjectCount(iModel);
-                    }
-
-                    @Override
-                    public Component getHeader(String componentId) {
-                        return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisCluster.table.header.cluster.attribute.statistic")) {
-                            @Override
-                            protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisCluster.table.header.cluster.attribute.statistic.help");
-                            }
-                        };
-                    }
-
-                    @Override
-                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
-                            String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
-                        String confidence = "";
-
-                        if (model.getObject() != null) {
-                            SelectableBean<RoleAnalysisClusterType> object = model.getObject();
-                            RoleAnalysisClusterType cluster = object.getValue();
-                            AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
-
-                            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                            RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-                            confidence = roleAnalysisService.calculateAttributeConfidence(processMode, clusterStatistics) + "%";
-                        } else {
-                            cellItem.add(new EmptyPanel(componentId));
+                        @Override
+                        public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisClusterType>> iModel) {
+                            return extractUserObjectCount(iModel);
                         }
 
-                        CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
-                                .setBasicIcon("fas fa-chart-bar", LayeredIconCssStyle.IN_ROW_STYLE);
-
-                        AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(componentId, iconBuilder.build(),
-                                Model.of(confidence)) {
-
-                            @Serial private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public void onClick(AjaxRequestTarget target) {
-                                CollapsableContainerPanel collapseContainerUser = (CollapsableContainerPanel) cellItem
-                                        .findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
-                                CollapsableContainerPanel collapseContainerRole = (CollapsableContainerPanel) cellItem
-                                        .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
-
-                                if (!collapseContainerUser.isExpanded()) {
-                                    RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
-                                    RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
-                                    if (model.getObject() != null) {
-                                        RoleAnalysisClusterType value = model.getObject().getValue();
-                                        AnalysisClusterStatisticType clusterStatistics = value.getClusterStatistics();
-                                        if (clusterStatistics != null) {
-                                            userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
-                                            roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
-                                        }
-                                    }
-
-                                    CollapsableContainerPanel webMarkupContainerUser = new CollapsableContainerPanel(
-                                            ID_FIRST_COLLAPSABLE_CONTAINER);
-                                    webMarkupContainerUser.setOutputMarkupId(true);
-                                    webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
-                                    webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
-                                    webMarkupContainerUser.setExpanded(true);
-
-                                    if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
-                                        RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_COLLAPSABLE_CONTENT,
-                                                Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
-                                            @Override
-                                            protected String getCssClassForCardContainer() {
-                                                return "m-3 elevation-1 card";
-                                            }
-                                        };
-                                        roleAnalysisAttributePanel.setOutputMarkupId(true);
-                                        webMarkupContainerUser.add(roleAnalysisAttributePanel);
-                                        webMarkupContainerUser.add(AttributeAppender.append("class", "bg-light"));
-                                    } else {
-                                        Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
-                                        label.setOutputMarkupId(true);
-                                        webMarkupContainerUser.add(label);
-                                    }
-
-                                    collapseContainerUser.replaceWith(webMarkupContainerUser);
-                                    target.add(webMarkupContainerUser);
+                        @Override
+                        public Component getHeader(String componentId) {
+                            return new LabelWithHelpPanel(componentId,
+                                    createStringResource("RoleAnalysisCluster.table.header.cluster.attribute.statistic")) {
+                                @Override
+                                protected IModel<String> getHelpModel() {
+                                    return createStringResource("RoleAnalysisCluster.table.header.cluster.attribute.statistic.help");
                                 }
-                                target.appendJavaScript(getCollapseScript(collapseContainerUser, collapseContainerRole));
+                            };
+                        }
+
+                        @Override
+                        public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisClusterType>>> cellItem,
+                                String componentId, IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+                            String confidence = "";
+
+                            if (model.getObject() != null) {
+                                SelectableBean<RoleAnalysisClusterType> object = model.getObject();
+                                RoleAnalysisClusterType cluster = object.getValue();
+                                AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
+
+                                RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+                                RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+                                confidence = roleAnalysisService.calculateAttributeConfidence(processMode, clusterStatistics) + "%";
+                            } else {
+                                cellItem.add(new EmptyPanel(componentId));
                             }
 
-                        };
-                        objectButton.titleAsLabel(true);
-                        objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm rounded"));
-                        objectButton.add(AttributeAppender.append("style", "width:120px"));
+                            CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
+                                    .setBasicIcon("fas fa-chart-bar", LayeredIconCssStyle.IN_ROW_STYLE);
 
-                        cellItem.add(objectButton);
-                    }
+                            AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(componentId, iconBuilder.build(),
+                                    Model.of(confidence)) {
 
-                    @Override
-                    public boolean isSortable() {
-                        return false;
-                    }
+                                @Serial private static final long serialVersionUID = 1L;
 
-                };
-                columns.add(column);
+                                @Override
+                                public void onClick(AjaxRequestTarget target) {
+                                    CollapsableContainerPanel collapseContainerUser = (CollapsableContainerPanel) cellItem
+                                            .findParent(Item.class).get(ID_FIRST_COLLAPSABLE_CONTAINER);
+                                    CollapsableContainerPanel collapseContainerRole = (CollapsableContainerPanel) cellItem
+                                            .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
 
+                                    if (!collapseContainerUser.isExpanded()) {
+                                        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
+                                        RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
+                                        if (model.getObject() != null) {
+                                            RoleAnalysisClusterType value = model.getObject().getValue();
+                                            AnalysisClusterStatisticType clusterStatistics = value.getClusterStatistics();
+                                            if (clusterStatistics != null) {
+                                                userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
+                                                roleAttributeAnalysisResult = clusterStatistics.getRoleAttributeAnalysisResult();
+                                            }
+                                        }
+
+                                        CollapsableContainerPanel webMarkupContainerUser = new CollapsableContainerPanel(
+                                                ID_FIRST_COLLAPSABLE_CONTAINER);
+                                        webMarkupContainerUser.setOutputMarkupId(true);
+                                        webMarkupContainerUser.add(AttributeModifier.replace("class", "collapse"));
+                                        webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
+                                        webMarkupContainerUser.setExpanded(true);
+
+                                        if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
+                                            RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_COLLAPSABLE_CONTENT,
+                                                    Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+                                                @Contract(pure = true)
+                                                @Override
+                                                protected @NotNull String getCssClassForCardContainer() {
+                                                    return "m-3 elevation-1 card";
+                                                }
+                                            };
+                                            roleAnalysisAttributePanel.setOutputMarkupId(true);
+                                            webMarkupContainerUser.add(roleAnalysisAttributePanel);
+                                            webMarkupContainerUser.add(AttributeAppender.append("class", "bg-light"));
+                                        } else {
+                                            Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+                                            label.setOutputMarkupId(true);
+                                            webMarkupContainerUser.add(label);
+                                        }
+
+                                        collapseContainerUser.replaceWith(webMarkupContainerUser);
+                                        target.add(webMarkupContainerUser);
+                                    }
+                                    target.appendJavaScript(getCollapseScript(collapseContainerUser, collapseContainerRole));
+                                }
+
+                            };
+                            objectButton.titleAsLabel(true);
+                            objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm rounded"));
+                            objectButton.add(AttributeAppender.append("style", "width:120px"));
+
+                            cellItem.add(objectButton);
+                        }
+
+                        @Override
+                        public boolean isSortable() {
+                            return false;
+                        }
+
+                    };
+                    columns.add(column);
+
+                }
                 column = new AbstractExportableColumn<>(
                         createStringResource("AnalysisClusterStatisticType.membershipDensity")) {
 
@@ -671,13 +712,15 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 return getString("pageUsers.message.nothingSelected");
             }
 
+            @Contract(pure = true)
             @Override
-            protected String getConfirmMessageKeyForMultiObject() {
+            protected @NotNull String getConfirmMessageKeyForMultiObject() {
                 return "pageUsers.message.confirmationMessageForMultipleObject";
             }
 
+            @Contract(pure = true)
             @Override
-            protected String getConfirmMessageKeyForSingleObject() {
+            protected @NotNull String getConfirmMessageKeyForSingleObject() {
                 return "pageUsers.message.confirmationMessageForSingleObject";
             }
         };
@@ -714,8 +757,9 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 return colorClass;
             }
 
+            @Contract(pure = true)
             @Override
-            public String getBarTitle() {
+            public @NotNull String getBarTitle() {
                 return "";
             }
         };
@@ -827,7 +871,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         };
     }
 
-    private static IModel<String> extractUserObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+    private static @NotNull IModel<String> extractUserObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
         RoleAnalysisClusterType value = model.getObject().getValue();
         if (value != null
                 && value.getClusterStatistics() != null
@@ -838,7 +882,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         }
     }
 
-    private static IModel<String> extractRoleObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+    private static @NotNull IModel<String> extractRoleObjectCount(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
         RoleAnalysisClusterType value = model.getObject().getValue();
         if (value != null
                 && value.getClusterStatistics() != null
@@ -850,7 +894,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         }
     }
 
-    private static IModel<String> extractReductionMetric(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+    private static @NotNull IModel<String> extractReductionMetric(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
         RoleAnalysisClusterType value = model.getObject().getValue();
         if (value != null
                 && value.getClusterStatistics() != null
@@ -862,7 +906,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         }
     }
 
-    private static IModel<?> extractMembershipDensity(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
+    private static @NotNull IModel<?> extractMembershipDensity(IModel<SelectableBean<RoleAnalysisClusterType>> model) {
         RoleAnalysisClusterType value = model.getObject().getValue();
         if (value != null
                 && value.getClusterStatistics() != null
@@ -878,7 +922,8 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         }
     }
 
-    private <C extends Containerable> PrismPropertyHeaderPanel<?> createModeBasedColumnHeader(String componentId,
+    @Contract("_, _ -> new")
+    private <C extends Containerable> @NotNull PrismPropertyHeaderPanel<?> createModeBasedColumnHeader(String componentId,
             ItemPath itemPath) {
         LoadableModel<PrismContainerDefinition<AnalysisClusterStatisticType>> definitionModel
                 = WebComponentUtil.getContainerDefinitionModel(AnalysisClusterStatisticType.class);
@@ -922,7 +967,48 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             throw new RuntimeException("Couldn't map outliers", ex);
         }
         return outliersMap;
+    }
 
+    private @NotNull SelectableBeanObjectDataProvider<RoleAnalysisClusterType> createProvider(
+            RoleAnalysisClusterCategory category,
+            Component component) {
+        PageBase pageBase = getPageBase();
+        Task task = pageBase.createSimpleTask("loadClusters");
+        OperationResult result = task.getResult();
+        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+        List<RoleAnalysisClusterType> sessionClustersByType = roleAnalysisService.getSessionClustersByType(
+                getObjectWrapperObject().getOid(), category, task, result);
+        return new SelectableBeanObjectDataProvider<>(
+                component, Set.of()) {
+
+            @SuppressWarnings("rawtypes")
+            @Override
+            protected List<RoleAnalysisClusterType> searchObjects(Class type,
+                    ObjectQuery query,
+                    Collection collection,
+                    Task task,
+                    OperationResult result) {
+                Integer offset = query.getPaging().getOffset();
+                Integer maxSize = query.getPaging().getMaxSize();
+                return sessionClustersByType.subList(offset, offset + maxSize);
+            }
+
+            @Override
+            protected Integer countObjects(Class<RoleAnalysisClusterType> type,
+                    ObjectQuery query,
+                    Collection<SelectorOptions<GetOperationOptions>> currentOptions,
+                    Task task,
+                    OperationResult result) {
+                return sessionClustersByType.size();
+            }
+        };
+    }
+
+    private ObjectQuery getCustomizeContentQuery() {
+        return getPrismContext().queryFor(RoleAnalysisClusterType.class)
+                .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF)
+                .ref(getObjectDetailsModels().getObjectWrapper().getOid(), RoleAnalysisSessionType.COMPLEX_TYPE)
+                .build();
     }
 
 }

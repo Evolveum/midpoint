@@ -203,7 +203,9 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 }
             }
 
-            if (containerPanelConfigurationType.getIdentifier().equals("topOutlierPanel")) {
+            if (containerPanelConfigurationType.getIdentifier().equals("classifiedOutlierPanel")
+                    || containerPanelConfigurationType.getIdentifier().equals("unclassifiedOutlierPanel")
+                    || containerPanelConfigurationType.getIdentifier().equals("allOutlierPanel")) {
                 if (!RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
                     containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                     continue;

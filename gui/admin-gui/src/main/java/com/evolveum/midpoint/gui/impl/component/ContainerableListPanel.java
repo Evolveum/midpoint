@@ -298,10 +298,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return false;
     }
 
-    protected boolean isCardTable() {
-        return false;
-    }
-
     protected boolean isListPanelVisible() {
         return true;
     }
@@ -497,6 +493,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 } else {
                     return super.newRowItem(id, index, item, rowModel);
                 }
+            }
+
+            @Override
+            public boolean isShowAsCard() {
+                return ContainerableListPanel.this.showTableAsCard();
             }
 
             @Override
