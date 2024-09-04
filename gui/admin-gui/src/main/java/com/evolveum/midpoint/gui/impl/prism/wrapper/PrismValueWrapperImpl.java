@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.binding.AbstractPlainStructured;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -65,6 +66,25 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
                 if (getNewValue().isEmpty()) {
                     break;
                 }
+                Object realValue = getNewValue().getRealValueIfExists();
+                if (realValue instanceof AbstractPlainStructured && !isChanged()) {
+                    // if empty AbstractPlainStructured value was used as placeholder, e.g. old and new values equal and
+                    // state is ADDED then we don't really want to add it
+                    // In MID-9564 case was that existing value was removed (marked as DELETED) and new value (with null real
+                    // value) was added (state ADDED) as placeholder. Panel then had to set real value placeholder,
+                    // e.g. ExpressionType object which changed state of wrapper to MODIFIED which is not correct since it's
+                    // not modification of existing value
+                    //
+                    // Really not sure whether this is correct solution, since real value placeholders are needed (for UI panels),
+                    // therefore having empty PPV with null real value is not possible.
+                    // Drawback of this solution is that empty AbstractPlainStructured value will not be added to delta - if
+                    // it's not done "manually" via PrismPropertyValueWrapper.setRealValue()
+                    //
+                    // Also see comment in ItemWrapperImpl.remove().
+
+                    break;
+                }
+
                 if (parent.isSingleValue()) {
                     delta.addValueToReplace(getNewValueWithMetadataApplied());
                 } else {
