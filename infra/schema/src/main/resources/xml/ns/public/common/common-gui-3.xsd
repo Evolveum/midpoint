@@ -335,7 +335,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.4</a:since>
-                        <a:displayName>AdminGuiConfigurationType.useNewDesign</a:displayName>
+                        <a:displayName>AdminGuiConfigurationType.homePage</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
