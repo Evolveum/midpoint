@@ -161,19 +161,20 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
             newObject.asObjectable().name(name.toString());
         }
 
-        PrismPropertyDefinitionImpl<Boolean> createInducementDef = new PrismPropertyDefinitionImpl<>(
-                F_CREATE_INDUCEMENT,
-                DOMUtil.XSD_BOOLEAN,
-                false);
-        createInducementDef.mutator().setDisplayName("ResourceObjectTypeArchetypeValueWrapperImpl.createInducement");
-        createInducementDef.mutator().setMinOccurs(0);
-        createInducementDef.mutator().setHelp("ResourceObjectTypeArchetypeValueWrapperImpl.createInducement.help");
-        createInducementDef.mutator().setOperational(true);
-        def.getComplexTypeDefinition().mutator().add(createInducementDef);
-
         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = getParentContainerValue(ResourceObjectTypeDefinitionType.class);
 
-        if (objectType != null && objectType.getRealValue() != null) {
+        if (objectType != null && objectType.getRealValue() != null && ShadowKindType.ENTITLEMENT == objectType.getRealValue().getKind()) {
+
+            PrismPropertyDefinitionImpl<Boolean> createInducementDef = new PrismPropertyDefinitionImpl<>(
+                    F_CREATE_INDUCEMENT,
+                    DOMUtil.XSD_BOOLEAN,
+                    false);
+            createInducementDef.mutator().setDisplayName("ResourceObjectTypeArchetypeValueWrapperImpl.createInducement");
+            createInducementDef.mutator().setMinOccurs(0);
+            createInducementDef.mutator().setHelp("ResourceObjectTypeArchetypeValueWrapperImpl.createInducement.help");
+            createInducementDef.mutator().setOperational(true);
+            def.getComplexTypeDefinition().mutator().add(createInducementDef);
+
             PrismPropertyDefinitionImpl<String> createMembershipForDef = new PrismPropertyDefinitionImpl<>(
                     F_CREATE_MEMBERSHIP_FOR,
                     DOMUtil.XSD_STRING);
@@ -192,10 +193,10 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
 
     private Collection<? extends DisplayableValue<String>> createSuggestedValuesForObjectTypes(
             PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType) {
-        return ((PrismContainerWrapper<ResourceObjectTypeDefinitionType>)objectType.getParent()).getValues().stream()
+        return ((PrismContainerWrapper<ResourceObjectTypeDefinitionType>) objectType.getParent()).getValues().stream()
                 .filter(value -> value.getRealValue().getKind() != objectType.getRealValue().getKind()
                         || !StringUtils.equals(
-                                ResourceTypeUtil.fillDefault(objectType.getRealValue().getIntent()),
+                        ResourceTypeUtil.fillDefault(objectType.getRealValue().getIntent()),
                         ResourceTypeUtil.fillDefault(value.getRealValue().getIntent())))
                 .map(value -> new ObjectTypeDisplayableValue(value.getRealValue()))
                 .toList();
@@ -207,7 +208,10 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
         try {
             super.processBeforeCreatingPreconditionDelta(newObjectModel, serviceLocator);
 
+            QName focusTypeBean = null;
+
             PrismContainerValueWrapper resourceFocusValue = getParentContainerValue(ResourceObjectFocusSpecificationType.class);
+
             if (resourceFocusValue != null) {
                 try {
                     PrismPropertyWrapper focusType = resourceFocusValue.findProperty(
@@ -215,7 +219,7 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
                     if (focusType != null) {
                         PrismValueWrapper focusTypeValue = focusType.getValue();
                         if (focusTypeValue != null) {
-                            QName focusTypeBean = (QName) focusTypeValue.getRealValue();
+                            focusTypeBean = (QName) focusTypeValue.getRealValue();
                             if (focusTypeBean != null) {
 
                                 PrismContainerWrapper<AssignmentType> assignmentContainer =
@@ -262,6 +266,10 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
                                                 .kind(objectType.getRealValue().getKind())
                                                 .intent(intent));
 
+                        if (focusTypeBean != null) {
+                            newInducement.asContainerable().focusType(focusTypeBean);
+                        }
+
                         PrismValueWrapper<AssignmentType> newWrapper =
                                 WebPrismUtil.createNewValueWrapper(inducementContainer, newInducement, serviceLocator);
 
@@ -285,13 +293,21 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
 
                         PrismContainerValue<AssignmentType> newInducement = new AssignmentType().asPrismContainerValue();
 
+                        ShadowKindType kind = parseKind(createMembershipFor.getValue().getRealValue());
+                        String intent = parseIntent(createMembershipFor.getValue().getRealValue());
+
                         newInducement.asContainerable()
                                 .construction(
                                         new ConstructionType()
                                                 .resourceRef(resource.getOid(), ResourceType.COMPLEX_TYPE)
-                                                .kind(parseKind(createMembershipFor.getValue().getRealValue()))
-                                                .intent(parseIntent(createMembershipFor.getValue().getRealValue())))
+                                                .kind(kind)
+                                                .intent(intent))
                                 .order(2);
+
+                        ResourceObjectTypeDefinitionType objectType = ResourceTypeUtil.findObjectTypeDefinition(resource.getObject(), kind, intent);
+                        if (objectType != null && objectType.getFocus() != null) {
+                            newInducement.asContainerable().focusType(objectType.getFocus().getType());
+                        }
 
                         PrismValueWrapper<AssignmentType> newWrapper =
                                 WebPrismUtil.createNewValueWrapper(inducementContainer, newInducement, serviceLocator);
@@ -304,7 +320,6 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
             }
 
         } finally {
-
 
             PrismObjectDefinition<O> originalDef = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(
                     newObjectModel.getObjectWrapper().getTypeName());
