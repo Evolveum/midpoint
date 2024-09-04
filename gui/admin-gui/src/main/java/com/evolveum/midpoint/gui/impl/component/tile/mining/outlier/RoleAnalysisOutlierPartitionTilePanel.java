@@ -139,8 +139,14 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
     private void initLeftBatch() {
         RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-        RoleAnalysisOutlierNoiseCategoryType outlierNoiseCategory = partitionAnalysis.getOutlierNoiseCategory();
-        String labelValue = outlierNoiseCategory.value();
+        OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+        String labelValue = "N/A";
+        if (outlierCategory != null) {
+            OutlierNoiseCategoryType outlierNoiseCategory = outlierCategory.getOutlierNoiseCategory();
+            if (outlierNoiseCategory != null) {
+                labelValue = outlierNoiseCategory.value();
+            }
+        }
         Label label = new Label(ID_LEFT_BATCH, labelValue);
         label.setOutputMarkupId(true);
         label.add(AttributeAppender.append("class", "badge bg-info"));
@@ -198,6 +204,9 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
         RoleAnalysisPatternAnalysis patternAnalysis = partitionAnalysis.getPatternAnalysis();
         Double confidence = patternAnalysis.getConfidence();
+        if (confidence == null) {
+            confidence = 0.0;
+        }
         BigDecimal bdConfidence = new BigDecimal(Double.toString(confidence));
         bdConfidence = bdConfidence.setScale(2, RoundingMode.HALF_UP);
         double patternCoverageConfidence = bdConfidence.doubleValue();
@@ -231,7 +240,16 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
         RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
         Integer similarObjectsCount = similarObjectAnalysis.getSimilarObjectsCount();
+
+        if (similarObjectsCount == null) {
+            similarObjectsCount = 0;
+        }
+
         Double similarObjectsConfidence = partitionAnalysis.getSimilarObjectsConfidence();
+        if (similarObjectsConfidence == null) {
+            similarObjectsConfidence = 0.0;
+        }
+
         BigDecimal bdSimilarObjectsConfidence = new BigDecimal(Double.toString(similarObjectsConfidence));
         bdSimilarObjectsConfidence = bdSimilarObjectsConfidence.setScale(2, RoundingMode.HALF_UP);
         double similarObjectsConfidenceValue = bdSimilarObjectsConfidence.doubleValue();
@@ -264,6 +282,9 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         items.add(similarObjectPanel);
 
         Double outlierAssignmentFrequencyConfidence = partitionAnalysis.getOutlierAssignmentFrequencyConfidence();
+        if (outlierAssignmentFrequencyConfidence == null) {
+            outlierAssignmentFrequencyConfidence = 0.0;
+        }
         BigDecimal bdOutlierAssignmentFrequencyConfidence = new BigDecimal(Double.toString(outlierAssignmentFrequencyConfidence));
         bdOutlierAssignmentFrequencyConfidence = bdOutlierAssignmentFrequencyConfidence.setScale(2, RoundingMode.HALF_UP);
         double outlierAssignmentFrequencyConfidenceValue = bdOutlierAssignmentFrequencyConfidence.doubleValue();

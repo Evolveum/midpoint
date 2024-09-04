@@ -52,6 +52,10 @@ public class RoleAnalysisOutlierTileModel<T extends Serializable> extends Tile<T
         this.pageBase = pageBase;
         this.clusterRef = partition.getTargetClusterRef();
         this.sessionRef = partition.getTargetSessionRef();
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
+        OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+        OutlierSpecificCategoryType outlierSpecificCategory = outlierCategory.getOutlierSpecificCategory();
+        this.status = outlierSpecificCategory.value();
 
         tmpNameRefResolver(clusterRef, sessionRef, pageBase);
 

@@ -273,7 +273,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                 //TODO
-                parameters.add("panelId", "topOutlierPanel");
+                parameters.add("panelId", "allOutlierPanel");
 
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                         .getObjectDetailsPage(RoleAnalysisSessionType.class);
@@ -1074,7 +1074,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             RoleAnalysisSessionStatisticType sessionStatistic,
             WebMarkupContainer container) {
 
-        List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(session.getOid(), task, result);
+        List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(session.getOid(), null, task, result);
 
         if (topSessionOutliers != null && sessionStatistic != null && !topSessionOutliers.isEmpty()) {
             initOutlierPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
