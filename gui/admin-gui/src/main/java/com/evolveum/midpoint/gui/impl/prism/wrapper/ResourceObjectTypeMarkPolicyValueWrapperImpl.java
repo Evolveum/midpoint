@@ -137,8 +137,8 @@ public class ResourceObjectTypeMarkPolicyValueWrapperImpl<T extends Referencable
     }
 
     @Override
-    protected void processBeforeCreatingPreconditionDelta(
-            ObjectDetailsModels<? extends ObjectType> newObjectModel, ModelServiceLocator serviceLocator) {
+    protected <O extends ObjectType> void processBeforeCreatingPreconditionDelta(
+            ObjectDetailsModels<O> newObjectModel, ModelServiceLocator serviceLocator) {
         super.processBeforeCreatingPreconditionDelta(newObjectModel, serviceLocator);
 
         try {
