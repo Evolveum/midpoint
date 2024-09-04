@@ -154,7 +154,7 @@ public class ObjectAssociationStepPanel extends ParticipantAssociationStepPanel 
                             .anyMatch(wrapper -> equalValueAndObjectTypeWrapper(value, wrapper));
 
                     if (!match) {
-                        if (ValueStatus.ADDED == value.getStatus()) {
+                        if (ValueStatus.ADDED == associationContainer.getStatus() || ValueStatus.ADDED == value.getStatus()) {
                             valueForRemove.add(value);
                         } else {
                             value.setStatus(ValueStatus.DELETED);

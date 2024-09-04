@@ -348,6 +348,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
                 cw.setIdentifier(virtualContainer.getIdentifier());
                 cw.setVirtual(true);
                 if (virtualContainer.isExpanded() != null) {
+                    ((PrismContainerWrapper<?>) iw).setExpanded(virtualContainer.isExpanded());
                     cw.getValues().forEach(vw -> vw.setExpanded(virtualContainer.isExpanded()));
                 }
             }

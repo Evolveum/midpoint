@@ -95,8 +95,8 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
         String status = modelObject.getStatus();
 
         Label statusBar = new Label(ID_STATUS_BAR, Model.of(status));
-        statusBar.add(AttributeAppender.append("class", "badge badge-pill badge-info"));
-        statusBar.add(AttributeAppender.append("style", "width: 80px"));
+        statusBar.add(AttributeAppender.append("class", "badge badge-pill badge-info text-truncate"));
+        statusBar.add(AttributeAppender.append("style", "width: 120px"));
         statusBar.setOutputMarkupId(true);
         add(statusBar);
     }
