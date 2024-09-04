@@ -1,0 +1,4041 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+<role oid="03d9e829-3419-4391-9592-0ebbe64bca8f" version="0">
+    <name>NipponDB_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="041bf383-4907-4361-8f50-34f2dea55a1d" version="0">
+    <name>AD Group Contractors_3</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="05604526-8067-4791-ba59-d0b09e95759c" version="0">
+    <name>CRM Writer_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="05f27dcf-a5bc-4e68-b3ba-969a665c4983" version="0">
+    <name>DE Specialist_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="068463a6-bbb4-4fd7-a491-4d082f56d505" version="0">
+    <name>Location New York</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="5a3e1dd1-c7e3-4052-aae3-2a4ad43aab1a" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="10b76deb-9220-4942-b30a-1fa1754e1ec4" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="c20cd775-e440-4d06-852e-ff9a4f9f9ad0" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="fad1973a-fb40-4944-987b-5ea9e84ca5f7" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="dad14a9b-82e0-4ee2-92a9-531e4b4569b4" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="ae6f2ae3-2ee8-4348-beb8-77fb73a3e35a" relation="org:default" type="c:RoleType">
+            <!-- New York Manhattan Building Access_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="ab790535-73a5-47ca-a2fd-119871eaeb9c" relation="org:default" type="c:RoleType">
+            <!-- New York Manhattan Building Access_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="f7316ee0-1c47-4466-be44-28c0cd3f87ca" relation="org:default" type="c:RoleType">
+            <!-- New York Manhattan Building Access_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="d4189fd0-a829-4b4d-8f51-ab198494fc2e" relation="org:default" type="c:RoleType">
+            <!-- New York Manhattan Building Access_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="7318033f-6583-40be-8242-03669bc0ab28" relation="org:default" type="c:RoleType">
+            <!-- New York Manhattan Building Access_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="12">
+        <targetRef oid="493ad5d3-f794-40b6-8810-fdd4997d1fc7" relation="org:default" type="c:RoleType">
+            <!-- New York Brooklyn Building Access_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="13">
+        <targetRef oid="65281e99-3dc0-48a9-b62f-c871ad5c9bb0" relation="org:default" type="c:RoleType">
+            <!-- New York Brooklyn Building Access_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="14">
+        <targetRef oid="93ca772e-4b40-4549-ae50-8c81ef01b7db" relation="org:default" type="c:RoleType">
+            <!-- New York Brooklyn Building Access_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="15">
+        <targetRef oid="5147c45a-a508-4d19-97b9-a28cacd52c0e" relation="org:default" type="c:RoleType">
+            <!-- New York Brooklyn Building Access_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="16">
+        <targetRef oid="8b228a46-9eff-47bf-b50b-9a02d4dc4374" relation="org:default" type="c:RoleType">
+            <!-- New York Brooklyn Building Access_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="0821a812-b90d-4e5d-b594-252a04606107" version="0">
+    <name>Web Analytics_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="084b93f5-2f23-4087-83ec-94f4f8f5183a" version="0">
+    <name>Security Officer</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="8c12e1c3-e1e5-43d6-b8fe-eae3b1186cbe" relation="org:default" type="c:RoleType">
+            <!-- AD Auditor_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="cbc8375d-a9d6-46c2-b1d2-3184f4d88960" relation="org:default" type="c:RoleType">
+            <!-- AD Auditor_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="96381a84-fe62-4d62-9f35-b9483648211f" relation="org:default" type="c:RoleType">
+            <!-- AD Auditor_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="e8985e2d-2d9e-473a-b536-48c5f82de992" relation="org:default" type="c:RoleType">
+            <!-- AD Auditor_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="e296c756-1730-4e78-92c6-aed037ff9039" relation="org:default" type="c:RoleType">
+            <!-- AD Auditor_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="7116ff2a-db8d-40eb-9b0e-0b8c8823b419" relation="org:default" type="c:RoleType">
+            <!-- Firewall Admin_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="ab28d98c-6da7-4a62-9371-2c0bb0134c7d" relation="org:default" type="c:RoleType">
+            <!-- Firewall Admin_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="5c1bf3ef-47c8-4a1f-9997-7c60d3c39881" relation="org:default" type="c:RoleType">
+            <!-- Firewall Admin_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="73fb0cef-97b8-47e8-9bc2-637592c41e35" relation="org:default" type="c:RoleType">
+            <!-- Firewall Admin_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="39794bed-b521-491e-8d3c-899d97529b70" relation="org:default" type="c:RoleType">
+            <!-- Firewall Admin_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="12">
+        <targetRef oid="2bc1173f-1cb4-4e01-8feb-7d8c51e81340" relation="org:default" type="c:RoleType">
+            <!-- NipponDB_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="13">
+        <targetRef oid="03d9e829-3419-4391-9592-0ebbe64bca8f" relation="org:default" type="c:RoleType">
+            <!-- NipponDB_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="14">
+        <targetRef oid="70b1433e-ca99-4435-b0e8-56e37ad20456" relation="org:default" type="c:RoleType">
+            <!-- NipponDB_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="15">
+        <targetRef oid="b5e170b9-b5b2-4ef6-9546-5fe81cdb4582" relation="org:default" type="c:RoleType">
+            <!-- NipponDB_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="16">
+        <targetRef oid="ede3ee87-e1b6-4f26-a951-159e4480633a" relation="org:default" type="c:RoleType">
+            <!-- NipponDB_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="08a5146f-b135-4200-9bc2-3b9968f7a905" version="0">
+    <name>AD audit group_2</name>
+    <assignment id="1">
+        <targetRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+            <!-- Technical Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+        <!-- Technical Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="08f7e2bf-557d-4b59-893d-843ac92316a6" version="0">
+    <name>Tokio Building Access_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="09343253-3587-450b-9b25-c1ab3e0f1ce4" version="0">
+    <name>DE Specialist_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="0a5fabb5-0a3a-4e97-92f5-1a00d44717d4" version="0">
+    <name>Supervisor_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="0b9c4e35-da78-4bc1-8743-d2cb59c9b71a" version="0">
+    <name>London Building Access_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="0bd8786f-d2b6-4eae-a0f6-fe9d5741e36c" version="0">
+    <name>AD Manager User_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="0d12ccbe-c545-40c7-9ff7-f52127c1d3b8" version="0">
+    <name>SAP HR_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="0d7c79c3-39b1-4fd9-bafd-34154ac8ba19" version="0">
+    <name>IT Privileges_1</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="0ea2dcf6-52d1-43b9-8184-8044ed7ffe89" version="0">
+    <name>Europe AD_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="0f3e3736-89b7-4c51-9424-28f193447229" version="0">
+    <name>Contractor</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="95135df1-cd95-4fe1-b2cf-0c0b38688241" relation="org:default" type="c:RoleType">
+            <!-- AD Group Contractors_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="afbb61ac-cf02-4e8c-9257-e4dbd1b93b1c" relation="org:default" type="c:RoleType">
+            <!-- AD Group Contractors_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="041bf383-4907-4361-8f50-34f2dea55a1d" relation="org:default" type="c:RoleType">
+            <!-- AD Group Contractors_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="3df655fd-ae4f-4630-8304-a712179fdc61" relation="org:default" type="c:RoleType">
+            <!-- AD Group Contractors_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="b2de071d-907a-4082-ab1a-58661ad52735" relation="org:default" type="c:RoleType">
+            <!-- AD Group Contractors_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="534cc550-5ad2-454b-a3f4-f09adefa6a4c" relation="org:default" type="c:RoleType">
+            <!-- Exit Procedures_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="8bfc787a-26d0-4cbb-8e06-575b9dfbbd51" relation="org:default" type="c:RoleType">
+            <!-- Exit Procedures_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="949e2f25-1dbc-437e-8bc7-0f92d542a3a2" relation="org:default" type="c:RoleType">
+            <!-- Exit Procedures_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="4acc5dfb-beeb-4e89-9e5c-2a853bf6d770" relation="org:default" type="c:RoleType">
+            <!-- Exit Procedures_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="4eda6fd0-77e5-4269-ad6f-72310fdc57bc" relation="org:default" type="c:RoleType">
+            <!-- Exit Procedures_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="12">
+        <targetRef oid="0d7c79c3-39b1-4fd9-bafd-34154ac8ba19" relation="org:default" type="c:RoleType">
+            <!-- IT Privileges_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="13">
+        <targetRef oid="dad63e0d-4a09-496d-ae6c-050237bf32d9" relation="org:default" type="c:RoleType">
+            <!-- IT Privileges_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="14">
+        <targetRef oid="7893de6c-6cf8-40b2-a28d-6cd0d9aef503" relation="org:default" type="c:RoleType">
+            <!-- IT Privileges_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="15">
+        <targetRef oid="13edad28-3665-4e1b-862e-43d0f9e975fb" relation="org:default" type="c:RoleType">
+            <!-- IT Privileges_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="16">
+        <targetRef oid="1d3df5c9-b5c7-4627-a4a0-3cf52a5ab211" relation="org:default" type="c:RoleType">
+            <!-- IT Privileges_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="10b76deb-9220-4942-b30a-1fa1754e1ec4" version="0">
+    <name>East Coast AD_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="115d32e0-8704-4c86-8d92-5e45f7571692" version="0">
+    <name>VPN Remote_2</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="119d0d21-02da-4e7f-91c1-e9ed45a376d5" version="0">
+    <name>SAP Basic</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="13edad28-3665-4e1b-862e-43d0f9e975fb" version="0">
+    <name>IT Privileges_4</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="174aad4d-85b8-4da8-a4ec-6fbba3d82ef8" version="0">
+    <name>TE Coordinator_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="17b358e9-9335-4c62-8813-5be2baca7009" version="0">
+    <name>AD Manager Group_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="190c374a-9fcd-4283-9db5-a8f40f1703a3" version="0">
+    <name>AD audit group_5</name>
+    <assignment id="1">
+        <targetRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+            <!-- Technical Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+        <!-- Technical Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="19b77b3e-be37-4ec1-af72-f9f35a00c10b" version="0">
+    <name>London AD_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="19c06851-f176-4359-a5d2-d3b4d33d2ddb" version="0">
+    <name>AD Power User</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="1b7e3cd9-4dda-46c2-8687-bb02cd8a97bc" version="0">
+    <name>External_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="1d3df5c9-b5c7-4627-a4a0-3cf52a5ab211" version="0">
+    <name>IT Privileges_5</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="1d474184-2d73-45ef-837b-f56608d8a02f" version="0">
+    <name>TE Coordinator_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="1e6e4326-6cb0-4ef1-9499-76d5962cc3ef" version="0">
+    <name>Europe AD_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="1ea2f0bd-8abf-45a6-9c66-701effffdd21" version="0">
+    <name>Berlin_3</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="223e978c-80f4-4f93-940c-8ebfe790d95e" version="0">
+    <name>SAP HQ_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="22a07ed7-2e6b-4c8f-9256-f43bc72de4e8" version="0">
+    <name>SAP Basic_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="240c1228-7d7b-4620-8fda-05f1d6176757" version="0">
+    <name>Supervisor_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="266cd6f1-7f2f-4c1a-8506-ed7496335584" version="0">
+    <name>Project Support Assistant_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="269f5e9d-1d63-4225-9f5a-0eb9c9c26f15" version="0">
+    <name>SAP Basic_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="278c5f3e-3bf0-48e0-b02f-af78940af130" version="0">
+    <name>Tokio AD_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="292a0ff6-d786-4c64-a395-3b6b6edcedc4" version="0">
+    <name>AD Manager Group_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="2bc1173f-1cb4-4e01-8feb-7d8c51e81340" version="0">
+    <name>NipponDB_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="2d0bb390-8e77-4439-9b6d-08fd6d8c89ad" version="0">
+    <name>London_4</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="2d2f1806-e63c-4431-b1f2-5f83f60ec8e8" version="0">
+    <name>Europe AD_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="2d78d172-ed6e-4dc4-a915-06e6a632e0b7" version="0">
+    <name>AD Group Employees_2</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="31498b11-5a94-4fe3-b7dd-5aa6b08d1dc3" version="0">
+    <name>VPN Remote_1</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="32939a4f-3651-4f9d-bc99-0e5cbe7a6aed" version="0">
+    <name>VPN Remote_4</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="3394b147-4bc7-4b8b-a946-a0b5f85bbde2" version="0">
+    <name>Tokyo_2</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="339b082d-a9a1-46ec-965b-2ccd85485cd3" version="0">
+    <name>AD Manager Group_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="34d8b65a-68dc-46b3-be46-956457eae50a" version="0">
+    <name>SAP HR_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="357bacd5-f7ab-41c8-81ad-24b8e975d760" version="0">
+    <name>Berlin_5</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="35b5a81d-df5a-4dbe-96df-0027b996e666" version="0">
+    <name>External_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="37306dde-be11-4537-ae14-7db32e31e29e" version="0">
+    <name>CRM Writer_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="375c915e-24cc-4abd-8e81-992b9a029f40" version="0">
+    <name>Web Analytics_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="377031b5-3738-4954-a405-2b6801302e53" version="0">
+    <name>ERP Reader</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="39794bed-b521-491e-8d3c-899d97529b70" version="0">
+    <name>Firewall Admin_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="3ad801fe-81be-4443-960c-18bbdca3dcab" version="0">
+    <name>Web Analytics_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="3bb4412d-768d-43c5-aad8-70f3909ac042" version="0">
+    <name>CRM Reader_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="3df655fd-ae4f-4630-8304-a712179fdc61" version="0">
+    <name>AD Group Contractors_4</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="3e63b80a-23c8-4fec-97a3-22923190887b" version="0">
+    <name>Technical AD Auditor</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="7cf8e2ca-265c-4beb-a3c6-7e9a23805504" relation="org:default" type="c:RoleType">
+            <!-- London AD_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="19b77b3e-be37-4ec1-af72-f9f35a00c10b" relation="org:default" type="c:RoleType">
+            <!-- London AD_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="94885cb7-dd50-4772-8021-1af4b11db284" relation="org:default" type="c:RoleType">
+            <!-- London AD_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="ef388ca3-bd23-45da-9b77-9b3e944799c2" relation="org:default" type="c:RoleType">
+            <!-- London AD_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="94f67a1e-54dc-4b2a-b982-fd98ac00a74a" relation="org:default" type="c:RoleType">
+            <!-- London AD_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="0ea2dcf6-52d1-43b9-8184-8044ed7ffe89" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="fa0bbf77-12d3-4ae1-9d6b-5122410da2e2" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="1e6e4326-6cb0-4ef1-9499-76d5962cc3ef" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="b8377ee9-556f-4f9e-b9fc-36cc49954674" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="2d2f1806-e63c-4431-b1f2-5f83f60ec8e8" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="12">
+        <targetRef oid="5a3e1dd1-c7e3-4052-aae3-2a4ad43aab1a" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="13">
+        <targetRef oid="10b76deb-9220-4942-b30a-1fa1754e1ec4" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="14">
+        <targetRef oid="c20cd775-e440-4d06-852e-ff9a4f9f9ad0" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="15">
+        <targetRef oid="fad1973a-fb40-4944-987b-5ea9e84ca5f7" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="16">
+        <targetRef oid="dad14a9b-82e0-4ee2-92a9-531e4b4569b4" relation="org:default" type="c:RoleType">
+            <!-- East Coast AD_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="17">
+        <targetRef oid="278c5f3e-3bf0-48e0-b02f-af78940af130" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="18">
+        <targetRef oid="6af4c75c-6c3f-478e-8631-ab4a187b5cf3" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="19">
+        <targetRef oid="8ddb87ab-0b02-4259-a921-7d1408d7d522" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="20">
+        <targetRef oid="83121658-5ee3-466d-8242-d2f46058c529" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="21">
+        <targetRef oid="70da50a7-e79d-4693-bed1-28c46c383baf" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="22">
+        <targetRef oid="97f76c91-4124-499d-be70-5b661dd6bef3" relation="org:default" type="c:RoleType">
+            <!-- AD audit group_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="23">
+        <targetRef oid="08a5146f-b135-4200-9bc2-3b9968f7a905" relation="org:default" type="c:RoleType">
+            <!-- AD audit group_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="24">
+        <targetRef oid="f21db5a8-d799-4541-a7ec-7b5a8947833c" relation="org:default" type="c:RoleType">
+            <!-- AD audit group_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="25">
+        <targetRef oid="e4a044a9-9406-4d5c-9316-b41e23b61629" relation="org:default" type="c:RoleType">
+            <!-- AD audit group_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="26">
+        <targetRef oid="190c374a-9fcd-4283-9db5-a8f40f1703a3" relation="org:default" type="c:RoleType">
+            <!-- AD audit group_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="3e6eeece-ee86-413e-b7c9-f407d6963483" version="0">
+    <name>SAP HR_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="3e930f32-a038-4563-994a-0a86258c0eb5" version="0">
+    <name>VPN External_1</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="40f49043-39a8-4283-baae-082bb9d82315" version="0">
+    <name>VPN External_4</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="41bfc953-574a-43d6-bf09-3d021a004a3f" version="0">
+    <name>Exchange Calendar_1</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="45566a80-c2a8-402f-835e-741ed38fb121" version="0">
+    <name>Web Editor</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="463fa502-3c21-48a0-b568-35092f61ce66" version="0">
+    <name>SAP Basic_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="4783549b-2b21-4ac7-859c-cbf6873fcaad" version="0">
+    <name>Tokio Building Access_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="47a627c4-fd0f-42e3-a2d0-3ef0cba09ac1" version="0">
+    <name>Assistant</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="68121c9b-4c09-42ff-a856-a7fcfde31037" relation="org:default" type="c:RoleType">
+            <!-- Calendar Power User_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="f82040bf-2ced-452a-a2ec-043eefc7b6ee" relation="org:default" type="c:RoleType">
+            <!-- Calendar Power User_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="5148b266-ea61-450c-830f-e279448b1b2c" relation="org:default" type="c:RoleType">
+            <!-- Calendar Power User_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="972b6f6b-5506-4841-ba2e-23bfdf71874e" relation="org:default" type="c:RoleType">
+            <!-- Calendar Power User_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="d7a59c73-a0a4-4cf1-9a3f-54be183b1e07" relation="org:default" type="c:RoleType">
+            <!-- Calendar Power User_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="ea747e17-8954-4a7f-99e2-dcec25f94e83" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="2d78d172-ed6e-4dc4-a915-06e6a632e0b7" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="7e9784cb-f838-4fde-b687-e6dae8f6d128" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="c22c1487-d3e7-453d-a7dc-5acd3809c068" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="7575280f-c720-4d20-8af9-72154d613f84" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="493ad5d3-f794-40b6-8810-fdd4997d1fc7" version="0">
+    <name>New York Brooklyn Building Access_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="494519ec-0ac1-47e5-9bba-3b4c5fd81f77" version="0">
+    <name>VPN Access_1</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="4a10a5a1-b7c1-429e-a951-a4568f922b68" version="0">
+    <name>VPN Remote_3</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="4acc5dfb-beeb-4e89-9e5c-2a853bf6d770" version="0">
+    <name>Exit Procedures_4</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="4c3232b4-99a1-4490-a237-569de08e93cb" version="0">
+    <name>Paris_4</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="4ecd723a-1b80-442d-8335-8512fb141788" version="0">
+    <name>Employee</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="ea747e17-8954-4a7f-99e2-dcec25f94e83" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="2d78d172-ed6e-4dc4-a915-06e6a632e0b7" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="7e9784cb-f838-4fde-b687-e6dae8f6d128" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="c22c1487-d3e7-453d-a7dc-5acd3809c068" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="7575280f-c720-4d20-8af9-72154d613f84" relation="org:default" type="c:RoleType">
+            <!-- AD Group Employees_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="6bb4c07c-e23a-4c02-b43e-de4aef11b34b" relation="org:default" type="c:RoleType">
+            <!-- Exchange Email_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="9aa367ff-4a01-43c7-89c1-b6f59768c131" relation="org:default" type="c:RoleType">
+            <!-- Exchange Email_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="eb9305b4-3fcb-40e3-af3f-1969b7f3b68a" relation="org:default" type="c:RoleType">
+            <!-- Exchange Email_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="7f767bfe-f9ae-47e3-8f10-f92762ec30a2" relation="org:default" type="c:RoleType">
+            <!-- Exchange Email_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="ee841592-9e42-4cab-b386-4f67811a4229" relation="org:default" type="c:RoleType">
+            <!-- Exchange Email_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="12">
+        <targetRef oid="41bfc953-574a-43d6-bf09-3d021a004a3f" relation="org:default" type="c:RoleType">
+            <!-- Exchange Calendar_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="13">
+        <targetRef oid="a91b245d-01d0-4c11-8241-8b430c12fb8b" relation="org:default" type="c:RoleType">
+            <!-- Exchange Calendar_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="14">
+        <targetRef oid="b128505a-2e27-433d-bbc3-e571c5b19a2b" relation="org:default" type="c:RoleType">
+            <!-- Exchange Calendar_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="15">
+        <targetRef oid="87e5791a-2f61-4593-aae4-60a0377ddbc8" relation="org:default" type="c:RoleType">
+            <!-- Exchange Calendar_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="16">
+        <targetRef oid="5e9c48ca-e4f1-41a5-8d46-f3e2b2a99bbd" relation="org:default" type="c:RoleType">
+            <!-- Exchange Calendar_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="4eda6fd0-77e5-4269-ad6f-72310fdc57bc" version="0">
+    <name>Exit Procedures_5</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="4f01a65d-2881-4826-86f7-f8a86ed54001" version="0">
+    <name>HQ Approver_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="4f24c340-5cac-46a2-85bd-65b69a3f622d" version="0">
+    <name>External_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="50958537-073f-49ea-b560-ab5a48f4ed8d" version="0">
+    <name>Location Berlin</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="0ea2dcf6-52d1-43b9-8184-8044ed7ffe89" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="fa0bbf77-12d3-4ae1-9d6b-5122410da2e2" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="1e6e4326-6cb0-4ef1-9499-76d5962cc3ef" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="b8377ee9-556f-4f9e-b9fc-36cc49954674" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="2d2f1806-e63c-4431-b1f2-5f83f60ec8e8" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="6a98779c-f8d3-4a30-9cdf-3217b4868c29" relation="org:default" type="c:RoleType">
+            <!-- Berlin Building Access_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="9d63c11a-8350-40c2-bec9-ac263df276b4" relation="org:default" type="c:RoleType">
+            <!-- Berlin Building Access_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="967e9b30-50c1-4423-b790-7bef178c7971" relation="org:default" type="c:RoleType">
+            <!-- Berlin Building Access_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="927fb06c-4567-43ff-912f-8ea6d5f69c30" relation="org:default" type="c:RoleType">
+            <!-- Berlin Building Access_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="dbe22f68-82ac-4795-9764-fbf7c4491a72" relation="org:default" type="c:RoleType">
+            <!-- Berlin Building Access_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="5147c45a-a508-4d19-97b9-a28cacd52c0e" version="0">
+    <name>New York Brooklyn Building Access_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5148b266-ea61-450c-830f-e279448b1b2c" version="0">
+    <name>Calendar Power User_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="518fba5b-e68d-44c6-81c5-1de7af4dca83" version="0">
+    <name>London Building Access_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5190300f-6738-42e2-a6ad-b1845b38a2a1" version="0">
+    <name>Paris Building Access_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="51b353c9-563a-46ea-a690-0f2ba29905a1" version="0">
+    <name>New York_3</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="534cc550-5ad2-454b-a3f4-f09adefa6a4c" version="0">
+    <name>Exit Procedures_1</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="53da134b-c684-40ac-b62d-a0ef251d1756" version="0">
+    <name>VPN External_5</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="546454af-f1cd-4deb-92fe-a7cafdb98a0b" version="0">
+    <name>Project Support Assistant_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="54f46670-fc81-4c78-9dfd-2cc67d2845e5" version="0">
+    <name>HQ Approver_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="55154959-4a61-456a-a634-e3cbf6fc30f8" version="0">
+    <name>AD Manager Group_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5698dc45-f32a-4bec-945e-74ffe635de35" version="0">
+    <name>AD Manager User_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5a3e1dd1-c7e3-4052-aae3-2a4ad43aab1a" version="0">
+    <name>East Coast AD_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5b68dec5-d418-4b39-962a-acbd84683b27" version="0">
+    <name>Paris_5</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5bc7d608-0189-47ca-a6a5-d362cff63e3a" version="0">
+    <name>Web Analytics_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5c1bf3ef-47c8-4a1f-9997-7c60d3c39881" version="0">
+    <name>Firewall Admin_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5c987ab7-4a86-41a9-928d-5fb058433235" version="0">
+    <name>AD Manager User_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5d13b577-e973-4cbd-8b5b-39a59aea81a2" version="0">
+    <name>Paris Building Access_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5d5f0da9-0317-43df-8e1a-7019273962bd" version="0">
+    <name>External_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5d98af35-92da-4a0f-99b6-0232eb284477" version="0">
+    <name>Paris Building Access_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="5e9c48ca-e4f1-41a5-8d46-f3e2b2a99bbd" version="0">
+    <name>Exchange Calendar_5</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="61901bbe-b5b7-486c-b619-38e923f77cb7" version="0">
+    <name>Paris_1</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="61e6371b-5839-49f7-b61a-ab7d6c64f558" version="0">
+    <name>CRM Reader_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="62231b07-af48-4dfb-8250-a40f13994d0c" version="0">
+    <name>Noise Media Admin</name>
+    <assignment id="1">
+        <targetRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+            <!-- Noise Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+        <!-- Noise Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="62861882-eeb3-4f32-a050-a62f8a3bf0b8" version="0">
+    <name>CRM Writer</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="65281e99-3dc0-48a9-b62f-c871ad5c9bb0" version="0">
+    <name>New York Brooklyn Building Access_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="6547ee73-f1b6-4ede-8301-c064db3e16de" version="0">
+    <name>AD Manager Group_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="68121c9b-4c09-42ff-a856-a7fcfde31037" version="0">
+    <name>Calendar Power User_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="6a98779c-f8d3-4a30-9cdf-3217b4868c29" version="0">
+    <name>Berlin Building Access_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="6af4c75c-6c3f-478e-8631-ab4a187b5cf3" version="0">
+    <name>Tokio AD_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="6bb4c07c-e23a-4c02-b43e-de4aef11b34b" version="0">
+    <name>Exchange Email_1</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="6e42c7ab-4c75-4c17-bf69-63049315680c" version="0">
+    <name>Noise Media Analyst</name>
+    <assignment id="1">
+        <targetRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+            <!-- Noise Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+        <!-- Noise Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="6ef3576e-57d7-4c7f-8487-b6cc1a28d873" version="0">
+    <name>Paris_3</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="6f860076-71db-4bdf-9a2f-b9b6f1cbba2c" version="0">
+    <name>London Building Access_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="70b1433e-ca99-4435-b0e8-56e37ad20456" version="0">
+    <name>NipponDB_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="70da50a7-e79d-4693-bed1-28c46c383baf" version="0">
+    <name>Tokio AD_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="71127360-ad94-418e-af0d-e407f124ce15" version="0">
+    <name>SAP Basic_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="7116ff2a-db8d-40eb-9b0e-0b8c8823b419" version="0">
+    <name>Firewall Admin_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="716cb11c-43a9-4342-8817-36ff3e252874" version="0">
+    <name>External_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="72d07992-a6f5-4961-afee-65972cf41aaa" version="0">
+    <name>SAP HQ_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="7318033f-6583-40be-8242-03669bc0ab28" version="0">
+    <name>New York Manhattan Building Access_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="73fb0cef-97b8-47e8-9bc2-637592c41e35" version="0">
+    <name>Firewall Admin_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="7575280f-c720-4d20-8af9-72154d613f84" version="0">
+    <name>AD Group Employees_5</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="77d0571c-4fc7-4be4-814b-e1f83d59664a" version="0">
+    <name>SAP HR_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="7893de6c-6cf8-40b2-a28d-6cd0d9aef503" version="0">
+    <name>IT Privileges_3</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="7b048fa2-b6c8-4d0b-b789-5c265ce98807" version="0">
+    <name>VPN External_3</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="7cf8e2ca-265c-4beb-a3c6-7e9a23805504" version="0">
+    <name>London AD_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="7e9784cb-f838-4fde-b687-e6dae8f6d128" version="0">
+    <name>AD Group Employees_3</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="7f767bfe-f9ae-47e3-8f10-f92762ec30a2" version="0">
+    <name>Exchange Email_4</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="8248c947-dba6-4b07-8f06-247e9346aacf" version="0">
+    <name>Project Support Assistant_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="83121658-5ee3-466d-8242-d2f46058c529" version="0">
+    <name>Tokio AD_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="8519d89b-c91e-4e94-8326-da87781a5513" version="0">
+    <name>HQ Approver_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="87e5791a-2f61-4593-aae4-60a0377ddbc8" version="0">
+    <name>Exchange Calendar_4</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="8b228a46-9eff-47bf-b50b-9a02d4dc4374" version="0">
+    <name>New York Brooklyn Building Access_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="8bfc787a-26d0-4cbb-8e06-575b9dfbbd51" version="0">
+    <name>Exit Procedures_2</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="8c12e1c3-e1e5-43d6-b8fe-eae3b1186cbe" version="0">
+    <name>AD Auditor_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="8ddb87ab-0b02-4259-a921-7d1408d7d522" version="0">
+    <name>Tokio AD_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="8f2be549-bfdf-446a-8e7f-32394a4befe0" version="0">
+    <name>TE Coordinator_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="927fb06c-4567-43ff-912f-8ea6d5f69c30" version="0">
+    <name>Berlin Building Access_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="933a26d0-5bba-44e9-962b-44bbdd28fe9c" version="0">
+    <name>HQ Approver_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="93ca772e-4b40-4549-ae50-8c81ef01b7db" version="0">
+    <name>New York Brooklyn Building Access_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="94885cb7-dd50-4772-8021-1af4b11db284" version="0">
+    <name>London AD_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="949e2f25-1dbc-437e-8bc7-0f92d542a3a2" version="0">
+    <name>Exit Procedures_3</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="94f67a1e-54dc-4b2a-b982-fd98ac00a74a" version="0">
+    <name>London AD_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="95135df1-cd95-4fe1-b2cf-0c0b38688241" version="0">
+    <name>AD Group Contractors_1</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="95388397-ef16-4b0b-823c-94c293439a06" version="0">
+    <name>Paris Building Access_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="96381a84-fe62-4d62-9f35-b9483648211f" version="0">
+    <name>AD Auditor_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="967e9b30-50c1-4423-b790-7bef178c7971" version="0">
+    <name>Berlin Building Access_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="972b6f6b-5506-4841-ba2e-23bfdf71874e" version="0">
+    <name>Calendar Power User_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="97f76c91-4124-499d-be70-5b661dd6bef3" version="0">
+    <name>AD audit group_1</name>
+    <assignment id="1">
+        <targetRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+            <!-- Technical Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+        <!-- Technical Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="98e38839-3e42-446e-810a-f65716720021" version="0">
+    <name>London Building Access_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="9a5c55c3-2e8d-4a92-a863-4e1f39f9254d" version="0">
+    <name>Tokyo_4</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="9aa367ff-4a01-43c7-89c1-b6f59768c131" version="0">
+    <name>Exchange Email_2</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="9d63c11a-8350-40c2-bec9-ac263df276b4" version="0">
+    <name>Berlin Building Access_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="9dc01e89-65e6-411b-984e-160ad7c67364" version="0">
+    <name>HR Approver_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="9efe434f-ed7e-403f-99b6-9ec5a847006c" version="0">
+    <name>SAP HR_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="9fdba71c-dab6-458e-80d5-964d2484eb11" version="0">
+    <name>VPN Access_2</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="a0cae92c-a2e5-49e5-b9d7-114bbc45bb97" version="0">
+    <name>ERP Requestor</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="a222ec3d-6bce-41b0-b7b3-9c63984b8337" version="0">
+    <name>DE Specialist_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="a410bdc8-38ad-42ff-a7da-ca6e57afc166" version="0">
+    <name>New York_1</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="a70c6511-43dc-482d-a283-f24b4b838d61" version="0">
+    <name>Supervisor_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="a80ac1d7-2d9a-49e1-8932-9a7b735baa04" version="0">
+    <name>Web Analytics</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="a91b245d-01d0-4c11-8241-8b430c12fb8b" version="0">
+    <name>Exchange Calendar_2</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ab28d98c-6da7-4a62-9371-2c0bb0134c7d" version="0">
+    <name>Firewall Admin_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ab790535-73a5-47ca-a2fd-119871eaeb9c" version="0">
+    <name>New York Manhattan Building Access_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="abf214b8-2d0e-4ec8-8000-bc0f4dfa5466" version="0">
+    <name>Manager</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="292a0ff6-d786-4c64-a395-3b6b6edcedc4" relation="org:default" type="c:RoleType">
+            <!-- AD Manager Group_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="339b082d-a9a1-46ec-965b-2ccd85485cd3" relation="org:default" type="c:RoleType">
+            <!-- AD Manager Group_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="17b358e9-9335-4c62-8813-5be2baca7009" relation="org:default" type="c:RoleType">
+            <!-- AD Manager Group_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="6547ee73-f1b6-4ede-8301-c064db3e16de" relation="org:default" type="c:RoleType">
+            <!-- AD Manager Group_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="55154959-4a61-456a-a634-e3cbf6fc30f8" relation="org:default" type="c:RoleType">
+            <!-- AD Manager Group_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="ca0492e2-57df-4a39-b197-cf0e23f36e14" relation="org:default" type="c:RoleType">
+            <!-- AD Manager User_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="0bd8786f-d2b6-4eae-a0f6-fe9d5741e36c" relation="org:default" type="c:RoleType">
+            <!-- AD Manager User_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="cd336228-f4f9-4377-a484-f42b9d5673af" relation="org:default" type="c:RoleType">
+            <!-- AD Manager User_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="5698dc45-f32a-4bec-945e-74ffe635de35" relation="org:default" type="c:RoleType">
+            <!-- AD Manager User_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="5c987ab7-4a86-41a9-928d-5fb058433235" relation="org:default" type="c:RoleType">
+            <!-- AD Manager User_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="abf6acda-4de6-4107-a59d-377afb97a86f" version="0">
+    <name>CRM Reader_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ac6c439a-5434-4398-98ca-3a4228d4a03c" version="0">
+    <name>DE Specialist_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ad57d45d-84b7-48a0-ae12-08a015833252" version="0">
+    <name>VPN Access_5</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ae36c51d-0383-44d8-9cc6-377d5d3a33f8" version="0">
+    <name>Supervisor_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ae6f2ae3-2ee8-4348-beb8-77fb73a3e35a" version="0">
+    <name>New York Manhattan Building Access_1</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ae9bffa9-0149-4210-bc89-ab0f3e294cdf" version="0">
+    <name>New York_5</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="aeed79f7-8e98-41dc-a5a3-8c635aad150c" version="0">
+    <name>TE Coordinator_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="afbb61ac-cf02-4e8c-9257-e4dbd1b93b1c" version="0">
+    <name>AD Group Contractors_2</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b03c6fa3-ac79-4224-8dac-d41d1155f554" version="0">
+    <name>HR Approver_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b128505a-2e27-433d-bbc3-e571c5b19a2b" version="0">
+    <name>Exchange Calendar_3</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b1938130-9158-456b-9830-78c65bd4b016" version="0">
+    <name>Project Support Assistant_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b2d76d32-2612-4d80-a4cc-0ef15a75fe73" version="0">
+    <name>VPN Access_3</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b2de071d-907a-4082-ab1a-58661ad52735" version="0">
+    <name>AD Group Contractors_5</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b4c860a6-b4a4-4ba6-b977-96a390c074f2" version="0">
+    <name>Data Warehouse Reader</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b5e170b9-b5b2-4ef6-9546-5fe81cdb4582" version="0">
+    <name>NipponDB_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b75e9ac1-eb1c-44ee-9944-cca5b3ac0a2b" version="0">
+    <name>Paris_2</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b8377ee9-556f-4f9e-b9fc-36cc49954674" version="0">
+    <name>Europe AD_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="b9fd1467-d6c0-43ec-a438-41f9eaa40b74" version="0">
+    <name>DB SQL Access</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="bbbdfb15-212f-42f0-8a79-bab1dc4b2fef" version="0">
+    <name>Paris Building Access_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="bc1fdf1a-21f0-4906-b524-aaa77a954785" version="0">
+    <name>Tokio Building Access_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="bdbeedd3-0a9f-4c7a-8299-8dbd530ea584" version="0">
+    <name>Tokio Building Access_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="bdc41dd1-42f3-4d6b-b986-fcf535e8dbd4" version="0">
+    <name>Location Tokyo</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="278c5f3e-3bf0-48e0-b02f-af78940af130" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="6af4c75c-6c3f-478e-8631-ab4a187b5cf3" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="8ddb87ab-0b02-4259-a921-7d1408d7d522" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="83121658-5ee3-466d-8242-d2f46058c529" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="70da50a7-e79d-4693-bed1-28c46c383baf" relation="org:default" type="c:RoleType">
+            <!-- Tokio AD_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="4783549b-2b21-4ac7-859c-cbf6873fcaad" relation="org:default" type="c:RoleType">
+            <!-- Tokio Building Access_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="bdbeedd3-0a9f-4c7a-8299-8dbd530ea584" relation="org:default" type="c:RoleType">
+            <!-- Tokio Building Access_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="bc1fdf1a-21f0-4906-b524-aaa77a954785" relation="org:default" type="c:RoleType">
+            <!-- Tokio Building Access_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="08f7e2bf-557d-4b59-893d-843ac92316a6" relation="org:default" type="c:RoleType">
+            <!-- Tokio Building Access_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="e8c649ca-2307-482f-a742-a0470259399f" relation="org:default" type="c:RoleType">
+            <!-- Tokio Building Access_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="c0b727b8-0184-4ab3-bcee-f0483399a3ae" version="0">
+    <name>ERP Approver</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="c20cd775-e440-4d06-852e-ff9a4f9f9ad0" version="0">
+    <name>East Coast AD_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="c22c1487-d3e7-453d-a7dc-5acd3809c068" version="0">
+    <name>AD Group Employees_4</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="c2bd5f37-ad00-4c9c-924f-347edb2472ae" version="0">
+    <name>CRM Reader_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="c368b9a1-3c58-4d6f-9f86-a23ccf8a4f06" version="0">
+    <name>Noise Media Manager</name>
+    <assignment id="1">
+        <targetRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+            <!-- Noise Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+        <!-- Noise Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="c43e3097-6da2-4755-babe-54c207b12410" version="0">
+    <name>New York_2</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="c77e292a-663c-4207-9a99-acdd7001ddb8" version="0">
+    <name>London_3</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="c7ae5898-6ea9-43d3-adee-7393ea9cd57d" version="0">
+    <name>Tokyo_1</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="c97511da-d6f1-4a8a-9f94-4b0f97a0431a" version="0">
+    <name>ERP Auditor</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ca0492e2-57df-4a39-b197-cf0e23f36e14" version="0">
+    <name>AD Manager User_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="cb55d79c-b459-4ad4-9fc9-242b306d813a" version="0">
+    <name>VPN Remote_5</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="cbc8375d-a9d6-46c2-b1d2-3184f4d88960" version="0">
+    <name>AD Auditor_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ccc98c8d-0313-4961-9957-929aa0336620" version="0">
+    <name>Supervisor</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="e3204bba-59b2-4e2d-a50c-4f1a444f5825" relation="org:default" type="c:RoleType">
+            <!-- Supervisor_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="0a5fabb5-0a3a-4e97-92f5-1a00d44717d4" relation="org:default" type="c:RoleType">
+            <!-- Supervisor_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="240c1228-7d7b-4620-8fda-05f1d6176757" relation="org:default" type="c:RoleType">
+            <!-- Supervisor_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="a70c6511-43dc-482d-a283-f24b4b838d61" relation="org:default" type="c:RoleType">
+            <!-- Supervisor_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="ae36c51d-0383-44d8-9cc6-377d5d3a33f8" relation="org:default" type="c:RoleType">
+            <!-- Supervisor_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="5d5f0da9-0317-43df-8e1a-7019273962bd" relation="org:default" type="c:RoleType">
+            <!-- External_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="716cb11c-43a9-4342-8817-36ff3e252874" relation="org:default" type="c:RoleType">
+            <!-- External_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="4f24c340-5cac-46a2-85bd-65b69a3f622d" relation="org:default" type="c:RoleType">
+            <!-- External_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="35b5a81d-df5a-4dbe-96df-0027b996e666" relation="org:default" type="c:RoleType">
+            <!-- External_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="1b7e3cd9-4dda-46c2-8687-bb02cd8a97bc" relation="org:default" type="c:RoleType">
+            <!-- External_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="cd336228-f4f9-4377-a484-f42b9d5673af" version="0">
+    <name>AD Manager User_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="cf2ebee5-7bf2-4b3e-95dd-9986ab617764" version="0">
+    <name>Project Support Assistant_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d37d0fcb-2010-487f-b35f-e91fb3738ecc" version="0">
+    <name>CRM Writer_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d4189fd0-a829-4b4d-8f51-ab198494fc2e" version="0">
+    <name>New York Manhattan Building Access_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d4a4ade1-9e1a-4dc6-9481-58aadd3ea555" version="0">
+    <name>Tokyo_3</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d6c1dc8f-3822-4b59-8fc6-90b94a3022b2" version="0">
+    <name>VPN External_2</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d6f936ec-dd08-4ed5-a6ec-cf1f5a1a0c8d" version="0">
+    <name>Berlin_1</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d7887b5d-cd92-42d1-83fa-1a52ebd7c315" version="0">
+    <name>London_2</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d7a59c73-a0a4-4cf1-9a3f-54be183b1e07" version="0">
+    <name>Calendar Power User_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d8248d1e-b9aa-48d6-bbc5-f789428f0e82" version="0">
+    <name>CRM Writer_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d84507bb-662a-427d-88c8-38ee4e149f06" version="0">
+    <name>New York_4</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d96348ca-3b57-4072-a127-4aefcd19c7db" version="0">
+    <name>SAP Basic_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d96d0f4f-9093-498e-aa28-2d8b68efa373" version="0">
+    <name>HR Approver_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="d99ed927-93d0-4be7-b4b1-8d09e2a48a7d" version="0">
+    <name>SAP HQ_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="dad14a9b-82e0-4ee2-92a9-531e4b4569b4" version="0">
+    <name>East Coast AD_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="dad63e0d-4a09-496d-ae6c-050237bf32d9" version="0">
+    <name>IT Privileges_2</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="dbe22f68-82ac-4795-9764-fbf7c4491a72" version="0">
+    <name>Berlin Building Access_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="dd36aaa5-d671-4a5d-b2c0-3af937f5db0c" version="0">
+    <name>Noise Media Auditor</name>
+    <assignment id="1">
+        <targetRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+            <!-- Noise Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+        <!-- Noise Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="dd9222c5-b0e8-4cee-988e-108a0f62570a" version="0">
+    <name>Location Paris</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="0ea2dcf6-52d1-43b9-8184-8044ed7ffe89" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="fa0bbf77-12d3-4ae1-9d6b-5122410da2e2" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="1e6e4326-6cb0-4ef1-9499-76d5962cc3ef" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="b8377ee9-556f-4f9e-b9fc-36cc49954674" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="2d2f1806-e63c-4431-b1f2-5f83f60ec8e8" relation="org:default" type="c:RoleType">
+            <!-- Europe AD_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="5190300f-6738-42e2-a6ad-b1845b38a2a1" relation="org:default" type="c:RoleType">
+            <!-- Paris Building Access_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="5d13b577-e973-4cbd-8b5b-39a59aea81a2" relation="org:default" type="c:RoleType">
+            <!-- Paris Building Access_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="bbbdfb15-212f-42f0-8a79-bab1dc4b2fef" relation="org:default" type="c:RoleType">
+            <!-- Paris Building Access_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="5d98af35-92da-4a0f-99b6-0232eb284477" relation="org:default" type="c:RoleType">
+            <!-- Paris Building Access_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="95388397-ef16-4b0b-823c-94c293439a06" relation="org:default" type="c:RoleType">
+            <!-- Paris Building Access_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="df0ed24e-9dc4-4d80-9faa-5ec21eac89ca" version="0">
+    <name>HR Approver_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="df6e6f34-2357-40bb-b54e-051aefd1f240" version="0">
+    <name>HR Approver_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e1890d1b-b722-4230-9dbd-312c6341cb49" version="0">
+    <name>Tokyo_5</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e235c4a0-b4c7-48d4-94a9-e58d24d642e1" version="0">
+    <name>HQ Approver_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e296c756-1730-4e78-92c6-aed037ff9039" version="0">
+    <name>AD Auditor_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e3204bba-59b2-4e2d-a50c-4f1a444f5825" version="0">
+    <name>Supervisor_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e4a044a9-9406-4d5c-9316-b41e23b61629" version="0">
+    <name>AD audit group_4</name>
+    <assignment id="1">
+        <targetRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+            <!-- Technical Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+        <!-- Technical Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e61b6270-6adc-4bc1-b23a-56b7c187a9d8" version="0">
+    <name>CRM Writer_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e784b872-9ba8-4525-aecf-1e84ad2ca288" version="0">
+    <name>Web Analytics_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e811f194-4810-4eb8-a1bf-9c65182433c9" version="0">
+    <name>CRM Admin</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e8985e2d-2d9e-473a-b536-48c5f82de992" version="0">
+    <name>AD Auditor_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e8c649ca-2307-482f-a742-a0470259399f" version="0">
+    <name>Tokio Building Access_5</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="e8d3867d-b802-437a-8002-ca266925f166" version="0">
+    <name>DE Specialist_4</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ea747e17-8954-4a7f-99e2-dcec25f94e83" version="0">
+    <name>AD Group Employees_1</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ea84c7ca-74d9-43e8-ad2f-535e5f6022ef" version="0">
+    <name>HR Clerk</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="9dc01e89-65e6-411b-984e-160ad7c67364" relation="org:default" type="c:RoleType">
+            <!-- HR Approver_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="b03c6fa3-ac79-4224-8dac-d41d1155f554" relation="org:default" type="c:RoleType">
+            <!-- HR Approver_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="df0ed24e-9dc4-4d80-9faa-5ec21eac89ca" relation="org:default" type="c:RoleType">
+            <!-- HR Approver_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="df6e6f34-2357-40bb-b54e-051aefd1f240" relation="org:default" type="c:RoleType">
+            <!-- HR Approver_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="d96d0f4f-9093-498e-aa28-2d8b68efa373" relation="org:default" type="c:RoleType">
+            <!-- HR Approver_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="71127360-ad94-418e-af0d-e407f124ce15" relation="org:default" type="c:RoleType">
+            <!-- SAP Basic_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="d96348ca-3b57-4072-a127-4aefcd19c7db" relation="org:default" type="c:RoleType">
+            <!-- SAP Basic_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="269f5e9d-1d63-4225-9f5a-0eb9c9c26f15" relation="org:default" type="c:RoleType">
+            <!-- SAP Basic_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="22a07ed7-2e6b-4c8f-9256-f43bc72de4e8" relation="org:default" type="c:RoleType">
+            <!-- SAP Basic_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="463fa502-3c21-48a0-b568-35092f61ce66" relation="org:default" type="c:RoleType">
+            <!-- SAP Basic_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="12">
+        <targetRef oid="77d0571c-4fc7-4be4-814b-e1f83d59664a" relation="org:default" type="c:RoleType">
+            <!-- SAP HR_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="13">
+        <targetRef oid="34d8b65a-68dc-46b3-be46-956457eae50a" relation="org:default" type="c:RoleType">
+            <!-- SAP HR_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="14">
+        <targetRef oid="0d12ccbe-c545-40c7-9ff7-f52127c1d3b8" relation="org:default" type="c:RoleType">
+            <!-- SAP HR_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="15">
+        <targetRef oid="9efe434f-ed7e-403f-99b6-9ec5a847006c" relation="org:default" type="c:RoleType">
+            <!-- SAP HR_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="16">
+        <targetRef oid="3e6eeece-ee86-413e-b7c9-f407d6963483" relation="org:default" type="c:RoleType">
+            <!-- SAP HR_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="eb9305b4-3fcb-40e3-af3f-1969b7f3b68a" version="0">
+    <name>Exchange Email_3</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ed02433e-b6a7-4062-aaa0-9f8bc86e67c7" version="0">
+    <name>SAP HQ_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="edc2dee1-88f0-46b6-acd4-6caea883218e" version="0">
+    <name>Berlin_4</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ede3ee87-e1b6-4f26-a951-159e4480633a" version="0">
+    <name>NipponDB_5</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ee841592-9e42-4cab-b386-4f67811a4229" version="0">
+    <name>Exchange Email_5</name>
+    <assignment id="1">
+        <targetRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+            <!-- Birthright Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="d212dcd9-b062-49fd-adbd-7815868f132c" relation="org:default" type="c:ArchetypeType">
+        <!-- Birthright Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="ef388ca3-bd23-45da-9b77-9b3e944799c2" version="0">
+    <name>London AD_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f087236c-1fad-4113-b3d5-f4c9226c06e6" version="0">
+    <name>Location London</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="7cf8e2ca-265c-4beb-a3c6-7e9a23805504" relation="org:default" type="c:RoleType">
+            <!-- London AD_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="19b77b3e-be37-4ec1-af72-f9f35a00c10b" relation="org:default" type="c:RoleType">
+            <!-- London AD_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="94885cb7-dd50-4772-8021-1af4b11db284" relation="org:default" type="c:RoleType">
+            <!-- London AD_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="ef388ca3-bd23-45da-9b77-9b3e944799c2" relation="org:default" type="c:RoleType">
+            <!-- London AD_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="94f67a1e-54dc-4b2a-b982-fd98ac00a74a" relation="org:default" type="c:RoleType">
+            <!-- London AD_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="518fba5b-e68d-44c6-81c5-1de7af4dca83" relation="org:default" type="c:RoleType">
+            <!-- London Building Access_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="0b9c4e35-da78-4bc1-8743-d2cb59c9b71a" relation="org:default" type="c:RoleType">
+            <!-- London Building Access_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="6f860076-71db-4bdf-9a2f-b9b6f1cbba2c" relation="org:default" type="c:RoleType">
+            <!-- London Building Access_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="f2049262-ecb1-49a4-847e-9f944f7d9017" relation="org:default" type="c:RoleType">
+            <!-- London Building Access_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="98e38839-3e42-446e-810a-f65716720021" relation="org:default" type="c:RoleType">
+            <!-- London Building Access_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="f09d6584-ce9b-48dc-8b10-657de5fcc3eb" version="0">
+    <name>CRM Manager</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f188128d-5e50-4ea0-9d14-79c10e030cf9" version="0">
+    <name>Sales</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="f92ef56d-8286-47bc-817f-623684caaeb0" relation="org:default" type="c:RoleType">
+            <!-- CRM Reader_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="abf6acda-4de6-4107-a59d-377afb97a86f" relation="org:default" type="c:RoleType">
+            <!-- CRM Reader_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="c2bd5f37-ad00-4c9c-924f-347edb2472ae" relation="org:default" type="c:RoleType">
+            <!-- CRM Reader_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="3bb4412d-768d-43c5-aad8-70f3909ac042" relation="org:default" type="c:RoleType">
+            <!-- CRM Reader_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="61e6371b-5839-49f7-b61a-ab7d6c64f558" relation="org:default" type="c:RoleType">
+            <!-- CRM Reader_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="d37d0fcb-2010-487f-b35f-e91fb3738ecc" relation="org:default" type="c:RoleType">
+            <!-- CRM Writer_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="d8248d1e-b9aa-48d6-bbc5-f789428f0e82" relation="org:default" type="c:RoleType">
+            <!-- CRM Writer_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="37306dde-be11-4537-ae14-7db32e31e29e" relation="org:default" type="c:RoleType">
+            <!-- CRM Writer_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="e61b6270-6adc-4bc1-b23a-56b7c187a9d8" relation="org:default" type="c:RoleType">
+            <!-- CRM Writer_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="05604526-8067-4791-ba59-d0b09e95759c" relation="org:default" type="c:RoleType">
+            <!-- CRM Writer_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="12">
+        <targetRef oid="3ad801fe-81be-4443-960c-18bbdca3dcab" relation="org:default" type="c:RoleType">
+            <!-- Web Analytics_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="13">
+        <targetRef oid="0821a812-b90d-4e5d-b594-252a04606107" relation="org:default" type="c:RoleType">
+            <!-- Web Analytics_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="14">
+        <targetRef oid="e784b872-9ba8-4525-aecf-1e84ad2ca288" relation="org:default" type="c:RoleType">
+            <!-- Web Analytics_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="15">
+        <targetRef oid="375c915e-24cc-4abd-8e81-992b9a029f40" relation="org:default" type="c:RoleType">
+            <!-- Web Analytics_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="16">
+        <targetRef oid="5bc7d608-0189-47ca-a6a5-d362cff63e3a" relation="org:default" type="c:RoleType">
+            <!-- Web Analytics_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="f1b1b3b4-1b3b-4b3b-8b3b-1b3b3b3b3b3b" version="0">
+    <name>HQ Clerk</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+            <!-- Business role -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
+        <!-- Business role -->
+    </archetypeRef>
+    <inducement id="2">
+        <targetRef oid="e235c4a0-b4c7-48d4-94a9-e58d24d642e1" relation="org:default" type="c:RoleType">
+            <!-- HQ Approver_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="3">
+        <targetRef oid="4f01a65d-2881-4826-86f7-f8a86ed54001" relation="org:default" type="c:RoleType">
+            <!-- HQ Approver_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="4">
+        <targetRef oid="8519d89b-c91e-4e94-8326-da87781a5513" relation="org:default" type="c:RoleType">
+            <!-- HQ Approver_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="5">
+        <targetRef oid="54f46670-fc81-4c78-9dfd-2cc67d2845e5" relation="org:default" type="c:RoleType">
+            <!-- HQ Approver_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="6">
+        <targetRef oid="933a26d0-5bba-44e9-962b-44bbdd28fe9c" relation="org:default" type="c:RoleType">
+            <!-- HQ Approver_5 -->
+        </targetRef>
+    </inducement>
+    <inducement id="7">
+        <targetRef oid="223e978c-80f4-4f93-940c-8ebfe790d95e" relation="org:default" type="c:RoleType">
+            <!-- SAP HQ_1 -->
+        </targetRef>
+    </inducement>
+    <inducement id="8">
+        <targetRef oid="ed02433e-b6a7-4062-aaa0-9f8bc86e67c7" relation="org:default" type="c:RoleType">
+            <!-- SAP HQ_2 -->
+        </targetRef>
+    </inducement>
+    <inducement id="9">
+        <targetRef oid="f1b7465c-e73a-43a3-a5a6-2ea9fe32e82c" relation="org:default" type="c:RoleType">
+            <!-- SAP HQ_3 -->
+        </targetRef>
+    </inducement>
+    <inducement id="10">
+        <targetRef oid="72d07992-a6f5-4961-afee-65972cf41aaa" relation="org:default" type="c:RoleType">
+            <!-- SAP HQ_4 -->
+        </targetRef>
+    </inducement>
+    <inducement id="11">
+        <targetRef oid="d99ed927-93d0-4be7-b4b1-8d09e2a48a7d" relation="org:default" type="c:RoleType">
+            <!-- SAP HQ_5 -->
+        </targetRef>
+    </inducement>
+</role>
+
+<role oid="f1b7465c-e73a-43a3-a5a6-2ea9fe32e82c" version="0">
+    <name>SAP HQ_3</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f2049262-ecb1-49a4-847e-9f944f7d9017" version="0">
+    <name>London Building Access_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f21db5a8-d799-4541-a7ec-7b5a8947833c" version="0">
+    <name>AD audit group_3</name>
+    <assignment id="1">
+        <targetRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+            <!-- Technical Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="9a3c9cf0-63d3-4165-ab9d-e49865b1da1a" relation="org:default" type="c:ArchetypeType">
+        <!-- Technical Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f29039e7-97a3-42dc-865a-3a13c9593297" version="0">
+    <name>VPN Access_4</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f3e4d45c-d311-4f8b-99da-a96313ec7eb0" version="0">
+    <name>Noise Media Reader</name>
+    <assignment id="1">
+        <targetRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+            <!-- Noise Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+        <!-- Noise Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f41cdf20-7c5a-492a-8669-2340744d44be" version="0">
+    <name>TE Coordinator_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f659fe15-9e98-4468-9e7d-80eabe6253c9" version="0">
+    <name>Noise Media Writer</name>
+    <assignment id="1">
+        <targetRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+            <!-- Noise Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="5b8a247c-443f-4a9a-a125-963b36383061" relation="org:default" type="c:ArchetypeType">
+        <!-- Noise Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f6b03969-9c5c-465b-b4b4-52cefef75c26" version="0">
+    <name>London_1</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f7316ee0-1c47-4466-be44-28c0cd3f87ca" version="0">
+    <name>New York Manhattan Building Access_3</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f82040bf-2ced-452a-a2ec-043eefc7b6ee" version="0">
+    <name>Calendar Power User_2</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f8696319-2805-4053-904f-22f3e3f19026" version="0">
+    <name>CRM Reader</name>
+    <assignment id="1">
+        <targetRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+            <!-- Plancton Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="b9bcc8ff-7b43-41a2-8844-4834252e21a3" relation="org:default" type="c:ArchetypeType">
+        <!-- Plancton Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="f92ef56d-8286-47bc-817f-623684caaeb0" version="0">
+    <name>CRM Reader_1</name>
+    <assignment id="1">
+        <targetRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+            <!-- Job Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="2fd84b31-d2f2-407a-b970-907dfd1cb239" relation="org:default" type="c:ArchetypeType">
+        <!-- Job Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="fa0bbf77-12d3-4ae1-9d6b-5122410da2e2" version="0">
+    <name>Europe AD_2</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="fad1973a-fb40-4944-987b-5ea9e84ca5f7" version="0">
+    <name>East Coast AD_4</name>
+    <assignment id="1">
+        <targetRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+            <!-- Location Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="826f255d-d2c3-4359-9bc2-51047cceeebf" relation="org:default" type="c:ArchetypeType">
+        <!-- Location Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="fc5a3106-5c32-46e1-9da0-ba7a6f4c75d3" version="0">
+    <name>London_5</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+<role oid="fcc9a7f7-21cb-4c10-87d0-9346f06dca4f" version="0">
+    <name>Berlin_2</name>
+    <assignment id="1">
+        <targetRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+            <!-- Aux Role Archetype -->
+        </targetRef>
+    </assignment>
+    <archetypeRef oid="40549d50-4abd-4b89-a46e-2678c957afb3" relation="org:default" type="c:ArchetypeType">
+        <!-- Aux Role Archetype -->
+    </archetypeRef>
+</role>
+
+</objects>
