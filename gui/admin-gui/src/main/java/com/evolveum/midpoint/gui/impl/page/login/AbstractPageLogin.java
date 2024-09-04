@@ -61,6 +61,8 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     private static final String ID_PANEL_DESCRIPTION = "panelDescription";
     private static final String ID_SWITCH_TO_DEFAULT_SEQUENCE = "switchToDefaultSequence";
     private static final String ID_BACK_BUTTON = "back";
+    private static final String ID_ACTION_LINK = "actionLink";
+    private static final String ID_ACTION_LINK_LABEL = "actionLinkLabel";
 
     private final List<String> errorMessages = new ArrayList<>();
 
@@ -126,6 +128,20 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         panelDescription.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getLoginPanelDescriptionModel().getObject())));
         add(panelDescription);
 
+        AjaxButton actionLink = new AjaxButton(ID_ACTION_LINK) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                actionPerformed();
+            }
+        };
+        actionLink.setOutputMarkupId(true);
+        actionLink.add(new VisibleBehaviour(this::isActionDefined));
+        add(actionLink);
+
+        Label actionLinkLabel = new Label(ID_ACTION_LINK_LABEL, getActionLabelModel());
+        actionLink.add(actionLinkLabel);
 
         String sequenceName = getSequenceName();
         Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", sequenceName));
@@ -220,4 +236,14 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
                 || AuthenticationModuleNameConstants.LDAP.equals(moduleAuthentication.getModuleTypeName()));
     }
 
+    protected boolean isActionDefined() {
+        return false;
+    }
+
+    protected IModel<String> getActionLabelModel() {
+        return () -> "";
+    }
+
+    protected void actionPerformed() {
+    }
 }

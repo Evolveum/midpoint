@@ -2120,6 +2120,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="action" type="tns:GuiActionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Action which can be produced from this module. E.g. redirecting to the documentation page
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- later: requireAuthenticationAttribute, transformAuthenticationAttribute -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>

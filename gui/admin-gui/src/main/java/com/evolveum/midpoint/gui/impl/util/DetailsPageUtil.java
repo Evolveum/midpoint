@@ -318,7 +318,9 @@ public final class DetailsPageUtil {
             if (collectionIdentifier != null) {
                 params.set(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, collectionIdentifier);
             }
-            pageBase.navigateToNext(webPageClass, params);
+            if (pageBase != null) {
+                pageBase.navigateToNext(webPageClass, params);
+            }
 
         } catch (Throwable e) {
             LOGGER.trace("Problem with redirecting to page: {}, reason: {}", webPageClass, e.getMessage(), e);
