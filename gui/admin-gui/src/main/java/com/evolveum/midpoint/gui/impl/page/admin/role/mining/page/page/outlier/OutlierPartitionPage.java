@@ -26,7 +26,6 @@ import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -45,8 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 @PageDescriptor(
         urls = {
@@ -239,20 +236,6 @@ public class OutlierPartitionPage extends PageAdmin {
     }
 
     private @NotNull Component buildOutlierOverviewPanel() {
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        Task task = getPageBase().createSimpleTask("loadOutlierDetails");
-
-        RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
-        RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
-
-        //TODO!
-        OutlierObjectModel outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier,
-                task, task.getResult(), partition, getPageBase());
-
-        if (outlierObjectModel == null) {
-            return new WebMarkupContainer(OutlierPartitionPage.ID_PANEL);
-        }
-
         Component detailsPanel = loadOutlierResultPanel();
         detailsPanel.setOutputMarkupId(true);
         return detailsPanel;
