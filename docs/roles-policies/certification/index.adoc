@@ -232,7 +232,7 @@ Current status of a campaign can be seen when clicking on "Campaigns scheduling"
 All certification-related tasks are shown.
 (Besides tasks for starting campaigns there are also remediation tasks, but that will be eventually fixed.)
 
-image::scheduling.jpg[]
+image::scheduling.jpg[75%]
 
 === Access certification configuration in system configuration
 

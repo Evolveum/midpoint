@@ -11,6 +11,9 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
@@ -209,9 +212,9 @@ public class AssociationChildWrapperUtil {
     }
 
     public static boolean existAssociationConfiguration(
-            String refAttribute, PrismContainerWrapper<ShadowAssociationTypeDefinitionType> association) throws SchemaException {
-        for (PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> value : association.getValues()) {
-            PrismPropertyWrapper<ItemPathType> refProperty = value.findProperty(
+            String refAttribute, PrismContainer<ShadowAssociationTypeDefinitionType> association) throws SchemaException {
+        for (PrismContainerValue<ShadowAssociationTypeDefinitionType> value : association.getValues()) {
+            PrismProperty<ItemPathType> refProperty = value.findProperty(
                     ItemPath.create(ShadowAssociationTypeDefinitionType.F_SUBJECT,
                             ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
                             ShadowAssociationDefinitionType.F_REF));

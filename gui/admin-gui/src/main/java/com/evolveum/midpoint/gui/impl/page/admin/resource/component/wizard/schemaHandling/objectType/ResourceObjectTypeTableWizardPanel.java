@@ -57,8 +57,8 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
             }
 
             @Override
-            protected void onNewValue(PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, AjaxRequestTarget target) {
-                ResourceObjectTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target);
+            protected void onNewValue(PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> containerModel, AjaxRequestTarget target, boolean isDuplicate) {
+                ResourceObjectTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
             }
         };
         table.setOutputMarkupId(true);
@@ -67,7 +67,7 @@ public abstract class ResourceObjectTypeTableWizardPanel extends SchemaHandlingT
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
 
-    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
+    protected abstract void onCreateValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target, boolean isDuplicate);
 
     @Override
     protected IModel<String> getSubTextModel() {

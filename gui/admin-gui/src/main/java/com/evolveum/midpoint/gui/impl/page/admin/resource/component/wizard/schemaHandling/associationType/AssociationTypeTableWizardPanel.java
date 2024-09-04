@@ -51,8 +51,8 @@ public abstract class AssociationTypeTableWizardPanel extends SchemaHandlingType
             }
 
             @Override
-            protected void onNewValue(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel, AjaxRequestTarget target) {
-                AssociationTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target);
+            protected void onNewValue(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> containerModel, AjaxRequestTarget target, boolean isDuplicate) {
+                AssociationTypeTableWizardPanel.this.onNewValue(value, containerModel, getObjectDetailsModels().createWrapperContext(), target, isDuplicate);
             }
         };
         table.setOutputMarkupId(true);

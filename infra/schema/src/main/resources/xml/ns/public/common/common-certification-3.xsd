@@ -770,6 +770,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="includePolicies" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Should assignments/inducements of policies be included in the certification?
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="enabledItemsOnly" type="xsd:boolean" minOccurs="0" default="true">
                         <xsd:annotation>
                             <xsd:documentation>

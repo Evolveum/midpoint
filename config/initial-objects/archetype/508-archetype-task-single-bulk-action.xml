@@ -11,7 +11,12 @@
     <name>Single bulk action task</name>
     <archetypePolicy>
         <display>
-            <label>Single bulk action task</label>
+            <label>
+                <orig>Single bulk action task</orig>
+                <translation>
+                    <key>SingleBulkActionTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Single bulk action tasks</orig>
                 <translation>

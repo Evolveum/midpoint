@@ -12,7 +12,12 @@
     <name>Iterative bulk action task</name>
     <archetypePolicy>
         <display>
-            <label>Iterative bulk action task</label>
+            <label>
+                <orig>Iterative bulk action task</orig>
+                <translation>
+                    <key>IterativeBulkActionTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Iterative bulk action tasks</orig>
                 <translation>

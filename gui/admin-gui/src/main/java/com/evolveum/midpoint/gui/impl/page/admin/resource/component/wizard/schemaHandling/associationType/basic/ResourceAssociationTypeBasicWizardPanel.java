@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
@@ -55,6 +56,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
     private static final Trace LOGGER = TraceManager.getTrace(ResourceAssociationTypeBasicWizardPanel.class);
 
     boolean showChoicePanel = true;
+    boolean isPanelForDuplicate = false;
 
     public ResourceAssociationTypeBasicWizardPanel(String id, WizardPanelHelper<ShadowAssociationTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
@@ -62,7 +64,11 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
 
     protected void initLayout() {
         if (showChoicePanel) {
-            add(createChoiceFragment(createAssociationChoicePanel()));
+            if (isPanelForDuplicate) {
+                add(createWizardFragment(createBasicStepsWizardPanel()));
+            } else {
+                add(createChoiceFragment(createAssociationChoicePanel()));
+            }
         } else {
             add(createWizardFragment(
                     new WizardPanel(
@@ -74,6 +80,10 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
 
     public void setShowChoicePanel(boolean showChoicePanel) {
         this.showChoicePanel = showChoicePanel;
+    }
+
+    public void setPanelForDuplicate(boolean panelForDuplicate) {
+        isPanelForDuplicate = panelForDuplicate;
     }
 
     private AssociationChoicePanel createAssociationChoicePanel() {
@@ -155,14 +165,15 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
                 addNewValue(objectTypeOfObjectContainer, value.getObjects().get(0));
             }
 
-            showWizardFragment(target,
-                    new WizardPanel(
-                            getIdOfWizardPanel(),
-                            new WizardModel(createBasicStepsForCreate())));
+            showWizardFragment(target, createBasicStepsWizardPanel());
 
         } catch (SchemaException e) {
             LOGGER.error("Couldn't save association configuration.", e);
         }
+    }
+
+    private WizardPanel createBasicStepsWizardPanel() {
+        return new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicStepsForCreate()));
     }
 
     private void cleanParticipantContainer(PrismContainerWrapper<Containerable> container) throws SchemaException {

@@ -71,7 +71,7 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanel<Class
     }
 
     @Override
-    protected void newItemPerformed(PrismContainerValue<ClassLoggerConfigurationType> value, AjaxRequestTarget target, AssignmentObjectRelation relation) {
+    protected void newItemPerformed(PrismContainerValue<ClassLoggerConfigurationType> value, AjaxRequestTarget target, AssignmentObjectRelation relation, boolean isDuplicate) {
         PrismContainerWrapper<ClassLoggerConfigurationType> wrapper = model.getObject();
 
         PrismContainerValue<ClassLoggerConfigurationType> newLogger = value;

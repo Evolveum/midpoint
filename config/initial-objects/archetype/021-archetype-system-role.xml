@@ -18,8 +18,18 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>System role</label>
-            <pluralLabel>System roles</pluralLabel>
+            <label>
+                <orig>System role</orig>
+                <translation>
+                    <key>systemRole.label</key>
+                </translation>
+            </label>
+            <pluralLabel>
+                <orig>System roles</orig>
+                <translation>
+                    <key>systemRoles.pluralLabel</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fe fe-role</cssClass>
                 <color>red</color>

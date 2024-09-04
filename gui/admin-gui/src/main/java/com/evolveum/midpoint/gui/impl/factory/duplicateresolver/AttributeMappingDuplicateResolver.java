@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author lskublik
  */
 @Component
-public class AttributeMappingWrapperFactory extends ContainerDuplicateResolver<MappingType> {
+public class AttributeMappingDuplicateResolver extends ContainerDuplicateResolver<MappingType> {
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {

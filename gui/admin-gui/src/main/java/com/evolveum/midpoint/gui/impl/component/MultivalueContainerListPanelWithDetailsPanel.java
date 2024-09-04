@@ -189,7 +189,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     }
 
     @Override
-    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
         PrismContainerWrapper<C> container = getContainerModel().getObject();
         PrismContainerValue<C> newValue = value;
         if (newValue == null) {

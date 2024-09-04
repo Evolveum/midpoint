@@ -134,6 +134,10 @@ public class FocusDefinitionsMappingProvider extends ChoiceProvider<VariableBind
                 continue;
             }
 
+            if (def.isOperational()) {
+                continue;
+            }
+
             if (def instanceof PrismContainerDefinition) {
                 if (!showContainers) {
                     toSelect.add(def.getItemName().getLocalPart());

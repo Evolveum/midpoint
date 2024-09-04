@@ -686,7 +686,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     public InlineMenuItem createUnmarkInlineMenuAction() {
-        return new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark.remove"), true) {
+            return new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark.remove"), true) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -739,13 +739,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                             protected org.apache.wicket.model.StringResourceModel getAddButtonTitle() {
                                 return createStringResource("pageContentAccounts.menu.mark.remove");
                             }
-
-                            ;
                         };
 
                         getPageBase().showMainPopup(browser, target);
                     }
-
                 };
             }
         };

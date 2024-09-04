@@ -97,11 +97,11 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
             }
 
             @Override
-            protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
-                if (customNewItemPerformed(target, relationSepc)) {
+            protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
+                if (customNewItemPerformed(target, relationSpec)) {
                     return;
                 }
-                super.newItemPerformed(value, target, relationSepc);
+                super.newItemPerformed(value, target, relationSpec, isDuplicate);
             }
 
             @Override

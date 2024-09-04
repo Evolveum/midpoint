@@ -11,7 +11,12 @@
     <name>Cleanup task</name>
     <archetypePolicy>
         <display>
-            <label>Cleanup task</label>
+            <label>
+                <orig>Cleanup task</orig>
+                <translation>
+                    <key>CleanupTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Cleanup tasks</orig>
                 <translation>

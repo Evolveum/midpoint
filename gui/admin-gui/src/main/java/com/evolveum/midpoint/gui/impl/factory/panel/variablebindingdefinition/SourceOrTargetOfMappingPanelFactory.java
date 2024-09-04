@@ -148,7 +148,10 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
     }
 
     protected Iterator<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
-        return new FocusDefinitionsMappingProvider(itemWrapperModel).collectAvailableDefinitions(input).iterator();
+        FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel);
+        List<String> values = new ArrayList<>(provider.collectAvailableDefinitions(input));
+        values.removeIf(path -> path.startsWith(FocusType.F_METADATA.getLocalPart() + "/"));
+        return values.iterator();
     }
 
     @Override

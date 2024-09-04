@@ -470,7 +470,12 @@
             <objectCollectionView id="40">
                 <identifier>my-cases</identifier>
                 <display>
-                    <label>My cases</label>
+                    <label>
+                        <orig>My cases</orig>
+                        <translation>
+                            <key>MyCases.title</key>
+                        </translation>
+                    </label>
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>My cases</orig>
@@ -493,7 +498,12 @@
             <objectCollectionView id="41">
                 <identifier>manual-case-view</identifier>
                 <display>
-                    <label>Manual cases</label> <!-- "Manual provisioning cases" is too long for the menu -->
+                    <label>
+                        <orig>Manual cases</orig>   <!-- "Manual provisioning cases" is too long for the menu -->
+                        <translation>
+                            <key>ManualCases.label</key>
+                        </translation>
+                    </label>
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>All manual cases</orig>
@@ -514,7 +524,12 @@
             <objectCollectionView id="42">
                 <identifier>operation-request-case-view</identifier>
                 <display>
-                    <label>Requests</label> <!-- "Operation requests" is too long for the menu -->
+                    <label>
+                        <orig>Requests</orig>   <!-- "Operation requests" is too long for the menu -->
+                        <translation>
+                            <key>Requests.label</key>
+                        </translation>
+                    </label>
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>All requests</orig>
@@ -535,7 +550,12 @@
             <objectCollectionView id="43">
                 <identifier>approval-case-view</identifier>
                 <display>
-                    <label>Approvals</label> <!-- "Approval cases" is too long for the menu -->
+                    <label>
+                        <orig>Approvals</orig>  <!-- "Approval cases" is too long for the menu -->
+                        <translation>
+                            <key>Approvals.label</key>
+                        </translation>
+                    </label>
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>All approvals</orig>
@@ -556,7 +576,12 @@
             <objectCollectionView id="44">
                 <identifier>correlation-case-view</identifier>
                 <display>
-                    <label>Correlations</label> <!-- "Correlation cases" is too long for the menu -->
+                    <label>
+                        <orig>Correlations</orig>  <!-- "Correlation cases" is too long for the menu -->
+                        <translation>
+                            <key>Correlations.label</key>
+                        </translation>
+                    </label>
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>All correlations</orig>
@@ -624,7 +649,12 @@
             <objectCollectionView id="51">
                 <identifier>report-tasks-view</identifier>
                 <display>
-                    <label>Report task</label>
+                    <label>
+                        <orig>Report task</orig>
+                        <translation>
+                            <key>ReportTask.label</key>
+                        </translation>
+                    </label>
                     <pluralLabel>
                         <orig>Report tasks</orig>
                         <norm>report tasks</norm>
@@ -801,7 +831,12 @@
             <objectCollectionView id="69">
                 <identifier>certification-tasks-view</identifier>
                 <display>
-                    <label>Certification-related task</label>
+                    <label>
+                        <orig>Certification-related task</orig>
+                        <translation>
+                            <key>CertificationRelatedTask.label</key>
+                        </translation>
+                    </label>
                     <pluralLabel>
                         <orig>Certification-related tasks</orig>
                         <norm>certificationrelated tasks</norm>
@@ -877,7 +912,12 @@
             <objectCollectionView id="77">
                 <identifier>application</identifier>
                 <display>
-                    <label>Application.panel.applications</label>
+                    <label>
+                        <orig>Applications</orig>
+                        <translation>
+                            <key>Application.panel.applications</key>
+                        </translation>
+                    </label>
                 </display>
                 <type>ServiceType</type>
                 <collection>
@@ -929,7 +969,12 @@
                                 </q:text>
                             </filter>
                             <display>
-                                <label>Users with account</label>
+                                <label>
+                                    <orig>Users with account</orig>
+                                    <translation>
+                                        <key>searchItem.usersWithAccount.label</key>
+                                    </translation>
+                                </label>
                             </display>
                             <parameter>
                                 <name>resourceParameter</name>
@@ -951,7 +996,12 @@
                                 </q:text>
                             </filter>
                             <display>
-                                <label>Users without account</label>
+                                <label>
+                                    <orig>Users without account</orig>
+                                    <translation>
+                                        <key>searchItem.usersWithoutAccount.label</key>
+                                    </translation>
+                                </label>
                             </display>
                             <parameter>
                                 <name>resourceParameter</name>
@@ -991,8 +1041,18 @@
             <objectCollectionView id="98"> <!-- TODO: change id as needed -->
                 <identifier>application-roles-view</identifier>
                 <display>
-                    <label>Application roles</label>
-                    <singularLabel>Application role</singularLabel>
+                    <label>
+                        <orig>Application roles</orig>
+                        <translation>
+                            <key>applicationRole.pluralLabel</key>
+                        </translation>
+                    </label>
+                    <singularLabel>
+                        <orig>Application role</orig>
+                        <translation>
+                            <key>applicationRole.label</key>
+                        </translation>
+                    </singularLabel>
                     <tooltip>Application roles</tooltip>
                 </display>
                 <displayOrder>180</displayOrder>
@@ -1005,8 +1065,18 @@
             <objectCollectionView id="99"> <!-- TODO: change id as needed -->
                 <identifier>business-roles-view</identifier>
                 <display>
-                    <label>Business roles</label>
-                    <singularLabel>Business role</singularLabel>
+                    <label>
+                        <orig>Business roles</orig>
+                        <translation>
+                            <key>businessRole.pluralLabel</key>
+                        </translation>
+                    </label>
+                    <singularLabel>
+                        <orig>Business role</orig>
+                        <translation>
+                            <key>businessRole.label</key>
+                        </translation>
+                    </singularLabel>
                     <tooltip>Business roles</tooltip>
                 </display>
                 <displayOrder>190</displayOrder>
@@ -1019,8 +1089,18 @@
             <objectCollectionView id="100"> <!-- TODO: change id as needed -->
                 <identifier>classification-view</identifier>
                 <display>
-                    <label>Classifications</label>
-                    <singularLabel>Classification</singularLabel>
+                    <label>
+                        <orig>Classifications</orig>
+                        <translation>
+                            <key>classifications.pluralLabel</key>
+                        </translation>
+                    </label>
+                    <singularLabel>
+                        <orig>Classification</orig>
+                        <translation>
+                            <key>classification.label</key>
+                        </translation>
+                    </singularLabel>
                     <tooltip>Information classifications (labels)</tooltip>
                 </display>
                 <displayOrder>200</displayOrder>
@@ -1033,8 +1113,18 @@
             <objectCollectionView id="101"> <!-- TODO: change id as needed -->
                 <identifier>clearance-view</identifier>
                 <display>
-                    <label>Clearances</label>
-                    <singularLabel>Clearance</singularLabel>
+                    <label>
+                        <orig>Clearances</orig>
+                        <translation>
+                            <key>clearance.pluralLabel</key>
+                        </translation>
+                    </label>
+                    <singularLabel>
+                        <orig>Clearance</orig>
+                        <translation>
+                            <key>clearance.label</key>
+                        </translation>
+                    </singularLabel>
                     <tooltip>Security clearances</tooltip>
                 </display>
                 <displayOrder>210</displayOrder>
@@ -1089,6 +1179,12 @@
                         <identifier>advanced-options</identifier>
                         <displayOrder>150</displayOrder>
                         <display>
+                            <label>
+                                <orig>Advanced options</orig>
+                                <translation>
+                                    <key>TaskType.advancedOptions</key>
+                                </translation>
+                            </label>
                             <label>Advanced options</label>
                         </display>
                         <item id="88">
@@ -1120,7 +1216,12 @@
                         <identifier>operational-attributes</identifier>
                         <displayOrder>900</displayOrder>
                         <display>
-                            <label>Operational attributes (state)</label>
+                            <label>
+                                <orig>Operational attributes (state)</orig>
+                                <translation>
+                                    <key>operationalAttributes.state.container.label</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="94">
                             <c:path>executionState</c:path>
@@ -1191,7 +1292,12 @@
                         <visibility>hidden</visibility>
                         <identifier>operation-attributes-progress</identifier>
                         <display>
-                            <label>Operational attributes (progress)</label>
+                            <label>
+                                <orig>Operational attributes (progress)</orig>
+                                <translation>
+                                    <key>operationalAttributes.progress.container.label</key>
+                                </translation>
+                            </label>
                         </display>
                         <item id="115">
                             <c:path>progress</c:path>
@@ -1210,7 +1316,12 @@
                 <panel id="118">
                     <identifier>applications</identifier>
                     <display>
-                        <label>Application.panel.applications</label>
+                        <label>
+                            <orig>Applications</orig>
+                            <translation>
+                                <key>Application.panel.applications</key>
+                            </translation>
+                        </label>
                     </display>
                     <applicableForOperation>modify</applicableForOperation>
                     <panelType>roleMemberships</panelType>
@@ -1232,7 +1343,12 @@
                 <panel id="123">
                     <identifier>clearances</identifier>
                     <display>
-                        <label>Clearances</label>
+                        <label>
+                            <orig>Clearances</orig>
+                            <translation>
+                                <key>clearance.pluralLabel</key>
+                            </translation>
+                        </label>
                         <icon>
                             <cssClass>fa fa-award</cssClass>
                         </icon>

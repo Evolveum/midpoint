@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
@@ -142,8 +141,8 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
             }
 
             @Override
-            protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
-                onNewValue(value, getContainerModel(), target);
+            protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
+                onNewValue(value, getContainerModel(), target, isDuplicate);
             }
         };
         form.add(objectTypesPanel);
@@ -164,7 +163,7 @@ public abstract class SchemaHandlingObjectsPanel<C extends Containerable> extend
     protected abstract Class<C> getSchemaHandlingObjectsType();
 
     protected abstract void onNewValue(
-            PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> newWrapperModel, AjaxRequestTarget target);
+            PrismContainerValue<C> value, IModel<PrismContainerWrapper<C>> newWrapperModel, AjaxRequestTarget target, boolean isDuplicate);
 
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<C>> valueModel, AjaxRequestTarget target);
 
