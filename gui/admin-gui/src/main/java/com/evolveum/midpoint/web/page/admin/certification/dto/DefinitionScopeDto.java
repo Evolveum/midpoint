@@ -35,6 +35,7 @@ public class DefinitionScopeDto implements Serializable {
     public static final String F_INCLUDE_ORGS = "includeOrgs";
     public static final String F_INCLUDE_SERVICES = "includeServices";
     public static final String F_INCLUDE_USERS = "includeUsers";
+    public static final String F_INCLUDE_POLICIES = "includePolicies";
     public static final String F_RELATION_LIST = "relationList";
     public static final String F_INCLUDE_ENABLED_ITEMS_ONLY = "enabledItemsOnly";
 
@@ -49,6 +50,7 @@ public class DefinitionScopeDto implements Serializable {
     private boolean includeOrgs;
     private boolean includeServices;
     private boolean includeUsers;
+    private boolean includePolicies;
     private boolean enabledItemsOnly;
     private ExpressionType itemSelectionExpression;
     private List<QName> relationList = new ArrayList<>();
@@ -168,6 +170,14 @@ public class DefinitionScopeDto implements Serializable {
 
     public void setIncludeUsers(boolean includeUsers) {
         this.includeUsers = includeUsers;
+    }
+
+    public boolean isIncludePolicies() {
+        return includePolicies;
+    }
+
+    public void setIncludePolicies(boolean includePolicies) {
+        this.includePolicies = includePolicies;
     }
 
     public boolean isEnabledItemsOnly() {

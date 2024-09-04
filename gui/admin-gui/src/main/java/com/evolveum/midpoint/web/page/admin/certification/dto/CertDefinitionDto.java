@@ -273,6 +273,7 @@ public class CertDefinitionDto implements Serializable {
         dto.setIncludeOrgs(true);
         dto.setIncludeServices(true);
         dto.setIncludeUsers(true);
+        dto.setIncludePolicies(true);
         dto.setEnabledItemsOnly(true);
 
         if (scopeTypeObj != null) {
@@ -295,6 +296,7 @@ public class CertDefinitionDto implements Serializable {
                     dto.setIncludeOrgs(!Boolean.FALSE.equals(assignmentScope.isIncludeOrgs()));
                     dto.setIncludeServices(!Boolean.FALSE.equals(assignmentScope.isIncludeServices()));
                     dto.setIncludeUsers(!Boolean.FALSE.equals(assignmentScope.isIncludeUsers()));
+                    dto.setIncludePolicies(!Boolean.FALSE.equals(assignmentScope.isIncludePolicies()));
                     dto.setEnabledItemsOnly(!Boolean.FALSE.equals(assignmentScope.isEnabledItemsOnly()));
                     dto.setRelationList(new ArrayList<>(assignmentScope.getRelation()));
                 }
@@ -349,6 +351,7 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj.setIncludeOrgs(definitionScopeDto.isIncludeOrgs());
             scopeTypeObj.setIncludeServices(definitionScopeDto.isIncludeServices());
             scopeTypeObj.setIncludeUsers(definitionScopeDto.isIncludeUsers());
+            scopeTypeObj.setIncludePolicies(definitionScopeDto.isIncludePolicies());
             scopeTypeObj.setEnabledItemsOnly(definitionScopeDto.isEnabledItemsOnly());
             scopeTypeObj.setItemSelectionExpression(definitionScopeDto.getItemSelectionExpression());
             // TODO caseGenerationExpression (it is ignored in business logic anyway, now)

@@ -105,6 +105,8 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
                 valid = isIncludeServices(scope);
             } else if (UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
                 valid = isIncludeUsers(scope);
+            } else if (PolicyType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                valid = isIncludePolicies(scope);
             } else if (ArchetypeType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
                 // archetype assignment management is not fully supported for now, therefore ignoring
                 valid = false;
@@ -179,6 +181,10 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     private boolean isIncludeUsers(AccessCertificationAssignmentReviewScopeType scope) {
         return scope == null || !Boolean.FALSE.equals(scope.isIncludeUsers());
+    }
+
+    private boolean isIncludePolicies(AccessCertificationAssignmentReviewScopeType scope) {
+        return scope == null || !Boolean.FALSE.equals(scope.isIncludePolicies());
     }
 
     private boolean isEnabledItemsOnly(AccessCertificationAssignmentReviewScopeType scope) {
