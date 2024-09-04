@@ -4,10 +4,13 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismItemAccessDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -41,7 +44,14 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
 
     @Override
     protected List<ResourceObjectTypeDefinition> getListOfSupportedObjectTypeDef() throws SchemaException, ConfigurationException {
-        return getDetailsModel().getRefinedSchema().getObjectTypeDefinitions().stream()
+
+        List<ResourceObjectTypeIdentificationType> subjects =
+                AssociationChildWrapperUtil.getObjectTypesOfSubject(getValueModel().getObject());
+
+        CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
+
+        return subjects.stream()
+                .map(subject -> schema.getObjectTypeDefinition(ResourceObjectTypeIdentification.of(subject)))
                 .filter(def -> !def.getReferenceAttributeDefinitions().isEmpty()
                         && def.getReferenceAttributeDefinitions().stream().anyMatch(PrismItemAccessDefinition::canRead))
                 .toList();
@@ -92,11 +102,12 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
 
         ItemPath containerPath = ItemPath.create(ShadowAssociationTypeDefinitionType.F_SUBJECT, ShadowAssociationTypeSubjectDefinitionType.F_OBJECT_TYPE);
 
+        PrismContainerValueWrapper<ShadowAssociationTypeDefinitionType> associationTypeDef = getValueModel().getObject();
         PrismContainerWrapper<ResourceObjectTypeIdentificationType> container;
         try {
-            container = getValueModel().getObject().findContainer(containerPath);
+            container = associationTypeDef.findContainer(containerPath);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't find object type subcontainer " + containerPath + " container in " + getValueModel().getObject());
+            LOGGER.error("Couldn't find object type subcontainer " + containerPath + " container in " + associationTypeDef);
             return;
         }
 
@@ -105,7 +116,7 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
             boolean match = getSelectedItemsModel().getObject().stream()
                     .anyMatch(wrapper -> equalValueAndObjectTypeWrapper(value, wrapper));
             if (!match) {
-                if (value.getStatus() == ValueStatus.ADDED) {
+                if (ValueStatus.ADDED == associationTypeDef.getStatus() || value.getStatus() == ValueStatus.ADDED) {
                     valueForRemove.add(value);
                 } else {
                     value.setStatus(ValueStatus.DELETED);

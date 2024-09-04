@@ -214,7 +214,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
 
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
-                return new VisibleBehaviour(() -> showChoicePanel);
+                return new VisibleBehaviour(() -> showChoicePanel && !isPanelForDuplicate);
             }
         });
 
