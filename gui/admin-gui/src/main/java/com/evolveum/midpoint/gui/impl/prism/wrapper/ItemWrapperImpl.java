@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.prism.annotation.ItemDiagramSpecification;
 
 import com.evolveum.midpoint.prism.delta.ItemMerger;
+import com.evolveum.midpoint.prism.impl.binding.AbstractPlainStructured;
 import com.evolveum.midpoint.prism.key.NaturalKeyDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
@@ -711,7 +712,21 @@ public abstract class ItemWrapperImpl<I extends Item<?, ?>, VW extends PrismValu
         int count = countUsableValues(values);
 
         if (count == 0 && !hasEmptyPlaceholder(values)) {
-            add(createNewEmptyValue(locator), locator);
+            PrismValue emptyValue = createNewEmptyValue(locator);
+            Class<?> type = getTypeClass();
+            if (emptyValue instanceof PrismPropertyValue ppv && type != null && AbstractPlainStructured.class.isAssignableFrom(type)) {
+                // see MID-9564 and also PrismValueWrapperImpl.addToDelta
+                // we need to set real value to something in case of AbstractPlainStructured since placeholder is needed
+                // for most panels to work.
+                // When computing delta this has to be later taken into account.
+                try {
+                    Object realValue = type.getConstructor().newInstance();
+                    ppv.setValue(realValue);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            add(emptyValue, locator);
         }
     }
 
