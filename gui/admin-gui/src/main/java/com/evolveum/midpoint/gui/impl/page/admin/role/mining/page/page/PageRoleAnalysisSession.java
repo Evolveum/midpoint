@@ -203,14 +203,19 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 }
             }
 
-            if (containerPanelConfigurationType.getIdentifier().equals("classifiedOutlierPanel")
-                    || containerPanelConfigurationType.getIdentifier().equals("unclassifiedOutlierPanel")
-                    || containerPanelConfigurationType.getIdentifier().equals("allOutlierPanel")) {
-                if (!RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+//            if (containerPanelConfigurationType.getIdentifier().equals("classifiedOutlierPanel")
+//                    || containerPanelConfigurationType.getIdentifier().equals("unclassifiedOutlierPanel")
+//                    || containerPanelConfigurationType.getIdentifier().equals("allOutlierPanel")) {
+//                if (!RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+//                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+//                    continue;
+//                }
+//            }
+            if (containerPanelConfigurationType.getIdentifier().equals("outlierActions")
+                    && !RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
                     containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
                     continue;
                 }
-            }
 
             if (containerPanelConfigurationType.getIdentifier().equals("userModeSettings")) {
                 if (RoleAnalysisProcessModeType.ROLE.equals(processMode)) {
