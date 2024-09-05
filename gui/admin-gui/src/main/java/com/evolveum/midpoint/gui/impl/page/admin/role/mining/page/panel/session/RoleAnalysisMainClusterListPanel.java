@@ -988,11 +988,11 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         List<RoleAnalysisClusterType> sessionClustersByType = roleAnalysisService.getSessionClustersByType(
                 getObjectWrapperObject().getOid(), category, task, result);
-        ListMultimap<String, String> clusterMappedClusterOutliers = getMappedClusterOutliers().getObject();
         RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         //sort by outlier count
         if (analysisOption.getAnalysisCategory() == RoleAnalysisCategoryType.OUTLIERS) {
+            ListMultimap<String, String> clusterMappedClusterOutliers = getMappedClusterOutliers().getObject();
             sessionClustersByType.sort((o1, o2) -> Integer.compare(
                     clusterMappedClusterOutliers.get(o2.getOid()).size(), clusterMappedClusterOutliers.get(o1.getOid()).size()));
         }
