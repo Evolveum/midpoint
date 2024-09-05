@@ -664,14 +664,25 @@ public class GuiProfileCompiler {
 
     private void joinResourceDetails(GuiObjectDetailsSetType objectDetailsSet, GuiResourceDetailsPageType newObjectDetails, Optional<GuiResourceDetailsPageType> detailForAllResources, OperationResult result) {
         objectDetailsSet.getResourceDetailsPage().removeIf(currentDetails -> isTheSameConnector(currentDetails, newObjectDetails, result));
+        GuiResourceDetailsPageType added;
         if (!detailForAllResources.isEmpty() && newObjectDetails.getConnectorRef() != null) {
             GuiResourceDetailsPageType merged = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
                     detailForAllResources.get(),
                     newObjectDetails);
             merged.setConnectorRef(newObjectDetails.getConnectorRef().clone());
-            objectDetailsSet.getResourceDetailsPage().add(merged);
+            added = merged;
         } else {
-            objectDetailsSet.getResourceDetailsPage().add(newObjectDetails.clone());
+            added = newObjectDetails.clone();
+        }
+        if (added.getConnectorRef() != null && StringUtils.isEmpty(added.getConnectorRef().getOid())) {
+            @NotNull List<String> refsOid = resolveReferenceIfNeeded(added.getConnectorRef(), result);
+            refsOid.forEach(oid -> {
+                GuiResourceDetailsPageType clone = added.clone();
+                clone.getConnectorRef().setOid(oid);
+                objectDetailsSet.getResourceDetailsPage().add(clone);
+            });
+        } else {
+            objectDetailsSet.getResourceDetailsPage().add(added);
         }
     }
 
@@ -713,29 +724,32 @@ public class GuiProfileCompiler {
             LOGGER.trace("Cannot join resource details configuration as defined in {} and {}. No connector defined", oldConf, newConf);
             return false;
         }
-        String oldConnectorOid = resolveReferenceIfNeeded(oldConf.getConnectorRef(), result);
-        String newConnectorOid = resolveReferenceIfNeeded(newConf.getConnectorRef(), result);
-        if (oldConnectorOid == null || newConnectorOid == null) {
+        List<String> oldConnectorOids = resolveReferenceIfNeeded(oldConf.getConnectorRef(), result);
+        List<String> newConnectorOids = resolveReferenceIfNeeded(newConf.getConnectorRef(), result);
+        if (oldConnectorOids.isEmpty() || newConnectorOids.isEmpty()) {
             return false;
         }
-        return oldConnectorOid.equals(newConnectorOid);
+        return newConnectorOids.stream().anyMatch(newConnectorOid -> oldConnectorOids.contains(newConnectorOid));
     }
 
-    private String resolveReferenceIfNeeded(ObjectReferenceType reference, OperationResult result) {
+    private @NotNull List<String> resolveReferenceIfNeeded(ObjectReferenceType reference, OperationResult result) {
         if (reference.getOid() != null) {
-            return reference.getOid();
+            return List.of(reference.getOid());
         }
         if (reference.getFilter() == null) {
             LOGGER.debug("Neither filter, nor oid defined in the reference: {}", reference);
-            return null;
+            return List.of();
         }
 
         if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
-            ModelImplUtils.resolveRef(reference.asReferenceValue(), repositoryService,
-                    false, false, EvaluationTimeType.RUN,
-                    "resolving connector reference", false, result);
+            List<String> objects = ModelImplUtils.resolveObjectsFromRef(reference.asReferenceValue(), repositoryService,
+                    EvaluationTimeType.RUN, "resolving connector reference", false, result);
+            if (objects.size() == 1) {
+                reference.asReferenceValue().setOid(objects.get(0));
+            }
+            return objects;
         }
-        return reference.getOid();
+        return List.of();
     }
 
     private void mergeFeature(CompiledGuiProfile composite, UserInterfaceFeatureType newFeature) {
