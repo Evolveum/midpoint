@@ -39,7 +39,7 @@ import java.util.List;
         display = @PanelDisplay(
                 label = "RoleAnalysisOutlierType.classifiedOutlierPanel",
                 icon = GuiStyleConstants.CLASS_ICON_OUTLIER,
-                order = 50
+                order = 40
         )
 )
 public class RoleAnalysisSessionClassifiedOutlierPanel extends AbstractObjectMainPanel<RoleAnalysisSessionType, ObjectDetailsModels<RoleAnalysisSessionType>> {
