@@ -10,6 +10,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.impl.validator.ParseAxiomQueryValidator;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +20,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -43,7 +48,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 /**
  * @author honchar
  */
-public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePanel<SearchFilterType> {
+public class SearchFilterConfigurationPanel<O extends ObjectType> extends InputPanel {
 
     private enum FieldType {
         XML, QUERY
@@ -67,10 +72,12 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     private FieldType fieldType;
 
     private final IModel<PrismPropertyWrapper<SearchFilterType>> itemModel;
+    private final IModel<SearchFilterType> beanModel;
 
     public SearchFilterConfigurationPanel(String id, IModel<PrismPropertyWrapper<SearchFilterType>> itemModel,
             IModel<SearchFilterType> model, PrismContainerValueWrapper<ObjectCollectionType> containerWrapper) {
-        super(id, model);
+        super(id);
+        this.beanModel = model;
         this.itemModel = itemModel;
         this.containerWrapper = containerWrapper;
         // todo why resolving model in constructor?
@@ -114,11 +121,13 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         aceEditorField.add(new VisibleBehaviour(() -> FieldType.XML.equals(fieldType)));
         container.add(aceEditorField);
 
-        TextPanel textPanel = new TextPanel(ID_TEXT_FIELD, createQueryModel(getModel(), filterTypeModel, containerWrapper != null));
+        SearchFilterTypeForQueryModel queryModel = createQueryModel(getModel(), filterTypeModel, containerWrapper != null);
+        TextPanel textPanel = new TextPanel(ID_TEXT_FIELD, queryModel);
         textPanel.add(new VisibleBehaviour(() -> FieldType.QUERY.equals(fieldType)));
         if (addEmptyBlumBehaviourToTextField()) {
             textPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
+        textPanel.getBaseFormComponent().add(new ParseAxiomQueryValidator(queryModel));
         container.add(textPanel);
 
         AjaxButton searchConfigurationButton = new AjaxButton(ID_CONFIGURE_BUTTON) {
@@ -132,14 +141,14 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         searchConfigurationButton.add(new VisibleBehaviour(() -> containerWrapper != null));
         add(searchConfigurationButton);
 
-        IModel<String> labelModel = (IModel) () -> {
+        IModel<String> labelModel = () -> {
             String type;
             if (FieldType.XML.equals(fieldType)) {
-                type = getString(SearchBoxModeType.AXIOM_QUERY);
+                type = LocalizationUtil.translateEnum(SearchBoxModeType.AXIOM_QUERY);
             } else {
-                type = getString("SearchFilterConfigurationPanel.fieldType.xml");
+                type = LocalizationUtil.translate("SearchFilterConfigurationPanel.fieldType.xml");
             }
-            return getString("SearchFilterConfigurationPanel.fieldType.switchTo", type);
+            return LocalizationUtil.translate("SearchFilterConfigurationPanel.fieldType.switchTo", new Object[]{type});
         };
 
         Label buttonLabel = new Label(ID_FIELD_TYPE_BUTTON_LABEL, labelModel);
@@ -167,7 +176,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         return false;
     }
 
-    protected IModel<String> createQueryModel(IModel<SearchFilterType> model, LoadableModel<Class<O>> filterTypeModel, boolean useParsing) {
+    protected SearchFilterTypeForQueryModel createQueryModel(IModel<SearchFilterType> model, LoadableModel<Class<O>> filterTypeModel, boolean useParsing) {
         return new SearchFilterTypeForQueryModel<>(model, getPageBase(), filterTypeModel, useParsing);
     }
 
@@ -198,5 +207,26 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
     public PrismPropertyWrapper<SearchFilterType> getItemModelObject() {
         return itemModel.getObject();
+    }
+
+    private IModel<SearchFilterType> getModel() {
+        return beanModel;
+    }
+
+    @Override
+    public FormComponent getBaseFormComponent() {
+        if (fieldType == FieldType.XML) {
+            AceEditorPanel panel = (AceEditorPanel) get(createComponentPath(ID_CONTAINER, ID_ACE_EDITOR_FIELD));
+            if (panel != null) {
+                return panel.getEditor();
+            }
+        } else if (fieldType == FieldType.QUERY) {
+            TextPanel panel = (TextPanel) get(createComponentPath(ID_CONTAINER, ID_TEXT_FIELD));
+            if (panel != null) {
+                return panel.getBaseFormComponent();
+            }
+        }
+
+        return null;
     }
 }
