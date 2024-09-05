@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.suggestion;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisSessionDiscoveredOutlierPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile.RoleAnalysisOutlierAssociatedTileTable;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,6 +37,7 @@ import java.util.List;
 @PanelInstance(
         identifier = "classifiedOutlierPanel",
         applicableForType = RoleAnalysisSessionType.class,
+        childOf = RoleAnalysisSessionDiscoveredOutlierPanel.class,
         display = @PanelDisplay(
                 label = "RoleAnalysisOutlierType.classifiedOutlierPanel",
                 icon = GuiStyleConstants.CLASS_ICON_OUTLIER,
@@ -67,6 +69,7 @@ public class RoleAnalysisSessionClassifiedOutlierPanel extends AbstractObjectMai
         container.add(panel);
     }
 
+    @Override
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }

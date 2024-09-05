@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisSessionDiscoveredOutlierPanel;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +28,6 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierClusterCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
@@ -34,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionT
 @PanelInstance(
         identifier = "allOutlierPanel",
         applicableForType = RoleAnalysisSessionType.class,
+        childOf = RoleAnalysisSessionDiscoveredOutlierPanel.class,
+        defaultPanel = true,
         display = @PanelDisplay(
                 label = "RoleAnalysisOutlierType.allOutlierPanel",
                 icon = GuiStyleConstants.CLASS_ICON_OUTLIER,
@@ -65,6 +68,7 @@ public class RoleAnalysisSessionAllOutlierPanel extends AbstractObjectMainPanel<
         container.add(panel);
     }
 
+    @Override
     public PageBase getPageBase() {
         return ((PageBase) getPage());
     }
