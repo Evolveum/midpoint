@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile.mining.candidate;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_CANDIDATE_ROLE_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.confidenceBasedTwoColor;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
-import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -20,10 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
@@ -52,7 +52,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -111,7 +110,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             protected @NotNull Component getTitleComponent(String id) {
                 Label label = new Label(id, createStringResource("RoleAnalysis.title.panel.location"));
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "text-muted"));
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                 return label;
             }
 
@@ -129,8 +128,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                 };
 
                 sessionLink.setOutputMarkupId(true);
-                sessionLink.add(AttributeAppender.append("style", "max-width:150px"));
-                sessionLink.add(AttributeAppender.append("class", "text-truncate"));
+                sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
+                sessionLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
                 view.add(sessionLink);
 
                 Label separator = new Label(view.newChildId(), "/");
@@ -146,8 +145,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                     }
                 };
                 clusterLink.setOutputMarkupId(true);
-                clusterLink.add(AttributeAppender.append("style", "max-width:150px"));
-                clusterLink.add(AttributeAppender.append("class", "text-truncate"));
+                clusterLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
+                clusterLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
                 view.add(clusterLink);
                 return view;
             }
@@ -168,7 +167,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
         PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
         if (clusterPrism == null) {
-            add(new EmptyPanel("buttonBar"));
+            add(new EmptyPanel(ID_BUTTON_BAR));
             return;
         }
 
@@ -184,7 +183,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             progressInPercent = ((double) actualProgress / expectedProgress) * 100;
         }
 
-        BigDecimal bd = new BigDecimal(progressInPercent);
+        BigDecimal bd = BigDecimal.valueOf(progressInPercent);
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         double finalProgress = bd.doubleValue();
 
@@ -221,7 +220,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace("title", () -> "Attribute confidence: " + finalProgress + "%"));
+        progressBar.add(AttributeModifier.replace(TITLE_CSS, () -> "Attribute confidence: " + finalProgress + "%"));
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }
@@ -232,8 +231,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             protected @NotNull Component getTitleComponent(String id) {
                 Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.induced.roles"));
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "text-muted"));
-                label.add(AttributeAppender.append("style", "font-size: 16px"));
+                label.add(AttributeModifier.append(CLASS_CSS, "text-muted"));
+                label.add(AttributeModifier.append(STYLE_CSS, "font-size: 16px"));
                 return label;
             }
 
@@ -244,7 +243,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                 };
 
                 inducementPanel.setOutputMarkupId(true);
-                inducementPanel.add(AttributeAppender.replace("title", () -> "Induced roles count: " + inducementsCount));
+                inducementPanel.add(AttributeModifier.replace(TITLE_CSS, () -> "Induced roles count: " + inducementsCount));
                 inducementPanel.add(new TooltipBehavior());
                 return inducementPanel;
             }
@@ -259,8 +258,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             protected @NotNull Component getTitleComponent(String id) {
                 Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.user.members"));
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "text-muted"));
-                label.add(AttributeAppender.append("style", "font-size: 16px"));
+                label.add(AttributeModifier.append(CLASS_CSS, "text-muted"));
+                label.add(AttributeModifier.append(STYLE_CSS, "font-size: 16px"));
 
                 return label;
             }
@@ -272,7 +271,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                 };
 
                 memberPanel.setOutputMarkupId(true);
-                memberPanel.add(AttributeAppender.replace("title", () -> "User members count: " + membersCount));
+                memberPanel.add(AttributeModifier.replace(TITLE_CSS, () -> "User members count: " + membersCount));
                 memberPanel.add(new TooltipBehavior());
                 return memberPanel;
             }
@@ -283,7 +282,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
 
     private void initDefaultStyle() {
         setOutputMarkupId(true);
-        add(AttributeAppender.append("class",
+        add(AttributeModifier.append(CLASS_CSS,
                 "bg-white d-flex flex-column align-items-center elevation-1 rounded w-100 h-100 p-0"));
     }
 
@@ -297,8 +296,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             }
         };
         objectTitle.setOutputMarkupId(true);
-        objectTitle.add(AttributeAppender.replace("style", "font-size:18px"));
-        objectTitle.add(AttributeAppender.replace("title", () -> getModelObject().getName()));
+        objectTitle.add(AttributeModifier.replace(STYLE_CSS, "font-size:18px"));
+        objectTitle.add(AttributeModifier.replace(TITLE_CSS, () -> getModelObject().getName()));
         objectTitle.add(new TooltipBehavior());
         add(objectTitle);
     }
@@ -318,7 +317,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
 
         };
         barMenu.setOutputMarkupId(true);
-        barMenu.add(AttributeModifier.replace("title",
+        barMenu.add(AttributeModifier.replace(TITLE_CSS,
                 createStringResource("RoleAnalysis.menu.moreOptions")));
         barMenu.add(new TooltipBehavior());
         add(barMenu);
@@ -333,7 +332,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         PageParameters parameters = new PageParameters();
         String clusterOid = getModelObject().getClusterRef().getOid();
         parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-        parameters.add("panelId", "clusterDetails");
+        parameters.add(PANEL_ID, "clusterDetails");
         parameters.add(PARAM_CANDIDATE_ROLE_ID, stringBuilder.toString());
         Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                 .getObjectDetailsPage(RoleAnalysisClusterType.class);
@@ -346,9 +345,9 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         String status = modelObject.getStatus();
 
         Label statusBar = new Label(ID_STATUS_BAR, Model.of(status));
-        statusBar.add(AttributeAppender.append("class",
+        statusBar.add(AttributeModifier.append(CLASS_CSS,
                 "badge " + DisplayForLifecycleState.valueOfOrDefault(status).getCssClass()));
-        statusBar.add(AttributeAppender.append("style", "width: 80px"));
+        statusBar.add(AttributeModifier.append(STYLE_CSS, "width: 80px"));
         statusBar.setOutputMarkupId(true);
         add(statusBar);
     }
@@ -414,7 +413,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         PrismObject<RoleAnalysisClusterType> clusterPrism = roleAnalysisService.getClusterTypeObject(clusterOid, task, result);
         RoleAnalysisClusterType cluster;
         if (clusterPrism == null) {
-            add(new EmptyPanel("buttonBar"));
+            add(new EmptyPanel(ID_BUTTON_BAR));
             return;
         }
 
@@ -432,7 +431,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             add(taskPanel);
         } else {
             CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                    "fa fa-bolt", LayeredIconCssStyle.IN_ROW_STYLE);
+                    "fa fa-bolt", IconCssStyle.IN_ROW_STYLE);
             AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(ID_MIGRATION_BUTTON,
                     iconBuilder.build(),
                     createStringResource("RoleMining.button.title.execute.migration")) {
@@ -452,12 +451,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                     roleAnalysisService.clusterObjectMigrationRecompute(
                             clusterOid, role.getOid(), task, result);
 
-                    ActivityDefinitionType activity = null;
-                    try {
-                        activity = createActivity(members, role.getOid());
-                    } catch (SchemaException e) {
-                        LOGGER.error("Couldn't create activity for role migration: " + role.getOid(), e);
-                    }
+                    ActivityDefinitionType activity;
+                    activity = createActivity(members, role.getOid());
                     if (activity != null) {
                         roleAnalysisService.executeMigrationTask(pageBase.getModelInteractionService(),
                                 clusterPrism, activity, role.asPrismObject(), taskOid,
@@ -490,7 +485,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             };
             migrationButton.titleAsLabel(true);
             migrationButton.setOutputMarkupId(true);
-            migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+            migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-primary btn-sm"));
 
             add(migrationButton);
         }
@@ -506,7 +501,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         getPageBase().navigateToNext(detailsPageClass, parameters);
     }
 
-    private ActivityDefinitionType createActivity(ObjectSetType members, String roleOid) throws SchemaException {
+    private ActivityDefinitionType createActivity(ObjectSetType members, String roleOid) {
 
         ObjectReferenceType objectReferenceType = new ObjectReferenceType();
         objectReferenceType.setType(RoleType.COMPLEX_TYPE);
@@ -527,7 +522,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
             RoleAnalysisOperationStatus operationExecution) {
 
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_OBJECT_TASK_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
+                GuiStyleConstants.CLASS_OBJECT_TASK_ICON, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton taskPanel = new AjaxCompositedIconSubmitButton(
                 RoleAnalysisCandidateTilePanel.ID_MIGRATION_BUTTON,
                 iconBuilder.build(),
@@ -548,7 +543,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
         };
         taskPanel.titleAsLabel(true);
         taskPanel.setOutputMarkupId(true);
-        taskPanel.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        taskPanel.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
         taskPanel.setOutputMarkupId(true);
         add(taskPanel);
 

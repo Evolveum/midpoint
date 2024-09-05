@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile.mining.pattern;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.confidenceBasedTwoColor;
@@ -24,7 +25,6 @@ import java.util.Set;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -110,7 +110,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     private void initProgressBar() {
         DetectedPattern pattern = getModelObject().getPattern();
         double itemsConfidence = pattern.getItemsConfidence();
-        BigDecimal bd = new BigDecimal(itemsConfidence);
+        BigDecimal bd = BigDecimal.valueOf(itemsConfidence);
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         double finalItemsConfidence = bd.doubleValue();
 
@@ -163,7 +163,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             protected @NotNull Component getTitleComponent(String id) {
                 Label label = new Label(id, createStringResource("RoleAnalysisPatternTilePanel.reduction"));
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "text-muted"));
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                 return label;
             }
 
@@ -201,10 +201,10 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
                 String mutedTitle = " (" + String.format("%.2f", finalMetric) + ")";
                 Label label = new Label(rv.newChildId(), Model.of(mutedTitle));
-                label.add(AttributeAppender.append("class", "text-muted"));
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                 label.setOutputMarkupId(true);
                 rv.add(label);
-                rv.add(AttributeAppender.append("class", "d-flex align-items-center"));
+                rv.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center"));
                 return rv;
             }
         };
@@ -217,7 +217,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             protected @NotNull Component getTitleComponent(String id) {
                 Label label = new Label(id, createStringResource("RoleAnalysisPatternTilePanel.attributeConfidence"));
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "text-muted"));
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                 return label;
             }
 
@@ -255,8 +255,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
                 + createStringResource("RoleAnalysis.tile.panel.roles").getString()) {
         };
         processedObjectCount.setOutputMarkupId(true);
-        processedObjectCount.add(AttributeAppender.replace(
-                "title", () -> "Processed objects: " + getModelObject().getRoleCount()));
+        processedObjectCount.add(AttributeModifier.replace(
+                TITLE_CSS, () -> "Processed objects: " + getModelObject().getRoleCount()));
         processedObjectCount.add(new TooltipBehavior());
         add(processedObjectCount);
     }
@@ -267,7 +267,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         };
 
         clusterCount.setOutputMarkupId(true);
-        clusterCount.add(AttributeAppender.replace("title", () -> "User count: " + getModelObject().getUserCount()));
+        clusterCount.add(AttributeModifier.replace(TITLE_CSS, () -> "User count: " + getModelObject().getUserCount()));
         clusterCount.add(new TooltipBehavior());
         add(clusterCount);
     }
@@ -286,8 +286,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         };
 
         sessionLink.setOutputMarkupId(true);
-        sessionLink.add(AttributeAppender.append("style", "max-width:150px"));
-        sessionLink.add(AttributeAppender.append("class", "text-truncate"));
+        sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
+        sessionLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
         add(sessionLink);
 
         AjaxLinkPanel clusterLink = new AjaxLinkPanel(ID_CLUSTER, Model.of(clusterRef.getTargetName().getOrig())) {
@@ -299,8 +299,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             }
         };
         clusterLink.setOutputMarkupId(true);
-        clusterLink.add(AttributeAppender.append("style", "max-width:150px"));
-        clusterLink.add(AttributeAppender.append("class", "text-truncate"));
+        clusterLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
+        clusterLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
         add(clusterLink);
     }
 
@@ -314,8 +314,8 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
             }
         };
         objectTitle.setOutputMarkupId(true);
-        objectTitle.add(AttributeAppender.replace("style", "font-size:18px"));
-        objectTitle.add(AttributeAppender.replace("title", () -> getModelObject().getName()));
+        objectTitle.add(AttributeModifier.replace(STYLE_CSS, "font-size:18px"));
+        objectTitle.add(AttributeModifier.replace(TITLE_CSS, () -> getModelObject().getName()));
         objectTitle.add(new TooltipBehavior());
         add(objectTitle);
     }
@@ -336,7 +336,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
         };
         barMenu.setOutputMarkupId(true);
-        barMenu.add(AttributeModifier.replace("title",
+        barMenu.add(AttributeModifier.replace(TITLE_CSS,
                 createStringResource("RoleAnalysis.menu.moreOptions")));
         barMenu.add(new TooltipBehavior());
         add(barMenu);
@@ -345,7 +345,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     private void initDefaultCssStyle() {
         setOutputMarkupId(true);
 
-        add(AttributeAppender.append("class",
+        add(AttributeModifier.append(CLASS_CSS,
                 "bg-white d-flex flex-column align-items-center elevation-1 rounded w-100 h-100 p-0"));
     }
 

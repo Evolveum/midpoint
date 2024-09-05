@@ -42,6 +42,8 @@ import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
 
     public RoleAnalysisObjectColumn(
@@ -120,7 +122,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
 
     private AjaxLinkTruncateDto loadColumnHeaderModelObject(IModel<A> rowModel) {
         return new AjaxLinkTruncateDto(loadColumnHeaderModelObjectTitle(rowModel), createCompositedIcon(rowModel),
-                getOperationMode(rowModel), computeToolTip(rowModel)){
+                getOperationMode(rowModel), computeToolTip(rowModel)) {
             @Override
             public boolean isActionEnabled() {
                 RoleAnalysisObjectDto roleAnalysis = getModel().getObject();
@@ -148,25 +150,35 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
             double confidence = rowModel.getObject().getFrequencyItem().getzScore();
             title = title + " (" + confidence + "confidence) ";
 
-            //TODO this is just tmp test
-            DetectionOption detectionOption = new DetectionOption(
-                    10, 100, 2, 2);
-            ListMultimap<String, SimpleHeatPattern> totalRelationOfPatternsForChunk = new OutlierPatternResolver()
-                    .performDetection(RoleAnalysisProcessModeType.USER, getAdditionalMiningChunk(), detectionOption);
-
-            List<SimpleHeatPattern> simpleHeatPatterns = totalRelationOfPatternsForChunk.get(rowModel.getObject().getMembers().get(0));
-            if (!simpleHeatPatterns.isEmpty()) {
-                int totalRelations = 0;
-                for (SimpleHeatPattern simpleHeatPattern : simpleHeatPatterns) {
-                    totalRelations += simpleHeatPattern.getTotalRelations();
-                }
-
-                title = title + " (" + totalRelations + "relations) " + " (" + simpleHeatPatterns.size() + " patterns)";
-            }
+            //TODO tmp experiment REMOVE later
+//            title = computeOutlierExperimentalInfo(rowModel, title);
 
             return title;
         }
         return null;
+    }
+
+    private String computeOutlierExperimentalInfo(@NotNull IModel<A> rowModel, String title) {
+        DetectionOption detectionOption = new DetectionOption(
+                10, 100, 2, 2);
+        //This is overhead operation. Just for testing.
+        ListMultimap<String, SimpleHeatPattern> totalRelationOfPatternsForChunk = new OutlierPatternResolver()
+                .performDetection(RoleAnalysisProcessModeType.USER, getAdditionalMiningChunk(), detectionOption);
+
+        A object = rowModel.getObject();
+        List<String> members = object.getMembers();
+        //All members dispose of the same access rights
+        String memberOid = members.get(0);
+        List<SimpleHeatPattern> simpleHeatPatterns = totalRelationOfPatternsForChunk.get(memberOid);
+        if (!simpleHeatPatterns.isEmpty()) {
+            int totalRelations = 0;
+            for (SimpleHeatPattern simpleHeatPattern : simpleHeatPatterns) {
+                totalRelations += simpleHeatPattern.getTotalRelations();
+            }
+
+            title = title + " (" + totalRelations + "relations) " + " (" + simpleHeatPatterns.size() + " patterns)";
+        }
+        return title;
     }
 
     private CompositedIcon createCompositedIcon(IModel<A> rowModel) {

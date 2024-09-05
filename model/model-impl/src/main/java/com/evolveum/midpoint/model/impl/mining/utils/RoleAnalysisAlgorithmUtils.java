@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttribut
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -436,7 +437,7 @@ public class RoleAnalysisAlgorithmUtils {
         int elementSize = elementsOid.size();
         double density = (sumPoints / (double) (elementSize * pointsSize)) * 100;
 
-        PolyStringType name = PolyStringType.fromOrig(sessionTypeObjectCount + (noiseCategory != null ? noiseCategory.value() : "unCategory") + "_noise");
+        PolyStringType name = PolyStringType.fromOrig(resolveNameForClusterNoise(noiseCategory));
 
         ClusterStatistic clusterStatistic = new ClusterStatistic(name, processedObjectsRef, elementSize,
                 pointsSize, minVectorPoint, maxVectorPoint, meanPoints, density);
@@ -629,6 +630,22 @@ public class RoleAnalysisAlgorithmUtils {
             double reductionFactorConfidence = patternConfidenceCalculator.calculateReductionFactorConfidence();
             detectedPattern.setItemConfidence(itemConfidence);
             detectedPattern.setReductionConfidence(reductionFactorConfidence);
+        }
+    }
+
+    @Contract(pure = true)
+    private @NotNull String resolveNameForClusterNoise(@Nullable OutlierNoiseCategoryType noiseCategory) {
+        if (noiseCategory != null) {
+            return switch (noiseCategory) {
+                case ACCESS_NOISE -> "Access noise";
+                case RULE_NOISE -> "Rule noise";
+                case MEMBERS_NOISE -> "Members noise";
+                case ACCESS_OR_RULE_NOISE -> "Access or rule noise";
+                case OVERAL_NOISE -> "Overall noise";
+                default -> "Non-category noise";
+            };
+        }else {
+            return "Non-category noise";
         }
     }
 
