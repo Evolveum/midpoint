@@ -20,8 +20,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationDefinitionWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 
 import org.apache.wicket.Component;
@@ -87,6 +91,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.ChartJsPanel;
+
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
@@ -195,9 +201,55 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private void createPanelTitle() {
-        Label title = new Label(ID_TITLE, getLabelModel());
+        TitleWithMarks title = new TitleWithMarks(ID_TITLE, getLabelModel(), getDefaultOperationPolicy()){
+            @Override
+            protected boolean isTitleLinkEnabled() {
+                return false;
+            }
+
+            @Override
+            protected IModel<String> createPrimaryMarksTitle() {
+                IModel<String> objectTypeModel = () -> {
+                    ResourceObjectTypeDefinition def = getSelectedObjectTypeDefinition();
+                    if (def == null) {
+                        return null;
+                    }
+
+                    return GuiDisplayNameUtil.getDisplayName(getSelectedObjectTypeDefinition().getDefinitionBean());
+                };
+
+                return createStringResource(
+                        "ResourceObjectsPanel.defaultOperationPolicy",
+                        new Object[]{
+                                objectTypeModel,
+                                getDefaultOperationPolicy()}
+                        );
+            }
+        };
         title.setOutputMarkupId(true);
         add(title);
+    }
+
+    private IModel<String> getDefaultOperationPolicy() {
+        return () -> {
+            ResourceObjectTypeDefinition def = getSelectedObjectTypeDefinition();
+            if (def == null) {
+                return null;
+            }
+
+            @NotNull ResourceObjectTypeDefinitionType objectType = def.getDefinitionBean();
+            if (objectType.getDefaultOperationPolicyRef() == null
+                    || objectType.getDefaultOperationPolicyRef().asReferenceValue().isEmpty()) {
+                return null;
+            }
+
+            @Nullable PrismObject<ObjectType> mark = WebModelServiceUtils.loadObject(objectType.getDefaultOperationPolicyRef(), getPageBase());
+            if (mark == null) {
+                return null;
+            }
+
+            return WebComponentUtil.getDisplayNameOrName(mark);
+        };
     }
 
     private void createObjectTypeChoice() {
@@ -218,7 +270,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                 super.setObject(object);
                 ResourceContentStorage storage = getPageStorage();
                 if (storage != null) {
-                    storage.getContentSearch().setIntent(object.getIntent());
+                    storage.getContentSearch().setIntent(object == null ? null : object.getIntent());
                 }
             }
         };
@@ -241,6 +293,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                 target.add(get(ID_LIFECYCLE_STATE).getParent());
                 target.add(get(ID_CONFIGURATION));
                 target.add(get(ID_TASKS));
+                target.add(get(ID_TITLE));
                 target.add(getShadowTable());
                 lifecycleStateModel.detach();
             }
@@ -480,7 +533,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             return;
         }
 
-        if (association.getSubject().getAssociation().getInbound().size() == 1){
+        if (association.getSubject().getAssociation().getInbound().size() == 1) {
             methodName = "showAssociationInboundWizard";
             path = association.getSubject().getAssociation().getInbound().iterator().next().asPrismContainerValue().getPath();
         } else {
@@ -516,7 +569,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             return;
         }
 
-        if (association.getSubject().getAssociation().getOutbound().size() == 1){
+        if (association.getSubject().getAssociation().getOutbound().size() == 1) {
             methodName = "showAssociationOutboundWizard";
             path = association.getSubject().getAssociation().getOutbound().iterator().next().asPrismContainerValue().getPath();
         } else {
