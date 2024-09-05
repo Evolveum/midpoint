@@ -106,12 +106,12 @@ public class PageArchetypeSelection extends PageAbstractAuthenticationModule<Arc
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageArchetypeSelection.form.title");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PageArchetypeSelection.form.description");
     }
 

@@ -56,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * adding links to actions such as self-registration, password reset,
  * username recovery.
  */
-public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthentication> extends AbstractPageLogin {
+public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthentication> extends AbstractPageLogin<MA> {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CSRF_FIELD = "csrfField";
@@ -277,16 +277,6 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
         return  processingModuleIndex > 0;
     }
 
-    protected MA getAuthenticationModuleConfiguration() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
-            getSession().error(getString("No midPoint authentication is found"));
-            throw new RestartResponseException(PageError.class);
-        }
-        //noinspection unchecked
-        return (MA) mpAuthentication.getProcessingModuleAuthentication();
-    }
-
     //TODO should be here?
     protected SecurityPolicyType resolveSecurityPolicy(PrismObject<UserType> user) {
         return runPrivileged((Producer<SecurityPolicyType>) () -> {
@@ -311,20 +301,6 @@ public abstract class PageAbstractAuthenticationModule<MA extends ModuleAuthenti
 
     protected String getArchetypeOid() {
         return null;
-    }
-
-    @Override
-    protected IModel<String> getLoginPanelTitleModel() {
-        ModuleAuthentication module = getAuthenticationModuleConfiguration();
-        DisplayType display = module.getDisplay();
-        return () -> GuiDisplayTypeUtil.getTranslatedLabel(display);
-    }
-
-    @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
-        ModuleAuthentication module = getAuthenticationModuleConfiguration();
-        DisplayType display = module.getDisplay();
-        return () -> GuiDisplayTypeUtil.getHelp(display);
     }
 
     @Override

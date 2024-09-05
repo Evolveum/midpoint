@@ -11,10 +11,16 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.web.page.error.PageError;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -53,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
  * Basic intention is to provide common layout, such as a styles and title and
  * description of the page. Possibility to change locale and implementation for back button.
  */
-public abstract class AbstractPageLogin extends PageAdminLTE {
+public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extends PageAdminLTE {
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_SEQUENCE = "sequence";
@@ -182,9 +188,37 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
 
     protected abstract void initCustomLayout();
 
-    protected abstract IModel<String> getLoginPanelTitleModel();
+    private IModel<String> getLoginPanelTitleModel() {
+        IModel<String> configuredTitleModel = getConfiguredLoginPanelTitleModel();
+        if (StringUtils.isNotEmpty(configuredTitleModel.getObject())) {
+            return configuredTitleModel;
+        }
+        return getDefaultLoginPanelTitleModel();
+    }
 
-    protected abstract IModel<String> getLoginPanelDescriptionModel();
+    private IModel<String> getLoginPanelDescriptionModel() {
+        IModel<String> configuredDescriptionModel = getConfiguredLoginPanelDescriptionModel();
+        if (StringUtils.isNotEmpty(configuredDescriptionModel.getObject())) {
+            return configuredDescriptionModel;
+        }
+        return getDefaultLoginPanelDescriptionModel();
+    }
+
+    private IModel<String> getConfiguredLoginPanelTitleModel() {
+        ModuleAuthentication module = getAuthenticationModuleConfiguration();
+        DisplayType display = module.getDisplay();
+        return () -> GuiDisplayTypeUtil.getTranslatedLabel(display);
+    }
+
+    private IModel<String> getConfiguredLoginPanelDescriptionModel() {
+        ModuleAuthentication module = getAuthenticationModuleConfiguration();
+        DisplayType display = module.getDisplay();
+        return () -> GuiDisplayTypeUtil.getHelp(display);
+    }
+
+    protected abstract IModel<String> getDefaultLoginPanelTitleModel();
+
+    protected abstract IModel<String> getDefaultLoginPanelDescriptionModel();
 
     private String getSequenceName() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -245,5 +279,15 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     }
 
     protected void actionPerformed() {
+    }
+
+    protected MA getAuthenticationModuleConfiguration() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof MidpointAuthentication mpAuthentication)) {
+            getSession().error(getString("No midPoint authentication is found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        //noinspection unchecked
+        return (MA) mpAuthentication.getProcessingModuleAuthentication();
     }
 }
