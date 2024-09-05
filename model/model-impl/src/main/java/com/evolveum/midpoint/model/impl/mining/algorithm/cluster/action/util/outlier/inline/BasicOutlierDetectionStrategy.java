@@ -95,20 +95,16 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
         }
 
         long endTime = System.currentTimeMillis();
-        double totalProcessingTime = (double) (endTime - startTime) / 1000.0;
-        LOGGER.debug("ALL ANOMALY/CHUNK: TOTAL PROCESSING TIME: " + totalProcessingTime + " seconds");
+        double totalProcessingTime = (endTime - startTime) / 1000.0;
+        LOGGER.debug("ALL ANOMALY/CHUNK: TOTAL PROCESSING TIME: {} seconds", totalProcessingTime);
 
         startTime = System.currentTimeMillis();
         Set<String> keySet = userRoleMap.keySet();
 
         for (String memberOid : keySet) {
-            Collection<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(memberOid);
-            if (detectedAnomalyResults.isEmpty()) {
-                continue;
-            }
-
             PrismObject<UserType> userObject = roleAnalysisService.getUserTypeObject(memberOid, task, result);
-            if (userObject == null) {
+            Collection<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(memberOid);
+            if (userObject == null || detectedAnomalyResults.isEmpty()) {
                 continue;
             }
 
@@ -128,8 +124,8 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
         }
 
         endTime = System.currentTimeMillis();
-        totalProcessingTime = (double) (endTime - startTime) / 1000.0;
-        LOGGER.debug("ALL USER CANDIDATE OUTLIER KEYSET: TOTAL PROCESSING TIME: " + totalProcessingTime + " seconds");
+        totalProcessingTime = (endTime - startTime) / 1000.0;
+        LOGGER.debug("ALL USER CANDIDATE OUTLIER KEYSET: TOTAL PROCESSING TIME: {} seconds", totalProcessingTime);
     }
 
 }

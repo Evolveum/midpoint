@@ -70,14 +70,14 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
                 this.progressBarValue = 0.00;
             }
 
-            Integer processedObjectCount = sessionStatistic.getProcessedObjectCount();
-            if (processedObjectCount != null) {
-                this.processedObjectCount = processedObjectCount.toString();
+            Integer newProcessedObjectCount = sessionStatistic.getProcessedObjectCount();
+            if (newProcessedObjectCount != null) {
+                this.processedObjectCount = newProcessedObjectCount.toString();
             }
 
-            Integer clusterCount = sessionStatistic.getClusterCount();
-            if (clusterCount != null) {
-                this.clusterCount = clusterCount.toString();
+            Integer newClusterCount = sessionStatistic.getClusterCount();
+            if (newClusterCount != null) {
+                this.clusterCount = newClusterCount.toString();
             }
         } else {
             this.progressBarValue = 0.00;
@@ -131,28 +131,30 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
                 sessionTypeObject,
                 result, task);
 
-        ObjectReferenceType taskRef = null;
+        ObjectReferenceType resultTaskRef = null;
         RoleAnalysisOperationStatus operationStatus = sessionTypeObject.asObjectable().getOperationStatus();
         if (operationStatus != null) {
-            taskRef = operationStatus.getTaskRef();
-            if (taskRef == null || taskRef.getOid() == null) {
-                taskRef = null;
+            resultTaskRef = operationStatus.getTaskRef();
+            if (resultTaskRef == null || resultTaskRef.getOid() == null) {
+                resultTaskRef = null;
             } else {
                 PrismObject<TaskType> object = roleAnalysisService
-                        .getObject(TaskType.class, taskRef.getOid(), task, result);
+                        .getObject(TaskType.class, resultTaskRef.getOid(), task, result);
                 if (object == null) {
-                    taskRef = null;
+                    resultTaskRef = null;
                 }
             }
         }
-        this.taskRef = taskRef;
+        this.taskRef = resultTaskRef;
 
     }
 
+    @Override
     public String getIcon() {
         return icon;
     }
 
+    @Override
     public void setIcon(String icon) {
         this.icon = icon;
     }
@@ -165,10 +167,12 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
         this.name = name;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     public void setDescription(String description) {
         this.description = description;
     }

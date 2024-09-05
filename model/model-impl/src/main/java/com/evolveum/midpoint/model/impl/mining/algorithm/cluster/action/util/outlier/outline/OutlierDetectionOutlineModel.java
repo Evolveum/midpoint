@@ -8,15 +8,14 @@ package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ou
 
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.prepareDetectionOptions;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -40,7 +39,7 @@ public class OutlierDetectionOutlineModel {
     RoleAnalysisDetectionOptionType detectionOption;
     Integer minMembersCount;
 
-    int userCountInRepo = 0;
+    int userCountInRepo;
 
     public OutlierDetectionOutlineModel(
             @NotNull RoleAnalysisService roleAnalysisService,
@@ -53,7 +52,12 @@ public class OutlierDetectionOutlineModel {
         this.detectionOption = prepareDetectionOptions(session);
 
         List<ObjectReferenceType> member = cluster.getMember();
-        this.outliersClusterMembers = member.stream().map(AbstractReferencable::getOid).collect(Collectors.toList());
+        List<String> list = new ArrayList<>();
+        for (ObjectReferenceType objectReferenceType : member) {
+            String oid = objectReferenceType.getOid();
+            list.add(oid);
+        }
+        this.outliersClusterMembers = list;
 
         this.userAnalysisAttributeDef = roleAnalysisService.resolveAnalysisAttributes(
                 session, UserType.COMPLEX_TYPE);

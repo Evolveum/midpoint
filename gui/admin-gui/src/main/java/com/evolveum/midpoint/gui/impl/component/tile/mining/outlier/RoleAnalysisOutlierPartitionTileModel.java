@@ -60,10 +60,6 @@ public class RoleAnalysisOutlierPartitionTileModel<T extends Serializable> exten
 
     }
 
-    public void resolvePartitionAttributeConfidence(){
-
-    }
-
     private void resolveIfTopImpacted(
             @NotNull RoleAnalysisOutlierPartitionType partition,
             @NotNull RoleAnalysisOutlierType outlierParent) {
