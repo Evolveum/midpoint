@@ -66,8 +66,6 @@ public abstract class ReloadableButton extends AjaxIconButton {
     protected void onInitialize() {
         super.onInitialize();
 
-        initReloadBehavior();
-
         setModel(createIconModel());
 
         add(AttributeAppender.append("class", getButtonCssClass()));
@@ -75,12 +73,6 @@ public abstract class ReloadableButton extends AjaxIconButton {
         showTitleAsLabel(true);
 
         add(AttributeAppender.append("class", getDisabledClassModel()));
-        //todo this behavior causes exception
-//        add(new EnableBehaviour(this::isEmptyTaskOid));
-
-//        if (!isEmptyTaskOid()) {
-            add(reloadedBehaviour);
-//        }
     }
 
     private void initReloadBehavior() {
@@ -113,6 +105,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
                 refresh(target);
             }
         };
+        add(reloadedBehaviour);
     }
 
     private LoadableDetachableModel<String> createIconModel() {
@@ -133,7 +126,7 @@ public abstract class ReloadableButton extends AjaxIconButton {
 
     private void onClickReloadButton(AjaxRequestTarget target) {
         taskOidForReloaded = getCreatedTaskOid(target);
-        reloadedBehaviour.restart(target);
+        initReloadBehavior();
         refresh(target);
     }
 
