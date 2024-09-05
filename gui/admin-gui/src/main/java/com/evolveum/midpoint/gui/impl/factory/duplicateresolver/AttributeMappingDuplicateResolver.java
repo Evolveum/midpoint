@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.duplicateresolver;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -43,7 +44,7 @@ public class AttributeMappingDuplicateResolver extends ContainerDuplicateResolve
     }
 
     @Override
-    public MappingType duplicateObject(MappingType originalBean) {
+    public MappingType duplicateObject(MappingType originalBean, PageBase pageBase) {
         PrismContainerValue<MappingType> originalObject = originalBean.asPrismContainerValue();
         PrismContainerValue<MappingType> duplicate =
                 DuplicationProcessHelper.duplicateContainerValueDefault(originalObject);
