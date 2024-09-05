@@ -139,7 +139,7 @@ public class PageRoleAnalysis extends PageAdmin {
                     .searchObjects(RoleAnalysisOutlierType.class, null, null, task, result);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
                 CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't load role analysis outliers", e);
         }
 
         List<RoleAnalysisOutlierType> topFiveOutliers = getTopFiveOutliers(searchResultList);

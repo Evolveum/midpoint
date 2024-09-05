@@ -95,13 +95,8 @@ public class OutlierDetectionOutlineClusterModel {
 
         List<String> jaccardCloseObject = prepareJaccardCloseObjects(roleAnalysisService,
                 analyzedObjectRef,
-                outlineModel.getClusterRef(),
-                outlineModel.getSessionRef(),
                 chunkMap,
-                usedFrequency,
                 outliersClusterMembers,
-                minThreshold,
-                minThresholdForTotalOutlier,
                 minMembersCount,
                 task,
                 result);
@@ -120,23 +115,23 @@ public class OutlierDetectionOutlineClusterModel {
                 task,
                 result);
 
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = tempMiningOperationChunk.getMiningRoleTypeChunks(
+        List<MiningRoleTypeChunk> tmpMiningRoleTypeChunks = tempMiningOperationChunk.getMiningRoleTypeChunks(
                 RoleAnalysisSortMode.NONE);
 
-        List<MiningUserTypeChunk> miningUserTypeChunks = tempMiningOperationChunk.getMiningUserTypeChunks(
+        List<MiningUserTypeChunk> tmpMiningUserTypeChunks = tempMiningOperationChunk.getMiningUserTypeChunks(
                 RoleAnalysisSortMode.NONE);
 
-        this.miningRoleTypeChunks = miningRoleTypeChunks;
+        this.miningRoleTypeChunks = tmpMiningRoleTypeChunks;
 
         List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = outlineModel.getUserAnalysisAttributeDef();
         List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = outlineModel.getRoleAnalysisAttributeDef();
-        processClusterAttributeAnalysis(roleAnalysisService, tempCluster, miningRoleTypeChunks,
+        processClusterAttributeAnalysis(roleAnalysisService, tempCluster,
                 userAnalysisAttributeDef, roleAnalysisAttributeDef, userAnalysisCache, task, result);
 
         MutableDouble clusterDensity = new MutableDouble(0);
         MutableDouble clusterRolesCount = new MutableDouble(0);
         calculateTemporaryClusterDensityAndRolesCount(clusterDensity, clusterRolesCount,
-                miningRoleTypeChunks, miningUserTypeChunks);
+                tmpMiningRoleTypeChunks, tmpMiningUserTypeChunks);
         double density = clusterDensity.doubleValue();
         int countOfRoles = clusterRolesCount.intValue();
         AnalysisClusterStatisticType clusterStatistics = tempCluster.getClusterStatistics();
@@ -147,7 +142,7 @@ public class OutlierDetectionOutlineClusterModel {
         RangeType frequencyRange = detectionOption.getFrequencyRange();
         Double sensitivity = detectionOption.getSensitivity();
         this.zScoreData = roleAnalysisService.resolveOutliersZScore(
-                miningRoleTypeChunks, frequencyRange, sensitivity);
+                tmpMiningRoleTypeChunks, frequencyRange, sensitivity);
         this.similarityThreshold = usedFrequency.doubleValue() * 100;
     }
 
@@ -155,13 +150,8 @@ public class OutlierDetectionOutlineClusterModel {
     private List<String> prepareJaccardCloseObjects(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull ObjectReferenceType analyzedObjectRef,
-            ObjectReferenceType clusterRef,
-            ObjectReferenceType sessionRef,
             @NotNull ListMultimap<List<String>, String> chunkMap,
-            @NotNull MutableDouble usedFrequency,
             @NotNull List<String> outliersMembers,
-            double minThreshold,
-            double minThresholdForTotalOutlier,
             @NotNull Integer minMembersCount,
             @NotNull Task task,
             @NotNull OperationResult result) {
@@ -241,7 +231,6 @@ public class OutlierDetectionOutlineClusterModel {
     private void processClusterAttributeAnalysis(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType temporaryCluster,
-            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
             @Nullable List<RoleAnalysisAttributeDef> userAnalysisAttributeDef,
             @Nullable List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef,
             @NotNull AttributeAnalysisCache userAnalysisCache,

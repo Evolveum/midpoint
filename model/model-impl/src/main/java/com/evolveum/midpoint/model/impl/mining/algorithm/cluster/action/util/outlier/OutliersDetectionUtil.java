@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import java.util.*;
 
 import com.google.common.collect.ListMultimap;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +39,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 //TODO major multiple thinks is processed multiple times
 // (Create structure for caching these data, NOTE: use also clustering process there is multiple mapped structures that can be used)
 public class OutliersDetectionUtil {
+
+    private OutliersDetectionUtil() {
+    }
 
     public static void updateOrImportOutlierObject(
             @NotNull RoleAnalysisService roleAnalysisService,
@@ -161,7 +165,7 @@ public class OutliersDetectionUtil {
             @NotNull DetectedAnomalyResult prepareRoleOutlier,
             @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
-            OperationResult result) {
+            @NotNull OperationResult result) {
 
         DetectedAnomalyStatistics statistics = prepareRoleOutlier.getStatistics();
 
@@ -224,30 +228,15 @@ public class OutliersDetectionUtil {
         //TODO take from session detection option
         DetectionOption detectionOption = new DetectionOption(
                 10, 100, 2, 2);
-        long startTime = System.currentTimeMillis();
         List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
                 .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
                         Collections.singletonList(userOid), allowedProperties);
-        long endTime = System.currentTimeMillis();
-        if (allowedProperties == null) {
-            LOGGER.debug("PATTERN: User Pattern Detection time in ms: {}", (endTime - startTime));
-        } else {
-            LOGGER.debug("PATTERN: Anomaly Pattern Detection time in ms: {}", (endTime - startTime));
-        }
 
         //TODO simplify until not needed
         int patternCount = totalRelationOfPatternsForCell.size();
-        int totalRelations = 0;
-        int topPatternRelation = 0;
-        SimpleHeatPattern topPattern = null;
-        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
-            int relations = simpleHeatPattern.getTotalRelations();
-            totalRelations += relations;
-            if (relations > topPatternRelation) {
-                topPatternRelation = relations;
-                topPattern = simpleHeatPattern;
-            }
-        }
+        MutableInt totalRelations = new MutableInt(0);
+        MutableInt topPatternRelation = new MutableInt(0);
+        SimpleHeatPattern topPattern = resolveTopPattern(totalRelationOfPatternsForCell, totalRelations, topPatternRelation);
 
         if (topPattern != null) {
             Set<String> patternMembers = new HashSet<>();
@@ -275,6 +264,7 @@ public class OutliersDetectionUtil {
                         new ObjectReferenceType().oid(rolesRef).type(RoleType.COMPLEX_TYPE)
                 );
             }
+            mapPatternRefs(users, pattern, roles);
 
             pattern.setClusterMetric(detectedPattern.getMetric());
 
@@ -296,16 +286,39 @@ public class OutliersDetectionUtil {
         }
 
         int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
-        double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
+
+        double topPatternCoverage = 0;
+        if (clusterRelations != 0) {
+            topPatternCoverage = ((double) topPatternRelation.getValue() / clusterRelations) * 100;
+        }
 
         patternInfo.setConfidence(topPatternCoverage);
         patternInfo.setDetectedPatternCount(patternCount);
-        patternInfo.setTopPatternRelation(topPatternRelation);
-        patternInfo.setTotalRelations(totalRelations);
+        patternInfo.setTopPatternRelation(topPatternRelation.getValue());
+        patternInfo.setTotalRelations(totalRelations.getValue());
         patternInfo.setClusterRelations(clusterRelations);
         return patternInfo;
     }
 
+    private static SimpleHeatPattern resolveTopPattern(
+            @NotNull List<SimpleHeatPattern> totalRelationOfPatternsForCell,
+            @NotNull MutableInt totalRelations,
+            @NotNull MutableInt topPatternRelation) {
+        int tmpTotalRelations = 0;
+        int tmpTopPatternRelation = 0;
+        SimpleHeatPattern topPattern = null;
+        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
+            int relations = simpleHeatPattern.getTotalRelations();
+            tmpTotalRelations += relations;
+            if (relations > tmpTopPatternRelation) {
+                tmpTopPatternRelation = relations;
+                topPattern = simpleHeatPattern;
+            }
+        }
+        totalRelations.setValue(tmpTotalRelations);
+        topPatternRelation.setValue(tmpTopPatternRelation);
+        return topPattern;
+    }
     //TODO this is just for USER MODE! Implement Role (Experimental)
 
     /**
@@ -429,15 +442,13 @@ public class OutliersDetectionUtil {
         double minFrequency = 2;
         double maxFrequency = 2;
 
-        if (defaultDetectionOption != null) {
-            if (defaultDetectionOption.getFrequencyRange() != null) {
-                RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
-                if (frequencyRange.getMin() != null) {
-                    minFrequency = frequencyRange.getMin().intValue();
-                }
-                if (frequencyRange.getMax() != null) {
-                    maxFrequency = frequencyRange.getMax().intValue();
-                }
+        if (defaultDetectionOption != null && defaultDetectionOption.getFrequencyRange() != null) {
+            RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
+            if (frequencyRange.getMin() != null) {
+                minFrequency = frequencyRange.getMin().intValue();
+            }
+            if (frequencyRange.getMax() != null) {
+                maxFrequency = frequencyRange.getMax().intValue();
             }
         }
 
