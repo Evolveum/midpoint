@@ -32,11 +32,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -56,8 +56,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     private static final String DOT_CLASS = PageRoleAnalysisSession.class.getName() + ".";
     private static final String OP_DELETE_CLEANUP = DOT_CLASS + "deleteCleanup";
-    private static final String OP_PERFORM_CLUSTERING = DOT_CLASS + "performClustering";
-    private static final Trace LOGGER = TraceManager.getTrace(PageRoleAnalysisSession.class);
 
     public PageRoleAnalysisSession() {
         super();
@@ -82,16 +80,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         String sessionOid = session.getOid();
         roleAnalysisService
                 .deleteSessionClustersMembers(sessionOid, task, result, false);
-    }
-
-    @Override
-    public void savePerformed(AjaxRequestTarget target) {
-        super.savePerformed(target);
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
     }
 
     @Override
@@ -134,7 +122,8 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     }
 
     @Override
-    protected InlineOperationalButtonsPanel<RoleAnalysisSessionType> createInlineButtonsPanel(String idButtons, LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel) {
+    protected InlineOperationalButtonsPanel<RoleAnalysisSessionType> createInlineButtonsPanel(String idButtons,
+            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel) {
         return new RoleAnalysisSessionOperationButtonPanel(idButtons, objectWrapperModel, getObjectDetailsModels()) {
             @Override
             protected void submitPerformed(AjaxRequestTarget target) {
@@ -171,11 +160,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     }
 
     @Override
-    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> createObjectDetailsModels(PrismObject<RoleAnalysisSessionType> object) {
-        return super.createObjectDetailsModels(object);
-    }
-
-    @Override
     public IModel<List<ContainerPanelConfigurationType>> getPanelConfigurations() {
 
         IModel<List<ContainerPanelConfigurationType>> panelConfigurations = super.getPanelConfigurations();
@@ -195,41 +179,32 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
-
-            if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")) {
-                if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                    continue;
-                }
-            }
-
-//            if (containerPanelConfigurationType.getIdentifier().equals("classifiedOutlierPanel")
-//                    || containerPanelConfigurationType.getIdentifier().equals("unclassifiedOutlierPanel")
-//                    || containerPanelConfigurationType.getIdentifier().equals("allOutlierPanel")) {
-//                if (!RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
-//                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-//                    continue;
-//                }
-//            }
-            if (containerPanelConfigurationType.getIdentifier().equals("outlierActions")
+            if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")
+                    && RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            } else if (containerPanelConfigurationType.getIdentifier().equals("outlierActions")
                     && !RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                    continue;
-                }
-
-            if (containerPanelConfigurationType.getIdentifier().equals("userModeSettings")) {
-                if (RoleAnalysisProcessModeType.ROLE.equals(processMode)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                }
-
-            } else if (containerPanelConfigurationType.getIdentifier().equals("roleModeSettings")) {
-                if (RoleAnalysisProcessModeType.USER.equals(processMode)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                }
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            } else {
+                resolveSessionSettingPanels(containerPanelConfigurationType, processMode);
             }
 
         }
         return panelConfigurations;
+    }
+
+    private static void resolveSessionSettingPanels(
+            @NotNull ContainerPanelConfigurationType containerPanelConfigurationType,
+            @NotNull RoleAnalysisProcessModeType processMode) {
+        if (containerPanelConfigurationType.getIdentifier().equals("userModeSettings")) {
+            if (RoleAnalysisProcessModeType.ROLE.equals(processMode)) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            }
+
+        } else if (containerPanelConfigurationType.getIdentifier().equals("roleModeSettings")
+                && RoleAnalysisProcessModeType.USER.equals(processMode)) {
+            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+        }
     }
 
     @Override

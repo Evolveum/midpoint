@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -35,10 +37,14 @@ import java.math.RoundingMode;
 import java.util.*;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 
 public class RoleAnalysisAspectsWebUtils {
+
+    private RoleAnalysisAspectsWebUtils() {
+    }
 
     public static @NotNull IModel<List<IdentifyWidgetItem>> getClusterWidgetModelOutliers(
             @NotNull RoleAnalysisClusterType cluster,
@@ -82,18 +88,14 @@ public class RoleAnalysisAspectsWebUtils {
 
                     clusterPartition = outlierPartition;
 
-                    List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-                    for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
-                        if (detectedAnomaly.getTargetObjectRef() != null) {
-                            anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
-                        }
-                    }
+                    loadAnomalySet(outlierPartition, anomalies);
                 }
             }
 
-            BigDecimal bd = new BigDecimal(overallConfidence);
+            BigDecimal bd = BigDecimal.valueOf(overallConfidence);
             bd = bd.setScale(2, RoundingMode.HALF_UP);
             overallConfidence = bd.doubleValue();
+            String formattedConfidence = String.format("%.2f", overallConfidence);
             String description = anomalies.size() + " anomalies were detected in " + clusterName;
             RoleAnalysisOutlierPartitionType finalClusterPartition = clusterPartition;
             IdentifyWidgetItem identifyWidgetItem = new IdentifyWidgetItem(
@@ -101,7 +103,7 @@ public class RoleAnalysisAspectsWebUtils {
                     Model.of(GuiStyleConstants.CLASS_ICON_OUTLIER),
                     Model.of(topFiveOutlier.getName().getOrig()),
                     Model.of(description),
-                    Model.of(overallConfidence + "%"),
+                    Model.of(formattedConfidence + "%"),
                     Model.of("name")) {
                 @Override
                 public void onActionComponentClick(AjaxRequestTarget target) {
@@ -116,6 +118,15 @@ public class RoleAnalysisAspectsWebUtils {
                     };
                     panel.setOutputMarkupId(true);
                     pageBase.showMainPopup(panel, target);
+                }
+
+                @Override
+                public @NotNull Component createValueTitleComponent(String id) {
+                    Label label = new Label(id, Model.of());
+                    label.add(AttributeModifier.append(CLASS_CSS, "fa fa-level-up fa-sm text-danger"));
+                    label.add(new VisibleBehaviour(() -> getDescription() != null));
+                    label.setOutputMarkupId(true);
+                    return label;
                 }
 
                 @Override
@@ -140,6 +151,15 @@ public class RoleAnalysisAspectsWebUtils {
         }
 
         return Model.ofList(detailsModel);
+    }
+
+    private static void loadAnomalySet(RoleAnalysisOutlierPartitionType outlierPartition, Set<String> anomalies) {
+        List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+        for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+            if (detectedAnomaly.getTargetObjectRef() != null) {
+                anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
+            }
+        }
     }
 
     public static @NotNull IModel<List<IdentifyWidgetItem>> getSessionWidgetModelOutliers(
@@ -208,7 +228,7 @@ public class RoleAnalysisAspectsWebUtils {
             double percentagePart = 0;
             if (relationsMetric != 0 && allUserOwnedRoleAssignments != 0) {
                 percentagePart = (relationsMetric / allUserOwnedRoleAssignments) * 100;
-                BigDecimal bd = new BigDecimal(percentagePart);
+                BigDecimal bd = BigDecimal.valueOf(percentagePart);
                 bd = bd.setScale(2, RoundingMode.HALF_UP);
                 percentagePart = bd.doubleValue();
             }
@@ -229,11 +249,12 @@ public class RoleAnalysisAspectsWebUtils {
                     Model.of(formattedReductionFactorConfidence + "%"),
                     Model.of("name")) {
 
-                public Component createValueTitleComponent(String id) {
-                    Label label = new Label(id,
-                            pageBase.createStringResource("RoleAnalysisIdentifyWidgetPanel.value.title.system.reduction"));
-                    label.setOutputMarkupId(true);
+                @Override
+                public @NotNull Component createValueTitleComponent(String id) {
+                    Label label = new Label(id, Model.of());
+                    label.add(AttributeModifier.append(CLASS_CSS, "fa fa-arrow-down fa-sm text-danger"));
                     label.add(new VisibleBehaviour(() -> getDescription() != null));
+                    label.setOutputMarkupId(true);
                     return label;
                 }
 
@@ -339,7 +360,7 @@ public class RoleAnalysisAspectsWebUtils {
             modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
                     null, task, result);
         } catch (Exception ex) {
-            throw new RuntimeException("Couldn't search outliers", ex);
+            throw new SystemException("Couldn't search outliers", ex);
         }
 
         searchResultList.sort(Comparator.comparing(RoleAnalysisOutlierType::getOverallConfidence).reversed());
