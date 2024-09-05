@@ -238,7 +238,7 @@ public class Search<T extends Serializable> implements Serializable, DebugDumpab
         }
 
         ObjectQuery archetypeQuery = evaluateCollectionFilter(pageBase);
-//        query = mergeQueries(query, archetypeQuery);
+        query = mergeQueries(query, archetypeQuery);
         query = mergeQueries(query, customizeContentQuery);
         LOGGER.debug("Created query: {}", query);
 
