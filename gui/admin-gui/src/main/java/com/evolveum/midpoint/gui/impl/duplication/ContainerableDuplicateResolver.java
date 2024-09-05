@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.gui.impl.duplication;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperFactory;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
 
 /**
@@ -9,5 +10,5 @@ import com.evolveum.midpoint.prism.Containerable;
  */
 public interface ContainerableDuplicateResolver<C extends Containerable> extends WrapperFactory {
 
-    C duplicateObject(C originalObject);
+    C duplicateObject(C originalObject, PageBase pageBase);
 }
