@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
+
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -469,22 +471,14 @@ public class OutliersDetectionUtil {
             return;
         }
 
-        List<ObjectReferenceType> duplicatedRoleAssignment = roleAnalysisOutlierType.getDuplicatedRoleAssignment();
-        UserType userObject = userPrismObject.asObjectable();
-        List<String> rolesOidAssignment = getRolesOidAssignment(userObject);
-        for (String roleOid : rolesOidAssignment) {
-            PrismObject<RoleType> roleAssignment = roleAnalysisService.getRoleTypeObject(roleOid, task, result);
-            if (roleAssignment != null) {
-                List<String> rolesOidInducement = getRolesOidInducement(roleAssignment.asObjectable());
-                for (String roleOidInducement : rolesOidInducement) {
-                    if (rolesOidAssignment.contains(roleOidInducement)) {
-                        ObjectReferenceType ref = new ObjectReferenceType()
-                                .oid(roleOidInducement)
-                                .type(RoleType.COMPLEX_TYPE);
-                        duplicatedRoleAssignment.add(ref);
-                    }
-                }
-            }
+        UserAccessDistribution userAccessDistribution = roleAnalysisService.resolveUserAccessDistribution(
+                userPrismObject, task, result);
+
+        List<ObjectReferenceType> duplicates = userAccessDistribution.getDuplicates();
+
+        if(duplicates != null) {
+            List<ObjectReferenceType> duplicatedRoleAssignment = roleAnalysisOutlierType.getDuplicatedRoleAssignment();
+            duplicatedRoleAssignment.addAll(CloneUtil.cloneCollectionMembers(duplicates));
         }
     }
 
