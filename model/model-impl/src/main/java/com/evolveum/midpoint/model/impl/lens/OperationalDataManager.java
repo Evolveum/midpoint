@@ -283,7 +283,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
 
         var allMetadata = assignment.asPrismContainerValue().getValueMetadata();
         if (allMetadata.hasNoValues()) {
-            LOGGER.warn("No metadata in assignment ({})", desc);
+            LOGGER.debug("No metadata in assignment ({})", desc);
             return;
         }
 

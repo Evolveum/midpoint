@@ -58,7 +58,7 @@ public class ContainerValueIdGenerator {
     public ContainerValueIdGenerator forModifyObject(long containerIdSeq) {
         checkExistingContainers(object);
         if (!pcvsWithoutId.isEmpty()) {
-            LOGGER.warn("Generating missing container IDs in previously persisted prism object {}/{} for container values: {}",
+            LOGGER.debug("Generating missing container IDs in previously persisted prism object {}/{} for container values: {}",
                     object.toDebugType(), object.getOid(), pcvsWithoutId);
             assignMissingContainerIds();
         }
