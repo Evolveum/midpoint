@@ -87,12 +87,12 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
     public PageCertCampaign(PageParameters parameters) {
         super(parameters);
+        initRunningTaskOid();
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initRunningTaskOid();
     }
 
     private void initRunningTaskOid() {
@@ -198,6 +198,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
         };
         actionButton.setOutputMarkupPlaceholderTag(true);
+//        actionButton.add(new EnableBehaviour(() -> StringUtils.isEmpty(runningTaskOid)));
         rightButtonsView.add(actionButton);
     }
 
