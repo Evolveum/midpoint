@@ -496,6 +496,7 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
                         <a:experimental>true</a:experimental>
+                        <a:displayName>ObjectType.effectiveMarkRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
