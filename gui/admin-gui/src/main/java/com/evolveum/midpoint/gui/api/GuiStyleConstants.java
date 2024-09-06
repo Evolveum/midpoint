@@ -331,4 +331,5 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_OUTLIER = "fa fa-user-circle";
 
     public static final String CLASS_ICON_RECYCLE = "fa fa-recycle";
+    public static final String CLASS_MIGRATION_ICON = "fa fa-wrench";
 }

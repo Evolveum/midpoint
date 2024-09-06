@@ -12,9 +12,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
@@ -23,16 +20,19 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class ObjectCleanerTest extends AbstractUnitTest {
 
@@ -125,7 +125,23 @@ public class ObjectCleanerTest extends AbstractUnitTest {
                 .isNotNull();
 
         ObjectCleaner processor = new ObjectCleaner();
-        TestCleanupListener listener = new TestCleanupListener();
+        TestCleanupListener listener = new TestCleanupListener() {
+
+            @Override
+            public Boolean onItemCleanup(CleanupEvent<Item<?, ?>> event) {
+                Item<?, ?> item = event.item();
+                if (!QNameUtil.match(item.getElementName(), UserType.F_GIVEN_NAME)) {
+                    return super.onItemCleanup(event);
+                }
+
+                item.getValues().forEach(value -> {
+                    PrismPropertyValue ppv = (PrismPropertyValue) value;
+                    ppv.deleteValueMetadata();
+                });
+
+                return null;
+            }
+        };
         processor.setListener(listener);
         processor.process(user);
 

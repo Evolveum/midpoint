@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.refreshCells;
 
@@ -124,7 +125,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         }
     }
 
-    private DisplayValueOption loadDispayValueOption(RoleAnalysisClusterType cluster, Integer parameterTableSetting) {
+    private @NotNull DisplayValueOption loadDispayValueOption(@NotNull RoleAnalysisClusterType cluster, Integer parameterTableSetting) {
 //        RoleAnalysisClusterType cluster = getModelObject().asObjectable();
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
 
@@ -209,7 +210,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         return isOutlierDetection;
     }
 
-    public void recomputeChunks(List<DetectedPattern> selectedPatterns, PageBase pageBase) {
+    public void recomputeChunks(List<DetectedPattern> selectedPatterns, @NotNull PageBase pageBase) {
         Task task = pageBase.createSimpleTask("recompute chunks");
         OperationResult result = task.getResult();
         this.miningOperationChunk = pageBase.getRoleAnalysisService().prepareMiningStructure(
