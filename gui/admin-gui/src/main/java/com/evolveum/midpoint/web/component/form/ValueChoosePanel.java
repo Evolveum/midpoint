@@ -228,7 +228,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
             @Override
             protected void onClickCancelButton(AjaxRequestTarget ajaxRequestTarget) {
-                managePopupDialogContent(pageBase, target);
+                managePopupDialogContent(pageBase, ajaxRequestTarget);
             }
         };
 
