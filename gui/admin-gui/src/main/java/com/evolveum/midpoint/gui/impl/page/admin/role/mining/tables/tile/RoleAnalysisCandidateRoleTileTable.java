@@ -513,7 +513,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
                                 LOGGER.error("Couldn't create activity for role migration: " + role.getOid(), e);
                             }
                             if (activity != null) {
-                                roleAnalysisService.executeMigrationTask(getPageBase().getModelInteractionService(),
+                                roleAnalysisService.executeRoleAnalysisRoleMigrationTask(getPageBase().getModelInteractionService(),
                                         clusterPrism, activity, role.asPrismObject(), taskOid,
                                         null, task, result);
                                 if (result.isWarning()) {

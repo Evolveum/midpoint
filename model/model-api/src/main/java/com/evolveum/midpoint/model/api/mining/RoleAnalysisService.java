@@ -475,13 +475,19 @@ public interface RoleAnalysisService {
      * @param task The task associated with this operation.
      * @param result The operation result.
      */
-    void executeMigrationTask(
+    void executeRoleAnalysisRoleMigrationTask(
             @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull ActivityDefinitionType activityDefinition,
             @NotNull PrismObject<RoleType> roleObject,
             @Nullable String taskOid,
             @Nullable PolyStringType taskName,
+            @NotNull Task task,
+            @NotNull OperationResult result);
+
+    void executeRoleMigrationProcess(
+            @NotNull ModelInteractionService modelInteractionService,
+            @NotNull PrismObject<RoleType> roleObject,
             @NotNull Task task,
             @NotNull OperationResult result);
 

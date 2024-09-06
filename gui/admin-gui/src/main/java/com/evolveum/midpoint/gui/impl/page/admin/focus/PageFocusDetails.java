@@ -17,6 +17,7 @@ import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -32,7 +33,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.component.FocusOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ProgressReportingAwarePage;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -118,6 +118,12 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
             @Override
             protected void submitPerformed(AjaxRequestTarget target) {
                 PageFocusDetails.this.savePerformed(target);
+            }
+
+            @Override
+            protected void addButtons(RepeatingView repeatingView) {
+                super.addButtons(repeatingView);
+                PageFocusDetails.this.addButtons(repeatingView);
             }
 
             @Override
@@ -338,5 +344,9 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
         return objectWrapper != null &&
                 org.apache.commons.lang3.StringUtils.isNotEmpty(objectWrapper.getOid()) &&
                 objectWrapper.getOid().equals(WebModelServiceUtils.getLoggedInFocusOid());
+    }
+
+    protected void addButtons(RepeatingView repeatingView) {
+       //empty
     }
 }
