@@ -454,7 +454,7 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
                     ActivityDefinitionType activity;
                     activity = createActivity(members, role.getOid());
                     if (activity != null) {
-                        roleAnalysisService.executeMigrationTask(pageBase.getModelInteractionService(),
+                        roleAnalysisService.executeRoleAnalysisRoleMigrationTask(pageBase.getModelInteractionService(),
                                 clusterPrism, activity, role.asPrismObject(), taskOid,
                                 null, task, result);
                         if (result.isWarning()) {

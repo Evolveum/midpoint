@@ -281,6 +281,65 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return roleMemberCache;
     }
 
+    /**
+     * Extracts the members of a given role based on the specified filter.
+     *
+     * @param filter An optional filter to apply to the user search.
+     * @param role The role for which members are to be extracted.
+     * @param task The task in the context of which the operation is executed.
+     * @param result The result of the operation.
+     * @return A list of FocusType objects representing the members of the role.
+     */
+    public @NotNull List<FocusType> extractRoleMembers(
+            @Nullable SearchFilterType filter,
+            @NotNull RoleType role,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        List<FocusType> roleMembers = new ArrayList<>();
+
+        ObjectQuery query = PrismContext.get().queryFor(FocusType.class)
+                .exists(F_ASSIGNMENT)
+                .block()
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(role.getOid())
+                .endBlock().build();
+
+        if (filter != null) {
+            try {
+                ObjectFilter objectFilter = PrismContext.get().getQueryConverter()
+                        .createObjectFilter(FocusType.class, filter);
+                if (objectFilter != null) {
+                    query.addFilter(objectFilter);
+                }
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't create object filter", e);
+            }
+        }
+
+        ResultHandler<FocusType> resultHandler = (object, lResult) -> {
+            try {
+                roleMembers.add(object.asObjectable());
+            } catch (Exception e) {
+                String errorMessage = "Cannot resolve role members: " + toShortString(object.asObjectable())
+                        + ": " + e.getMessage();
+                throw new SystemException(errorMessage, e);
+            }
+
+            return true;
+        };
+
+        try {
+            modelService.searchObjectsIterative(FocusType.class, query, resultHandler, null,
+                    task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Failed to search role member objects:", ex);
+        } finally {
+            result.recomputeStatus();
+        }
+
+        return roleMembers;
+    }
+
     @Override //experiment
     public int countUserTypeMembers(
             @Nullable ObjectFilter userFilter,
@@ -1448,7 +1507,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public void executeMigrationTask(
+    public void executeRoleAnalysisRoleMigrationTask(
             @NotNull ModelInteractionService modelInteractionService,
             @NotNull PrismObject<RoleAnalysisClusterType> cluster,
             @NotNull ActivityDefinitionType activityDefinition,
@@ -1462,23 +1521,82 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         if (!RoleAnalysisObjectState.isStable(state)) {
             result.recordWarning("Couldn't start migration. Some process is already in progress.");
-            LOGGER.warn("Couldn't start migration. Some process is already in progress.: " + cluster.getOid());
+            LOGGER.warn("Couldn't start migration. Some process is already in progress.: {}", cluster.getOid());
             return;
         }
 
+        TaskType taskObject = new TaskType();
+
+        String roleIdentifier;
+        if (roleObject.getName() != null) {
+            roleIdentifier = roleObject.getName().toString();
+        } else {
+            roleIdentifier = roleObject.getOid();
+        }
+        taskObject.setName(PolyStringType.fromOrig("Role migration: " + roleIdentifier));
+
+        if (taskOid != null) {
+            taskObject.setOid(taskOid);
+        } else {
+            taskOid = UUID.randomUUID().toString();
+            taskObject.setOid(taskOid);
+        }
+
+        executeBusinessRoleMigrationTask(modelInteractionService, activityDefinition, task, result, taskObject);
+
+        MidPointPrincipal user = AuthUtil.getPrincipalUser();
+        FocusType focus = user.getFocus();
+
+        submitClusterOperationStatus(modelService,
+                cluster,
+                taskOid,
+                RoleAnalysisOperation.MIGRATION, focus, LOGGER, task, result
+        );
+
+        switchRoleToActiveLifeState(roleObject, task, result);
+        cleanClusterDetectedPatterns(cluster, result);
+    }
+
+    @Override
+    public void executeRoleMigrationProcess(
+            @NotNull ModelInteractionService modelInteractionService,
+            @NotNull PrismObject<RoleType> roleObject,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+
+        TaskType taskObject = new TaskType();
+
+        String roleIdentifier;
+        if (roleObject.getName() != null) {
+            roleIdentifier = roleObject.getName().toString();
+        } else {
+            roleIdentifier = roleObject.getOid();
+        }
+
+        taskObject.setName(PolyStringType.fromOrig("Role migration: " + roleIdentifier));
+        taskObject.setOid(UUID.randomUUID().toString());
+
+        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+        objectReferenceType.setType(RoleType.COMPLEX_TYPE);
+        objectReferenceType.setOid(roleObject.getOid());
+
+        List<FocusType> roleMembers = extractRoleMembers(null, roleObject.asObjectable(), task, result);
+        ActivityDefinitionType activityDefinition = createMigrationActivity(roleMembers, roleObject.getOid(), result);
+        if (activityDefinition == null) {
+            return;
+        }
+        executeBusinessRoleMigrationTask(modelInteractionService, activityDefinition, task, result, taskObject);
+
+        switchRoleToActiveLifeState(roleObject, task, result);
+    }
+
+    private static void executeBusinessRoleMigrationTask(
+            @NotNull ModelInteractionService modelInteractionService,
+            @NotNull ActivityDefinitionType activityDefinition,
+            @NotNull Task task,
+            @NotNull OperationResult result,
+            @NotNull TaskType taskObject) {
         try {
-
-            TaskType taskObject = new TaskType();
-
-            taskObject.setName(Objects.requireNonNullElseGet(
-                    taskName, () -> PolyStringType.fromOrig("Migration role (" + roleObject.getName().toString() + ")")));
-
-            if (taskOid != null) {
-                taskObject.setOid(taskOid);
-            } else {
-                taskOid = UUID.randomUUID().toString();
-                taskObject.setOid(taskOid);
-            }
 
             modelInteractionService.submit(
                     activityDefinition,
@@ -1487,46 +1605,74 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                             .withArchetypes(
                                     SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
                     task, result);
-
-            MidPointPrincipal user = AuthUtil.getPrincipalUser();
-            FocusType focus = user.getFocus();
-
-            submitClusterOperationStatus(modelService,
-                    cluster,
-                    taskOid,
-                    RoleAnalysisOperation.MIGRATION, focus, LOGGER, task, result
-            );
-
-            try {
-                ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleType.class)
-                        .item(RoleType.F_LIFECYCLE_STATE).replace("active")
-                        .asObjectDelta(roleObject.getOid());
-
-                Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-
-                modelService.executeChanges(deltas, null, task, result);
-
-            } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
-                    ExpressionEvaluationException |
-                    CommunicationException | ConfigurationException | PolicyViolationException |
-                    SecurityViolationException e) {
-                LOGGER.error("Couldn't update lifecycle state of object RoleType {}", cluster.getOid(), e);
-            }
-
-            try {
-                List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-
-                modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
-                        .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(Collections.emptyList())
-                        .asItemDelta());
-
-                repositoryService.modifyObject(RoleAnalysisClusterType.class, cluster.getOid(), modifications, result);
-            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-                LOGGER.error("Couldn't execute migration recompute RoleAnalysisClusterDetectionOptions {}", cluster.getOid(), e);
-            }
-
         } catch (CommonException e) {
-            LOGGER.error("Failed to execute role {} migration activity: ", roleObject.getOid(), e);
+            throw new SystemException("Couldn't execute business role migration activity: ", e);
+        }
+    }
+
+    private void switchRoleToActiveLifeState(
+            @NotNull PrismObject<RoleType> roleObject,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
+        try {
+            ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleType.class)
+                    .item(ObjectType.F_LIFECYCLE_STATE).replace("active")
+                    .asObjectDelta(roleObject.getOid());
+
+            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+
+            modelService.executeChanges(deltas, null, task, result);
+
+        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
+                ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException |
+                SecurityViolationException e) {
+            LOGGER.error("Couldn't update lifecycle state of object RoleType {}", roleObject, e);
+        }
+    }
+
+    private @Nullable ActivityDefinitionType createMigrationActivity(
+            @NotNull List<FocusType> roleMembersOid,
+            @NotNull String roleOid,
+            @NotNull OperationResult result) {
+        if (roleMembersOid.isEmpty()) {
+            result.recordWarning("Couldn't start migration. There are no members to migrate.");
+            LOGGER.warn("Couldn't start migration. There are no members to migrate.");
+            return null;
+        }
+
+        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+        objectReferenceType.setType(RoleType.COMPLEX_TYPE);
+        objectReferenceType.setOid(roleOid);
+
+        RoleMembershipManagementWorkDefinitionType roleMembershipManagementWorkDefinitionType = new RoleMembershipManagementWorkDefinitionType();
+        roleMembershipManagementWorkDefinitionType.setRoleRef(objectReferenceType);
+
+        ObjectSetType members = new ObjectSetType();
+        for (FocusType member : roleMembersOid) {
+            ObjectReferenceType memberRef = new ObjectReferenceType();
+            memberRef.setOid(member.getOid());
+            memberRef.setType(FocusType.COMPLEX_TYPE);
+            members.getObjectRef().add(memberRef);
+        }
+        roleMembershipManagementWorkDefinitionType.setMembers(members);
+
+        return new ActivityDefinitionType()
+                .work(new WorkDefinitionsType()
+                        .roleMembershipManagement(roleMembershipManagementWorkDefinitionType));
+    }
+
+    private void cleanClusterDetectedPatterns(@NotNull PrismObject<RoleAnalysisClusterType> cluster, @NotNull OperationResult result) {
+        try {
+            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(Collections.emptyList())
+                    .asItemDelta());
+
+            repositoryService.modifyObject(RoleAnalysisClusterType.class, cluster.getOid(), modifications, result);
+        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+            LOGGER.error("Couldn't execute migration recompute RoleAnalysisClusterDetectionOptions {}", cluster.getOid(), e);
         }
     }
 
@@ -3593,7 +3739,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         double totalSystemPercentageReduction = 0;
         if (totalReduction != 0 && totalAssignmentRoleToUser != 0) {
             totalSystemPercentageReduction = ((double) totalReduction / totalAssignmentRoleToUser) * 100;
-            BigDecimal bd = new BigDecimal(totalSystemPercentageReduction);
+            BigDecimal bd = BigDecimal.valueOf(totalSystemPercentageReduction);
             bd = bd.setScale(2, RoundingMode.HALF_UP);
             totalSystemPercentageReduction = bd.doubleValue();
         }
