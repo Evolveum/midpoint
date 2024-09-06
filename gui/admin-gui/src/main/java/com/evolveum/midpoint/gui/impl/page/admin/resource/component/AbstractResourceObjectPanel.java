@@ -149,7 +149,7 @@ public abstract class AbstractResourceObjectPanel extends AbstractObjectMainPane
                 });
 
         if (newTask != null) {
-            DetailsPageUtil.dispatchToNewObject(newTask, getPageBase());
+            DetailsPageUtil.dispatchToObjectDetailsPage(newTask.asPrismObject(), true, true, getPageBase());
         }
     }
 

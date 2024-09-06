@@ -6,19 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
 
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 
 import jakarta.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismObjectWrapperImpl;
 import com.evolveum.midpoint.prism.*;
@@ -180,7 +178,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     }
 
     @Override
-    public O duplicateObject(O originalObject) {
+    public O duplicateObject(O originalObject, PageBase pageBase) {
         PrismObject<? extends ObjectType> duplicatedObject = DuplicationProcessHelper.duplicateObjectDefault(originalObject.asPrismObject());
         O duplicatedBean = (O) duplicatedObject.asObjectable();
         String copyOf = LocalizationUtil.translate("DuplicationProcessHelper.copyOf", new Object[]{originalObject.getName().getOrig()});
