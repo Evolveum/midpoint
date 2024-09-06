@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.mining;
 
+import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisServiceUtils.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ASSIGNMENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 
@@ -19,7 +20,6 @@ import static com.evolveum.midpoint.common.mining.utils.algorithm.JaccardSorter.
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.ClusteringUtils.loadUserBasedMultimapData;
 import static com.evolveum.midpoint.model.impl.mining.analysis.AttributeAnalysisUtil.*;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisUtils.*;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_MODIFY_TIMESTAMP;
 
@@ -79,7 +79,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -527,7 +526,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             try {
                 deleteCluster(object.asObjectable(), task, result, recomputeStatistics);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new SystemException(e);
             }
             return true;
         };
@@ -664,7 +663,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         if (recomputeStatistics) {
             try {
-
+                if(sessionObject == null) {
+                    return;
+                }
                 // FIXME
                 ObjectDelta<RoleAnalysisSessionType> delta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
                         .item(RoleAnalysisSessionType.F_METADATA, F_MODIFY_TIMESTAMP).replace(getCurrentXMLGregorianCalendar())
@@ -676,7 +677,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                     CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-                LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}", sessionObject.getOid(), e);
+                LOGGER.error("Couldn't recompute RoleAnalysisSessionStatistic {}", sessionObject, e);
             }
         }
     }
@@ -720,33 +721,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
     }
 
-    @NotNull
-    private static RoleAnalysisSessionStatisticType prepareRoleAnalysisSessionStatistic(
-            @NotNull AnalysisClusterStatisticType clusterStatistics,
-            @NotNull RoleAnalysisSessionStatisticType sessionStatistic,
-            int deletedClusterMembersCount) {
-        Double membershipDensity = clusterStatistics.getMembershipDensity();
-        Integer processedObjectCount = sessionStatistic.getProcessedObjectCount();
-        Double meanDensity = sessionStatistic.getMeanDensity();
-        Integer clusterCount = sessionStatistic.getClusterCount();
-
-        int newClusterCount = clusterCount - 1;
-
-        RoleAnalysisSessionStatisticType recomputeSessionStatistic = new RoleAnalysisSessionStatisticType();
-
-        if (newClusterCount == 0) {
-            recomputeSessionStatistic.setMeanDensity(0.0);
-            recomputeSessionStatistic.setProcessedObjectCount(0);
-        } else {
-            double recomputeMeanDensity = ((meanDensity * clusterCount) - (membershipDensity)) / newClusterCount;
-            int recomputeProcessedObjectCount = processedObjectCount - deletedClusterMembersCount;
-            recomputeSessionStatistic.setMeanDensity(recomputeMeanDensity);
-            recomputeSessionStatistic.setProcessedObjectCount(recomputeProcessedObjectCount);
-        }
-        recomputeSessionStatistic.setClusterCount(newClusterCount);
-        return recomputeSessionStatistic;
-    }
-
     @Override
     public @Nullable PrismObject<RoleType> cacheRoleTypeObject(
             @NotNull Map<String, PrismObject<RoleType>> roleExistCache,
@@ -783,7 +757,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     roleExistCache.put(roleOid, cacheRole);
                     return cacheRole;
                 } catch (SchemaException e) {
-                    throw new RuntimeException("Couldn't prepare role for cache", e);
+                    throw new SystemException("Couldn't prepare role for cache", e);
                 }
             }
 
@@ -832,7 +806,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 userExistCache.put(userOid, cacheUser);
                 return cacheUser;
             } catch (SchemaException e) {
-                throw new RuntimeException("Couldn't prepare user for cache", e);
+                throw new SystemException("Couldn't prepare user for cache", e);
             }
         }
 
@@ -868,33 +842,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         return 0;
     }
 
-    //    @Override
-    //TODO redundant, remove
-    public @NotNull PrismObject<RoleType> generateBusinessRole(
-            @NotNull Set<AssignmentType> assignmentTypes,
-            @NotNull PolyStringType name) {
-        PrismObject<RoleType> roleTypePrismObject = null;
-        try {
-            roleTypePrismObject = modelService.getPrismContext()
-                    .getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class).instantiate();
-        } catch (SchemaException e) {
-            LOGGER.error("Error while finding object definition by compile time class ClusterType object: {}", e.getMessage(), e);
-        }
-
-        assert roleTypePrismObject != null;
-
-        RoleType role = roleTypePrismObject.asObjectable();
-        role.setName(name);
-
-        if (!assignmentTypes.isEmpty()) {
-            role.getInducement().addAll(assignmentTypes);
-        }
-        role.getAssignment().add(createAssignmentTo(SystemObjectsType.ARCHETYPE_BUSINESS_ROLE.value(),
-                ObjectTypes.ARCHETYPE));
-
-        return roleTypePrismObject;
-    }
-
     @Override
     public void deleteSession(
             @NotNull String sessionOid,
@@ -915,23 +862,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | ExpressionEvaluationException |
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't delete RoleAnalysisSessionType {}", sessionOid, e);
-        }
-    }
-
-    public void deleteAllOutliers(@NotNull Task task,
-            @NotNull OperationResult result) {
-        ResultHandler<RoleAnalysisOutlierType> resultHandler = (object, parentResult) -> {
-            deleteOutlier(object.asObjectable(), task, result);
-            return true;
-        };
-
-        try {
-            modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler, null,
-                    task, result);
-        } catch (Exception ex) {
-            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't delete outliers", ex);
-        } finally {
-            result.recomputeStatus();
         }
     }
 
@@ -1098,11 +1028,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
     }
 
     @Override
-    public void updateChunkWithPatterns(MiningOperationChunk basicChunk,
-            RoleAnalysisProcessModeType processMode,
-            List<DetectedPattern> detectedPatterns,
-            Task task,
-            OperationResult result) {
+    public void updateChunkWithPatterns(@NotNull MiningOperationChunk basicChunk,
+            @NotNull RoleAnalysisProcessModeType processMode,
+            @NotNull List<DetectedPattern> detectedPatterns,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         List<MiningRoleTypeChunk> miningRoleTypeChunks = basicChunk.getMiningRoleTypeChunks();//basicChunk.getMiningRoleTypeChunks(option.getSortMode());
         List<MiningUserTypeChunk> miningUserTypeChunks = basicChunk.getMiningUserTypeChunks();
 
@@ -1129,168 +1059,11 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             List<String> detectedPatternRoles = detectedPatternsRoles.get(i);
             List<String> detectedPatternUsers = detectedPatternsUsers.get(i);
             String candidateRoleId = candidateRolesIds.get(i);
-            addAdditionalObject(candidateRoleId, detectedPatternUsers, detectedPatternRoles, miningUserTypeChunks,
+            addAdditionalObject(this, candidateRoleId, detectedPatternUsers, detectedPatternRoles,
+                    miningUserTypeChunks,
                     miningRoleTypeChunks,
-                    task,
-                    result);
+                    task, result);
         });
-    }
-
-    private static void resolveUserModeChunkPattern(
-            MiningOperationChunk basicChunk,
-            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            List<List<String>> detectedPatternsRoles,
-            List<String> candidateRolesIds,
-            List<MiningUserTypeChunk> miningUserTypeChunks,
-            List<List<String>> detectedPatternsUsers) {
-        for (MiningRoleTypeChunk role : miningRoleTypeChunks) {
-            FrequencyItem frequencyItem = role.getFrequencyItem();
-            double frequency = frequencyItem.getFrequency();
-
-            for (int i = 0; i < detectedPatternsRoles.size(); i++) {
-                List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
-                List<String> chunkRoles = role.getRoles();
-                if (new HashSet<>(detectedPatternsRole).containsAll(chunkRoles)) {
-                    RoleAnalysisObjectStatus objectStatus = role.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsRole.removeAll(chunkRoles);
-                } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency()
-                        && !role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.DISABLE);
-                } else if (!role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            }
-        }
-
-        for (MiningUserTypeChunk user : miningUserTypeChunks) {
-            for (int i = 0; i < detectedPatternsUsers.size(); i++) {
-                List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
-                List<String> chunkUsers = user.getUsers();
-                if (new HashSet<>(detectedPatternsUser).containsAll(chunkUsers)) {
-                    RoleAnalysisObjectStatus objectStatus = user.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsUser.removeAll(chunkUsers);
-                } else if (!user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            }
-        }
-    }
-
-    private static void resolveRoleModeChunkPattern(
-            MiningOperationChunk basicChunk,
-            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
-            List<List<String>> detectedPatternsRoles,
-            List<String> candidateRolesIds,
-            @NotNull List<MiningUserTypeChunk> miningUserTypeChunks,
-            List<List<String>> detectedPatternsUsers) {
-        for (MiningUserTypeChunk user : miningUserTypeChunks) {
-            FrequencyItem frequencyItem = user.getFrequencyItem();
-            double frequency = frequencyItem.getFrequency();
-
-            for (int i = 0; i < detectedPatternsUsers.size(); i++) {
-                List<String> detectedPatternsUser = detectedPatternsUsers.get(i);
-                List<String> chunkUsers = user.getUsers();
-                if (new HashSet<>(detectedPatternsUser).containsAll(chunkUsers)) {
-                    RoleAnalysisObjectStatus objectStatus = user.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsUser.removeAll(chunkUsers);
-                } else if (basicChunk.getMinFrequency() > frequency && frequency < basicChunk.getMaxFrequency()
-                        && !user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.DISABLE);
-                } else if (!user.getStatus().isInclude()) {
-                    user.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            }
-        }
-
-        for (MiningRoleTypeChunk role : miningRoleTypeChunks) {
-            for (int i = 0; i < detectedPatternsRoles.size(); i++) {
-                List<String> detectedPatternsRole = detectedPatternsRoles.get(i);
-                List<String> chunkRoles = role.getRoles();
-                if (new HashSet<>(detectedPatternsRole).containsAll(chunkRoles)) {
-                    RoleAnalysisObjectStatus objectStatus = role.getObjectStatus();
-                    objectStatus.setRoleAnalysisOperationMode(RoleAnalysisOperationMode.INCLUDE);
-                    objectStatus.addContainerId(candidateRolesIds.get(i));
-                    detectedPatternsRole.removeAll(chunkRoles);
-                } else if (!role.getStatus().isInclude()) {
-                    role.setStatus(RoleAnalysisOperationMode.EXCLUDE);
-                }
-            }
-        }
-    }
-
-    private void addAdditionalObject(
-            String candidateRoleId,
-            @NotNull List<String> detectedPatternUsers,
-            @NotNull List<String> detectedPatternRoles,
-            @NotNull List<MiningUserTypeChunk> users,
-            @NotNull List<MiningRoleTypeChunk> roles,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-
-        RoleAnalysisObjectStatus roleAnalysisObjectStatus = new RoleAnalysisObjectStatus(RoleAnalysisOperationMode.INCLUDE);
-        roleAnalysisObjectStatus.setContainerId(singleton(candidateRoleId));
-
-        if (!detectedPatternRoles.isEmpty()) {
-            Map<String, PrismObject<UserType>> userExistCache = new HashMap<>();
-            ListMultimap<String, String> mappedMembers = extractUserTypeMembers(
-                    userExistCache, null, new HashSet<>(detectedPatternRoles), task, result);
-
-            for (String detectedPatternRole : detectedPatternRoles) {
-                List<String> properties = new ArrayList<>(mappedMembers.get(detectedPatternRole));
-                PrismObject<RoleType> roleTypeObject = getRoleTypeObject(detectedPatternRole, task, result);
-                String chunkName = "Unknown";
-                String iconColor = null;
-                if (roleTypeObject != null) {
-                    chunkName = roleTypeObject.getName().toString();
-                    iconColor = resolveFocusObjectIconColor(roleTypeObject.asObjectable(), task, result);
-                }
-
-                MiningRoleTypeChunk miningRoleTypeChunk = new MiningRoleTypeChunk(
-                        Collections.singletonList(detectedPatternRole),
-                        properties,
-                        chunkName,
-                        new FrequencyItem(100.0),
-                        roleAnalysisObjectStatus);
-                if (iconColor != null) {
-                    miningRoleTypeChunk.setIconColor(iconColor);
-                }
-                roles.add(miningRoleTypeChunk);
-            }
-
-        }
-
-        if (!detectedPatternUsers.isEmpty()) {
-            for (String detectedPatternUser : detectedPatternUsers) {
-                PrismObject<UserType> userTypeObject = getUserTypeObject(detectedPatternUser, task, result);
-                List<String> properties = new ArrayList<>();
-                String chunkName = "Unknown";
-                String iconColor = null;
-                if (userTypeObject != null) {
-                    chunkName = userTypeObject.getName().toString();
-                    properties = getRolesOidAssignment(userTypeObject.asObjectable());
-                    iconColor = resolveFocusObjectIconColor(userTypeObject.asObjectable(), task, result);
-                }
-
-                MiningUserTypeChunk miningUserTypeChunk = new MiningUserTypeChunk(
-                        Collections.singletonList(detectedPatternUser),
-                        properties,
-                        chunkName,
-                        new FrequencyItem(100.0),
-                        roleAnalysisObjectStatus);
-
-                if (iconColor != null) {
-                    miningUserTypeChunk.setIconColor(iconColor);
-                }
-
-                users.add(miningUserTypeChunk);
-            }
-        }
     }
 
     @Override
@@ -1553,8 +1326,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 RoleAnalysisOperation.MIGRATION, focus, LOGGER, task, result
         );
 
-        switchRoleToActiveLifeState(roleObject, task, result);
-        cleanClusterDetectedPatterns(cluster, result);
+        switchRoleToActiveLifeState(modelService, roleObject, LOGGER, task, result);
+        cleanClusterDetectedPatterns(repositoryService, cluster, LOGGER, result);
     }
 
     @Override
@@ -1581,99 +1354,13 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         objectReferenceType.setOid(roleObject.getOid());
 
         List<FocusType> roleMembers = extractRoleMembers(null, roleObject.asObjectable(), task, result);
-        ActivityDefinitionType activityDefinition = createMigrationActivity(roleMembers, roleObject.getOid(), result);
+        ActivityDefinitionType activityDefinition = createMigrationActivity(roleMembers, roleObject.getOid(), LOGGER, result);
         if (activityDefinition == null) {
             return;
         }
         executeBusinessRoleMigrationTask(modelInteractionService, activityDefinition, task, result, taskObject);
 
-        switchRoleToActiveLifeState(roleObject, task, result);
-    }
-
-    private static void executeBusinessRoleMigrationTask(
-            @NotNull ModelInteractionService modelInteractionService,
-            @NotNull ActivityDefinitionType activityDefinition,
-            @NotNull Task task,
-            @NotNull OperationResult result,
-            @NotNull TaskType taskObject) {
-        try {
-
-            modelInteractionService.submit(
-                    activityDefinition,
-                    ActivitySubmissionOptions.create()
-                            .withTaskTemplate(taskObject)
-                            .withArchetypes(
-                                    SystemObjectsType.ARCHETYPE_UTILITY_TASK.value()),
-                    task, result);
-        } catch (CommonException e) {
-            throw new SystemException("Couldn't execute business role migration activity: ", e);
-        }
-    }
-
-    private void switchRoleToActiveLifeState(
-            @NotNull PrismObject<RoleType> roleObject,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        try {
-            ObjectDelta<RoleAnalysisClusterType> delta = PrismContext.get().deltaFor(RoleType.class)
-                    .item(ObjectType.F_LIFECYCLE_STATE).replace("active")
-                    .asObjectDelta(roleObject.getOid());
-
-            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-
-            modelService.executeChanges(deltas, null, task, result);
-
-        } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
-                ExpressionEvaluationException |
-                CommunicationException | ConfigurationException | PolicyViolationException |
-                SecurityViolationException e) {
-            LOGGER.error("Couldn't update lifecycle state of object RoleType {}", roleObject, e);
-        }
-    }
-
-    private @Nullable ActivityDefinitionType createMigrationActivity(
-            @NotNull List<FocusType> roleMembersOid,
-            @NotNull String roleOid,
-            @NotNull OperationResult result) {
-        if (roleMembersOid.isEmpty()) {
-            result.recordWarning("Couldn't start migration. There are no members to migrate.");
-            LOGGER.warn("Couldn't start migration. There are no members to migrate.");
-            return null;
-        }
-
-        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-        objectReferenceType.setType(RoleType.COMPLEX_TYPE);
-        objectReferenceType.setOid(roleOid);
-
-        RoleMembershipManagementWorkDefinitionType roleMembershipManagementWorkDefinitionType = new RoleMembershipManagementWorkDefinitionType();
-        roleMembershipManagementWorkDefinitionType.setRoleRef(objectReferenceType);
-
-        ObjectSetType members = new ObjectSetType();
-        for (FocusType member : roleMembersOid) {
-            ObjectReferenceType memberRef = new ObjectReferenceType();
-            memberRef.setOid(member.getOid());
-            memberRef.setType(FocusType.COMPLEX_TYPE);
-            members.getObjectRef().add(memberRef);
-        }
-        roleMembershipManagementWorkDefinitionType.setMembers(members);
-
-        return new ActivityDefinitionType()
-                .work(new WorkDefinitionsType()
-                        .roleMembershipManagement(roleMembershipManagementWorkDefinitionType));
-    }
-
-    private void cleanClusterDetectedPatterns(@NotNull PrismObject<RoleAnalysisClusterType> cluster, @NotNull OperationResult result) {
-        try {
-            List<ItemDelta<?, ?>> modifications = new ArrayList<>();
-
-            modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
-                    .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(Collections.emptyList())
-                    .asItemDelta());
-
-            repositoryService.modifyObject(RoleAnalysisClusterType.class, cluster.getOid(), modifications, result);
-        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
-            LOGGER.error("Couldn't execute migration recompute RoleAnalysisClusterDetectionOptions {}", cluster.getOid(), e);
-        }
+        switchRoleToActiveLifeState(modelService, roleObject, LOGGER, task, result);
     }
 
     public @NotNull String recomputeAndResolveClusterOpStatus(
@@ -1864,7 +1551,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @Nullable RoleAnalysisOperationStatus operationStatus,
             @NotNull OperationResult result) {
         if (operationStatus == null) {
-            return null;
+            return new int[0];
         }
 
         ObjectReferenceType taskRef = operationStatus.getTaskRef();
@@ -2046,7 +1733,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             for (String inducementForAdd : inducementsOid) {
                 ObjectDelta<RoleType> roleD = PrismContext.get().deltaFor(RoleType.class)
-                        .item(RoleType.F_INDUCEMENT)
+                        .item(AbstractRoleType.F_INDUCEMENT)
                         .add(getAssignmentTo(inducementForAdd))
                         .asObjectDelta(candidateRoleOid);
                 Collection<ObjectDelta<? extends ObjectType>> deltas2 = MiscSchemaUtil.createCollection(roleD);
@@ -2056,7 +1743,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             for (String unassignedRole : unassignedRoles) {
                 ObjectDelta<RoleType> roleD = PrismContext.get().deltaFor(RoleType.class)
-                        .item(RoleType.F_INDUCEMENT)
+                        .item(AbstractRoleType.F_INDUCEMENT)
                         .delete(getAssignmentTo(unassignedRole))
                         .asObjectDelta(candidateRoleOid);
                 Collection<ObjectDelta<? extends ObjectType>> deltas2 = MiscSchemaUtil.createCollection(roleD);
@@ -2076,11 +1763,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Couldn't modify candidate role container {}", cluster.getOid(), e);
         }
-    }
-
-    @NotNull
-    private static AssignmentType getAssignmentTo(String unassignedRole) {
-        return createAssignmentTo(unassignedRole, ObjectTypes.ROLE);
     }
 
     public <T extends ObjectType> void loadSearchObjectIterative(
@@ -2414,17 +2096,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         LOGGER.info("Time to resolve detected patterns attributes: {} ms", (end - start));
     }
 
-    private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
-        double totalDensity = 0.0;
-        for (RoleAnalysisAttributeAnalysis attributeAnalysis : attributeAnalysisList) {
-            Double density = attributeAnalysis.getDensity();
-            if (density != null) {
-                totalDensity += density;
-            }
-        }
-        return totalDensity;
-    }
-
     @Override
     public List<PrismObject<RoleAnalysisClusterType>> searchSessionClusters(
             @NotNull RoleAnalysisSessionType session,
@@ -2444,7 +2115,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             result.recomputeStatus();
         }
 
-        return null;
+        return Collections.emptyList();
     }
 
     //TODO temporary
@@ -2480,7 +2151,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             return modelService.countObjects(type, query, options, task, parentResult);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException |
                 CommunicationException | ExpressionEvaluationException e) {
-            throw new RuntimeException("Couldn't count objects of type " + type + ": " + e.getMessage(), e);
+            throw new SystemException("Couldn't count objects of type " + type + ": " + e.getMessage(), e);
         }
     }
 
@@ -2666,21 +2337,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             outlierCandidateAttributeAnalysisResult.getAttributeAnalysis().add(roleAnalysisAttributeAnalysis.clone());
         }
         return outlierCandidateAttributeAnalysisResult;
-    }
-
-    private static @Nullable Set<String> extractCorrespondingOutlierValues(
-            @NotNull RoleAnalysisAttributeAnalysisResult outlierCandidateAttributeAnalysisResult, String itemPath) {
-        List<RoleAnalysisAttributeAnalysis> outlier = outlierCandidateAttributeAnalysisResult.getAttributeAnalysis();
-        for (RoleAnalysisAttributeAnalysis outlierAttribute : outlier) {
-            if (outlierAttribute.getItemPath().equals(itemPath)) {
-                Set<String> outlierValues = new HashSet<>();
-                for (RoleAnalysisAttributeStatistics attributeStatistic : outlierAttribute.getAttributeStatistics()) {
-                    outlierValues.add(attributeStatistic.getAttributeValue());
-                }
-                return outlierValues;
-            }
-        }
-        return null;
     }
 
     @Override
@@ -3013,10 +2669,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         //TODO exception handler
         try {
             repositoryService.addObject(outlier.asPrismObject(), null, result);
-        } catch (ObjectAlreadyExistsException e) {
-            throw new RuntimeException(e);
-        } catch (SchemaException e) {
-            throw new RuntimeException(e);
+        } catch (ObjectAlreadyExistsException | SchemaException e) {
+            throw new SystemException("Couldn't import outlier", e);
         }
 
     }
@@ -3050,7 +2704,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
                 ConfigurationException |
                 ExpressionEvaluationException e) {
-            throw new RuntimeException(e);
+            throw new SystemException(e);
         }
         if (clusterSearchResult == null) {
             return new ArrayList<>();
@@ -3069,22 +2723,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         topDetectedPatterns.sort(Comparator.comparing(DetectedPattern::getMetric).reversed());
         return topDetectedPatterns;
-    }
-
-    @Nullable
-    private static DetectedPattern findPatternWithBestConfidence(List<DetectedPattern> detectedPatterns) {
-        double maxOverallConfidence = 0;
-        DetectedPattern topDetectedPattern = null;
-        for (DetectedPattern detectedPattern : detectedPatterns) {
-            double itemsConfidence = detectedPattern.getItemsConfidence();
-            double reductionFactorConfidence = detectedPattern.getReductionFactorConfidence();
-            double overallConfidence = itemsConfidence + reductionFactorConfidence;
-            if (overallConfidence > maxOverallConfidence) {
-                maxOverallConfidence = overallConfidence;
-                topDetectedPattern = detectedPattern;
-            }
-        }
-        return topDetectedPattern;
     }
 
     @Override
@@ -3181,7 +2819,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
                 ObjectDelta<RoleAnalysisSessionType> clearDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                        .item(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF)
+                        .item(ObjectType.F_EFFECTIVE_MARK_REF)
                         .delete(effectiveMarkRef.get(0).asReferenceValue().clone())
                         .asObjectDelta(session.getOid());
                 Collection<ObjectDelta<? extends ObjectType>> collection = MiscSchemaUtil.createCollection(clearDelta);
@@ -3189,7 +2827,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             }
 
             ObjectDelta<RoleAnalysisSessionType> addDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                    .item(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF).add(newMarkRef.asReferenceValue().clone())
+                    .item(ObjectType.F_EFFECTIVE_MARK_REF).add(newMarkRef.asReferenceValue().clone())
                     .asObjectDelta(session.getOid());
             Collection<ObjectDelta<? extends ObjectType>> collection = MiscSchemaUtil.createCollection(addDelta);
             modelService.executeChanges(collection, null, task, result);
@@ -3211,7 +2849,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             if (effectiveMarkRef != null && !effectiveMarkRef.isEmpty()) {
                 ObjectDelta<RoleAnalysisSessionType> clearDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                        .item(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF).delete(effectiveMarkRef.get(0).asReferenceValue().clone())
+                        .item(ObjectType.F_EFFECTIVE_MARK_REF).delete(effectiveMarkRef.get(0).asReferenceValue().clone())
                         .asObjectDelta(session.getOid());
                 Collection<ObjectDelta<? extends ObjectType>> collectionClear = MiscSchemaUtil.createCollection(clearDelta);
                 modelService.executeChanges(collectionClear, null, task, result);
@@ -3221,7 +2859,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                         .description("First run");
 
                 ObjectDelta<RoleAnalysisSessionType> addDelta = PrismContext.get().deltaFor(RoleAnalysisSessionType.class)
-                        .item(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF).add(mark.asReferenceValue().clone())
+                        .item(ObjectType.F_EFFECTIVE_MARK_REF).add(mark.asReferenceValue().clone())
                         .asObjectDelta(session.getOid());
                 Collection<ObjectDelta<? extends ObjectType>> collectionAdd = MiscSchemaUtil.createCollection(addDelta);
                 modelService.executeChanges(collectionAdd, null, task, result);
@@ -3241,7 +2879,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             boolean single) {
         List<PrismObject<RoleAnalysisClusterType>> sessionClusters = this.searchSessionClusters(session, task, result);
         if (sessionClusters == null || sessionClusters.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
 
         List<DetectedPattern> topDetectedPatterns = new ArrayList<>();
@@ -3298,7 +2936,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
                     null, task, result);
         } catch (Exception ex) {
-            throw new RuntimeException("Couldn't search outliers", ex);
+            throw new SystemException("Couldn't search outliers", ex);
         }
 
         List<Map.Entry<RoleAnalysisOutlierType, Double>> sortedEntries = new ArrayList<>(outlierMap.entrySet());
@@ -3310,30 +2948,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         return topOutliers;
-    }
-
-    @Nullable
-    private static DetectedPattern findMultiplePatternWithBestConfidence(
-            @NotNull List<DetectedPattern> topDetectedPatterns) {
-        DetectedPattern detectedPattern = null;
-        for (DetectedPattern topDetectedPattern : topDetectedPatterns) {
-            if (detectedPattern == null) {
-                detectedPattern = topDetectedPattern;
-                continue;
-            }
-            double itemsConfidence = detectedPattern.getItemsConfidence();
-            double reductionFactorConfidence = detectedPattern.getReductionFactorConfidence();
-            double overallConfidence = itemsConfidence + reductionFactorConfidence;
-
-            double itemsConfidenceTop = topDetectedPattern.getItemsConfidence();
-            double reductionFactorConfidenceTop = topDetectedPattern.getReductionFactorConfidence();
-            double overallConfidenceTop = itemsConfidenceTop + reductionFactorConfidenceTop;
-
-            if (overallConfidenceTop > overallConfidence) {
-                detectedPattern = topDetectedPattern;
-            }
-        }
-        return detectedPattern;
     }
 
     @Override
@@ -3509,7 +3123,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                         null, task, result);
             }
         } catch (Exception ex) {
-            throw new RuntimeException("Couldn't search outliers", ex);
+            throw new SystemException("Couldn't search outliers", ex);
         }
         return searchResultList;
     }
@@ -3536,7 +3150,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                     task, result).get(0);
         } catch (SchemaException | ConfigurationException | CommunicationException | SecurityViolationException |
                 ExpressionEvaluationException e) {
-            throw new RuntimeException("Couldn't search outlier object associated for user with oid: " + userOid, e);
+            throw new SystemException("Couldn't search outlier object associated for user with oid: " + userOid, e);
         } catch (ObjectNotFoundException e) {
             return null;
         }
@@ -3626,32 +3240,6 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 directAssignments, indirectAssignments, duplicates);
         userAccessDistribution.setAllAccessCount(refsToRoles.size());
         return userAccessDistribution;
-    }
-
-    private @NotNull List<AssignmentPathMetadataType> computeAssignmentPaths(
-            @NotNull ObjectReferenceType roleMembershipRef) {
-        List<AssignmentPathMetadataType> assignmentPaths = new ArrayList<>();
-        List<ProvenanceMetadataType> metadataValues = collectProvenanceMetadata(roleMembershipRef.asReferenceValue());
-        if (metadataValues == null) {
-            return assignmentPaths;
-        }
-        for (ProvenanceMetadataType metadataType : metadataValues) {
-            assignmentPaths.add(metadataType.getAssignmentPath());
-        }
-        return assignmentPaths;
-    }
-
-    public <PV extends PrismValue> List<ProvenanceMetadataType> collectProvenanceMetadata(PV rowValue) {
-        List<ValueMetadataType> valueMetadataValues = collectValueMetadata(rowValue);
-        return valueMetadataValues.stream()
-                .map(ValueMetadataType::getProvenance)
-                .collect(Collectors.toList());
-
-    }
-
-    private <PV extends PrismValue> @NotNull List<ValueMetadataType> collectValueMetadata(@NotNull PV rowValue) {
-        PrismContainer<ValueMetadataType> valueMetadataContainer = rowValue.getValueMetadataAsContainer();
-        return (List<ValueMetadataType>) valueMetadataContainer.getRealValues();
     }
 
     @Override

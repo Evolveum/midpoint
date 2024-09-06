@@ -388,7 +388,7 @@ public interface RoleAnalysisService {
     @NotNull MiningOperationChunk prepareMiningStructure(
             @NotNull RoleAnalysisClusterType cluster,
             @Nullable SearchFilterType filter,
-            @Nullable DisplayValueOption option,
+            @NotNull DisplayValueOption option,
             @NotNull RoleAnalysisProcessModeType processMode,
             @NotNull List<DetectedPattern> detectedPatterns,
             @NotNull OperationResult result,
