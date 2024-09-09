@@ -238,11 +238,20 @@ public class ContextLoader implements ProjectorProcessor {
 
         // We create an assignment delta, but not archetypeRef one. The reason is that we hope that the assignment evaluator
         // will be run after this code. (It should be usually so.)
+
+
+        // Make assignment metadata aware so the OperationalDataManager should fill up corresponding value metadata
+        // such as task, creation, channel.
+        var assignment = new AssignmentType()
+                .targetRef(enforcedArchetypeOid, ArchetypeType.COMPLEX_TYPE);
+
+        assignment.asPrismContainerValue().getValueMetadata().add(new ValueMetadataType()
+                .asPrismContainerValue());
+
         focusContext.swallowToSecondaryDelta(
                 PrismContext.get().deltaFor(AssignmentHolderType.class)
                         .item(AssignmentHolderType.F_ASSIGNMENT)
-                        .add(new AssignmentType()
-                                .targetRef(enforcedArchetypeOid, ArchetypeType.COMPLEX_TYPE))
+                        .add(assignment)
                         .asItemDelta());
     }
 
