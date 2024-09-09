@@ -1185,7 +1185,6 @@
                                     <key>TaskType.advancedOptions</key>
                                 </translation>
                             </label>
-                            <label>Advanced options</label>
                         </display>
                         <item id="88">
                             <c:path>cleanupAfterCompletion</c:path>
