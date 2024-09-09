@@ -140,10 +140,10 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         AjaxIconButton back = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fas fa-arrow-left"),
-                getExitLabel()) {
+                getBackLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onExitPerformed(target);
+                onBackPerformed(target);
             }
         };
         back.showTitleAsLabel(true);
@@ -226,9 +226,17 @@ public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetai
         return getPageBase().createStringResource("WizardPanel.exit");
     }
 
+    protected IModel<String> getBackLabel() {
+        return getExitLabel();
+    }
+
     protected void onExitPerformed(AjaxRequestTarget target) {
         removeLastBreadcrumb();
         getPageBase().getPageParameters().remove(WizardModel.PARAM_STEP);
+    }
+
+    protected void onBackPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
     }
 
     protected void addCustomButtons(RepeatingView buttons) {
