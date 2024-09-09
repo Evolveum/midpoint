@@ -73,7 +73,7 @@ public class IconWithLabel extends BasePanel<String> {
     }
 
     protected String getComponentCssClass() {
-        return "d-flex align-items-center";
+        return "d-flex align-items-center ";
     }
 
     protected void onClickPerform(AjaxRequestTarget target) {
