@@ -161,20 +161,18 @@ public class ResourceObjectTypeArchetypeValueWrapperImpl<T extends Referencable>
             newObject.asObjectable().name(name.toString());
         }
 
+        PrismPropertyDefinitionImpl<Boolean> createInducementDef = new PrismPropertyDefinitionImpl<>(
+                F_CREATE_INDUCEMENT,
+                DOMUtil.XSD_BOOLEAN,
+                false);
+        createInducementDef.mutator().setDisplayName("ResourceObjectTypeArchetypeValueWrapperImpl.createInducement");
+        createInducementDef.mutator().setMinOccurs(0);
+        createInducementDef.mutator().setHelp("ResourceObjectTypeArchetypeValueWrapperImpl.createInducement.help");
+        createInducementDef.mutator().setOperational(true);
+        def.getComplexTypeDefinition().mutator().add(createInducementDef);
+
         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = getParentContainerValue(ResourceObjectTypeDefinitionType.class);
-
         if (objectType != null && objectType.getRealValue() != null && ShadowKindType.ENTITLEMENT == objectType.getRealValue().getKind()) {
-
-            PrismPropertyDefinitionImpl<Boolean> createInducementDef = new PrismPropertyDefinitionImpl<>(
-                    F_CREATE_INDUCEMENT,
-                    DOMUtil.XSD_BOOLEAN,
-                    false);
-            createInducementDef.mutator().setDisplayName("ResourceObjectTypeArchetypeValueWrapperImpl.createInducement");
-            createInducementDef.mutator().setMinOccurs(0);
-            createInducementDef.mutator().setHelp("ResourceObjectTypeArchetypeValueWrapperImpl.createInducement.help");
-            createInducementDef.mutator().setOperational(true);
-            def.getComplexTypeDefinition().mutator().add(createInducementDef);
-
             PrismPropertyDefinitionImpl<String> createMembershipForDef = new PrismPropertyDefinitionImpl<>(
                     F_CREATE_MEMBERSHIP_FOR,
                     DOMUtil.XSD_STRING);
