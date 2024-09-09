@@ -36,6 +36,7 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
     private String clusterCount;
     RoleAnalysisProcessModeType processMode;
     RoleAnalysisCategoryType category;
+    RoleAnalysisProcedureType procedureType;
     private RoleAnalysisOperationStatus status;
     ObjectReferenceType taskRef;
     String stateString;
@@ -57,6 +58,7 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
         if (analysisOption != null) {
             this.processMode = analysisOption.getProcessMode();
             this.category = analysisOption.getAnalysisCategory();
+            this.procedureType = analysisOption.getAnalysisProcedureType();
         }
 
         RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
@@ -94,7 +96,7 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
 
         calculatePossibleReduction(session, pageBase);
 
-        if (!category.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        if (procedureType != null && !procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             this.progressBarTitle = pageBase.createStringResource("RoleAnalysisSessionTile.possible.reduction")
                     .getString();
             this.progressBarColor = reductionBasedColor(progressBarValue);
@@ -107,7 +109,7 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
     }
 
     private void calculatePossibleReduction(@NotNull RoleAnalysisSessionType session, @NotNull PageBase pageBase) {
-        if (category != RoleAnalysisCategoryType.OUTLIERS) {
+        if (procedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION) {
             RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
             Task task = pageBase.createSimpleTask("calculatePossibleAssignmentReduction");
             OperationResult result = task.getResult();
@@ -243,6 +245,10 @@ public class RoleAnalysisSessionTileModel<T extends Serializable> extends Tile<T
 
     public String getProgressBarColor() {
         return progressBarColor;
+    }
+
+    public RoleAnalysisProcedureType getProcedureType() {
+        return procedureType;
     }
 
 }

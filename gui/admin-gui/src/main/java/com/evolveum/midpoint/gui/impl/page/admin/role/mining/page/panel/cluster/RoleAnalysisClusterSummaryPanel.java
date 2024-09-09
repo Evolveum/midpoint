@@ -12,7 +12,6 @@ import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.
 import java.text.DecimalFormat;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisClusterOccupationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.RoleAnalysisSettingsUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.web.component.ObjectVerticalSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -57,8 +55,6 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
             density = 0.0;
         }
 
-        String propertyTitle = "Assignment range";
-
         String formattedDensity = new DecimalFormat("#.###")
                 .format(Math.round(density * 1000.0) / 1000.0);
 
@@ -74,24 +70,34 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
                 .format(Math.round(detectedReductionMetric * 1000.0) / 1000.0);
 
         List<DetailsTableItem> detailsModel = List.of(
-                new DetailsTableItem(createStringResource("Mode"),
+
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisClusterSummaryPanel.details.table.analysis.type.title"),
                         () -> {
-                            //TODO really necessary?
-                            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-
-                            Task task = getPageBase().createSimpleTask("Loading session");
-                            OperationResult result = task.getResult();
-
-                            ObjectReferenceType roleAnalysisSessionRef = getModelObject().getRoleAnalysisSessionRef();
-                            PrismObject<RoleAnalysisSessionType> sessionPrismObject = roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, result);
-
-                            if (sessionPrismObject == null) {
-                                return "";
+                            PrismObject<RoleAnalysisSessionType> roleAnalysisSession = getRoleAnalysisSession();
+                            if (roleAnalysisSession == null) {
+                                return "N/A";
                             }
 
-                            RoleAnalysisSessionType session = sessionPrismObject.asObjectable();
+                            RoleAnalysisOptionType analysisOption = roleAnalysisSession.asObjectable().getAnalysisOption();
+                            return RoleAnalysisSettingsUtil.getRoleAnalysisTypeMode(analysisOption);
+                        }) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        return new Label(id, getValue());
+                    }
+                },
 
-                            RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisClusterSummaryPanel.details.table.mode.title"),
+                        () -> {
+                            //TODO really necessary?
+                            PrismObject<RoleAnalysisSessionType> roleAnalysisSession = getRoleAnalysisSession();
+                            if (roleAnalysisSession == null) {
+                                return "N/A";
+                            }
+
+                            RoleAnalysisOptionType analysisOption = roleAnalysisSession.asObjectable().getAnalysisOption();
                             return RoleAnalysisSettingsUtil.getRoleAnalysisMode(analysisOption);
                         }) {
                     @Override
@@ -100,7 +106,8 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
                     }
                 },
 
-                new DetailsTableItem(createStringResource("Max reduction"),
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisSessionSummaryPanel.details.table.max.reduction.title"),
                         Model.of(formattedDetectedReductionMetric)) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -118,7 +125,8 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
                     }
                 },
 
-                new DetailsTableItem(createStringResource("Membership mean"),
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisSessionSummaryPanel.details.table.membership.mean.title"),
                         Model.of(formattedMembershipMean)) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -135,7 +143,8 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
                         };
                     }
                 },
-                new DetailsTableItem(createStringResource("Occupation"),
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisSessionSummaryPanel.details.table.occupation.title"),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -185,7 +194,8 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
                     }
                 },
 
-                new DetailsTableItem(Model.of(propertyTitle),
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisSessionSummaryPanel.details.table.assignment.range.title"),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -284,4 +294,16 @@ public class RoleAnalysisClusterSummaryPanel extends ObjectVerticalSummaryPanel<
     protected String getIconBoxAdditionalCssClass() {
         return "summary-panel-cluster";
     }
+
+    private PrismObject<RoleAnalysisSessionType> getRoleAnalysisSession() {
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+
+        Task task = getPageBase().createSimpleTask("Loading session");
+        OperationResult result = task.getResult();
+
+        ObjectReferenceType roleAnalysisSessionRef = getModelObject().getRoleAnalysisSessionRef();
+
+        return roleAnalysisService.getSessionTypeObject(roleAnalysisSessionRef.getOid(), task, result);
+    }
+
 }

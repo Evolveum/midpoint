@@ -14,6 +14,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.Badge;
+
+import com.evolveum.midpoint.gui.api.component.BadgePanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -56,6 +60,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     private static final String ID_PROCESSED_OBJECTS_COUNT = "processedObjectCount";
     private static final String ID_BUTTON_BAR = "buttonBar";
     private static final String ID_STATUS_BAR = "status";
+    private static final String ID_ANALYSIS_MODE = "analysisMode";
 
     private static final String DOT_CLASS = RoleAnalysisTilePanel.class.getName() + ".";
     private static final String OP_DELETE_SESSION = DOT_CLASS + "deleteSession";
@@ -71,6 +76,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
         initStatusBar();
 
+        initAnalysisModePanel();
         initToolBarPanel();
 
         initNamePanel();
@@ -85,6 +91,27 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
 
         initSecondCountPanel();
 
+    }
+
+    private void initAnalysisModePanel() {
+        RoleAnalysisProcedureType procedureType = getModelObject().getProcedureType();
+        String badgeText = "";
+        String badgeCss = "";
+        if (procedureType == null) {
+            badgeText = "N/A";
+            badgeCss = "badge badge-danger";
+        } else if (procedureType.equals(RoleAnalysisProcedureType.ROLE_MINING)) {
+            badgeText = "role mining";
+            badgeCss = "badge badge-success";
+        } else if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+            badgeText = "outlier detection";
+            badgeCss = "badge badge-primary";
+        }
+
+        Badge badge = new Badge(badgeCss, badgeText);
+        BadgePanel status = new BadgePanel(ID_ANALYSIS_MODE, Model.of(badge));
+        status.setOutputMarkupId(true);
+        add(status);
     }
 
     private void initSecondCountPanel() {

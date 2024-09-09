@@ -100,15 +100,16 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         }
 
         RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
-        RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
 
-        if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+        if (procedureType == null || procedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+            initInfoPatternPanel(container);
+            initMiningPartNew(roleAnalysisService, task.getResult(), container);
+        } else {
             initInfoOutlierPanel(container);
 //            initOutlierAnalysisHeaderPanel(container);
             initOutlierPartNew(container);
-        } else {
-            initInfoPatternPanel(container);
-            initMiningPartNew(roleAnalysisService, task.getResult(), container);
         }
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();

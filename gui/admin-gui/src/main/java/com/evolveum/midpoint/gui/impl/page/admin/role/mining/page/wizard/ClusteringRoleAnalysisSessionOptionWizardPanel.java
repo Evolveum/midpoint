@@ -90,7 +90,7 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
                 if (analysisOption == null || analysisOption.getAnalysisCategory() == null) {
                     return ItemVisibility.HIDDEN;
                 }
-                if (!analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                if (!analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
                     return ItemVisibility.HIDDEN;
                 }
             }

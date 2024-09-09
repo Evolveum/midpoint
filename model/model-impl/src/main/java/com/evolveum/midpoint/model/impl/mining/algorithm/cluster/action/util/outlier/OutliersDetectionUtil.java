@@ -55,6 +55,9 @@ public class OutliersDetectionUtil {
             @NotNull OperationResult result) {
         RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
         Double sensitivity = detectionOption.getSensitivity();
+        if(sensitivity == null) {
+            sensitivity = 0.8;
+        }
         double requiredConfidence = roleAnalysisService.calculateOutlierConfidenceRequired(sensitivity);
 
         //TODO temporary solution // move outside from *

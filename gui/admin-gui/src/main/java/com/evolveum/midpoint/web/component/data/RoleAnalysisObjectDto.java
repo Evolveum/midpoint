@@ -70,8 +70,8 @@ public class RoleAnalysisObjectDto implements Serializable {
         if (getParent != null) {
             RoleAnalysisSessionType session = getParent.asObjectable();
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-            RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-            if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+            RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+            if (procedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 this.isOutlierDetection = true;
                 collectMarkedUsers(roleAnalysisService, task, result);
             }
