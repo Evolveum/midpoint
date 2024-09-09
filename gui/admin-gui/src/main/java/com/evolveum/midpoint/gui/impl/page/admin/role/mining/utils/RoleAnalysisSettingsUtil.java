@@ -9,23 +9,55 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcedureType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
+
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 public class RoleAnalysisSettingsUtil {
 
-    public static String getRoleAnalysisMode(RoleAnalysisOptionType analysisOption) {
+    private RoleAnalysisSettingsUtil() {
+    }
+
+    public static @NotNull String getRoleAnalysisMode(@NotNull RoleAnalysisOptionType analysisOption) {
         RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-
-        String analysisCategoryAsString = analysisCategory == null ? null : analysisCategory.value();
-        String capitalizedAnalysisCategory = analysisCategoryAsString == null ? "" :
-                Character.toUpperCase(analysisCategoryAsString.charAt(0))
-                        + analysisCategoryAsString.substring(1);
 
         return Character.
                 toUpperCase(processMode.value().charAt(0))
                 + processMode.value().substring(1)
                 + "/"
-                + capitalizedAnalysisCategory;
+                + getAnalysisCategoryTitle(analysisCategory);
+    }
+
+    public static @NotNull String getRoleAnalysisTypeMode(@NotNull RoleAnalysisOptionType analysisOption) {
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+
+        if (procedureType == null) {
+            return "N/A";
+        }
+
+        if (procedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+            return "Role mining";
+        } else {
+            return "Outlier detection";
+        }
+    }
+
+    @Contract(pure = true)
+    public static @NotNull String getAnalysisCategoryTitle(RoleAnalysisCategoryType category) {
+        if (category == null) {
+            return "N/A";
+        }
+
+        return switch (category) {
+            case OUTLIERS_DEPARTMENT, DEPARTMENT -> "department";
+            case BALANCED -> "balanced";
+            case EXACT -> "exact";
+            case EXPLORATION -> "exploration";
+            case ADVANCED -> "advanced";
+            case BIRTHRIGHT -> "birthright";
+        };
     }
 }

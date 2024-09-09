@@ -1763,6 +1763,40 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:simpleType name="RoleAnalysisProcedureType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis type.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="role_mining">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during role mining analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ROLE_MINING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="user">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during outlier detection analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTLIER_DETECTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="RoleAnalysisProcessModeType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2316,6 +2350,20 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="analysisProcedureType" type="tns:RoleAnalysisProcedureType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It determines the specific approach
+                            or methodology used during the analysis.
+
+                            Role mining analysis (ROLE_MINING):
+
+                            Outlier detection analysis (OUTLIER_DETECTION):
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="processMode" type="tns:RoleAnalysisProcessModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2439,13 +2487,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="outliers">
+            <xsd:enumeration value="outliers_department">
                 <xsd:annotation>
                     <xsd:documentation>
                         This mapping should be used during outlier analysis.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OUTLIERS"/>
+                        <jaxb:typesafeEnumMember name="OUTLIERS_DEPARTMENT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

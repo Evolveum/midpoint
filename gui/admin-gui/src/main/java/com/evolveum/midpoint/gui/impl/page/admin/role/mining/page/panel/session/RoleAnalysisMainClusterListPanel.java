@@ -119,7 +119,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
     public void initModels() {
         RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        if (analysisOption != null && analysisOption.getAnalysisCategory() == RoleAnalysisCategoryType.OUTLIERS) {
+        if (analysisOption != null && analysisOption.getAnalysisProcedureType() == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
             mappedClusterOutliers = new LoadableModel<>() {
                 @Override
                 protected ListMultimap<String, String> load() {
@@ -556,7 +556,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
 
             private void initSpecificColumn(RoleAnalysisOptionType analysisOption, List<IColumn<SelectableBean<RoleAnalysisClusterType>, String>> columns) {
                 IColumn<SelectableBean<RoleAnalysisClusterType>, String> column;
-                if (!RoleAnalysisCategoryType.OUTLIERS.equals(analysisOption.getAnalysisCategory())) {
+                if (!RoleAnalysisProcedureType.OUTLIER_DETECTION.equals(analysisOption.getAnalysisProcedureType())) {
                     RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                     OperationResult result = new OperationResult("countUserOwnedRoleAssignment");
                     int allUserOwnedRoleAssignments = roleAnalysisService.countUserOwnedRoleAssignment(result);
@@ -1073,8 +1073,9 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                 getObjectWrapperObject().getOid(), category, task, result);
         RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
         //sort by outlier count
-        if (analysisOption.getAnalysisCategory() == RoleAnalysisCategoryType.OUTLIERS) {
+        if (analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
             ListMultimap<String, String> clusterMappedClusterOutliers = getMappedClusterOutliers().getObject();
             sessionClustersByType.sort((o1, o2) -> Integer.compare(
                     clusterMappedClusterOutliers.get(o2.getOid()).size(), clusterMappedClusterOutliers.get(o1.getOid()).size()));

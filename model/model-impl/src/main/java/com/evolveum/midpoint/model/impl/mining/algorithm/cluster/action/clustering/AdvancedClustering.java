@@ -243,6 +243,7 @@ public class AdvancedClustering implements Clusterable {
     @NotNull
     private static ClusteringMode getClusteringMode(@NotNull RoleAnalysisOptionType analysisOption, boolean ruleExist) {
         RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
         if (!ruleExist) {
             if (analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
                 return ClusteringMode.UNBALANCED;
@@ -250,12 +251,13 @@ public class AdvancedClustering implements Clusterable {
 
             return ClusteringMode.BALANCED;
         } else {
-            if (analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
-                return ClusteringMode.UNBALANCED_RULES;
+
+            if(analysisProcedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)){
+                return ClusteringMode.BALANCED_RULES_OUTLIER;
             }
 
-            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                return ClusteringMode.BALANCED_RULES_OUTLIER;
+            if (analysisCategory.equals(RoleAnalysisCategoryType.DEPARTMENT)) {
+                return ClusteringMode.UNBALANCED_RULES;
             }
 
             return ClusteringMode.BALANCED_RULES;

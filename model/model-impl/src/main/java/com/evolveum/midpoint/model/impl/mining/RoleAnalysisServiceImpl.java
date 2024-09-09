@@ -639,14 +639,14 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
                 cluster.getRoleAnalysisSessionRef().getOid(), task, result
         );
 
-        RoleAnalysisCategoryType analysisCategory = null;
+        RoleAnalysisProcedureType procedureType = null;
         if (sessionObject != null) {
             RoleAnalysisSessionType session = sessionObject.asObjectable();
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-            analysisCategory = analysisOption.getAnalysisCategory();
+            procedureType = analysisOption.getAnalysisProcedureType();
         }
 
-        if (analysisCategory == null || analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        if (procedureType == null || procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             deleteClusterOutlierOrPartition(cluster, task, result);
         }
 

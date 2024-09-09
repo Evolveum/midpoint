@@ -112,8 +112,8 @@ public class RoleAnalysisAlgorithmUtils {
         }
 
         boolean executeDetection = true;
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+        if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             executeDetection = false;
         }
 

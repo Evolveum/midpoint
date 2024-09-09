@@ -108,8 +108,8 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         }
 
         RoleAnalysisOptionType analysisOption = session.asObjectable().getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+        if (procedureType == null || procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             return;
         }
 
@@ -210,8 +210,8 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         }
 
         RoleAnalysisOptionType analysisOption = session.asObjectable().getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+        if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             roleAnalysisService.deleteClusterOutlierOrPartition(cluster, task, result);
         }
     }
@@ -258,17 +258,17 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         RoleAnalysisOptionType roleAnalysisOptionType = roleAnalysisService
                 .resolveClusterOptionType(cluster.asPrismObject(), task, task.getResult());
 
-        RoleAnalysisCategoryType analysisCategory = roleAnalysisOptionType.getAnalysisCategory();
-        if (analysisCategory == null) {
+        RoleAnalysisProcedureType procedureType = roleAnalysisOptionType.getAnalysisProcedureType();
+        if (procedureType == null) {
             return super.getPanelConfigurations();
         }
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
             if (containerPanelConfigurationType.getIdentifier().equals("actions")) {
-                resolveActionPanel(containerPanelConfigurationType, category, analysisCategory);
+                resolveActionPanel(containerPanelConfigurationType, category, roleAnalysisOptionType);
             } else if (containerPanelConfigurationType.getIdentifier().equals("detectedPattern")
-                    && analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                    && procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             }
 
@@ -280,47 +280,47 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
     private static void resolveActionPanel(
             @NotNull ContainerPanelConfigurationType containerPanelConfigurationType,
             @NotNull RoleAnalysisClusterCategory category,
-            @NotNull RoleAnalysisCategoryType analysisCategory) {
+            @NotNull RoleAnalysisOptionType analysisOption) {
         List<ContainerPanelConfigurationType> panel = containerPanelConfigurationType.getPanel();
         for (ContainerPanelConfigurationType panelType : panel) {
             String identifier = panelType.getIdentifier();
             if (category == RoleAnalysisClusterCategory.OUTLIERS) {
-                resolveOutlierClusterActionPanel(analysisCategory, panelType, identifier);
+                resolveOutlierClusterActionPanel(analysisOption, panelType, identifier);
             } else {
-                resolveBasicClusterPanel(analysisCategory, panelType, identifier);
+                resolveBasicClusterPanel(analysisOption, panelType, identifier);
             }
         }
     }
 
     private static void resolveBasicClusterPanel(
-            @NotNull RoleAnalysisCategoryType analysisCategory,
+            @NotNull RoleAnalysisOptionType analysisOption,
             @NotNull ContainerPanelConfigurationType panelType,
             @NotNull String identifier) {
         if (identifier.equals("outlierPanel")) {
-            if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            if (!analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
                 panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             }
         } else if (identifier.equals("uniqueOutlierPanel") || identifier.equals("accessNoiseOutlierPanel")) {
             panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
         } else {
-            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            if (analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
                 panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             }
         }
     }
 
     private static void resolveOutlierClusterActionPanel(
-            @NotNull RoleAnalysisCategoryType analysisCategory,
+            @NotNull RoleAnalysisOptionType analysisOption,
             @NotNull ContainerPanelConfigurationType panelType,
             @NotNull String identifier) {
         if (identifier.equals("outlierPanel")
                 || identifier.equals("uniqueOutlierPanel")
                 || identifier.equals("accessNoiseOutlierPanel")) {
-            if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            if (!analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
                 panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             }
         } else {
-            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+            if (analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
                 panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             }
         }
