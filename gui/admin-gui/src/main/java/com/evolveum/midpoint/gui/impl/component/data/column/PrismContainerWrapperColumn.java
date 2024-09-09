@@ -49,4 +49,7 @@ public class PrismContainerWrapperColumn<C extends Containerable> extends Abstra
         return new PrismContainerWrapperColumnPanel<C>(componentId, (IModel<PrismContainerWrapper<C>>) rowModel, getColumnType());
     }
 
+    protected final PageBase getPageBase() {
+        return pageBase;
+    }
 }
