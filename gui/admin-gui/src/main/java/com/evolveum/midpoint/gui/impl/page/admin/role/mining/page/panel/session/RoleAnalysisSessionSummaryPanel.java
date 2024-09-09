@@ -68,7 +68,17 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
         }
 
         List<DetailsTableItem> detailsModel = List.of(
-                new DetailsTableItem(createStringResource("Mode"),
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisSessionSummaryPanel.details.table.analysis.type.title"),
+                        () -> RoleAnalysisSettingsUtil.getRoleAnalysisTypeMode(getModelObject().getAnalysisOption())) {
+                    @Override
+                    public Component createValueComponent(String id) {
+                        return new Label(id, getValue());
+                    }
+                },
+
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisSessionSummaryPanel.details.table.mode.title"),
                         () -> RoleAnalysisSettingsUtil.getRoleAnalysisMode(getModelObject().getAnalysisOption())) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -76,7 +86,8 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
                     }
                 },
 
-                new DetailsTableItem(createStringResource("Cluster count"),
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisSessionSummaryPanel.details.table.cluster.count.title"),
                         Model.of(clusterCount.toString())) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -93,7 +104,8 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
                         };
                     }
                 },
-                new DetailsTableItem(createStringResource("Processed objects"),
+                new DetailsTableItem(createStringResource(
+                        "RoleAnalysisSessionSummaryPanel.details.table.processed.objects.title"),
                         Model.of(processedObjectCount.toString())) {
                     @Override
                     public Component createValueComponent(String id) {
@@ -116,7 +128,8 @@ public class RoleAnalysisSessionSummaryPanel extends ObjectVerticalSummaryPanel<
                         };
                     }
                 },
-                new DetailsTableItem(createStringResource("Mean density"),
+                new DetailsTableItem(
+                        createStringResource("RoleAnalysisSessionSummaryPanel.details.table.mean.density.title"),
                         Model.of(formattedDensity)) {
 
                     @Override

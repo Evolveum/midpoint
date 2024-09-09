@@ -173,6 +173,8 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final TestObject<RoleType> ROLE_APPROVER_UNASSIGN_ROLES = TestObject.file(TEST_DIR, "role-approver-unassign-roles.xml", "5d9cead8-3a2e-11e7-8609-f762a755b58e");
     protected static final TestObject<RoleType> ROLE_USE_TASK_TEMPLATES = TestObject.file(TEST_DIR, "role-use-task-templates.xml", "ac97ca9d-7bb6-44b3-8d10-3b309c97f866");
     protected static final TestObject<RoleType> ROLE_DENY_READ_ASSIGNMENT_AND_ROLE_MEMBERSHIP_REF = TestObject.file(TEST_DIR, "role-deny-read-assignment-and-roleMembershipRef.xml", "2c328dbc-a40d-43a8-a9e1-266c96cad22d");
+    protected static final TestObject<RoleType> ROLE_ROLE_OWNER_FULL_CONTROL = TestObject.file(TEST_DIR, "role-role-owner-full-control.xml", "9c6e597e-dbd7-11e5-a538-97834c1cd5ba");
+    protected static final TestObject<RoleType> ROLE_ROLE_OWNER_ASSIGN = TestObject.file(TEST_DIR, "role-role-owner-assign.xml", "91b9e546-ded6-11e5-9e87-171d047c57d1");
     protected static final TestObject<OrgType> ORG_REQUESTABLE = TestObject.file(TEST_DIR, "org-requestable.xml", "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2");
     protected static final TestObject<OrgType> ORG_INDIRECT_PIRATE = TestObject.file(TEST_DIR, "org-indirect-pirate.xml", "59024142-5830-11e7-80e6-ffbee06efb45");
     protected static final TestObject<OrgType> ORG_CHEATERS = TestObject.file(TEST_DIR, "org-cheaters.xml", "944cef84-6570-11e7-8262-079921253d05");
@@ -311,6 +313,8 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
         repoAdd(ROLE_APPROVER_UNASSIGN_ROLES, initResult);
         repoAdd(ROLE_USE_TASK_TEMPLATES, initResult);
         repoAdd(ROLE_DENY_READ_ASSIGNMENT_AND_ROLE_MEMBERSHIP_REF, initResult);
+        repoAdd(ROLE_ROLE_OWNER_FULL_CONTROL, initResult);
+        repoAdd(ROLE_ROLE_OWNER_ASSIGN, initResult);
 
         repoAdd(ORG_REQUESTABLE, initResult);
         repoAdd(ORG_INDIRECT_PIRATE, initResult);

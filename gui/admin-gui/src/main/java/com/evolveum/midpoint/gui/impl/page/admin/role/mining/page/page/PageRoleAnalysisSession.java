@@ -175,15 +175,15 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             return super.getPanelConfigurations();
         }
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
             if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")
-                    && RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+                    && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             } else if (containerPanelConfigurationType.getIdentifier().equals("outlierActions")
-                    && !RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+                    && analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             } else {
                 resolveSessionSettingPanels(containerPanelConfigurationType, processMode);

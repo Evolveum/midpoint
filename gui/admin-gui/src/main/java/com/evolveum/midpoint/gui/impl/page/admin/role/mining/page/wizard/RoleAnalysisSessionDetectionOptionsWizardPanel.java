@@ -13,14 +13,11 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPan
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.IModel;
-
-import static com.evolveum.midpoint.model.api.expr.MidpointFunctions.LOGGER;
 
 public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -47,7 +44,7 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
     @Override
     public IModel<String> getTitle() {
-        if (getRoleAnalysisCategoryType().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        if (getRoleAnalysisOption().getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             return createStringResource("PageRoleAnalysisSession.wizard.step.work.anomaly.detection.options");
         }
 
@@ -56,7 +53,7 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
     @Override
     protected IModel<String> getTextModel() {
-        if (getRoleAnalysisCategoryType().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        if (getRoleAnalysisOption().getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             return createStringResource("PageRoleAnalysisSession.wizard.step.work.anomaly.detection.options.text");
         }
 
@@ -65,7 +62,7 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
 
     @Override
     protected IModel<String> getSubTextModel() {
-        if (getRoleAnalysisCategoryType().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        if (getRoleAnalysisOption().getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             return createStringResource("PageRoleAnalysisSession.wizard.step.work.anomaly.detection.options.subText");
         }
 
@@ -99,9 +96,9 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
     @Override
     protected ItemVisibilityHandler getVisibilityHandler() {
 
-        RoleAnalysisCategoryType analysisCategory = getRoleAnalysisCategoryType();
+        RoleAnalysisOptionType analysisOption = getRoleAnalysisOption();
 
-        boolean isOutlierSession = analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS);
+        boolean isOutlierSession = analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION);
         return wrapper -> {
             ItemName itemName = wrapper.getItemName();
 
@@ -123,9 +120,8 @@ public class RoleAnalysisSessionDetectionOptionsWizardPanel extends AbstractForm
         };
     }
 
-    private RoleAnalysisCategoryType getRoleAnalysisCategoryType() {
+    private RoleAnalysisOptionType getRoleAnalysisOption() {
         LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-        RoleAnalysisOptionType option = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
-        return option.getAnalysisCategory();
+        return objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
     }
 }

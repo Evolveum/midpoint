@@ -108,14 +108,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         OperationResult result = task.getResult();
 
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        RoleAnalysisProcedureType analysisCategory = analysisOption.getAnalysisProcedureType();
 
-        if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
-            initOutlierPart(roleAnalysisService, session, task, result, sessionStatistic, container);
-            initInfoOutlierPanel(container);
-        } else {
+        if (analysisCategory == null || analysisCategory.equals(RoleAnalysisProcedureType.ROLE_MINING)) {
             initRoleMiningPart(roleAnalysisService, session, task, result, sessionStatistic, container);
             initInfoPatternPanel(container);
+        } else {
+            initOutlierPart(roleAnalysisService, session, task, result, sessionStatistic, container);
+            initInfoOutlierPanel(container);
         }
 
     }
@@ -864,12 +864,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
         List<ProgressBar> progressBars = new ArrayList<>();
         double valueInliers = 0;
-        if(clusterInliers != 0 && processedObjectCount != 0) {
+        if (clusterInliers != 0 && processedObjectCount != 0) {
             valueInliers = clusterInliers * 100 / (double) processedObjectCount;
         }
 
         double valueOutliers = 0;
-        if(clusterOtliers != 0 && processedObjectCount != 0) {
+        if (clusterOtliers != 0 && processedObjectCount != 0) {
             valueOutliers = clusterOtliers * 100 / (double) processedObjectCount;
         }
         progressBars.add(new ProgressBar(valueInliers, ProgressBar.State.INFO));

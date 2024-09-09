@@ -199,10 +199,12 @@ public class GuiDisplayTypeUtil {
             MiscSchemaUtil.mergeDisplay(displayType, createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", ""));
         }
 
-        if (PolyStringUtils.isEmpty(displayType.getTooltip()) && !PolyStringUtils.isEmpty(displayType.getLabel())) {
+        if (!PolyStringUtils.isEmpty(displayType.getSingularLabel()) || !PolyStringUtils.isEmpty(displayType.getLabel())) {
+            PolyStringType label = !PolyStringUtils.isEmpty(displayType.getSingularLabel()) ?
+                    displayType.getSingularLabel() : displayType.getLabel();
             String sb = pageBase.createStringResource("MainObjectListPanel.newObject").getString()
                     + " "
-                    + displayType.getLabel().getOrig().toLowerCase();
+                    + label.getOrig().toLowerCase();
             displayType.setTooltip(WebComponentUtil.createPolyFromOrigString(sb));
         }
         return view != null ? view.getDisplay() : null;
