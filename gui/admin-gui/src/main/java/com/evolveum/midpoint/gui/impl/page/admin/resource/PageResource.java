@@ -223,11 +223,11 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showCredentialsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue, CredentialsWizardPanel.class);
+        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CREDENTIALS), CredentialsWizardPanel.class);
     }
 
     public void showActivationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue, ActivationsWizardPanel.class);
+        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_ACTIVATION), ActivationsWizardPanel.class);
     }
 
     public void showPoliciesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
