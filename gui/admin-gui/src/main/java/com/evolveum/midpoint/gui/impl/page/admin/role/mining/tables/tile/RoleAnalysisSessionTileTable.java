@@ -48,7 +48,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTileModel;
-import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisTilePanel;
+import com.evolveum.midpoint.gui.impl.component.tile.mining.session.RoleAnalysisSessionTilePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBar;
@@ -352,7 +352,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
 
             @Override
             protected Component createTile(String id, IModel<RoleAnalysisSessionTileModel<SelectableBean<RoleAnalysisSessionType>>> model) {
-                return new RoleAnalysisTilePanel<>(id, model) {
+                return new RoleAnalysisSessionTilePanel<>(id, model) {
                     @Override
                     public List<InlineMenuItem> createMenuItems() {
                         List<InlineMenuItem> items = new ArrayList<>();

@@ -27,7 +27,7 @@ public abstract class Clusterer<T extends Clusterable> {
 
     public abstract List<? extends Cluster<T>> cluster(Collection<T> var1, RoleAnalysisProgressIncrement handler);
 
-    @SuppressWarnings({ "rawtypes", "ClassEscapesDefinedScope" })
+    @SuppressWarnings({ "ClassEscapesDefinedScope" })
     public List<T> getNeighbors(T point, Collection<T> points, Set<ClusterExplanation> explanation, double eps, int minPts,
             DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
         List<T> neighbors = new ArrayList<>();
@@ -114,7 +114,7 @@ public abstract class Clusterer<T extends Clusterable> {
                 } else if (numberOfRulesNeighbors < minPts) {
                     pStatusWrapper.pStatus = OutlierNoiseCategoryType.RULE_NOISE;
                 } else {
-                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.OVERAL_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 }
 
                 yield neighbors;
@@ -159,7 +159,7 @@ public abstract class Clusterer<T extends Clusterable> {
                 } else if (numberOfRulesNeighbors < minPts) {
                     pStatusWrapper.pStatus = OutlierNoiseCategoryType.RULE_NOISE;
                 } else {
-                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.OVERAL_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 }
 
                 yield neighbors;
@@ -196,9 +196,6 @@ public abstract class Clusterer<T extends Clusterable> {
                 }
 
                 OutlierNoiseCategoryType pStatus = pStatusWrapper.pStatus;
-                if(pStatus !=null){
-                    System.out.println("sads");
-                }
                 if (numberOfOveralRuleNeighbors > minPts) {
                     pStatusWrapper.pStatus = OutlierNoiseCategoryType.SUITABLE;
                 } else if (numberOfAccessNeighbors < minPts && numberOfRulesNeighbors < minPts && pStatus == null) {
@@ -214,7 +211,7 @@ public abstract class Clusterer<T extends Clusterable> {
                 } else if (numberOfAccessNeighbors > minPts && numberOfRulesNeighbors > minPts) {
                     pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 } else {
-                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.OVERAL_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 }
 
                 yield neighbors;

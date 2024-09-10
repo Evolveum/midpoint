@@ -2253,10 +2253,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Nullable
     private ObjectOperationPolicyType operationPolicy(OperationResult result) throws ConfigurationException {
-        if (getObjectNewOrCurrentOrOld() == null) {
+        var object = getObjectNewOrCurrentOrOld();
+        if (object == null) {
             return null;
         }
-        return ObjectOperationPolicyHelper.get().getEffectivePolicy(getObjectNewOrCurrentOrOld().asObjectable(), result);
+        return ObjectOperationPolicyHelper.get().getEffectivePolicy(
+                object.asObjectable(),
+                getTaskExecutionMode(),
+                result);
     }
 
     public boolean isMarkedReadOnly(OperationResult result) throws ConfigurationException {
