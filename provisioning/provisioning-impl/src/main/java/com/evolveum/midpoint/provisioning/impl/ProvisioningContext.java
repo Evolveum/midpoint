@@ -906,7 +906,8 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
             ConfigurationException, ObjectNotFoundException {
         var computer = createShadowMarksComputer(shadow, shadowState, result);
         var marksAndPolicies =
-                ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(shadow.getBean(), computer, result);
+                ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
+                        shadow.getBean(), computer, getExecutionMode(), result);
         marksAndPolicies.applyTo(shadow.getBean());
         return marksAndPolicies;
     }
@@ -921,6 +922,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
                 repoShadowWithState.getBean(),
                 createShadowMarksComputer(resourceObject, repoShadowWithState.state(), result),
+                getExecutionMode(),
                 result);
     }
 

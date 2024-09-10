@@ -105,7 +105,9 @@
                 <markRef oid="00000000-0000-0000-0000-000000000805"/>
                 <applicationTime>classification</applicationTime>
             </marking>
-            <defaultOperationPolicyRef oid="00000000-0000-0000-0000-000000000806"/>
+            <defaultOperationPolicy>
+                <policyRef oid="00000000-0000-0000-0000-000000000806"/>
+            </defaultOperationPolicy>
             <synchronization>
                 <reaction>
                     <situation>unmatched</situation>

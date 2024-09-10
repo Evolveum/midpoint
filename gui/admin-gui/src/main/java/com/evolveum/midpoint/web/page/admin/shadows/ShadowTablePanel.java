@@ -681,7 +681,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     .build();
             try {
                 // Preliminary solution for MID-8601. Here we assume the shadow marks are visible by GUI.
-                var policy = getPageBase().getObjectOperationPolicyHelper().getEffectivePolicy(shadow, result);
+                var policy = getPageBase().getObjectOperationPolicyHelper()
+                        .getEffectivePolicy(shadow, task.getExecutionMode(), result);
                 var severity = ObjectOperationPolicyTypeUtil.getDeletionRestrictionSeverity(policy);
                 if (severity == null) { // i.e. permitted
                     ObjectDelta<ShadowType> deleteDelta =
