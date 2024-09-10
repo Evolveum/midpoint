@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -23,7 +22,6 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
     RoleAnalysisService service;
     Task task;
     OperationResult result;
-    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
 
     public BirthrightCoverageModeConfiguration(
             RoleAnalysisService service,
@@ -34,7 +32,6 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
         this.service = service;
         this.task = task;
         this.result = result;
-        this.objectWrapper = objectWrapper;
     }
 
     @Override
@@ -62,20 +59,7 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
                 RoleAnalysisDetectionProcessType.FULL);
     }
 
-    @Override
-    public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {
-        return super.getAnalysisSessionOption();
-    }
 
-    @Override
-    public RoleAnalysisDetectionOptionType getDetectionOption() {
-        return super.getDetectionOption();
-    }
-
-    @Override
-    public ItemVisibilityHandler getVisibilityHandler() {
-        return super.getVisibilityHandler();
-    }
 
     public @NotNull Integer getMaxPropertyCount() {
         Class<? extends ObjectType> propertiesClass = UserType.class;
