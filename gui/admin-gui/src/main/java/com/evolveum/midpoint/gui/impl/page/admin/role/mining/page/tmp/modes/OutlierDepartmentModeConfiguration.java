@@ -63,7 +63,7 @@ public class OutlierDepartmentModeConfiguration extends AbstractRoleAnalysisConf
 
     private RangeType createPropertyRange() {
         double minPropertyCount = 2.0;
-        double maxPropertyCount = Double.valueOf(getMaxPropertyCount());
+        double maxPropertyCount = getMaxPropertyCount();
         return new RangeType().min(minPropertyCount).max(maxPropertyCount);
     }
 
