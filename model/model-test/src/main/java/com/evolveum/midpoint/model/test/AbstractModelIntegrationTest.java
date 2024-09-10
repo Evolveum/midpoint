@@ -42,6 +42,7 @@ import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.model.test.util.ShadowFindRequest.ShadowFindRequestBuilder;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
@@ -231,6 +232,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected MidpointFunctions libraryMidpointFunctions;
     @Autowired protected ValuePolicyProcessor valuePolicyProcessor;
     @Autowired protected SimulationResultManager simulationResultManager;
+    @Autowired protected MarkManager markManager;
 
     @Autowired(required = false)
     @Qualifier("modelObjectResolver")

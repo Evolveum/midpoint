@@ -13,6 +13,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.model.common.MarkManager;
+
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.ShadowBuilder;
+
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -647,5 +654,45 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         assertProcessedObjects(simResult2, "in development mode")
                 .by().objectType(UserType.class).find(po -> po.assertState(ObjectProcessingStateType.ADDED))
                 .by().objectType(ShadowType.class).find(po -> po.assertState(ObjectProcessingStateType.UNMODIFIED));
+    }
+
+    /** Tests {@link MarkManager#isMarkStateful(ObjectType, String)} method. */
+    @Test
+    public void test520IsMarkStateful() throws CommonException {
+        given("tester and developer shadows");
+        var testerShadow =
+                ShadowBuilder
+                        .withDefinition(
+                                Resource.of(RESOURCE_SHADOW_MARKS.get())
+                                        .getCompleteSchemaRequired()
+                                        .getObjectTypeDefinitionRequired(
+                                                ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_TESTER)))
+                        .asObjectable();
+        var developerShadow =
+                ShadowBuilder
+                        .withDefinition(
+                                Resource.of(RESOURCE_SHADOW_MARKS.get())
+                                        .getCompleteSchemaRequired()
+                                        .getObjectTypeDefinitionRequired(
+                                                ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEVELOPER)))
+                        .asObjectable();
+
+        when("asking about UNMANAGED mark for 'account/tester' (stateful)");
+        var unmanagedForTester = markManager.isMarkStateful(testerShadow, MARK_UNMANAGED.oid);
+
+        then("it should be 'true'");
+        assertThat(unmanagedForTester).as("stateful-ness for 'unmanaged' for tester").isEqualTo(true);
+
+        when("asking about PROTECTED mark for 'account/tester' (not mentioned = stateless)");
+        var protectedForTester = markManager.isMarkStateful(testerShadow, MARK_PROTECTED.oid);
+
+        then("it should be 'false'");
+        assertThat(protectedForTester).as("stateful-ness for 'protected' for tester").isEqualTo(false);
+
+        when("asking about PROTECTED mark for 'account/developer' (mentioned but stateless)");
+        var protectedForDeveloper = markManager.isMarkStateful(developerShadow, MARK_PROTECTED.oid);
+
+        then("it should be 'false'");
+        assertThat(protectedForDeveloper).as("stateful-ness for 'protected' for developer").isEqualTo(false);
     }
 }
