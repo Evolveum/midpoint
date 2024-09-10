@@ -1248,4 +1248,11 @@ public interface ProvisioningService {
     @Experimental
     @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException;
+
+    /** Returns the default operation policy for given object type (if specified). */
+    @Nullable ObjectOperationPolicyType getDefaultOperationPolicy(
+            @NotNull String resourceOid,
+            @NotNull ResourceObjectTypeIdentification typeIdentification,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 }

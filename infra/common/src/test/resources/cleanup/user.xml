@@ -75,6 +75,15 @@
                     <originRef oid="rest" type="ServiceType"/>
                 </acquisition>
             </provenance>
+            <storage>
+                <modifierRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+            </storage>
         </_metadata>
     </givenName>
+
+    <familyName>Doe</familyName>
+
+    <activation>
+        <disableReason>Custom reason</disableReason>
+    </activation>
 </user>

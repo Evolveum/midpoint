@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.util.*;
 
 import jakarta.annotation.PostConstruct;
@@ -1190,5 +1192,20 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         } finally {
             result.close();
         }
+    }
+
+    @Override
+    public @Nullable ObjectOperationPolicyType getDefaultOperationPolicy(
+            @NotNull String resourceOid,
+            @NotNull ResourceObjectTypeIdentification typeIdentification,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var resource = getObject(ResourceType.class, resourceOid, null, task, result);
+        var objectDef = ResourceSchemaFactory
+                .getCompleteSchemaRequired(resource)
+                .getObjectTypeDefinitionRequired(typeIdentification);
+        return ObjectOperationPolicyHelper.get().getDefaultPolicyForResourceObjectType(objectDef, task.getExecutionMode(), result);
     }
 }
