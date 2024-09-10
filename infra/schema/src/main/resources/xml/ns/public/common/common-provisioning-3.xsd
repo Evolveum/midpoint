@@ -1003,10 +1003,26 @@
                         the policy explicitly, the policy is determined by the mark referenced here.
 
                         The mark referenced here should have the archetype of "Shadow policy mark".
+
+                        TODO remove before 4.9 release
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.9</a:deprecatedSince>
                         <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="defaultOperationPolicy" type="tns:DefaultOperationPolicyConfigurationType"
+                    minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Default operation policy for those operations that do not have their behavior specified explicitly
+                        via object marks.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1155,6 +1171,33 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DefaultOperationPolicyConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Default operation policy for those operations that do not have their behavior specified explicitly
+                via object marks. I.e., if there is no mark for specific shadow, or if the mark(s) do not specify
+                the policy explicitly, the policy is determined by the mark referenced here.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="policyRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The mark carrying the policy. It should have the archetype of "Shadow policy mark".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:lifecycleState"/>
         </xsd:sequence>
     </xsd:complexType>
 

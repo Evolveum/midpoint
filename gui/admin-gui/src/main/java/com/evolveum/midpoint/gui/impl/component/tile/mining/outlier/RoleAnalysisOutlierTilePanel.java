@@ -175,7 +175,6 @@ public class RoleAnalysisOutlierTilePanel<T extends Serializable> extends BasePa
                 return view;
             }
         };
-
         panel.setOutputMarkupId(true);
         add(panel);
 

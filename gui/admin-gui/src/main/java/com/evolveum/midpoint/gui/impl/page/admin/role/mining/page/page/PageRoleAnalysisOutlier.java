@@ -117,7 +117,7 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
         };
         recertifyButton.titleAsLabel(true);
         recertifyButton.setOutputMarkupId(true);
-        recertifyButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-primary btn-sm"));
+        recertifyButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-primary"));
         repeatingView.add(recertifyButton);
 
         Form<?> form = recertifyButton.findParent(Form.class);

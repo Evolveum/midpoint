@@ -162,6 +162,10 @@ public class AssociationChildWrapperUtil {
     }
 
     private static ItemName getRef(PrismValueWrapper<?> propertyWrapper) {
+        return getRef(propertyWrapper, false);
+    }
+
+    public static ItemName getRef(PrismValueWrapper<?> propertyWrapper, boolean useSource) {
         PrismContainerValueWrapper<ShadowAssociationDefinitionType> associationDefTypValue =
                 propertyWrapper.getParentContainerValue(ShadowAssociationDefinitionType.class);
 
@@ -188,14 +192,29 @@ public class AssociationChildWrapperUtil {
         }
 
         PrismPropertyWrapper<ItemPathType> refProperty = null;
-        try {
-            refProperty = associationDefTypValue.findProperty(ShadowAssociationDefinitionType.F_REF);
-            if (refProperty == null || refProperty.getValue() == null) {
-                return null;
-            }
 
-        } catch (SchemaException e) {
-            LOGGER.error("Couldn't find property ref object in " + associationDefTypValue);
+        if (useSource) {
+            try {
+                refProperty = associationDefTypValue.findProperty(ShadowAssociationDefinitionType.F_SOURCE_ATTRIBUTE_REF);
+                if (refProperty == null || refProperty.getValue() == null) {
+                    return null;
+                }
+
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find property ref object in " + associationDefTypValue);
+            }
+        }
+
+        if (refProperty == null) {
+            try {
+                refProperty = associationDefTypValue.findProperty(ShadowAssociationDefinitionType.F_REF);
+                if (refProperty == null || refProperty.getValue() == null) {
+                    return null;
+                }
+
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find property ref object in " + associationDefTypValue);
+            }
         }
 
         try {

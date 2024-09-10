@@ -10,17 +10,17 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.AbstractShadow;
-import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.*;
 
-import com.evolveum.midpoint.schema.util.ShadowBuilder;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
@@ -665,6 +666,31 @@ public interface ResourceObjectDefinition
             return areCredentialsCached(); // FIXME what about sub-items that are always stored in the shadow?
         } else {
             return itemPath.equivalent(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+        }
+    }
+
+    default @Nullable String getDefaultOperationPolicyOid(@NotNull TaskExecutionMode mode) throws ConfigurationException {
+        var bean = getDefinitionBean();
+        var oldWay = bean.getDefaultOperationPolicyRef(); // TODO remove before 4.9 release
+        var newWay = bean.getDefaultOperationPolicy();
+        if (oldWay != null) {
+            if (!newWay.isEmpty()) {
+                throw new ConfigurationException(
+                        "Both old and new way of specifying default operation policy in %s: %s and %s".formatted(
+                                this, oldWay, newWay));
+            } else {
+                return getOid(oldWay);
+            }
+        } else {
+            var oids = newWay.stream()
+                    .filter(policy -> SimulationUtil.isVisible(policy.getLifecycleState(), mode))
+                    .map(policy -> getOid(policy.getPolicyRef()))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            return MiscUtil.extractSingleton(
+                    oids,
+                    () -> new ConfigurationException(
+                            "Multiple OIDs for default operation policy in %s for %s: %s".formatted(this, mode, oids)));
         }
     }
 }

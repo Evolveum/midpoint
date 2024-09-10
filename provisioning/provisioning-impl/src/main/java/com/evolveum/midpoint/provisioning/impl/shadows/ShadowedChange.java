@@ -320,7 +320,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange>
         }
         var bean = shadow.getBean();
         bean.setEffectiveOperationPolicy(
-                ObjectOperationPolicyHelper.get().computeEffectivePolicy(bean, result));
+                ObjectOperationPolicyHelper.get().computeEffectivePolicy(bean, effectiveCtx.getExecutionMode(), result));
     }
 
     public ResourceObjectShadowChangeDescription getShadowChangeDescription() {

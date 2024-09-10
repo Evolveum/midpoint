@@ -45,7 +45,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisSessionTileModel<T>> {
+public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisSessionTileModel<T>> {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -62,10 +62,10 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
     private static final String ID_STATUS_BAR = "status";
     private static final String ID_ANALYSIS_MODE = "analysisMode";
 
-    private static final String DOT_CLASS = RoleAnalysisTilePanel.class.getName() + ".";
+    private static final String DOT_CLASS = RoleAnalysisSessionTilePanel.class.getName() + ".";
     private static final String OP_DELETE_SESSION = DOT_CLASS + "deleteSession";
 
-    public RoleAnalysisTilePanel(String id, IModel<RoleAnalysisSessionTileModel<T>> model) {
+    public RoleAnalysisSessionTilePanel(String id, IModel<RoleAnalysisSessionTileModel<T>> model) {
         super(id, model);
 
         initLayout();
@@ -102,7 +102,9 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
             badgeCss = "badge badge-danger";
         } else if (procedureType.equals(RoleAnalysisProcedureType.ROLE_MINING)) {
             badgeText = "role mining";
-            badgeCss = "badge badge-success";
+            // temporary disable to many colors
+//            badgeCss = "badge badge-success";
+            badgeCss = "badge badge-primary";
         } else if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             badgeText = "outlier detection";
             badgeCss = "badge badge-primary";
@@ -118,7 +120,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         IconWithLabel processedObjectCount = new IconWithLabel(ID_PROCESSED_OBJECTS_COUNT, () -> getModelObject().getProcessedObjectCount()) {
             @Override
             public String getIconCssClass() {
-                RoleAnalysisProcessModeType processMode = RoleAnalysisTilePanel.this.getModelObject().getProcessMode();
+                RoleAnalysisProcessModeType processMode = RoleAnalysisSessionTilePanel.this.getModelObject().getProcessMode();
                 if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
                     return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
                 }
@@ -163,13 +165,15 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         String processModeTitle = getModelObject().getProcessMode().value() + "/"
                 + (getModelObject().getCategory() == null ? "N/A" : getModelObject().getCategory().value());
         IconWithLabel mode = new IconWithLabel(ID_PROCESS_MODE, () -> processModeTitle) {
+            @Contract(pure = true)
             @Override
-            public String getIconCssClass() {
+            public @NotNull String getIconCssClass() {
                 return "fa fa-cogs";
             }
 
+            @Contract(pure = true)
             @Override
-            protected String getLabelComponentCssClass() {
+            protected @NotNull String getLabelComponentCssClass() {
                 return "pl-1 text-sm text-truncate";
             }
 
@@ -191,7 +195,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         IconWithLabel objectTitle = new IconWithLabel(ID_OBJECT_TITLE, () -> getModelObject().getName()) {
             @Override
             public String getIconCssClass() {
-                return RoleAnalysisTilePanel.this.getModelObject().getIcon();
+                return RoleAnalysisSessionTilePanel.this.getModelObject().getIcon();
             }
 
             @Override
@@ -199,14 +203,15 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
                 return true;
             }
 
+            @Contract(pure = true)
             @Override
-            protected String getLabelComponentCssClass() {
+            protected @NotNull String getLabelComponentCssClass() {
                 return "pl-2 text-truncate";
             }
 
             @Override
             protected void onClickPerform(AjaxRequestTarget target) {
-                RoleAnalysisTilePanel.this.onDetails();
+                RoleAnalysisSessionTilePanel.this.onDetails();
             }
 
         };
@@ -226,8 +231,9 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
                 return false;
             }
 
+            @Contract(pure = true)
             @Override
-            protected String getSpecialButtonClass() {
+            protected @NotNull String getSpecialButtonClass() {
                 return " px-1 py-0 "; /* p-0 */
             }
 
@@ -265,7 +271,7 @@ public class RoleAnalysisTilePanel<T extends Serializable> extends BasePanel<Rol
         String colorClass = getModelObject().getProgressBarColor();
         String title = getModelObject().getProgressBarTitle();
 
-        ProgressBar progressBar = new ProgressBar(RoleAnalysisTilePanel.ID_DENSITY) {
+        ProgressBar progressBar = new ProgressBar(RoleAnalysisSessionTilePanel.ID_DENSITY) {
 
             @Override
             public double getActualValue() {
