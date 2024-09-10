@@ -350,7 +350,7 @@ public class RoleAnalysisSessionTilePanel<T extends Serializable> extends BasePa
                 || status.equals(OperationResultStatusType.PARTIAL_ERROR)) {
             buttonClass = "btn-outline-danger ";
         } else if (status.equals(OperationResultStatusType.SUCCESS) && message.contains("7/7")) {
-            buttonClass = "btn-outline-success";
+            buttonClass = "btn-outline-primary";
         } else if (status.equals(OperationResultStatusType.SUCCESS)) {
             buttonClass = "btn-outline-primary";
         }

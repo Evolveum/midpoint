@@ -1784,7 +1784,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="user">
+            <xsd:enumeration value="outlier_detection">
                 <xsd:annotation>
                     <xsd:documentation>
                         This mapping should be used during outlier detection analysis.
@@ -2362,6 +2362,9 @@
                             Outlier detection analysis (OUTLIER_DETECTION):
                         </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisProcedureType.analysisProcedureType</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="processMode" type="tns:RoleAnalysisProcessModeType" minOccurs="0">
