@@ -133,7 +133,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         };
         detection.titleAsLabel(true);
         detection.setOutputMarkupId(true);
-        detection.add(AttributeModifier.append(CLASS_CSS, "btn btn-primary btn-sm"));
+        detection.add(AttributeModifier.append(CLASS_CSS, "btn btn-primary "));
         repeatingView.add(detection);
 
         Form<?> form = detection.findParent(Form.class);
@@ -401,7 +401,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         };
         editConfigurationButton.titleAsLabel(true);
         editConfigurationButton.setOutputMarkupId(true);
-        editConfigurationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
+        editConfigurationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default "));
         repeatingView.add(editConfigurationButton);
     }
 
