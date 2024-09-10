@@ -47,15 +47,19 @@ public class ResourceSchemaRegistry implements SchemaLookup.Based {
         if (resourceOid == null) {
             return null;
         }
-        var resourceSchema = schemaMap.get(resourceOid);
-        if (resourceSchema == null) {
-            resourceSchema = tryToLoadSchema(resourceOid);
-        }
-
+        var resourceSchema = getResourceSchema(resourceOid);
         if (resourceSchema == null) {
             return null;
         }
         return resourceSchema.findDefinitionForShadow(shadow);
+    }
+
+    public @Nullable CompleteResourceSchema getResourceSchema(@NotNull String resourceOid) {
+        var cached = schemaMap.get(resourceOid);
+        if (cached != null) {
+            return cached;
+        }
+        return tryToLoadSchema(resourceOid);
     }
 
     private CompleteResourceSchema tryToLoadSchema(String resourceOid) {
