@@ -11,7 +11,6 @@ import java.io.Serial;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -20,6 +19,9 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
 public class IconWithLabel extends BasePanel<String> {
 
@@ -36,18 +38,18 @@ public class IconWithLabel extends BasePanel<String> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", getComponentCssClass()));
-        add(AttributeAppender.append("style", getComponentCssStyle()));
+        add(AttributeModifier.append(CLASS_CSS, getComponentCssClass()));
+        add(AttributeModifier.append(STYLE_CSS, getComponentCssStyle()));
 
         WebMarkupContainer iconContainer = new WebMarkupContainer(ID_ICON_CONTAINER);
         iconContainer.setOutputMarkupId(true);
-        iconContainer.add(AttributeAppender.replace("class", getIconContainerCssClass()));
-        iconContainer.add(AttributeAppender.replace("style", getIconContainerCssStyle()));
+        iconContainer.add(AttributeModifier.replace(CLASS_CSS, getIconContainerCssClass()));
+        iconContainer.add(AttributeModifier.replace(STYLE_CSS, getIconContainerCssStyle()));
         add(iconContainer);
 
         Label image = new Label(ID_ICON);
-        image.add(AttributeModifier.replace("class", getIconCssClass() + " fa-sm"));
-        image.add(AttributeModifier.replace("style", getIconComponentCssStyle()));
+        image.add(AttributeModifier.replace(CLASS_CSS, getIconCssClass() + " fa-sm"));
+        image.add(AttributeModifier.replace(STYLE_CSS, getIconComponentCssStyle()));
         image.setOutputMarkupId(true);
         iconContainer.add(image);
 
@@ -68,7 +70,7 @@ public class IconWithLabel extends BasePanel<String> {
         }
                 : new Label(IconWithLabel.ID_TEXT, model);
         component.setOutputMarkupId(true);
-        component.add(AttributeAppender.replace("class", getLabelComponentCssClass()));
+        component.add(AttributeModifier.replace(CLASS_CSS, getLabelComponentCssClass()));
         return component;
     }
 
@@ -77,7 +79,7 @@ public class IconWithLabel extends BasePanel<String> {
     }
 
     protected void onClickPerform(AjaxRequestTarget target) {
-
+    //override in subclass
     }
 
     protected boolean isLink() {

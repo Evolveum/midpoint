@@ -14,13 +14,15 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.TITLE_CSS;
 
 public class IconAjaxButtonBadge extends BasePanel<String> {
 
@@ -41,7 +43,7 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
     }
 
     protected void onLoadComponent() {
-
+    //override
     }
 
     private void addClickBehavior() {
@@ -54,29 +56,29 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", getAdditionalCssClass()));
+        add(AttributeModifier.append(CLASS_CSS, getAdditionalCssClass()));
 
         Label image = new Label(ID_ICON);
-        image.add(AttributeModifier.replace("class", getIconCssClass()));
+        image.add(AttributeModifier.replace(CLASS_CSS, getIconCssClass()));
         image.setOutputMarkupId(true);
         image.add(new Behavior() {
             @Override
             public void onConfigure(Component component) {
-                image.add(AttributeModifier.replace("class", getIconCssClass()));
+                image.add(AttributeModifier.replace(CLASS_CSS, getIconCssClass()));
                 super.onConfigure(component);
             }
         });
         add(image);
 
         Label label = new Label(ID_TEXT, getModel());
-        label.add(AttributeAppender.append("title", getModel()));
+        label.add(AttributeModifier.append(TITLE_CSS, getModel()));
         label.add(new TooltipBehavior());
         label.setOutputMarkupId(true);
-        label.add(AttributeAppender.replace("class", getLabelCssClass()));
+        label.add(AttributeModifier.replace(CLASS_CSS, getLabelCssClass()));
         add(label);
 
         Label badge = new Label(ID_BADGE, Model.of(getBadgeValue()));
-        badge.add(AttributeAppender.replace("class", getBadgeCssClass()));
+        badge.add(AttributeModifier.replace(CLASS_CSS, getBadgeCssClass()));
         badge.setOutputMarkupId(true);
         add(badge);
     }
@@ -98,6 +100,7 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
     }
 
     protected void onClick(AjaxRequestTarget target) {
+    //override in subclass
     }
 
     protected String getBadgeCssClass() {
