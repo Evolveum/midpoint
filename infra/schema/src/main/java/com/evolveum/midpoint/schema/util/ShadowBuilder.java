@@ -64,6 +64,10 @@ public class ShadowBuilder {
         return shadow.asPrismObject();
     }
 
+    public ShadowType asObjectable() {
+        return shadow;
+    }
+
     public AbstractShadow asAbstractShadow() {
         return AbstractShadow.of(shadow);
     }
