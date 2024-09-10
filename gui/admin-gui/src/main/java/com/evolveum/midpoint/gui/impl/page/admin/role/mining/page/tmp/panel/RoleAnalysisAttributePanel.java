@@ -46,7 +46,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     private static final String ID_CARD_BODY = "cardBody";
 
     private static final String STATUS_ACTIVE = " active ";
-    private static final String OVERAL_RESULT = "overal result";
+    private static final String OVERAL_RESULT = "overall result";
 
     RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
     RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
