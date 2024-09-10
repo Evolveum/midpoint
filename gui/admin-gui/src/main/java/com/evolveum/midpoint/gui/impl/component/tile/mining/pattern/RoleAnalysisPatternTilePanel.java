@@ -76,9 +76,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     private static final String ID_PROGRESS_BAR = "progress-bar";
     private static final String ID_USERS_COUNT = "users-count";
     private static final String ID_ROLES_COUNT = "roles-count";
-    private static final String ID_SESSION = "session";
-    private static final String ID_CLUSTER = "cluster";
-    private static final String ID_SEPARATOR = "separator";
+    private static final String ID_LOCATION = "location";
 
     public RoleAnalysisPatternTilePanel(String id, IModel<RoleAnalysisPatternTileModel<T>> model) {
         super(id, model);
@@ -99,11 +97,6 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
         initLocationButtons();
 
         initFirstCountPanel();
-
-        Label separator = new Label(ID_SEPARATOR, "/");
-        separator.setOutputMarkupId(true);
-        add(separator);
-
         initSecondCountPanel();
     }
 
@@ -186,7 +179,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
                     @Contract(pure = true)
                     @Override
                     public @NotNull String getIconCssClass() {
-                        return "fa fa-arrow-down text-success";
+                        return "fa fa-arrow-down ";
                     }
 
                     @Contract(pure = true)
@@ -251,57 +244,138 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
     }
 
     private void initSecondCountPanel() {
-        Label processedObjectCount = new Label(ID_ROLES_COUNT, () -> getModelObject().getRoleCount() + " "
-                + createStringResource("RoleAnalysis.tile.panel.roles").getString()) {
+        String rolesCount = getModelObject().getRoleCount();
+        MetricValuePanel userCountPanel = new MetricValuePanel(ID_ROLES_COUNT) {
+            @Override
+            protected @NotNull Component getTitleComponent(String id) {
+                Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.roles"));
+                label.setOutputMarkupId(true);
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
+                label.add(AttributeModifier.append(STYLE_CSS, "font-size: 16px"));
+
+                return label;
+            }
+
+            @Override
+            protected @NotNull Component getValueComponent(String id) {
+                Label memberPanel = new Label(id, () -> rolesCount) {
+                };
+
+                memberPanel.setOutputMarkupId(true);
+                memberPanel.add(AttributeModifier.replace(TITLE_CSS, () -> "Roles count: " + rolesCount));
+                memberPanel.add(new TooltipBehavior());
+                return memberPanel;
+            }
         };
-        processedObjectCount.setOutputMarkupId(true);
-        processedObjectCount.add(AttributeModifier.replace(
-                TITLE_CSS, () -> "Processed objects: " + getModelObject().getRoleCount()));
-        processedObjectCount.add(new TooltipBehavior());
-        add(processedObjectCount);
+        userCountPanel.setOutputMarkupId(true);
+        add(userCountPanel);
     }
 
     private void initFirstCountPanel() {
-        Label clusterCount = new Label(ID_USERS_COUNT, () -> getModelObject().getUserCount() + " "
-                + createStringResource("RoleAnalysis.tile.panel.users").getString()) {
-        };
+        String userCount = getModelObject().getUserCount();
+        MetricValuePanel userCountPanel = new MetricValuePanel(ID_USERS_COUNT) {
+            @Override
+            protected @NotNull Component getTitleComponent(String id) {
+                Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.users"));
+                label.setOutputMarkupId(true);
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
+                label.add(AttributeModifier.append(STYLE_CSS, "font-size: 16px"));
 
-        clusterCount.setOutputMarkupId(true);
-        clusterCount.add(AttributeModifier.replace(TITLE_CSS, () -> "User count: " + getModelObject().getUserCount()));
-        clusterCount.add(new TooltipBehavior());
-        add(clusterCount);
+                return label;
+            }
+
+            @Override
+            protected @NotNull Component getValueComponent(String id) {
+                Label memberPanel = new Label(id, () -> userCount) {
+                };
+
+                memberPanel.setOutputMarkupId(true);
+                memberPanel.add(AttributeModifier.replace(TITLE_CSS, () -> "User count: " + userCount));
+                memberPanel.add(new TooltipBehavior());
+                return memberPanel;
+            }
+        };
+        userCountPanel.setOutputMarkupId(true);
+        add(userCountPanel);
     }
 
     private void initLocationButtons() {
         DetectedPattern pattern = getModelObject().getPattern();
         ObjectReferenceType clusterRef = pattern.getClusterRef();
         ObjectReferenceType sessionRef = pattern.getSessionRef();
-        AjaxLinkPanel sessionLink = new AjaxLinkPanel(ID_SESSION, Model.of(sessionRef.getTargetName().getOrig())) {
+
+        String clusterName = "unknown";
+        String sessionName = "unknown";
+        String clusterOid = null;
+        String sessionOid = null;
+        if (clusterRef != null) {
+            clusterOid = clusterRef.getOid();
+            if (clusterRef.getTargetName() != null) {
+                clusterName = clusterRef.getTargetName().getOrig();
+            }
+        }
+
+        if (sessionRef != null) {
+            sessionOid = sessionRef.getOid();
+            if (sessionRef.getTargetName() != null) {
+                sessionName = sessionRef.getTargetName().getOrig();
+            }
+        }
+
+        String finalSessionName = sessionName;
+        String finalClusterName = clusterName;
+
+        String finalClusterOid = clusterOid;
+        String finalSessionOid = sessionOid;
+        MetricValuePanel panel = new MetricValuePanel(ID_LOCATION) {
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, sessionRef.getOid());
-                getPageBase().navigateToNext(PageRoleAnalysisSession.class, parameters);
+            protected @NotNull Component getTitleComponent(String id) {
+                Label label = new Label(id, createStringResource("RoleAnalysis.title.panel.location"));
+                label.setOutputMarkupId(true);
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
+                return label;
+            }
+
+            @Override
+            protected Component getValueComponent(String id) {
+                RepeatingView view = new RepeatingView(id);
+                view.setOutputMarkupId(true);
+                AjaxLinkPanel sessionLink = new AjaxLinkPanel(view.newChildId(), Model.of(finalSessionName)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, finalSessionOid);
+                        getPageBase().navigateToNext(PageRoleAnalysisSession.class, parameters);
+                    }
+                };
+
+                sessionLink.setOutputMarkupId(true);
+                sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
+                sessionLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
+                view.add(sessionLink);
+
+                Label separator = new Label(view.newChildId(), "/");
+                separator.setOutputMarkupId(true);
+                view.add(separator);
+
+                AjaxLinkPanel clusterLink = new AjaxLinkPanel(view.newChildId(), Model.of(finalClusterName)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(OnePageParameterEncoder.PARAMETER, finalClusterOid);
+                        getPageBase().navigateToNext(PageRoleAnalysisCluster.class, parameters);
+                    }
+                };
+                clusterLink.setOutputMarkupId(true);
+                clusterLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
+                clusterLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
+                view.add(clusterLink);
+                return view;
             }
         };
+        panel.setOutputMarkupId(true);
+        add(panel);
 
-        sessionLink.setOutputMarkupId(true);
-        sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
-        sessionLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
-        add(sessionLink);
-
-        AjaxLinkPanel clusterLink = new AjaxLinkPanel(ID_CLUSTER, Model.of(clusterRef.getTargetName().getOrig())) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(OnePageParameterEncoder.PARAMETER, clusterRef.getOid());
-                getPageBase().navigateToNext(PageRoleAnalysisCluster.class, parameters);
-            }
-        };
-        clusterLink.setOutputMarkupId(true);
-        clusterLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
-        clusterLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
-        add(clusterLink);
     }
 
     private void initNamePanel() {
