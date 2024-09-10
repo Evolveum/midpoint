@@ -203,7 +203,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 13;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 76;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 78;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -742,8 +742,8 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         XMLGregorianCalendar oneHourAgo = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "-PT1H");
         var object = getObjectViaRepo(type, oid).asObjectable();
-        assertModifyDenyOptions(type, oid, getStorageMetadataPath(object, MetadataType.F_MODIFY_TIMESTAMP), null, oneHourAgo);
-        assertModifyDenyOptions(type, oid, getStorageMetadataPath(object, MetadataType.F_CREATE_CHANNEL), null, "hackHackHack");
+        assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_MODIFY_TIMESTAMP), null, oneHourAgo);
+        assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_CREATE_CHANNEL), null, "hackHackHack");
     }
 
     protected <O extends ObjectType> void assertPasswordChangeDeny(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {

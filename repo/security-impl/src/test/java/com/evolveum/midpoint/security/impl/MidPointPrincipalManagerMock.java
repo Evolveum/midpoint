@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.security.impl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.security.api.*;
@@ -192,12 +193,11 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         if (object != null && (object instanceof UserType)) {
             return (UserType) object;
         }
-
         return null;
     }
 
     @Override
-    public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
+    public <F extends FocusType, O extends ObjectType> List<PrismObject<F>> resolveOwner(PrismObject<O> object) {
         if (object == null || object.getOid() == null) {
             return null;
         }
@@ -205,7 +205,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         if (object.canRepresent(ShadowType.class)) {
             owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(MidPointPrincipalManagerMock.class + ".resolveOwner"));
         }
-        return owner;
+        return Collections.singletonList(owner);
     }
 
     @Override
