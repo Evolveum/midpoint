@@ -206,7 +206,7 @@ public abstract class AbstractInitializedSecurityTest extends AbstractInitialize
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 13;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 77;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 79;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
