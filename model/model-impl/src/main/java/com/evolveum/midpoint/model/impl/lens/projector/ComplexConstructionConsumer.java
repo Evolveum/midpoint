@@ -10,8 +10,8 @@ import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAbstractConst
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 
 /**
  * @author Radovan Semancik
@@ -21,9 +21,13 @@ public interface ComplexConstructionConsumer<K, EC extends EvaluatedAbstractCons
 
     boolean before(K key);
 
-    void onAssigned(K key, String desc, OperationResult result) throws SchemaException, ConfigurationException;
+    void onAssigned(K key, String desc, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException;
 
-    void onUnchangedValid(K key, String desc, OperationResult result) throws SchemaException, ConfigurationException;
+    void onUnchangedValid(K key, String desc, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException;
 
     void onUnchangedInvalid(K key, String desc) throws SchemaException, ConfigurationException;
 

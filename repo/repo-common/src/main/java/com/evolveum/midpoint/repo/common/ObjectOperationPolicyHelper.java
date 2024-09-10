@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -254,6 +255,13 @@ public class ObjectOperationPolicyHelper {
 
         @Nullable ObjectOperationPolicyType getDefaultPolicyForObject(
                 @NotNull ObjectType object,
+                @NotNull TaskExecutionMode mode,
+                @NotNull OperationResult result) throws ConfigurationException {
+            return null;
+        }
+
+        @Nullable ObjectOperationPolicyType getDefaultPolicyForResourceObjectType(
+                @NotNull ResourceObjectDefinition objectDefinition,
                 @NotNull TaskExecutionMode mode,
                 @NotNull OperationResult result) throws ConfigurationException {
             return null;
@@ -683,18 +691,26 @@ public class ObjectOperationPolicyHelper {
                 return null;
             }
             // We assume only well-formed shadows (with the definition) here.
-            var objectDef = ShadowUtil.getResourceObjectDefinition(shadow);
+            return getDefaultPolicyForResourceObjectType(
+                    ShadowUtil.getResourceObjectDefinition(shadow),
+                    mode, result);
+        }
+
+        @Override
+        @Nullable ObjectOperationPolicyType getDefaultPolicyForResourceObjectType(
+                @NotNull ResourceObjectDefinition objectDef,
+                @NotNull TaskExecutionMode mode,
+                @NotNull OperationResult result) throws ConfigurationException {
             var markOid = objectDef.getDefaultOperationPolicyOid(mode);
             if (markOid == null) {
                 return null;
             }
-            var marks = resolveMarkOids(Set.of(markOid), "determining default policy for " + object, result);
+            var marks = resolveMarkOids(Set.of(markOid), "determining default policy for " + objectDef, result);
             if (!marks.isEmpty()) {
                 return marks.iterator().next().getObjectOperationPolicy();
             } else {
                 throw new ConfigurationException(
-                        "Mark %s for the default policy for %s (for %s) does not exist".formatted(
-                                markOid, objectDef, shadow),
+                        "Mark %s for the default policy for %s does not exist".formatted(markOid, objectDef),
                         new ObjectNotFoundException(MarkType.class, markOid));
             }
         }
@@ -861,6 +877,13 @@ public class ObjectOperationPolicyHelper {
                 s -> s.getType() == policyType
                         && markOid.equals(getOid(s.getMarkRef()))
                         && SimulationUtil.isVisible(s.getLifecycleState(), mode));
+    }
+
+    public @Nullable ObjectOperationPolicyType getDefaultPolicyForResourceObjectType(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            @NotNull TaskExecutionMode mode,
+            @NotNull OperationResult result) throws ConfigurationException {
+        return behaviour.getDefaultPolicyForResourceObjectType(objectDefinition, mode, result);
     }
 
     public interface ObjectMarksComputer {

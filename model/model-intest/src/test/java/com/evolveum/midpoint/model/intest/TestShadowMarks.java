@@ -13,7 +13,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 import java.io.File;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -24,7 +23,6 @@ import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -233,7 +231,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    void test300ImportUserWithBrokenMapping() throws Exception {
+    public void test300ImportUserWithBrokenMapping() throws Exception {
         var result = createOperationResult();
         DummyAccount account1 = RESOURCE_SHADOW_MARKS.controller.addAccount("broken");
         account1.addAttributeValue(ATTR_GIVEN_NAME, "Karl");
@@ -266,7 +264,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
      * We check that the mappings work as expected.
      */
     @Test
-    void test400TestShadowUnmanagedToManaged() throws Exception {
+    public void test400TestShadowUnmanagedToManaged() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var userName = getTestNameShort();
@@ -375,7 +373,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
      * Otherwise, the account would get immediately re-created.
      */
     @Test
-    void test410TestUnmanagedShadowDeletion() throws Exception {
+    public void test410TestUnmanagedShadowDeletion() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var userName = getTestNameShort();
@@ -435,11 +433,71 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
+     * Default operation policy for `account/developer` is `unmanaged`.
+     * When we try to create such an account (by assigning the construction), the creation should not be attempted.
+     *
+     * Executed via "real" user addition operation.
+     *
+     * MID-9979
+     */
+    @Test
+    public void test420AssignUnmanagedAccount() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        when("a user with account/developer is created (default policy is 'unmanaged')");
+        var userOid = traced(() -> addObject(
+                new UserType()
+                        .name(userName)
+                        .assignment(RESOURCE_SHADOW_MARKS.assignmentWithConstructionOf(ACCOUNT, INTENT_DEVELOPER)),
+                task, result));
+
+        then("everything is OK, no account is created");
+        assertSuccess(result);
+        assertUserAfter(userOid)
+                .assertLinks(0, 0);
+    }
+
+    /**
+     * As {@link #test420AssignUnmanagedAccount()} but using preview changes instead.
+     *
+     * MID-9979
+     */
+    @Test
+    public void test425AssignUnmanagedAccountPreviewChanges() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a user");
+        var userOid = addObject(
+                new UserType()
+                        .name(userName),
+                task, result);
+
+        when("a preview of assigning account/developer is executed (default policy is 'unmanaged')");
+        var lensContext = previewChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(RESOURCE_SHADOW_MARKS.assignmentWithConstructionOf(ACCOUNT, INTENT_DEVELOPER))
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("everything is OK, and there are no projection contexts");
+        assertSuccess(result);
+        displayDumpable("lens context", lensContext);
+        assertThat(lensContext.getProjectionContexts())
+                .as("projection contexts")
+                .isEmpty();
+    }
+
+    /**
      * Tests lifecycle-aware default operation policy for `account/developer` (MID-9972):
      * for production, it is `unmanaged`, while we are experimenting with `managed` for the development mode.
      */
     @Test
-    void test500TestLifecycleAwareDefaultOperationPolicy() throws Exception {
+    public void test500TestLifecycleAwareDefaultOperationPolicy() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var userName = getTestNameShort();
@@ -515,7 +573,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
      * an account is protected, but we simulate the removal of this mark.
      */
     @Test
-    void test510TestDevelopmentModePolicyStatement() throws Exception {
+    public void test510TestDevelopmentModePolicyStatement() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var userName = "_" + getTestNameShort();

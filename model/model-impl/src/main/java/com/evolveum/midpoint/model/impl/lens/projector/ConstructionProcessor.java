@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.impl.lens.PersonaKey;
 import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
@@ -67,7 +68,8 @@ public class ConstructionProcessor {
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor,
             FailableLensFunction<EC, K> keyGenerator,
-            ComplexConstructionConsumer<K, EC> consumer, OperationResult result)
+            ComplexConstructionConsumer<K, EC> consumer,
+            Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
@@ -107,6 +109,7 @@ public class ConstructionProcessor {
                     consumer,
                     evaluatedConstructionMapTriple,
                     desc,
+                    task,
                     result);
 
             consumer.after(key, desc, evaluatedConstructionMapTriple);
@@ -151,22 +154,24 @@ public class ConstructionProcessor {
             ComplexConstructionConsumer<K, EC> consumer,
             DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple,
             String desc,
+            Task task,
             OperationResult result)
-            throws SchemaException, ConfigurationException {
+            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
+            SecurityViolationException, ObjectNotFoundException {
         // SITUATION: The construction is ASSIGNED
         if (plusEvaluatedConstructionPack != null && plusEvaluatedConstructionPack.hasNonWeakConstruction()) {
 
             if (plusEvaluatedConstructionPack.hasValidAssignment()) {
                 if (zeroEvaluatedConstructionPack != null && zeroEvaluatedConstructionPack.hasValidAssignment()) {
                     LOGGER.trace("Construction {}: unchanged (valid) + assigned (valid)", desc);
-                    consumer.onUnchangedValid(key, desc, result);
+                    consumer.onUnchangedValid(key, desc, task, result);
                 } else {
                     LOGGER.trace("Construction {}: assigned (valid)", desc);
-                    consumer.onAssigned(key, desc, result);
+                    consumer.onAssigned(key, desc, task, result);
                 }
             } else if (zeroEvaluatedConstructionPack != null && zeroEvaluatedConstructionPack.hasValidAssignment()) {
                 LOGGER.trace("Construction {}: unchanged (valid) + assigned (invalid)", desc);
-                consumer.onUnchangedValid(key, desc, result);
+                consumer.onUnchangedValid(key, desc, task, result);
             } else {
                 // Just ignore it, do not even create projection context
                 LOGGER.trace("Construction {} ignoring: assigned (invalid)", desc);
@@ -176,7 +181,7 @@ public class ConstructionProcessor {
         } else if (zeroEvaluatedConstructionPack != null && zeroEvaluatedConstructionPack.hasValidAssignment() && zeroEvaluatedConstructionPack.hasNonWeakConstruction()) {
 
             LOGGER.trace("Construction {}: unchanged (valid)", desc);
-            consumer.onUnchangedValid(key, desc, result);
+            consumer.onUnchangedValid(key, desc, task, result);
 
         // SITUATION: The projection is both ASSIGNED and UNASSIGNED;
         // TODO evaluatedConstructionMapTriple.plusMap.get(key) is the same as plusEvaluatedConstructionPack, isn't it?
@@ -192,7 +197,7 @@ public class ConstructionProcessor {
             if (plusPack.hasValidAssignment() && minusPack.hasValidAssignment()) {
 
                 LOGGER.trace("Construction {}: both assigned and unassigned (valid)", desc);
-                consumer.onUnchangedValid(key, desc, result);
+                consumer.onUnchangedValid(key, desc, task, result);
 
             } else if (!plusPack.hasValidAssignment() && !minusPack.hasValidAssignment()) {
                 // Just ignore it, do not even create projection context
@@ -201,7 +206,7 @@ public class ConstructionProcessor {
             } else if (plusPack.hasValidAssignment() && !minusPack.hasValidAssignment()) {
                 // Assignment became valid. Same as if it was assigned.
                 LOGGER.trace("Construction {}: both assigned and unassigned (invalid->valid)", desc);
-                consumer.onAssigned(key, desc, result);
+                consumer.onAssigned(key, desc, task, result);
 
             } else if (!plusPack.hasValidAssignment() && minusPack.hasValidAssignment()) {
                 // Assignment became invalid. Same as if it was unassigned.
