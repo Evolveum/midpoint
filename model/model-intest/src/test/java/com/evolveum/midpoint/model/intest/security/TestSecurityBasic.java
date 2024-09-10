@@ -3076,7 +3076,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
      * Jack is owner of application role 1, attempt to assign should pass.
      * #9985
      */
-    @Test(enabled = false) // #9985
+    @Test
     public void test291AutzJackRoleOwnerAssign() throws Exception {
         given();
         cleanupAutzTest(USER_JACK_OID);
@@ -3120,7 +3120,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
                 .assertAssignments(3)
                 .assignments()
                 .assertRole(ROLE_ROLE_OWNER_ASSIGN.oid)
-                .assertRole(ROLE_APPLICATION_1.oid)
+                .assertRole(ROLE_APPLICATION_1.oid, RelationTypes.MEMBER.getRelation())
                 .assertRole(ROLE_APPLICATION_1.oid, RelationTypes.OWNER.getRelation());
 
         assertDeny("assign application role 2 to jack",
@@ -3211,8 +3211,9 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
      * Jack is owner of application role 1, attempt to list, read and modify the role should pass.
      * #9985
      */
-    @Test(enabled = false) // #9985
+    @Test() // #9985
     public void test293AutzJackRoleOwnerFullControl() throws Exception {
+        skipIfNotNativeRepository();
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
 

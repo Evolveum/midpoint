@@ -9,10 +9,10 @@ package com.evolveum.midpoint.common.cleanup;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
 
-import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -158,9 +159,72 @@ public class ObjectCleanerTest extends AbstractUnitTest {
     }
 
     @Test
+    public void test205UserCustomPaths() throws Exception {
+        File file = new File(TEST_DIR, "user.xml");
+        PrismObject<ResourceType> user = getPrismContext().parseObject(file);
+
+        final ItemPath disableReason = ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON);
+
+        Assertions.assertThat(user.findItem(UserType.F_FAMILY_NAME))
+                .isNotNull();
+        Assertions.assertThat(user.findItem(disableReason))
+                .isNotNull();
+
+        List<CleanupPath> paths = List.of(
+                new CleanupPath(UserType.COMPLEX_TYPE, disableReason, CleanupPathAction.IGNORE),
+                new CleanupPath(UserType.COMPLEX_TYPE, UserType.F_FAMILY_NAME, CleanupPathAction.REMOVE)
+        );
+
+        ObjectCleaner processor = new ObjectCleaner();
+        processor.setPaths(paths);
+        processor.setListener(new TestCleanupListener());
+        processor.process(user);
+
+        Assertions.assertThat(user.findItem(UserType.F_FAMILY_NAME))
+                .isNull();
+        Assertions.assertThat(user.findItem(disableReason))
+                .isNotNull();
+    }
+
+    /**
+     * Not finished yet, whole concept of "extending" item path to "givenName/_metadata/provenance" is probably wrong.
+     */
+    @Test(enabled = false)
+    public void test210UserMetadata() throws Exception {
+        File file = new File(TEST_DIR, "user.xml");
+        PrismObject<ResourceType> user = getPrismContext().parseObject(file);
+
+        ValueMetadata metadata = user.findItem(UserType.F_GIVEN_NAME).getValue().getValueMetadata();
+        Assertions.assertThat(metadata)
+                .isNotNull();
+        AssertJUnit.assertEquals(
+                2,
+                metadata.getValues().stream()
+                        .map(c -> ((ValueMetadataType) c.getRealValue()).getProvenance())
+                        .filter(Objects::nonNull)
+                        .count());
+
+        ItemPath provenanceMetadata = ItemPath.create(
+                UserType.F_GIVEN_NAME,
+                new QName(SchemaConstantsGenerated.NS_COMMON, "_metadata"),
+                ValueMetadataType.F_PROVENANCE
+        );
+
+        List<CleanupPath> paths = List.of(
+                new CleanupPath(UserType.COMPLEX_TYPE, provenanceMetadata, CleanupPathAction.REMOVE)
+        );
+
+        ObjectCleaner processor = new ObjectCleaner();
+        processor.setPaths(paths);
+        processor.setListener(new TestCleanupListener());
+        processor.process(user);
+
+        System.out.println(user.debugDump());
+    }
+
+    @Test
     public void test300ResourceObjectType() throws Exception {
         File file = new File(TEST_DIR, "resource.xml");
-        String content = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
 
         PrismObject<ResourceType> resource = getPrismContext().parseObject(file);
 

@@ -60,6 +60,7 @@ class SelectorFilterEvaluation<T>
                 createFilterEvaluator(),
                 authorizationEvaluation.op.tracer,
                 b.repositoryService,
+                b.repositoryService.isNative(),
                 this,
                 getOwnerResolver(),
                 this::resolveReference,
