@@ -156,8 +156,7 @@ public class ConstructionProcessor {
             String desc,
             Task task,
             OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException {
+            throws SchemaException, ConfigurationException {
         // SITUATION: The construction is ASSIGNED
         if (plusEvaluatedConstructionPack != null && plusEvaluatedConstructionPack.hasNonWeakConstruction()) {
 

@@ -22,12 +22,10 @@ public interface ComplexConstructionConsumer<K, EC extends EvaluatedAbstractCons
     boolean before(K key);
 
     void onAssigned(K key, String desc, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
+            throws SchemaException, ConfigurationException;
 
     void onUnchangedValid(K key, String desc, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-            SecurityViolationException, ObjectNotFoundException;
+            throws SchemaException, ConfigurationException;
 
     void onUnchangedInvalid(K key, String desc) throws SchemaException, ConfigurationException;
 

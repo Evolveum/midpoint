@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.util.*;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -441,8 +443,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
                     @Override
                     public void onAssigned(@NotNull ConstructionTargetKey key, String desc, Task task, OperationResult result)
-                            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-                            SecurityViolationException, ObjectNotFoundException {
+                            throws SchemaException, ConfigurationException {
                         LensProjectionContext existing = context.findFirstProjectionContext(key, false);
                         LensProjectionContext projectionContext;
                         if (existing != null) {
@@ -469,16 +470,24 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     /** Assuming that the context does not exist. */
                     private boolean areOutboundsNotDisabledByPolicy(
                             @NotNull ConstructionTargetKey key, Task task, OperationResult result)
-                            throws ConfigurationException, SchemaException, ExpressionEvaluationException,
-                            CommunicationException, SecurityViolationException, ObjectNotFoundException {
+                            throws ConfigurationException {
                         LOGGER.trace("Are outbounds disabled by policy? Checking related contexts for: {}", key);
                         var fromRelatedContexts = getFromRelatedContexts(key, result);
                         if (fromRelatedContexts != null) {
                             return fromRelatedContexts;
                         }
                         LOGGER.trace("Are outbounds disabled by policy? Checking the default operation policy for: {}", key);
-                        ObjectOperationPolicyType policy = provisioningService.getDefaultOperationPolicy(
-                                key.getResourceOid(), key.getTypeIdentification(), task, result);
+                        ObjectOperationPolicyType policy;
+                        try {
+                            policy = provisioningService.getDefaultOperationPolicy(
+                                    key.getResourceOid(), key.getTypeIdentification(), task, result);
+                        } catch (CommonException | RuntimeException e) {
+                            // The construction information may be wrong. We don't want to fail the whole operation in that case.
+                            // The error in OperationResult is adequate. See TestAssignmentErrors.test100/test101.
+                            LoggingUtils.logExceptionAsWarning(
+                                    LOGGER, "Default operation policy couldn't be found for {}", e, key);
+                            return true;
+                        }
                         if (policy == null) {
                             LOGGER.trace("-> no default policy found, assuming outbounds are not disabled");
                             return true;
@@ -516,8 +525,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     @Override
                     public void onUnchangedValid(
                             @NotNull ConstructionTargetKey key, String desc, Task task, OperationResult result)
-                            throws SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException,
-                            SecurityViolationException, ObjectNotFoundException {
+                            throws SchemaException, ConfigurationException {
                         LensProjectionContext projectionContext = context.findFirstProjectionContext(key, false);
                         if (projectionContext == null) {
                             if (processOnlyExistingProjContexts) {
