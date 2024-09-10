@@ -203,7 +203,8 @@ public abstract class SynchronizationContext<F extends FocusType>
         // Policy should not be null if was provided by provisioning-impl. TODO Remove this check later
         if (policy == null) {
             LOGGER.warn("Missing effective operation policy in {}.", shadowedResourceObject);
-            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(shadowedResourceObject, result);
+            policy = ObjectOperationPolicyHelper.get().computeEffectivePolicy(
+                    shadowedResourceObject, task.getExecutionMode(), result);
         }
         return isSyncInboundDisabled(policy);
     }

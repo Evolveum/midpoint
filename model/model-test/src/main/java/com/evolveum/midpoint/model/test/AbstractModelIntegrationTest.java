@@ -42,6 +42,7 @@ import com.evolveum.midpoint.authentication.api.AutheticationFailedData;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
+import com.evolveum.midpoint.model.test.util.ShadowFindRequest.ShadowFindRequestBuilder;
 import com.evolveum.midpoint.prism.path.InfraItemName;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.*;
@@ -7373,13 +7374,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .withUsingShadowReclassification();
     }
 
+    protected ShadowFindRequestBuilder findShadowRequest() {
+        return new ShadowFindRequestBuilder(this);
+    }
+
     /**
      * Executes a set of deltas in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      *
      * Simulation deltas are stored in returned {@link TestSimulationResult} and optionally also in the storage provided by the
      * {@link SimulationResultManager} - if `simulationDefinition` is present.
      */
-    private TestSimulationResult executeInProductionSimulationMode(
+    protected TestSimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @NotNull SimulationDefinitionType simulationDefinition,
             @NotNull Task task,
@@ -7722,16 +7727,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected void markShadow(String oid, String markOid, Task task, OperationResult result) throws CommonException {
-        var statement = new PolicyStatementType()
-                .markRef(markOid, MarkType.COMPLEX_TYPE)
-                .type(PolicyStatementTypeType.APPLY);
-        modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
+        markShadow(oid, PolicyStatementTypeType.APPLY, markOid, null, task, result);
     }
 
     protected void markShadowExcluded(String oid, String markOid, Task task, OperationResult result) throws CommonException {
+        markShadow(oid, PolicyStatementTypeType.EXCLUDE, markOid, null, task, result);
+    }
+
+    protected void markShadow(
+            String oid, PolicyStatementTypeType type, String markOid, String lifecycleState, Task task, OperationResult result)
+            throws CommonException {
         var statement = new PolicyStatementType()
                 .markRef(markOid, MarkType.COMPLEX_TYPE)
-                .type(PolicyStatementTypeType.EXCLUDE);
+                .type(type)
+                .lifecycleState(lifecycleState);
         modifyObjectAddContainer(ShadowType.class, oid, ShadowType.F_POLICY_STATEMENT, task, result, statement);
     }
 

@@ -173,7 +173,7 @@ class ShadowDeltaComputerAbsolute {
         computedModifications.add(
                 ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(
                         repoShadow.getBean().getEffectiveMarkRef(),
-                        effectiveMarksAndPolicies.effectiveMarkRefs()));
+                        effectiveMarksAndPolicies.productionModeEffectiveMarkRefs()));
     }
 
     private void updateShadowName() throws SchemaException {
