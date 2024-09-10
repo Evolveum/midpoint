@@ -6,11 +6,11 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismItemAccessDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,16 +44,13 @@ public class SubjectAssociationStepPanel extends ParticipantAssociationStepPanel
 
     @Override
     protected List<ResourceObjectTypeDefinition> getListOfSupportedObjectTypeDef() throws SchemaException, ConfigurationException {
-
-        List<ResourceObjectTypeIdentificationType> subjects =
-                AssociationChildWrapperUtil.getObjectTypesOfSubject(getValueModel().getObject());
-
         CompleteResourceSchema schema = getDetailsModel().getRefinedSchema();
+        ItemName refAttributeName = AssociationChildWrapperUtil.getRef(getValueModel().getObject(), true);
 
-        return subjects.stream()
-                .map(subject -> schema.getObjectTypeDefinition(ResourceObjectTypeIdentification.of(subject)))
-                .filter(def -> !def.getReferenceAttributeDefinitions().isEmpty()
-                        && def.getReferenceAttributeDefinitions().stream().anyMatch(PrismItemAccessDefinition::canRead))
+        return schema.getObjectTypeDefinitions().stream()
+                .filter(objectTypeDef -> objectTypeDef.getReferenceAttributeDefinitions().stream()
+                        .anyMatch(associationDef -> associationDef.canRead()
+                                && QNameUtil.match(associationDef.getItemName(), refAttributeName)))
                 .toList();
     }
 
