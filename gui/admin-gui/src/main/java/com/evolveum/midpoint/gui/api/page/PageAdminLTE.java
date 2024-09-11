@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 
 import com.evolveum.midpoint.model.api.trigger.TriggerHandlerRegistry;
+import com.evolveum.midpoint.model.common.MarkManager;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
 import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
@@ -131,6 +132,8 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorRegistry;
 import com.evolveum.midpoint.wf.api.ApprovalsManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -264,9 +267,11 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @SpringBean
     private TriggerHandlerRegistry triggerHandlerRegistry;
 
-
     @SpringBean
     private ResourceSchemaRegistry resourceSchemaRegistry;
+
+    @SpringBean
+    private MarkManager markManager;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -1088,5 +1093,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     public ResourceSchemaRegistry getResourceSchemaRegistry() {
         return resourceSchemaRegistry;
+    }
+
+    public MarkManager getMarkManager() {
+        return markManager;
     }
 }
