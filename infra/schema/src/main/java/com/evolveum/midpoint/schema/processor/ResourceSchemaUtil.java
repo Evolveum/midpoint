@@ -79,6 +79,15 @@ public class ResourceSchemaUtil {
             @Nullable ShadowKindType kind,
             @Nullable String intent,
             @Nullable QName objectClassName) throws SchemaException, ConfigurationException {
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
+        return findObjectDefinitionPrecisely(resourceSchema, kind, intent, objectClassName, resource);
+    }
+
+    public static ResourceObjectDefinition findObjectDefinitionPrecisely(
+            ResourceSchema resourceSchema,
+            @Nullable ShadowKindType kind,
+            @Nullable String intent,
+            @Nullable QName objectClassName, ResourceType resource) throws SchemaException, ConfigurationException {
 
         argCheck(kind != ShadowKindType.UNKNOWN && !SchemaConstants.INTENT_UNKNOWN.equals(intent),
                 "Unknown kind/intent values are not supported here: %s/%s/%s", kind, intent, objectClassName);
@@ -86,9 +95,6 @@ public class ResourceSchemaUtil {
         if (kind == null && intent == null && objectClassName == null) {
             return null;
         }
-
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
-
         ResourceObjectDefinition objectDefinition;
         if (kind != null) {
             objectDefinition =

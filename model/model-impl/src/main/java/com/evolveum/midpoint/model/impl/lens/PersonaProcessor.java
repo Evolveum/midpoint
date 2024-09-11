@@ -126,12 +126,12 @@ public class PersonaProcessor {
                     }
 
                     @Override
-                    public void onAssigned(PersonaKey key, String desc, OperationResult lResult) {
+                    public void onAssigned(PersonaKey key, String desc, Task task, OperationResult lResult) {
                         activePersonaKeyTriple.addToPlusSet(key);
                     }
 
                     @Override
-                    public void onUnchangedValid(PersonaKey key, String desc, OperationResult lResult) {
+                    public void onUnchangedValid(PersonaKey key, String desc, Task task, OperationResult lResult) {
                         activePersonaKeyTriple.addToZeroSet(key);
                     }
 
@@ -155,7 +155,7 @@ public class PersonaProcessor {
                     EvaluatedAssignmentImpl::getPersonaConstructionTriple,
                     evaluatedConstruction ->
                             new PersonaKey(this, evaluatedConstruction.getConstruction().getConstructionBean()),
-                    consumer, result);
+                    consumer, task, result);
 
         LOGGER.trace("activePersonaKeyTriple:\n{}", activePersonaKeyTriple.debugDumpLazily(1));
 

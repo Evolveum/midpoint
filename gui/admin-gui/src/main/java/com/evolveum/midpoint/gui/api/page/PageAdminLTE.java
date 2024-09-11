@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
 import com.evolveum.midpoint.repo.common.subscription.SubscriptionState;
 import com.evolveum.midpoint.schema.merger.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import com.evolveum.midpoint.security.api.SecurityContextManager.ResultAwareCheckedProducer;
@@ -262,6 +263,10 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @SpringBean
     private TriggerHandlerRegistry triggerHandlerRegistry;
+
+
+    @SpringBean
+    private ResourceSchemaRegistry resourceSchemaRegistry;
 
     // No need for this to store in session. It is used only during single init and render.
     private transient Task pageTask;
@@ -1079,5 +1084,9 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     @Override
     public TriggerHandlerRegistry getTriggerHandlerRegistry() {
         return triggerHandlerRegistry;
+    }
+
+    public ResourceSchemaRegistry getResourceSchemaRegistry() {
+        return resourceSchemaRegistry;
     }
 }

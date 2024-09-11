@@ -8,11 +8,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
 public class RoleAnalysisClusterOccupationPanel extends BasePanel<String> {
 
@@ -28,9 +31,9 @@ public class RoleAnalysisClusterOccupationPanel extends BasePanel<String> {
     }
 
     private void initLayout() {
-        this.add(AttributeAppender.append("class", getComponentCssClass()));
+        this.add(AttributeModifier.append(CLASS_CSS, getComponentCssClass()));
         Component firstPanel = createFirstPanel(ID_FIRST_PANEL);
-        firstPanel.add(AttributeAppender.append("style", getStyleForFirstPanel()));
+        firstPanel.add(AttributeModifier.append(STYLE_CSS, getStyleForFirstPanel()));
         firstPanel.setOutputMarkupId(true);
         add(firstPanel);
 
@@ -39,7 +42,7 @@ public class RoleAnalysisClusterOccupationPanel extends BasePanel<String> {
         add(separatorPanel);
 
         Component secondPanel = createSecondPanel(ID_SECOND_PANEL);
-        secondPanel.add(AttributeAppender.append("style", getStyleForSecondPanel()));
+        secondPanel.add(AttributeModifier.append(STYLE_CSS, getStyleForSecondPanel()));
         secondPanel.setOutputMarkupId(true);
         add(secondPanel);
     }
@@ -51,6 +54,7 @@ public class RoleAnalysisClusterOccupationPanel extends BasePanel<String> {
     protected String getStyleForSecondPanel() {
         return "";
     }
+
     public Component createFirstPanel(String idFirstPanel) {
         return new WebMarkupContainer(idFirstPanel);
     }

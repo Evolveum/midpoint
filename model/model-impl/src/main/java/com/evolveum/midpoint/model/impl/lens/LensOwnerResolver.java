@@ -7,12 +7,14 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.selector.eval.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
@@ -24,13 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
@@ -55,7 +51,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
     }
 
     @Override
-    public <FO extends FocusType, O extends ObjectType> PrismObject<FO> resolveOwner(PrismObject<O> object)
+    public <FO extends FocusType, O extends ObjectType> List<PrismObject<FO>> resolveOwner(PrismObject<O> object)
             throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (object == null) {
             return null;
@@ -69,11 +65,11 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                 // Moreover, if the authorization would be based on a property that is being changed along with the
                 // the change being authorized, we would like to use changed version.
                 //noinspection unchecked
-                return (PrismObject<FO>) focusContext.getObjectNew();
+                return Collections.singletonList((PrismObject<FO>) focusContext.getObjectNew());
             } else if (focusContext.getObjectCurrent() != null) {
                 // This could be useful if the owner is being deleted.
                 //noinspection unchecked
-                return (PrismObject<FO>) focusContext.getObjectCurrent();
+                return Collections.singletonList((PrismObject<FO>) focusContext.getObjectCurrent());
             } else {
                 return null;
             }
@@ -92,7 +88,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                     context.setCachedOwner(ownerType.asPrismObject());
                 }
                 //noinspection unchecked
-                return (PrismObject<FO>) context.getCachedOwner();
+                return Collections.singletonList((PrismObject<FO>) context.getCachedOwner());
             }
 
             if (object.getOid() == null) {
@@ -102,10 +98,10 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 
             ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                     .item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
-            List<PrismObject<UserType>> owners = new ArrayList<>();
+            List<PrismObject<FO>> owners = new ArrayList<>();
             try {
                 objectResolver.searchIterative(UserType.class, query, createReadOnlyCollection(),
-                        (o,result) -> owners.add(o), task, result);
+                        (o,result) -> owners.add((PrismObject) o), task, result);
             } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
                     | SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
                 LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
@@ -118,10 +114,28 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                 LOGGER.warn("More than one owner of {}: {}", object, owners);
             }
             //noinspection unchecked
-            return (PrismObject<FO>) owners.get(0);
+            return owners;
         } else if (object.canRepresent(AbstractRoleType.class)) {
-            // TODO: get owner from roleMembershipRef;relation=owner (MID-5689)
-            return null;
+            var prismRefs = SchemaService.get().relationRegistry().getAllRelationsFor(RelationKindType.OWNER)
+                    .stream().map(r -> {
+                        var ret = PrismContext.get().itemFactory().createReferenceValue(object.getOid(), object.getAnyValue().getTypeName());
+                        ret.setRelation(r);
+                        return ret;
+                            })
+                    .toList();
+            ObjectQuery query = PrismContext.get().queryFor(FocusType.class)
+                    .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(prismRefs).build();
+            List<PrismObject<FO>> owners = new ArrayList<>();
+            try {
+                objectResolver.searchIterative(FocusType.class, query, createReadOnlyCollection(),
+                        (o,result) -> owners.add((PrismObject) o), task, result);
+            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
+                    | SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
+                LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+                return null;
+            }
+
+            return owners;
         } else if (object.canRepresent(TaskType.class)) {
             ObjectReferenceType ownerRef = ((TaskType)(object.asObjectable())).getOwnerRef();
             if (ownerRef == null) {
@@ -133,7 +147,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
                     return null;
                 }
                 //noinspection unchecked
-                return (PrismObject<FO>) ownerType.asPrismObject();
+                return Collections.singletonList((PrismObject<FO>) ownerType.asPrismObject());
             } catch (ObjectNotFoundException | SchemaException e) {
                 LOGGER.error("Error resolving owner of {}: {}", object, e.getMessage(), e);
                 return null;

@@ -106,6 +106,16 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
         return sb.toString();
     }
 
+    /**
+     * Returns {@code true} if the mark was computed in a non-repeatable (stateful) way,
+     * so it makes sense to e.g. remove it manually.
+     */
+    public boolean isMarkStateful(@NotNull String markOid) {
+        var rule = markingRulesMap.get(markOid);
+        return rule != null
+                && rule.getApplicationTime() != ShadowMarkApplicationTimeType.ALWAYS;
+    }
+
     /** Rule for a single shadow mark. */
     public static class MarkingRule implements Serializable, DebugDumpable {
 
