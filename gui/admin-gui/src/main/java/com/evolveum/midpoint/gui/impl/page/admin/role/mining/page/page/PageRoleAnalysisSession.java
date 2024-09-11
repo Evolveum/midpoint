@@ -156,7 +156,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     @Override
     protected String getMainPanelCssStyle() {
-        return "align-items: stretch; overflow: visible";
+        return "align-items: stretch; overflow: visible;min-width:0;";
     }
 
     @Override
