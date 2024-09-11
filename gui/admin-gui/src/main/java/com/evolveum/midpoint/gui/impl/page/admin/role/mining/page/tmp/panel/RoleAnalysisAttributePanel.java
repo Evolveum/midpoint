@@ -46,7 +46,6 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     private static final String ID_CARD_BODY = "cardBody";
 
     private static final String STATUS_ACTIVE = " active ";
-    private static final String OVERAL_RESULT = "overal result";
 
     RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
     RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
@@ -274,8 +273,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
                 for (Component component : repeatingView) {
                     IconAjaxButtonBadge btn = (IconAjaxButtonBadge) component;
-                    String buttonTitle = btn.getModelObject().toLowerCase();
-                    if (!buttonTitle.equals(OVERAL_RESULT)) {
+                    if (!btn.isUnique) {
                         continue;
                     }
                     boolean clicked = btn.isClicked();
@@ -349,8 +347,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
                     for (Component component : repeatingView) {
                         IconAjaxButtonBadge btn = (IconAjaxButtonBadge) component;
-                        String buttonTitle = btn.getModelObject().toLowerCase();
-                        if (buttonTitle.equals(OVERAL_RESULT)) {
+                        if (btn.isUnique()) {
                             continue;
                         }
                         btn.setClicked(false);
@@ -362,8 +359,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                     RoleAnalysisAttributePanel.this.rolePath.addAll(rolePath);
                     for (Component component : repeatingView) {
                         IconAjaxButtonBadge btn = (IconAjaxButtonBadge) component;
-                        String buttonTitle = btn.getModelObject().toLowerCase();
-                        if (buttonTitle.equals(OVERAL_RESULT)) {
+                        if (btn.isUnique()) {
                             continue;
                         }
                         btn.setClicked(true);
@@ -403,6 +399,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
         };
         button.setOutputMarkupId(true);
+        button.setUnique(true);
         button.add(AttributeModifier.replace(CLASS_CSS, getButtonCssClass()));
         repeatingView.add(button);
     }
