@@ -33,6 +33,7 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
     private static final String ID_BADGE = "badge";
 
     boolean isClicked;
+    boolean isUnique = false;
 
     public IconAjaxButtonBadge(String id, IModel<String> model, boolean isClicked) {
         super(id, model);
@@ -115,4 +116,11 @@ public class IconAjaxButtonBadge extends BasePanel<String> {
         return "d-flex align-items-center gap-2 ";
     }
 
+    public boolean isUnique() {
+        return isUnique;
+    }
+
+    public void setUnique(boolean unique) {
+        isUnique = unique;
+    }
 }
