@@ -55,7 +55,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
     private static final String ID_PANEL_HEADER = "panelHeader";
 
     protected static final String ID_TILE = "tile";
-    private static final String ID_TABLE = "table";
+    static final String ID_TABLE = "table";
 
     static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
@@ -100,7 +100,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         setOutputMarkupId(true);
 
         WebMarkupContainer tilesView = new WebMarkupContainer(ID_TILE_VIEW);
-        tilesView.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
+        tilesView.add(new VisibleBehaviour(this::isTileViewVisible));
         tilesView.setOutputMarkupId(true);
         add(tilesView);
 
@@ -108,7 +108,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
         ISortableDataProvider<O, String> provider = createProvider();
         WebMarkupContainer tilesContainer = createTilesContainer(ID_TILES_CONTAINER, provider, tableId);
-        tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
+        tilesContainer.add(new VisibleBehaviour(this::isTileViewVisible));
         tilesContainer.add(AttributeModifier.append("class", getTilesContainerAdditionalClass()));
         tilesContainer.setOutputMarkupId(true);
         tilesView.add(tilesContainer);
@@ -132,7 +132,7 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
         footerContainer.add(buttonToolbar);
 
         BoxedTablePanel table = createTablePanel(ID_TABLE, provider, tableId);
-        table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
+        table.add(new VisibleBehaviour(this::isTableVisible));
         add(table);
     }
 
@@ -372,5 +372,13 @@ public abstract class TileTablePanel<T extends Tile, O extends Serializable> ext
 
     protected String getTilesContainerAdditionalClass() {
         return "card-footer";
+    }
+
+    protected final boolean isTableVisible() {
+        return viewToggleModel.getObject() == ViewToggle.TABLE;
+    }
+
+    protected final boolean isTileViewVisible() {
+        return viewToggleModel.getObject() == ViewToggle.TILE;
     }
 }
