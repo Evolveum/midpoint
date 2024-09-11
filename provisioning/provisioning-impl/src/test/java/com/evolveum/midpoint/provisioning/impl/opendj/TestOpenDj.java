@@ -395,14 +395,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // TODO: MID-2358
 //        assertTrue("ds-pwp-account-disabled is NOT operational", dsDef.isOperational());
 
-        ShadowSimpleAttributeDefinition<?> memberOfDef = accountClassDefBare.findSimpleAttributeDefinition("isMemberOf");
-        assertNotNull("No definition for isMemberOf", memberOfDef);
-        assertEquals(-1, memberOfDef.getMaxOccurs());
-        assertEquals(0, memberOfDef.getMinOccurs());
-        assertFalse("isMemberOf create", memberOfDef.canAdd());
-        assertFalse("isMemberOf update", memberOfDef.canModify());
-        assertTrue("No isMemberOf read", memberOfDef.canRead());
-        assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
+        assertMemberOfAttributeBare(accountClassDefBare);
 
         ShadowSimpleAttributeDefinition<?> labeledUriDef = accountClassDefBare.findSimpleAttributeDefinition("labeledURI");
         assertNotNull("No definition for labeledUri", labeledUriDef);
@@ -524,7 +517,6 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertThat(groupAssocDef.canAdd()).as("group association add").isTrue();
         assertThat(groupAssocDef.canModify()).as("group association modify").isTrue();
 
-
         assertShadows(1);
     }
 
@@ -583,14 +575,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertTrue("No cn update", cnDef.canModify());
         assertTrue("No cn read", cnDef.canRead());
 
-        ShadowSimpleAttributeDefinition<?> memberOfDef = accountDef.findSimpleAttributeDefinition("isMemberOf");
-        assertNotNull("No definition for isMemberOf", memberOfDef);
-        assertEquals(-1, memberOfDef.getMaxOccurs());
-        assertEquals(0, memberOfDef.getMinOccurs());
-        assertFalse("isMemberOf create", memberOfDef.canAdd());
-        assertFalse("isMemberOf update", memberOfDef.canModify());
-        assertTrue("No isMemberOf read", memberOfDef.canRead());
-        assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
+        assertMemberOfAttributeRefined(accountDef);
 
         ShadowSimpleAttributeDefinition<?> secretaryDef = accountDef.findSimpleAttributeDefinition("secretary");
         assertNotNull("No definition for secretary", secretaryDef);
@@ -961,8 +946,8 @@ public class TestOpenDj extends AbstractOpenDjTest {
             assertTrue(ex.getMessage().contains(ACCOUNT_SPARROW_OID));
         }
 
-        // Account shadow + shadow for base context
-        assertShadows(2);
+        // Account shadow + shadow for base context for groups (but only for simulated references)
+        assertShadows(hasNativeReferences() ? 1 : 2);
     }
 
     @Test
@@ -1023,7 +1008,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         OpenDJController.assertAttribute(response, "sn", "First");
 
-        assertShadows(3);
+        assertShadows(hasNativeReferences() ? 2 : 3);
     }
 
     @Test
@@ -1072,7 +1057,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Byte length changed (shadow)", bytesIn.length, bytesOut.length);
         assertArrayEquals("Bytes do not match (shadow)", bytesIn, bytesOut);
 
-        assertShadows(3);
+        assertShadows(hasNativeReferences() ? 2 : 3);
     }
 
     /**
@@ -1122,7 +1107,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         PrismAsserts.assertPropertyValue(attributesContainer, new ItemName(NS_RI, "givenName"), "Jack");
         PrismAsserts.assertPropertyValue(attributesContainer, new ItemName(NS_RI, "title"), "Great Captain");
 
-        assertShadows(3);
+        assertShadows(hasNativeReferences() ? 2 : 3);
     }
 
     @Test
@@ -1172,7 +1157,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         openDJController.assertPassword(entryAfter.getDN().toString(), "mehAbigH4X0R");
 
-        assertShadows(4);
+        assertShadows(hasNativeReferences() ? 3 : 4);
     }
 
     @Test
@@ -1209,7 +1194,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         openDJController.assertPassword(entryAfter.getDN().toString(), "t4k30v3rTh3W0rld");
 
-        assertShadows(5);
+        assertShadows(hasNativeReferences() ? 4 : 5);
     }
 
     @Test
@@ -3551,7 +3536,33 @@ public class TestOpenDj extends AbstractOpenDjTest {
                 .asObjectDelta(subjectOid);
     }
 
+    protected void assertMemberOfAttributeBare(ResourceObjectClassDefinition accountClassDefBare) {
+        ShadowSimpleAttributeDefinition<?> memberOfDef = accountClassDefBare.findSimpleAttributeDefinition("isMemberOf");
+        assertNotNull("No definition for isMemberOf", memberOfDef);
+        assertEquals(-1, memberOfDef.getMaxOccurs());
+        assertEquals(0, memberOfDef.getMinOccurs());
+        assertFalse("isMemberOf create", memberOfDef.canAdd());
+        assertFalse("isMemberOf update", memberOfDef.canModify());
+        assertTrue("No isMemberOf read", memberOfDef.canRead());
+        assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
+    }
+
+    protected void assertMemberOfAttributeRefined(ResourceObjectDefinition accountDef) {
+        ShadowSimpleAttributeDefinition<?> memberOfDef = accountDef.findSimpleAttributeDefinition("isMemberOf");
+        assertNotNull("No definition for isMemberOf", memberOfDef);
+        assertEquals(-1, memberOfDef.getMaxOccurs());
+        assertEquals(0, memberOfDef.getMinOccurs());
+        assertFalse("isMemberOf create", memberOfDef.canAdd());
+        assertFalse("isMemberOf update", memberOfDef.canModify());
+        assertTrue("No isMemberOf read", memberOfDef.canRead());
+        assertEquals("Wrong isMemberOf matching rule", PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, memberOfDef.getMatchingRuleQName());
+    }
+
     protected boolean isActivationCapabilityClassSpecific() {
         return true;
+    }
+
+    protected boolean hasNativeReferences() {
+        return false;
     }
 }
