@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeParticipantDefinitionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -44,20 +45,45 @@ public interface ShadowAssociationTypeParticipantDefinitionConfigItem<PT extends
      * (native/simulated) reference attribute, or it can be a different one.
      */
     default @NotNull ItemName getAssociationNameRequired() throws ConfigurationException {
-        var assocDefBean = nonNull(value().getAssociation(), "association definition");
-        return singleNameRequired(assocDefBean.getRef(), "item/ref");
+        return singleNameRequired(
+                getAssociationDefinitionBeanRequired().getRef(),
+                "association/ref");
     }
 
-    /** Returns the name of the reference attribute (native/simulated) this association type participation is based on. */
+    private @NotNull ShadowAssociationDefinitionType getAssociationDefinitionBeanRequired() throws ConfigurationException {
+        return nonNull(value().getAssociation(), "association definition");
+    }
+
+    private @Nullable ShadowAssociationDefinitionType getAssociationDefinitionBeanOptional() {
+        return value().getAssociation();
+    }
+
+    /**
+     * Returns the name of the reference attribute (native/simulated) this association type participation is based on.
+     * Useful for subject-side participant.
+     */
     default @NotNull ItemName getReferenceAttributeNameRequired() throws ConfigurationException {
-        var association = value().getAssociation();
-        if (association != null) {
-            var refAttrName = association.getSourceAttributeRef();
-            if (refAttrName != null) {
-                return singleNameRequired(refAttrName, "sourceAttributeRef");
-            }
+        var association = getAssociationDefinitionBeanRequired();
+        var refAttrName = association.getSourceAttributeRef();
+        if (refAttrName != null) {
+            return singleNameRequired(refAttrName, "association/sourceAttributeRef");
+        } else {
+            return singleNameRequired(association.getRef(), "association/ref");
         }
-        return getAssociationNameRequired();
+    }
+
+    /**
+     * Returns the name of the reference attribute (native/simulated) this association type participation is based on.
+     * Useful for object-side participant.
+     */
+    default @Nullable ItemName getReferenceAttributeNameOptional() throws ConfigurationException {
+        var association = getAssociationDefinitionBeanOptional();
+        if (association == null) {
+            return null; // Legal for objects
+        } else {
+            // But if there's the definition of association, then the ref attr name is required
+            return getReferenceAttributeNameRequired();
+        }
     }
 
     default boolean isBasedOnReferenceAttribute(@NotNull ItemName refAttrName) throws ConfigurationException {
