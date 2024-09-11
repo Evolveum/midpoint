@@ -252,10 +252,17 @@ public class RoleAnalysisAspectsWebUtils {
                 @Override
                 public @NotNull Component createValueTitleComponent(String id) {
                     Label label = new Label(id, Model.of());
-                    label.add(AttributeModifier.append(CLASS_CSS, "fa fa-arrow-down fa-sm text-danger"));
+                    label.add(AttributeModifier.append(CLASS_CSS, "fa fa-arrow-down fa-sm text-success"));
                     label.add(new VisibleBehaviour(() -> getDescription() != null));
                     label.setOutputMarkupId(true);
                     return label;
+                }
+
+                @Override
+                public @NotNull Component createScoreComponent(String id) {
+                    Component scoreComponent = super.createScoreComponent(id);
+                    scoreComponent.add(AttributeModifier.replace("class", "text-success"));
+                    return scoreComponent;
                 }
 
                 @Override
