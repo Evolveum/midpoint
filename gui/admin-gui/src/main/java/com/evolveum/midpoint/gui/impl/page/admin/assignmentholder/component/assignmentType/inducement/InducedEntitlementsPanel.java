@@ -73,6 +73,11 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
     }
 
     @Override
+    protected String getNameOfAssignment(PrismContainerValueWrapper<AssignmentType> wrapper) {
+        return getNameResourceOfConstruction(wrapper);
+    }
+
+    @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         return ColumnUtils.createInducedAssociationsColumns(getContainerModel(), getPageBase());
     }
