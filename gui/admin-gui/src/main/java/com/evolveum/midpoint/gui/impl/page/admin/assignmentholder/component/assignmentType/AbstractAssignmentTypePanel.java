@@ -161,7 +161,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 IModel<String> title = () -> {
                     PrismContainerValueWrapper<AssignmentType> wrapper = rowModel.getObject();
 
-                    String name = AssignmentsUtil.getName(ColumnUtils.unwrapRowRealValue(wrapper), getPageBase());
+                    String name = getNameOfAssignment(wrapper);
                     LOGGER.trace("Name for AssignmentType: " + name);
                     if (StringUtils.isBlank(name)) {
                         return createStringResource("AssignmentPanel.noName").getString();
@@ -210,6 +210,18 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 AbstractAssignmentTypePanel.this.itemDetailsPerformed(target, rowModel);
             }
         };
+    }
+
+    protected String getNameOfAssignment(PrismContainerValueWrapper<AssignmentType> wrapper) {
+        return AssignmentsUtil.getName(ColumnUtils.unwrapRowRealValue(wrapper), getPageBase());
+    }
+
+    protected final String getNameResourceOfConstruction(PrismContainerValueWrapper<AssignmentType> wrapper) {
+        AssignmentType inducement = ColumnUtils.unwrapRowRealValue(wrapper);
+        if (inducement != null && inducement.getConstruction() != null) {
+            return AssignmentsUtil.getNameFromConstruction(inducement.getConstruction(), false, getPageBase());
+        }
+        return AssignmentsUtil.getName(ColumnUtils.unwrapRowRealValue(wrapper), getPageBase());
     }
 
     private IModel<String> createAssignmentMarksModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
