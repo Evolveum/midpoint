@@ -181,7 +181,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                                 null, userRoleMembersCompare) {
                             @Override
                             protected @NotNull String getChartContainerStyle() {
-                                return "height:30vh;";
+                                return "min-height:350px;";
                             }
 
                             @Override

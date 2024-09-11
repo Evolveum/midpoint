@@ -486,7 +486,12 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                             @Contract(pure = true)
                             @Override
                             public @NotNull String getIconCssClass() {
-                                return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+                                return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON + " align-middle";
+                            }
+
+                            @Override
+                            protected String getIconComponentCssStyle() {
+                                return "font-size:18px!important;line-height:1;margin-bottom:0.25rem;";
                             }
 
                             @Override
@@ -598,6 +603,10 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                     label.add(AttributeModifier.append(STYLE_CSS, "font-size: 14px"));
                                     return label;
                                 }
+                                @Override
+                                protected String getIconComponentCssStyle() {
+                                    return "vertical-align: inherit";
+                                }
                             };
 
                             cellItem.add(icon);
@@ -697,7 +706,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
 
                                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
                                 RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
-                                confidence = roleAnalysisService.calculateAttributeConfidence(processMode, clusterStatistics) + "%";
+                                confidence = roleAnalysisService.calculateAttributeConfidence(processMode, clusterStatistics) + "% ";
                             } else {
                                 cellItem.add(new EmptyPanel(componentId));
                             }
@@ -707,6 +716,11 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
                                 @Override
                                 public @NotNull String getIconCssClass() {
                                     return "fa fa-chart-bar";
+                                }
+
+                                @Override
+                                protected String getSubComponentCssStyle() {
+                                    return "margin-top:2px;";
                                 }
 
                                 @Override

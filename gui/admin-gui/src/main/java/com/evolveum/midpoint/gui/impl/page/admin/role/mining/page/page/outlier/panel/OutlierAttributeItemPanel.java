@@ -135,7 +135,7 @@ public class OutlierAttributeItemPanel<T extends Serializable>
                         null, clusterCompare) {
                     @Override
                     protected @NotNull String getChartContainerStyle() {
-                        return "height:30vh;";
+                        return "min-height:350px;";
                     }
 
                     @Override
