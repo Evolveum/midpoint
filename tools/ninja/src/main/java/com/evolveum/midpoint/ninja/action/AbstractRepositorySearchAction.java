@@ -69,9 +69,12 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
 
         BlockingQueue<ObjectType> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY_PER_THREAD * options.getMultiThread());
 
+        context.getResourceSchemaRegistry(); // Make sure we have resource schema registry initialiezd
+
         List<SearchProducerWorker> producers = createProducers(queue, operation);
 
         operation.start();
+
 
         // execute as many producers as there are threads for them
         for (int i = 0; i < producers.size() && i < options.getMultiThread(); i++) {
@@ -234,6 +237,7 @@ public abstract class AbstractRepositorySearchAction<O extends ExportOptions, R>
     private SearchProducerWorker createShadowProducer(BlockingQueue<ObjectType> queue,
             OperationStatus operation, List<SearchProducerWorker> producers, ObjectFilter filter) {
         ObjectQuery query = context.getPrismContext().queryFactory().createQuery(filter);
+        query = context.getResourceSchemaRegistry().tryToNormalizeQuery(query);
         return new SearchProducerWorker(context, options, queue, operation, producers, ObjectTypes.SHADOW, query);
     }
 }
