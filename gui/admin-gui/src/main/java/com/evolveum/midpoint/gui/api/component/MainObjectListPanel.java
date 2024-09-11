@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 import com.evolveum.midpoint.util.exception.*;
@@ -750,11 +751,17 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     private String[] collectExistingMarks(List<SelectableBean<O>> selected) {
         Set<String> marks = new HashSet<>();
-        for (SelectableBean<O> shadow : selected) {
-            for (var statement : shadow.getValue().getPolicyStatement()) {
+        for (SelectableBean<O> object : selected) {
+            for (var statement : object.getValue().getPolicyStatement()) {
 //                if (PolicyStatementTypeType.APPLY.equals(statement.getType())) {
                     marks.add(statement.getMarkRef().getOid());
 //                }
+            }
+
+            for (var mark : object.getValue().getEffectiveMarkRef()){
+                if (!marks.contains(mark.getOid()) && getPageBase().getMarkManager().isMarkStateful(object.getValue(), mark.getOid())) {
+                    marks.add(mark.getOid());
+                }
             }
         }
         return marks.toArray(new String[] {});
@@ -786,11 +793,25 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     statements.add(statement.clone());
                 }
             }
+
+            List<PrismReferenceValue> effectiveMarks = new ArrayList<>();
+            for (var effectiveMark : object.getValue().getEffectiveMarkRef()) {
+                if (markOids.contains(effectiveMark.getOid())
+                        && getPageBase().getMarkManager().isMarkStateful(object.getValue(), effectiveMark.getOid())) {
+                    effectiveMarks.add(effectiveMark.clone().asReferenceValue());
+                }
+            }
+
             try {
                 var delta = getPageBase().getPrismContext().deltaFactory().object()
                         .createModificationDeleteContainer(getType(),
                                 object.getValue().getOid(), ObjectType.F_POLICY_STATEMENT,
                                 statements.toArray(new PolicyStatementType[0]));
+
+                if (!effectiveMarks.isEmpty()) {
+                    delta.addModificationDeleteReference(
+                            ObjectType.F_EFFECTIVE_MARK_REF, effectiveMarks.toArray(new PrismReferenceValue[0]));
+                }
                 getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
