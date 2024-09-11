@@ -14,6 +14,8 @@ import java.util.Set;
 
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -43,6 +45,10 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     private static final String ID_CARD_CONTAINER = "card-container";
     private static final String ID_CARD_HEADER_REPEATING_BUTTONS = "analysisAttributesButtons";
     private static final String ID_CARD_BODY_COMPONENT = "cardBodyComponent";
+
+    private static final String ID_CARD_HEADER_CONTAINER = "cardHeaderContainer";
+    private static final String ID_CARD_HEADER_TITLE = "cardHeaderTitle";
+
     private static final String ID_CARD_BODY = "cardBody";
 
     private static final String STATUS_ACTIVE = " active ";
@@ -99,7 +105,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         cardContainer.add(AttributeModifier.replace(CLASS_CSS, getCssClassForCardContainer()));
         add(cardContainer);
 
-        /*initCardHeaderTitle(cardContainer);*/
+        initCardHeaderTitle(cardContainer);
 
         initCardHeaderButtons(cardContainer);
 
@@ -418,17 +424,23 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         target.add(RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_CONTAINER, ID_CARD_BODY, ID_CARD_BODY_COMPONENT)).getParent());
     }
 
-    /*private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
+    private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
+        WebMarkupContainer cardHeaderContainer = new WebMarkupContainer(ID_CARD_HEADER_CONTAINER);
+        cardHeaderContainer.setOutputMarkupId(true);
+        cardHeaderContainer.add(new VisibleBehaviour(this::isCardTitleVisible));
+
+        cardContainer.add(cardHeaderContainer);
+
         IconWithLabel label = new IconWithLabel(ID_CARD_HEADER_TITLE, getModel()) {
+            @Contract(pure = true)
             @Override
-            protected String getIconCssClass() {
+            protected @NotNull String getIconCssClass() {
                 return "fa fa-area-chart";
             }
         };
-        label.add(new VisibleBehaviour(this::isCardTitleVisible));
         label.setOutputMarkupId(true);
-        cardContainer.add(label);
-    }*/
+        cardHeaderContainer.add(label);
+    }
 
     public String getIconCssClass() {
         return "";
@@ -474,7 +486,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     protected boolean isCardTitleVisible() {
-        return true;
+        return false;
     }
 
 }

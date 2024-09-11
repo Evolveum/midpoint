@@ -82,6 +82,6 @@ public class RoleAnalysisDistributionProgressPanel<T extends Serializable> exten
     }
 
     protected String getContainerLegendCssClass() {
-        return "d-flex flex-wrap justify-content-between p-0";
+        return "d-flex flex-wrap justify-content-between pt-2 pb-0 px-0";
     }
 }

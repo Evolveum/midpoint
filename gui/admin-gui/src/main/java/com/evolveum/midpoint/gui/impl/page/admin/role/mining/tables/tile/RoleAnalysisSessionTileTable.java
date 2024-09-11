@@ -339,7 +339,7 @@ public class RoleAnalysisSessionTileTable extends BasePanel<String> {
 
             @Override
             protected String getTileCssClasses() {
-                return "col-12 col-sm-12 col-md-6 col-lg-6 col-xl-3 col-xxl-4i p-2";
+                return "col-12 col-sm-12 col-md-6 col-lg-6 col-xl-4 col-xxl-3 p-2";
             }
 
             @Override

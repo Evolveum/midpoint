@@ -30,7 +30,7 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
     private static final String ID_INFO_BOX_TEXT = "info-box-text";
     private static final String ID_INFO_BOX_SUB_TEXT = "info-box-sub-text";
     private static final String ID_INFO_BOX_NUMBER = "info-box-number";
-    private static final String ID_INFO_BOX_BAR = "info-box-bar";
+    /*private static final String ID_INFO_BOX_BAR = "info-box-bar";*/
     private static final String ID_INFO_BOX_DESCRIPTION = "info-box-description";
     private static final String ID_INFO_BOX_CONTAINER = "info-box-icon-container";
 
@@ -51,7 +51,7 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
         infoBox.add(iconContainer);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_INFO_BOX_ICON);
-        icon.add(AttributeModifier.replace(CLASS_CSS, () -> getModelObject().getIconClass()));
+        icon.add(AttributeModifier.replace(CLASS_CSS, () -> getModelObject().getIconClass() + " txt-default"));
         iconContainer.add(icon);
 
         Label text = new Label(ID_INFO_BOX_TEXT, () -> getModelObject().getText());
@@ -63,9 +63,9 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
         Label number = new Label(ID_INFO_BOX_NUMBER, () -> getModelObject().getNumberText());
         infoBox.add(number);
 
-        WebMarkupContainer bar = new WebMarkupContainer(ID_INFO_BOX_BAR);
-        bar.add(AttributeModifier.replace(STYLE_CSS, () -> "width: " + getModelObject().getNumber() + "%"));
-        infoBox.add(bar);
+        /*WebMarkupContainer bar = new WebMarkupContainer(ID_INFO_BOX_BAR);
+        bar.add(AttributeModifier.replace("style", () -> "width: " + getModelObject().getNumber() + "%"));
+        infoBox.add(bar);*/
 
         Label description = new Label(ID_INFO_BOX_DESCRIPTION, () -> getModelObject().getDescription());
         description.add(new TooltipBehavior());
@@ -78,7 +78,7 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
     }
 
     protected String getInfoBoxCssClass() {
-        return "bg-primary";
+        return "bg-white"; /* bg-primary */
     }
 
 }

@@ -288,16 +288,21 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                         return new IconWithLabel(idSecondPanel, roleObjectCount) {
                             @Override
                             public String getIconCssClass() {
-                                return "fe fe-role object-role-color";
+                                return "fe fe-role object-role-color d-block";
+                            }
+
+                            @Override
+                            protected String getIconComponentCssStyle() {
+                                return "font-size:18px!important;line-height:1;";
                             }
                         };
                     }
 
                     @Override
                     public Component createSeparatorPanel(String idSeparatorPanel) {
-                        Label separator = new Label(idSeparatorPanel, "");
+                        Label separator = new Label(idSeparatorPanel, "/");
                         separator.add(AttributeModifier.replace("class",
-                                "d-flex align-items-center gap-3 fa-solid fa-grip-lines-vertical"));
+                                "d-flex align-items-center"));
                         separator.setOutputMarkupId(true);
                         add(separator);
                         return separator;
@@ -397,7 +402,7 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
 
                 };
                 objectButton.titleAsLabel(true);
-                objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+                objectButton.add(AttributeAppender.append("class", "btn btn-link btn-sm"));
                 objectButton.add(AttributeAppender.append("style", "width:120px"));
 
                 cellItem.add(objectButton);
