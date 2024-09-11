@@ -582,6 +582,13 @@ public class QueryPlaygroundPanel extends BasePanel<RepoQueryDto> {
         }
 
         request.setType(clazz);
+        if (ShadowType.class.isAssignableFrom(clazz)) {
+            // We need to normalize / preprocess shadow type queries (this fixed difference between
+            // string vs polystring)
+            queryWithExprEvaluated = getPageBase().getResourceSchemaRegistry().tryToNormalizeQuery(queryWithExprEvaluated);
+        }
+
+
         request.setQuery(queryWithExprEvaluated);
 
         Collection<SelectorOptions<GetOperationOptions>> options = distinct ? createCollection(createDistinct()) : null;
