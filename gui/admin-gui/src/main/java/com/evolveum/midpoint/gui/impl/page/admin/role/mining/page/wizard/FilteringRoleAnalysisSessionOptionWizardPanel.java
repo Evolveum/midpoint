@@ -83,7 +83,8 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)) {
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_DISTANCE)) {
                 return ItemVisibility.HIDDEN;
             }
 

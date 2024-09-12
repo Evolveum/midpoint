@@ -210,6 +210,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         return isOutlierDetection;
     }
 
+    //TODO check for optimization
     public void recomputeChunks(List<DetectedPattern> selectedPatterns, @NotNull PageBase pageBase) {
         Task task = pageBase.createSimpleTask("recompute chunks");
         OperationResult result = task.getResult();
