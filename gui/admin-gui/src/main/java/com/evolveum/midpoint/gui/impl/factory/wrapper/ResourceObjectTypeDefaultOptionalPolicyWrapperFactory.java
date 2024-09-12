@@ -24,14 +24,19 @@ public class ResourceObjectTypeDefaultOptionalPolicyWrapperFactory<R extends Ref
             return false;
         }
 
-        if (!def.getItemName().equivalent(ResourceObjectTypeDefinitionType.F_DEFAULT_OPERATION_POLICY_REF)) {
+        if (parent == null) {
+            return false;
+        }
+
+        if (!def.getItemName().equivalent(DefaultOperationPolicyConfigurationType.F_POLICY_REF)) {
             return false;
         }
 
         if (!parent.getPath().namedSegmentsOnly().equivalent(
                 ItemPath.create(
                         ResourceType.F_SCHEMA_HANDLING,
-                        SchemaHandlingType.F_OBJECT_TYPE))) {
+                        SchemaHandlingType.F_OBJECT_TYPE,
+                        ResourceObjectTypeDefinitionType.F_DEFAULT_OPERATION_POLICY))) {
             return false;
         }
         return true;
