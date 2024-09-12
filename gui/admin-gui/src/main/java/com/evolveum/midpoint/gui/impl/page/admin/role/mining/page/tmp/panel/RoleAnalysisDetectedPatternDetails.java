@@ -189,10 +189,6 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                     return RoleAnalysisDetectedPatternDetails.this.isCardTitleVisible();
                 }
 
-                @Override
-                protected @NotNull String getChartContainerStyle() {
-                    return "min-height:350px;";
-                }
             };
             roleAnalysisAttributePanel.setOutputMarkupId(true);
             roleAnalysisAttributePanel.add(AttributeModifier.replace(CLASS_CSS, getCssClassForStatisticsPanel()));
