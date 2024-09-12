@@ -15,29 +15,36 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.RoleAnalysisAttributeDefConvert;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * A distance measure implementation for calculating the Jaccard distance/similarity between two sets of values.
  */
 public class JaccardDistancesMeasure implements DistanceMeasure {
     private final int minIntersection;
+    private final Integer maxDifference;
     private final int minIntersectionAttributes;
-    Set<RoleAnalysisAttributeDefConvert> attributesMatch;
+    transient Set<RoleAnalysisAttributeDefConvert> attributesMatch;
 
     /**
      * Constructs a JaccardDistancesMeasure with the specified minimum intersection size for calculation.
      *
      * @param minIntersection The minimum intersection size required for Jaccard distance computation.
+     * @param maxDifference The maximum difference between the two sets of values.
      */
-    public JaccardDistancesMeasure(int minIntersection) {
+    public JaccardDistancesMeasure(int minIntersection, @Nullable Integer maxDifference) {
         this.minIntersection = minIntersection;
+        this.maxDifference = maxDifference;
         this.minIntersectionAttributes = 0;
     }
 
     public JaccardDistancesMeasure(int minIntersection,
             @NotNull Set<RoleAnalysisAttributeDefConvert> attributesMatch,
-            int minIntersectionAttributes) {
+            int minIntersectionAttributes,
+            @Nullable Integer maxDifference) {
         this.minIntersectionAttributes = minIntersectionAttributes;
         this.minIntersection = minIntersection;
+        this.maxDifference = maxDifference;
         this.attributesMatch = attributesMatch;
     }
 
@@ -52,52 +59,52 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
     public double computeBalancedDistance(
             @NotNull Set<String> valueA,
             @NotNull Set<String> valueB) {
-        int intersectionCount = 0;
-        int setBunique = 0;
 
         if (valueA.size() > valueB.size()) {
-            for (String num : valueB) {
-                if (valueA.contains(num)) {
-                    intersectionCount++;
-                } else {
-                    setBunique++;
-                }
-            }
-
-            if (intersectionCount < minIntersection) {
-                return 1;
-            }
-
-            return 1 - (double) intersectionCount / (valueA.size() + setBunique);
+            return computeMetricDistance(valueA, valueB);
 
         } else {
-
-            for (String num : valueA) {
-                if (valueB.contains(num)) {
-                    intersectionCount++;
-                } else {
-                    setBunique++;
-                }
-            }
-
-            if (intersectionCount < minIntersection) {
-                return 1;
-            }
-
-            return 1 - (double) intersectionCount / (valueB.size() + setBunique);
+            return computeMetricDistance(valueB, valueA);
 
         }
 
+    }
+
+    private double computeMetricDistance(@NotNull Set<String> largerSet, @NotNull Set<String> smallerSet) {
+        int intersectionCount = 0;
+        int setBunique = 0;
+
+        for (String num : smallerSet) {
+            if (largerSet.contains(num)) {
+                intersectionCount++;
+            } else {
+                setBunique++;
+            }
+        }
+
+        int totalElements = largerSet.size() + setBunique;
+
+        if (maxDifference != null && totalElements > maxDifference) {
+            return 1;
+        }
+
+        if (intersectionCount < minIntersection) {
+            return 1;
+        }
+
+        return 1 - (double) intersectionCount / totalElements;
     }
 
     @Override
     public double computeMultiValueAttributes(
             @NotNull Set<String> valueA,
             @NotNull Set<String> valueB) {
-        int intersectionCount = 0;
-        int setBunique = 0;
+
 
         if (valueA.size() > valueB.size()) {
+            int intersectionCount = 0;
+            int setBunique = 0;
+
             for (String num : valueB) {
                 if (valueA.contains(num)) {
                     intersectionCount++;
@@ -110,9 +117,11 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
                 return 1;
             }
 
-            return 1 - (double) intersectionCount / (valueA.size() + setBunique);
+            return computeJaccardIndex(valueA, intersectionCount, setBunique);
 
         } else {
+            int intersectionCount = 0;
+            int setBunique = 0;
 
             for (String num : valueA) {
                 if (valueB.contains(num)) {
@@ -126,10 +135,14 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
                 return 1;
             }
 
-            return 1 - (double) intersectionCount / (valueB.size() + setBunique);
+            return computeJaccardIndex(valueB, intersectionCount, setBunique);
 
         }
 
+    }
+
+    private static double computeJaccardIndex(@NotNull Set<String> valueA, double intersectionCount, int unique) {
+        return 1 - intersectionCount / (valueA.size() + unique);
     }
 
     @Override
@@ -150,7 +163,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
                 double weight = computeSingleValue(valueA, valueB, roleAnalysisAttributeDefConvert);
                 if (weight > 0) {
                     AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
-                            roleAnalysisAttributeDefConvert.getAttributeDisplayValue().toString(),
+                            roleAnalysisAttributeDefConvert.getAttributeDisplayValue(),
                             valueA.getSingleValueForKey(roleAnalysisAttributeDefConvert));
                     attributeMatchExplanations.add(attributeMatchExplanation);
                     weightSum += weight;
@@ -159,7 +172,7 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
                 double weight = computeMultiValue(valueA, valueB, roleAnalysisAttributeDefConvert);
                 if (weight > 0) {
                     AttributeMatchExplanation attributeMatchExplanation = new AttributeMatchExplanation(
-                            roleAnalysisAttributeDefConvert.getAttributeDisplayValue().toString(),
+                            roleAnalysisAttributeDefConvert.getAttributeDisplayValue(),
                             "multiValue");
                     attributeMatchExplanations.add(attributeMatchExplanation);
                     weightSum += weight;
@@ -179,13 +192,22 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
     @Override
     public double computeSimpleDistance(@NotNull Set<String> valueA, @NotNull Set<String> valueB) {
         int intersectionSize = 0;
+        int uniqueElements = 0;
         for (String element : valueA) {
             if (valueB.contains(element)) {
                 intersectionSize++;
+            } else {
+                uniqueElements++;
             }
         }
 
-        if(intersectionSize < minIntersection) {
+        int totalElements = valueA.size() + uniqueElements;
+
+        if (maxDifference != null && totalElements > maxDifference) {
+            return 1;
+        }
+
+        if (intersectionSize < minIntersection) {
             return 1;
         }
 
@@ -199,11 +221,10 @@ public class JaccardDistancesMeasure implements DistanceMeasure {
         String valuesForKeyA = valueA.getSingleValueForKey(roleAnalysisAttributeDefConvert);
         String valuesForKeyB = valueB.getSingleValueForKey(roleAnalysisAttributeDefConvert);
 
-        if (valuesForKeyA != null && valuesForKeyB != null) {
-            if (valuesForKeyA.equals(valuesForKeyB)) {
-                return roleAnalysisAttributeDefConvert.getWeight();
-            }
+        if (valuesForKeyA != null && valuesForKeyA.equals(valuesForKeyB)) {
+            return roleAnalysisAttributeDefConvert.getWeight();
         }
+
         return 0;
     }
 
