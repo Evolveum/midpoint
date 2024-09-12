@@ -84,8 +84,10 @@ public class AssociationDescriptionHandler extends ShadowDescriptionHandler {
             PrismObject<ShadowType> object = shadowRef.getObject() != null ?
                     shadowRef.getObject() : (PrismObject<ShadowType>) resolver.resolveObject(shadowRef, task, result);
 
-            ShadowType objectShadow = object.asObjectable();
-            objectName = getShadowName(objectShadow);
+            if (object != null) {
+                ShadowType objectShadow = object.asObjectable();
+                objectName = getShadowName(objectShadow);
+            }
 
             Optional<? extends VisualizationItemImpl> shadowRefDelta = visualization.getItems().stream().filter(visualizationItem ->
                             visualizationItem.getSourceDefinition().getItemName().equivalent(ShadowAssociationValueType.F_OBJECTS))
