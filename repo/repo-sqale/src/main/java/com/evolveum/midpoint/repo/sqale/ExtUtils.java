@@ -17,6 +17,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +57,9 @@ public class ExtUtils {
         addType(DOMUtil.XSD_DOUBLE, Double.class);
         addType(DOMUtil.XSD_DATETIME, XMLGregorianCalendar.class);
         addType(PolyStringType.COMPLEX_TYPE, PolyString.class);
+        addType(ProtectedStringType.COMPLEX_TYPE,ProtectedStringType.class);
+        addType(ProtectedByteArrayType.COMPLEX_TYPE, ProtectedByteArrayType.class);
+
     }
 
     private static void addType(QName typeName, Class<?> valueClass) {
