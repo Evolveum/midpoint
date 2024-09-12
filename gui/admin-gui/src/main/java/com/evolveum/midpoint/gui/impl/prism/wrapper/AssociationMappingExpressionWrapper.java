@@ -106,8 +106,18 @@ public abstract class AssociationMappingExpressionWrapper<C extends Containerabl
                     LOGGER.trace("Computed deltas:\n {}", subDeltas);
 
                     if (CollectionUtils.isNotEmpty(subDeltas)) {
-                        PrismContainerValue<C> newValue = (PrismContainerValue<C>) pVal.getOldValue().clone();
-                        subDeltas.forEach(subDelta -> subDelta.setParentPath(ItemPath.EMPTY_PATH));
+                        PrismContainerValue<C> newValue =
+                                WebPrismUtil.cleanupEmptyContainerValue((PrismContainerValue<C>) pVal.getOldValue().clone());
+                        subDeltas.forEach(subDelta -> {
+                            if (subDelta.getParentPath() != null && !subDelta.getParentPath().isEmpty()) {
+                                if (subDelta.getParentPath().size() == 1) {
+                                    subDelta.setParentPath(ItemPath.EMPTY_PATH);
+                                } else {
+                                    subDelta.setParentPath(
+                                            subDelta.getParentPath().subPath(1, subDelta.getParentPath().size()));
+                                }
+                            }
+                        });
                         for (ItemDelta<? extends PrismValue, ? extends ItemDefinition> subDelta : subDeltas) {
                             subDelta.applyTo(newValue);
                         }

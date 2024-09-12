@@ -47,7 +47,7 @@ public class WizardModel implements IClusterable {
         wizardListeners.remove(listener);
     }
 
-    protected final void fireActiveStepChanged(final WizardStep step) {
+    public final void fireActiveStepChanged(final WizardStep step) {
         wizardListeners.forEach(listener -> listener.onStepChanged(step));
     }
 

@@ -366,6 +366,10 @@ public class AssignmentsUtil {
     }
 
     private static String getNameFromConstruction(ConstructionType construction, PageBase pageBase) {
+        return getNameFromConstruction(construction, true, pageBase);
+    }
+
+    public static String getNameFromConstruction(ConstructionType construction, boolean useObjectType, PageBase pageBase) {
         if (construction.getResourceRef() == null) {
             return "";
         }
@@ -382,14 +386,34 @@ public class AssignmentsUtil {
         ResourceObjectTypeDefinitionType objectType =
                 ResourceTypeUtil.findObjectTypeDefinition(resource, construction.getKind(), construction.getIntent());
         if (objectType == null) {
-            return resourceName + ": " + getNameForKindIntent(construction.getKind(), construction.getIntent());
+            return resourceName + (useObjectType ? ": " + getNameForKindIntent(construction.getKind(), construction.getIntent()) : "");
         }
 
         if (objectType.getDisplayName() != null){
-            return resourceName + ": " + objectType.getDisplayName();
+            return resourceName + (useObjectType ? ": " + objectType.getDisplayName() : "");
         }
 
-        return resourceName + ": " + getNameForKindIntent(objectType.getKind(), objectType.getIntent());
+        return resourceName + (useObjectType ? ": " + getNameForKindIntent(objectType.getKind(), objectType.getIntent()) : "");
+    }
+
+    public static String getObjectTypeFromConstruction(ConstructionType construction, PageBase pageBase) {
+        PrismObject<ResourceType> resource = null;
+
+        if (construction.getResourceRef() != null) {
+            Task task = pageBase.createSimpleTask(OPERATION_LOAD_USER);
+            resource = WebModelServiceUtils.loadObject(construction.getResourceRef(), true, pageBase, task, task.getResult());
+        }
+
+        ResourceObjectTypeDefinitionType objectType = null;
+        if (resource != null) {
+            objectType = ResourceTypeUtil.findObjectTypeDefinition(resource, construction.getKind(), construction.getIntent());
+        }
+
+        if (objectType != null && objectType.getDisplayName() != null){
+            return objectType.getDisplayName();
+        }
+
+        return getNameForKindIntent(objectType.getKind(), objectType.getIntent());
     }
 
     private static String getNameForKindIntent(ShadowKindType shadowKind, String intent) {

@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
@@ -51,6 +52,7 @@ public class SearchItemContext implements Serializable {
     private String lookupTableOid;
     @Nullable private ItemPath path;
     private ModelServiceLocator modelServiceLocator;
+    private CompiledObjectCollectionView collectionView;
 
     private Class<?> containerType;
 
@@ -59,6 +61,7 @@ public class SearchItemContext implements Serializable {
             PathKeyedMap<ItemDefinition<?>> availableSearchItems,
             SearchItemType searchItem,
             SearchContext additionalSearchContext,
+            CompiledObjectCollectionView collectionView,
             ModelServiceLocator modelServiceLocator) {
 
         this.item = searchItem;
@@ -77,6 +80,7 @@ public class SearchItemContext implements Serializable {
         LookupTableType lookupTable = getSearchItemLookupTable(itemDef, modelServiceLocator);
         this.lookupTableOid = lookupTable == null ? null : lookupTable.getOid();
         this.additionalSearchContext = additionalSearchContext;
+        this.collectionView = collectionView;
         this.modelServiceLocator = modelServiceLocator;
     }
 
@@ -243,5 +247,9 @@ public class SearchItemContext implements Serializable {
 
     public ModelServiceLocator getModelServiceLocator() {
         return modelServiceLocator;
+    }
+
+    public CompiledObjectCollectionView getCollectionView() {
+        return collectionView;
     }
 }

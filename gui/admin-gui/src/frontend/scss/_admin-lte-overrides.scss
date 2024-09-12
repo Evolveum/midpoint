@@ -99,3 +99,15 @@
 .layout-navbar-fixed.sidebar-mini-xs.sidebar-collapse .wrapper .brand-link {
   height: 3.5rem;
 }
+
+.nav-tabs {
+  & .nav-link.active {
+    color: $primary;
+  }
+  & .nav-link {
+    color: $text-toned-color;
+  }
+  & .nav-link:hover {
+    color: $primary;
+  }
+}
