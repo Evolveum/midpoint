@@ -12,6 +12,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -21,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends BasePanel<String> {
 
@@ -63,6 +66,7 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
                 return "d-flex align-items-center";
             }
 
+            @Contract(pure = true)
             @Override
             protected String getComponentCssStyle() {
                 return "";
@@ -71,6 +75,7 @@ public class RoleAnalysisOutlierDashboardPanel<T extends Serializable> extends B
         container.add(iconWithLabel);
 
         Component panelComponent = getPanelComponent(ID_PANEL);
+        panelComponent.add(AttributeModifier.append(CLASS_CSS, "p-0"));
         panelComponent.setOutputMarkupId(true);
         panelContainer.add(panelComponent);
 

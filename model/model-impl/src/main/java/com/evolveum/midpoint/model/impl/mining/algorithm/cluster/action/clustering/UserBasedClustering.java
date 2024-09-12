@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
+
 import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,17 +41,16 @@ public class UserBasedClustering implements Clusterable {
 
     public static final Trace LOGGER = TraceManager.getTrace(UserBasedClustering.class);
 
-
     /**
      * Executes the clustering operation for role analysis.
      *
-     * @param roleAnalysisService    The role analysis service for performing operations.
-     * @param modelService           The model service for performing operations.
-     * @param session                The role analysis session object to be processed.
-     * @param handler                The progress increment handler for tracking the execution progress.
+     * @param roleAnalysisService The role analysis service for performing operations.
+     * @param modelService The model service for performing operations.
+     * @param session The role analysis session object to be processed.
+     * @param handler The progress increment handler for tracking the execution progress.
      * @param attributeAnalysisCache The cache for storing attribute analysis results.
-     * @param task                   The task being executed.
-     * @param result                 The operation result to record the outcome.
+     * @param task The task being executed.
+     * @param result The operation result to record the outcome.
      * @return A list of PrismObject instances representing the role analysis clusters.
      */
     @Override
@@ -71,6 +71,7 @@ public class UserBasedClustering implements Clusterable {
         int minUsersCount = userModeOptions.getMinMembersCount();
         Boolean isIndirect = userModeOptions.isIsIndirect();
         SearchFilterType query = userModeOptions.getQuery();
+        Integer maxDistance = userModeOptions.getMaxDistance();
 
         handler.enterNewStep(LOAD_DATA_STEP);
         handler.setOperationCountToProcess(1);
@@ -93,7 +94,7 @@ public class UserBasedClustering implements Clusterable {
         handler.iterateActualStatus();
         chunkMap.clear();
 
-        DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap);
+        DistanceMeasure distanceMeasure = new JaccardDistancesMeasure(minRolesOverlap, maxDistance);
         DensityBasedClustering<DataPoint> dbscan = new DensityBasedClustering<>(similarityDifference,
                 minUsersCount, distanceMeasure, minRolesOverlap, ClusteringMode.BALANCED);
         List<Cluster<DataPoint>> clusters = dbscan.cluster(dataPoints, handler);

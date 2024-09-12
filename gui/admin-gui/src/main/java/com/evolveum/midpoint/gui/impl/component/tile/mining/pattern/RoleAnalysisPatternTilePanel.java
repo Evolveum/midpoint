@@ -174,7 +174,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
 
                 double systemReductionPercentage = modelObject.getSystemReductionPercentage();
                 Double finalMetric = metric;
-                String title = systemReductionPercentage + "%";
+                String title = systemReductionPercentage + " %";
                 IconWithLabel value = new IconWithLabel(rv.newChildId(), Model.of(title)) {
                     @Contract(pure = true)
                     @Override
@@ -220,7 +220,7 @@ public class RoleAnalysisPatternTilePanel<T extends Serializable> extends BasePa
                 DetectedPattern pattern = modelObject.getPattern();
 
                 double finalItemsConfidence = pattern.getItemsConfidence();
-                IconWithLabel value = new IconWithLabel(id, () -> String.format("%.2f", finalItemsConfidence) + "%") {
+                IconWithLabel value = new IconWithLabel(id, () -> String.format("%.2f", finalItemsConfidence) + " %") {
                     @Contract(pure = true)
                     @Override
                     public @NotNull String getIconCssClass() {

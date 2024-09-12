@@ -11,7 +11,11 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.impl.component.action.*;
+import com.evolveum.midpoint.web.application.ActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -134,5 +138,22 @@ public class CertificationItemResponseHelper implements Serializable {
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public static AccessCertificationResponseType getResponseForGuiAction(@NotNull GuiActionType action) {
+        String identifier = action.getIdentifier();
+        if (StringUtils.isEmpty(identifier)) {
+            return null;
+        }
+
+        for (Map.Entry<AccessCertificationResponseType, Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>>>
+                responseActionInstance : RESPONSES_GUI_ACTION_MAP.entrySet()) {
+            Class<? extends AbstractGuiAction<AccessCertificationWorkItemType>> actionClass = responseActionInstance.getValue();
+            ActionType actionType = actionClass.getAnnotation(ActionType.class);
+            if (identifier.equals(actionType.identifier())) {
+                return responseActionInstance.getKey();
+            }
+        }
+        return null;
     }
 }

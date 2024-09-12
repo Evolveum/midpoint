@@ -3508,7 +3508,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(valueAfter.getRealValue()).isEqualTo(PolyString.fromOrig("JACK2"));
     }
 
-    @Test(enabled = false)
+    @Test
     public void test540ProtectedAttribute() throws CommonException {
         OperationResult result = createOperationResult();
 

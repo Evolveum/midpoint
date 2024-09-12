@@ -41,9 +41,9 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
         protected @NotNull String load() {
             //send icon class using model?
             if (isClicked) {
-                return "fa fa-sort-asc";
+                return "fa fa-caret-down fa-sm";
             }
-            return "fa fa-sort-desc";
+            return "fa fa-caret-up fa-sm";
         }
     };
 
@@ -80,6 +80,7 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
 
         Component subComponent = buildSubComponent();
         subComponent.setOutputMarkupId(true);
+        subComponent.add(AttributeModifier.replace(STYLE_CSS, getSubComponentCssStyle()));
         add(subComponent);
 
         Component textComponent = createComponent(getModel());
@@ -132,6 +133,10 @@ public class LinkIconLabelIconPanel extends BasePanel<String> {
     }
 
     protected String getComponentCssStyle() {
+        return null;
+    }
+
+    protected String getSubComponentCssStyle() {
         return null;
     }
 }

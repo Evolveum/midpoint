@@ -18,6 +18,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -156,6 +157,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
             WidgetRmChartComponent<DoughnutChartConfiguration> header = new WidgetRmChartComponent<>(
                     repeatingView.newChildId(), Model.of(), Model.of(dto));
             header.setOutputMarkupId(true);
+            header.add(AttributeAppender.append(CLASS_CSS,"col-auto p-0"));
             repeatingView.add(header);
         });
 
@@ -252,7 +254,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
     }
 
     protected String initDefaultCssClass() {
-        return ""; /* col-4 */
+        return "";
     }
 
     protected String getBodyHeaderPanelStyle() {

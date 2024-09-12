@@ -78,7 +78,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
     @Override
     protected String getMainPanelCssStyle() {
         //TODO it make trouble on overview pages (borders are not visible)
-        return "align-items: stretch; overflow: hidden";
+        return "align-items:stretch;overflow:visible;min-width:0;";
     }
 
     @Override
