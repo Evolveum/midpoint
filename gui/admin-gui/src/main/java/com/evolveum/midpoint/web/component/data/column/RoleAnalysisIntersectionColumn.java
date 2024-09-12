@@ -273,8 +273,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                     rowChunk.setStatus(chunkStatus);
                     colChunk.setStatus(chunkStatus);
                 }
-
-                refreshTable(ajaxRequestTarget);
+                refreshTableRows(ajaxRequestTarget);
             }
         });
     }
