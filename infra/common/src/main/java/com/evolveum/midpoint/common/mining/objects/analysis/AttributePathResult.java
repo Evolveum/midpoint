@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.common.mining.objects.analysis;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -48,12 +49,38 @@ public class AttributePathResult implements Serializable {
         }
     }
 
+    public void resetInFrequency(String key) {
+        frequencyMap.put(key, 0);
+    }
+
     public void putIdentifier(String value) {
         targetIdentifierValue.add(value);
     }
 
     public void incrementTotalRelation() {
         totalRelation++;
+    }
+
+    public void addToTotalRelation(int value) {
+        totalRelation += value;
+    }
+
+    public void splitFrequencyMap(Map<String, Integer> frequencyMap) {
+        if(this.frequencyMap == null){
+            this.frequencyMap = new HashMap<>();
+            this.frequencyMap.putAll(frequencyMap);
+        }else {
+            frequencyMap.forEach((key, value) -> {
+                Integer put = this.frequencyMap.put(key, this.frequencyMap.getOrDefault(key, 0) + value);
+                if (put != null) {
+                    maximumFrequency = Math.max(maximumFrequency, put);
+                }
+            });
+        }
+    }
+
+    public void addTotalRelation(int value) {
+        totalRelation += value;
     }
 
     public int getMaximumFrequency() {
