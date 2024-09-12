@@ -1826,8 +1826,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         runUserAttributeAnalysis(this, prismUsers, attributeAnalysisStructures, task, result, attributeDefSet);
 
         //TODO temporary disable (override issue)
-        runUserAttributeAnalysisCached(this, prismUsers, attributeAnalysisStructures,
-                userAnalysisCache, task, result, attributeDefSet);
+//        runUserAttributeAnalysisCached(this, prismUsers, attributeAnalysisStructures,
+//                userAnalysisCache, task, result, attributeDefSet);
         return attributeAnalysisStructures;
     }
 
