@@ -131,6 +131,10 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
 
     private ContainerPanelConfigurationType config;
 
+    // TODO this should be "false" - or the other way around, container panel should by default be too "smart" and read
+    //  page params and all kinds of stuff from everywhere just because we expect that it's used on page listing "main" objects...
+    private boolean useObjectCollectionInSearch = true;
+
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
      */
@@ -241,9 +245,15 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return null;
     }
 
+    public void setUseObjectCollectionInSearch(boolean useObjectCollectionInSearch) {
+        this.useObjectCollectionInSearch = useObjectCollectionInSearch;
+    }
+
     private Search createSearch() {
+        CompiledObjectCollectionView objectCollectionView = useObjectCollectionInSearch ? getObjectCollectionView() : null;
+
         SearchBuilder searchBuilder = new SearchBuilder(getType())
-                .collectionView(getObjectCollectionView())
+                .collectionView(objectCollectionView)
                 .modelServiceLocator(getPageBase())
                 .nameSearch(getSearchByNameParameterValue())
                 .isPreview(isPreview())
@@ -1177,6 +1187,9 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         }
     }
 
+    // TODO: FIX THIS, how can list component know about widget from page parameter, wrong dependency to "page".
+    //  When used on page with such parameter (anywhere, e.g. in popup listing random suff) this panel will still
+    //  trick it's search (at least) that collection has to be used in search...
     protected boolean isCollectionViewPanelForWidget() {
         PageParameters parameters = getPageBase().getPageParameters();
         if (parameters != null) {
