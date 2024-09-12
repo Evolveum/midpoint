@@ -57,6 +57,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     private List<QName> supportedTypes = new ArrayList<>();
     boolean multiselect;
 
+    // todo this should be falseeeeee
+    private boolean useObjectCollectionSearch = true;
+
     /**
      * @param defaultType specifies type of the object that will be selected by default
      */
@@ -220,6 +223,14 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             private static final long serialVersionUID = 1L;
 
             @Override
+            protected boolean isCollectionViewPanelForWidget() {
+                if (!useObjectCollectionSearch) {
+                    return false;
+                }
+                return super.isCollectionViewPanelForWidget();
+            }
+
+            @Override
             protected void onSelectPerformed(AjaxRequestTarget target, O object) {
                 ObjectBrowserPanel.this.onSelectPerformed(target, object);
             }
@@ -242,9 +253,10 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             public List<O> getSelectedRealObjects() {
                 return getPreselectedObjectList();
             }
-
         };
         listPanel.setOutputMarkupId(true);
+        listPanel.setUseObjectCollectionInSearch(useObjectCollectionSearch);
+
         return listPanel;
     }
 
@@ -295,5 +307,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
     protected StringResourceModel getAddButtonTitle() {
         return createStringResource("userBrowserDialog.button.addButton");
+    }
+
+    public void setUseObjectCollectionSearch(boolean useObjectCollectionSearch) {
+        this.useObjectCollectionSearch = useObjectCollectionSearch;
     }
 }
