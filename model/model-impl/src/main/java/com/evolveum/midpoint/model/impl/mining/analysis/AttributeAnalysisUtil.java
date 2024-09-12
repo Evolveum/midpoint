@@ -13,6 +13,9 @@ import com.evolveum.midpoint.common.mining.objects.analysis.AttributePathResult;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.AttributeAnalysisStructure;
@@ -28,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttribut
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-// TODO - this class is just fast experiment
+//TODO optimize
 
 /**
  * Utility class for attribute analysis.
@@ -36,6 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Used for role analysis cluster similarity chart.
  */
 public class AttributeAnalysisUtil {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AttributeAnalysisUtil.class);
+
+    private AttributeAnalysisUtil() {
+    }
 
     public static void runUserAttributeAnalysis(
             @NotNull RoleAnalysisServiceImpl roleAnalysisService,
@@ -89,74 +97,98 @@ public class AttributeAnalysisUtil {
         int usersCount = prismUsers.size();
         Map<ItemPath, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<UserType> prismUser : prismUsers) {
-            Map<String, AttributePathResult> userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
+            Map<ItemPath, AttributePathResult> userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
             if (userCache == null) {
-                Map<String, AttributePathResult> attributeResultMapForSpecificUser = new HashMap<>();
-                for (RoleAnalysisAttributeDef item : itemDef) {
-                    ItemPath path = item.getPath();
-                    String displayValue = item.getDisplayValue();
-                    boolean isContainer = item.isContainer();
-
-                    AttributePathResult attributePathResult = attributeResultMapForSpecificUser.get(displayValue);
-                    if (attributePathResult == null) {
-                        attributePathResult = new AttributePathResult(new HashMap<>(), 0);
-                        attributePathResult.setMultiValue(isContainer);
-                        attributePathResult.setItemDefinition(item);
-                        attributeResultMapForSpecificUser.put(displayValue, attributePathResult);
-                    }
-
-                    if (isContainer) {
-                        Set<String> values = item.resolveMultiValueItem(prismUser, path);
-                        for (String value : values) {
-                            attributePathResult.incrementFrequency(value);
-                            attributePathResult.incrementTotalRelation();
-                        }
-                    } else {
-                        String value = item.resolveSingleValueItem(prismUser, path);
-                        if (value != null) {
-                            attributePathResult.incrementFrequency(value);
-                            attributePathResult.incrementTotalRelation();
-                        }
-                    }
-                }
-                userAnalysisCache.putMemberUserAnalysisCache(prismUser.getOid(), attributeResultMapForSpecificUser);
+                analyzeAndCacheUserAttributes(itemDef, userAnalysisCache, prismUser);
             }
 
-            if (userCache == null) {
-                userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
-            }
-
-            if (userCache != null) {
-                for (RoleAnalysisAttributeDef item : itemDef) {
-                    String displayValue = item.getDisplayValue();
-
-                    AttributePathResult attributeCachePathResult = userCache.get(displayValue);
-                    if (attributeCachePathResult != null) {
-                        AttributePathResult attributePathResult = attributeResultMap.get(displayValue);
-                        if (attributePathResult == null) {
-                            attributePathResult = attributeCachePathResult;
-                            attributeResultMap.put(item.getPath(), attributePathResult);
-                        } else {
-                            int totalRelation = attributeCachePathResult.getTotalRelation();
-                            attributePathResult.setTotalRelation(attributePathResult.getTotalRelation() + totalRelation);
-                            for (Map.Entry<String, Integer> entry : attributeCachePathResult.getFrequencyMap().entrySet()) {
-                                String key = entry.getKey();
-                                attributePathResult.incrementFrequency(key);
-                            }
-                        }
-                    }
-                }
-            }
+            splitUserAttributeAnalysis(userAnalysisCache, prismUser, attributeResultMap);
         }
 
+        prepareUserAnalysisStructure(roleAnalysisService, attributeAnalysisStructures, attributeResultMap, usersCount, task, result);
+    }
+
+    private static void prepareUserAnalysisStructure(
+            @NotNull RoleAnalysisServiceImpl roleAnalysisService,
+            @NotNull List<AttributeAnalysisStructure> attributeAnalysisStructures,
+            @NotNull Map<ItemPath, AttributePathResult> attributeResultMap,
+            int usersCount,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         attributeResultMap.forEach((key, value) -> {
             AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                     value.getFrequencyMap().size(), usersCount, value.getTotalRelation(), key, UserType.COMPLEX_TYPE);
-//            attributeAnalysisStructure.setDescription(
-//                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
             generateAttributeAnalysisStructure(roleAnalysisService, UserType.class, value, attributeAnalysisStructure, usersCount,
                     task, result);
             attributeAnalysisStructures.add(attributeAnalysisStructure);
+        });
+    }
+
+    private static void analyzeAndCacheUserAttributes(
+            @NotNull List<RoleAnalysisAttributeDef> itemDef,
+            @NotNull AttributeAnalysisCache userAnalysisCache,
+            @NotNull PrismObject<UserType> prismUser) {
+        Map<ItemPath, AttributePathResult> targetUserCacheCandidate = new HashMap<>();
+        extractAttributeStatistics(itemDef, prismUser, targetUserCacheCandidate);
+        userAnalysisCache.putMemberUserAnalysisCache(prismUser.getOid(), targetUserCacheCandidate);
+    }
+
+    private static void extractAttributeStatistics(
+            @NotNull List<RoleAnalysisAttributeDef> itemDef,
+            @NotNull PrismObject<?> prismObject,
+            Map<ItemPath, AttributePathResult> targetUserCacheCandidate) {
+        for (RoleAnalysisAttributeDef item : itemDef) {
+            ItemPath path = item.getPath();
+            String displayValue = item.getDisplayValue();
+            boolean isContainer = item.isContainer();
+
+            AttributePathResult attributePathResult = targetUserCacheCandidate.computeIfAbsent(path, k -> {
+                AttributePathResult newResult = new AttributePathResult(new HashMap<>(), 0);
+                newResult.setMultiValue(isContainer);
+                newResult.setItemDefinition(item);
+                return newResult;
+            });
+
+            if (isContainer) {
+                Set<String> values = item.resolveMultiValueItem(prismObject, path);
+                for (String value : values) {
+                    attributePathResult.incrementFrequency(value);
+                    attributePathResult.incrementTotalRelation();
+                }
+            } else {
+                String value = item.resolveSingleValueItem(prismObject, path);
+                if (value != null) {
+                    attributePathResult.incrementFrequency(value);
+                    attributePathResult.incrementTotalRelation();
+                }
+            }
+
+        }
+    }
+
+    private static void splitUserAttributeAnalysis(
+            @NotNull AttributeAnalysisCache userAnalysisCache,
+            @NotNull PrismObject<UserType> prismUser,
+            @NotNull Map<ItemPath, AttributePathResult> attributeResultMap) {
+        Map<ItemPath, AttributePathResult> userCache = userAnalysisCache.getMemberUserAnalysisCache(prismUser.getOid());
+
+        userCache.forEach((key, cachedValue) -> {
+            AttributePathResult attributePathResult = attributeResultMap.get(key);
+            if (attributePathResult == null) {
+                attributePathResult = new AttributePathResult(new HashMap<>(), 0);
+                attributeResultMap.put(key, attributePathResult);
+            }
+
+            int totalRelation = cachedValue.getTotalRelation();
+            boolean multiValue = cachedValue.isMultiValue();
+            RoleAnalysisAttributeDef itemDefinition = cachedValue.getItemDefinition();
+            Map<String, Integer> frequencyMap = new HashMap<>(cachedValue.getFrequencyMap());
+            attributePathResult.addToTotalRelation(totalRelation);
+            attributePathResult.splitFrequencyMap(frequencyMap);
+            attributePathResult.setMultiValue(multiValue);
+            attributePathResult.setItemDefinition(itemDefinition);
+            attributePathResult.addTotalRelation(totalRelation);
+
         });
     }
 
@@ -171,46 +203,10 @@ public class AttributeAnalysisUtil {
         int usersCount = prismUsers.size();
         Map<ItemPath, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<UserType> prismUser : prismUsers) {
-
-            for (RoleAnalysisAttributeDef item : itemDef) {
-                ItemPath path = item.getPath();
-                String displayValue = item.getDisplayValue();
-                boolean isContainer = item.isContainer();
-
-                AttributePathResult attributePathResult = attributeResultMap.get(displayValue);
-                if (attributePathResult == null) {
-                    attributePathResult = new AttributePathResult(new HashMap<>(), 0);
-                    attributePathResult.setMultiValue(isContainer);
-                    attributePathResult.setItemDefinition(item);
-                    attributeResultMap.put(path, attributePathResult);
-                }
-
-                if (isContainer) {
-                    Set<String> values = item.resolveMultiValueItem(prismUser, path);
-                    for (String value : values) {
-                        attributePathResult.incrementFrequency(value);
-                        attributePathResult.incrementTotalRelation();
-                    }
-                } else {
-                    String value = item.resolveSingleValueItem(prismUser, path);
-                    if (value != null) {
-                        attributePathResult.incrementFrequency(value);
-                        attributePathResult.incrementTotalRelation();
-                    }
-                }
-
-            }
+            extractAttributeStatistics(itemDef, prismUser, attributeResultMap);
         }
 
-        attributeResultMap.forEach((key, value) -> {
-            AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
-                    value.getFrequencyMap().size(), usersCount, value.getTotalRelation(), key, UserType.COMPLEX_TYPE);
-//            attributeAnalysisStructure.setDescription(
-//                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
-            generateAttributeAnalysisStructure(roleAnalysisService, UserType.class, value, attributeAnalysisStructure, usersCount,
-                    task, result);
-            attributeAnalysisStructures.add(attributeAnalysisStructure);
-        });
+        prepareUserAnalysisStructure(roleAnalysisService, attributeAnalysisStructures, attributeResultMap, usersCount, task, result);
     }
 
     public static void processRoleItemPathsNew(
@@ -221,41 +217,12 @@ public class AttributeAnalysisUtil {
         int rolesCount = prismRoles.size();
         Map<ItemPath, AttributePathResult> attributeResultMap = new HashMap<>();
         for (PrismObject<RoleType> prismRole : prismRoles) {
-            for (RoleAnalysisAttributeDef item : itemDef) {
-                ItemPath path = item.getPath();
-                String displayValue = item.getDisplayValue();
-                boolean isContainer = item.isContainer();
-
-                AttributePathResult attributePathResult = attributeResultMap.get(displayValue);
-                if (attributePathResult == null) {
-                    attributePathResult = new AttributePathResult(new HashMap<>(), 0);
-                    attributePathResult.setMultiValue(isContainer);
-                    attributePathResult.setItemDefinition(item);
-                    attributeResultMap.put(path, attributePathResult);
-                }
-
-                if (isContainer) {
-                    Set<String> values = item.resolveMultiValueItem(prismRole, path);
-                    for (String value : values) {
-                        attributePathResult.incrementFrequency(value);
-                        attributePathResult.incrementTotalRelation();
-                    }
-                } else {
-                    String value = item.resolveSingleValueItem(prismRole, path);
-                    if (value != null) {
-                        attributePathResult.incrementFrequency(value);
-                        attributePathResult.incrementTotalRelation();
-                    }
-                }
-
-            }
+            extractAttributeStatistics(itemDef, prismRole, attributeResultMap);
         }
 
         attributeResultMap.forEach((key, value) -> {
             AttributeAnalysisStructure attributeAnalysisStructure = new AttributeAnalysisStructure(
                     value.getFrequencyMap().size(), rolesCount, value.getTotalRelation(), key, RoleType.COMPLEX_TYPE);
-//            attributeAnalysisStructure.setDescription(
-//                    generateFrequencyMapDescription(value.getFrequencyMap(), value.getMaximumFrequency()));
             generateAttributeAnalysisStructure(roleAnalysisService, RoleType.class, value, attributeAnalysisStructure, rolesCount,
                     task, result);
             attributeAnalysisStructures.add(attributeAnalysisStructure);
@@ -307,21 +274,19 @@ public class AttributeAnalysisUtil {
                 }
             }
 
+            String times = "times";
             description.append("Maximum frequency")
-                    .append("(").append(maximumFrequency)
-                    .append("times)").append(": ")
+                    .append("(").append(maximumFrequency).append(times).append(")").append(": ")
                     .append(maximumFrequencyValues)
                     .append("\n");
 
             description.append("High frequency values")
-                    .append("(").append(minFrequency).append("-").append(maxFrequency)
-                    .append("times)").append(": ")
+                    .append("(").append(minFrequency).append("-").append(maxFrequency).append(times).append(")").append(": ")
                     .append(highFrequencyValues)
                     .append("\n");
 
             description.append("Low frequency values:")
-                    .append("(").append(minFrequencyLow).append("-").append(maxFrequencyLow)
-                    .append("times)").append(": ")
+                    .append("(").append(minFrequencyLow).append("-").append(maxFrequencyLow).append(times).append(")").append(": ")
                     .append(lowFrequencyValues)
                     .append("\n");
 
@@ -353,6 +318,9 @@ public class AttributeAnalysisUtil {
             RoleAnalysisAttributeStatistics attributeStatistic = new RoleAnalysisAttributeStatistics();
             attributeStatistic.setAttributeValue(attributeSimpleValue);
             attributeStatistic.setFrequency(percentageFrequency);
+            if (percentageFrequency > 100) {
+                LOGGER.warn("Percentage frequency is greater than 100");
+            }
             attributeStatistic.setInGroup(inGroupCount);
             attributeStatistic.setInRepo(inRepoCount);
             attributeAnalysisStructure.getAttributeStatistics().add(attributeStatistic);
@@ -361,7 +329,8 @@ public class AttributeAnalysisUtil {
         attributeAnalysisStructure.setMultiValue(isMultiValue);
     }
 
-    public static @NotNull Set<PrismObject<RoleType>> fetchPrismRoles(@NotNull RoleAnalysisService roleAnalysisService,
+    public static @NotNull Set<PrismObject<RoleType>> fetchPrismRoles(
+            @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull Set<String> objectOid,
             @NotNull Task task,
             @NotNull OperationResult result) {

@@ -666,7 +666,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         if (recomputeStatistics) {
             try {
-                if(sessionObject == null) {
+                if (sessionObject == null) {
                     return;
                 }
                 // FIXME
@@ -2016,8 +2016,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             List<AttributeAnalysisStructure> userAttributeAnalysisStructures = null;
             if (attributeUserDefSet != null) {
-                userAttributeAnalysisStructures = this.userTypeAttributeAnalysisCached(
-                        users, 100.0, userAnalysisCache, attributeUserDefSet, task, result);
+                userAttributeAnalysisStructures = this.userTypeAttributeAnalysis(
+                        users, 100.0, task, result, attributeUserDefSet);
             }
 
             List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = null;

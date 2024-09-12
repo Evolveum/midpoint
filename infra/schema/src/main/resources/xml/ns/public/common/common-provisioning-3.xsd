@@ -1197,7 +1197,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:lifecycleState"/>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
