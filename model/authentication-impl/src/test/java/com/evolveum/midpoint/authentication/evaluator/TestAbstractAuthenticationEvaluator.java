@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.evaluator.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
