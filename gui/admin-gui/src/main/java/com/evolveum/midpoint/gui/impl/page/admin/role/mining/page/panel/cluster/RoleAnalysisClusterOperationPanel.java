@@ -94,6 +94,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
             @Override
             protected RoleAnalysisObjectDto load() {
+                //TODO optimize this (preparation of the object)
                 return new RoleAnalysisObjectDto(getObjectWrapperObject().asObjectable(), operationPanelModel.getObject().getSelectedPatterns(), getParameterTableSetting(), getPageBase());
 
             }
