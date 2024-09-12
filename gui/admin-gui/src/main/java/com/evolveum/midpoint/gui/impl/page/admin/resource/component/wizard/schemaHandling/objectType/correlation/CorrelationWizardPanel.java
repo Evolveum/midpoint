@@ -29,8 +29,6 @@ import java.util.Collection;
  */
 public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefinitionType, ResourceDetailsModel> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CorrelationWizardPanel.class);
-
     public CorrelationWizardPanel(String id, WizardPanelHelper<CorrelationDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
     }
@@ -47,16 +45,7 @@ public class CorrelationWizardPanel extends AbstractWizardPanel<CorrelationDefin
                 WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getAssignmentHolderDetailsModel(), rowModel) {
                     @Override
                     public void onExitPerformed(AjaxRequestTarget target) {
-                        if (getValueModel() != null) {
-                            try {
-                                Collection<?> deltas = getValueModel().getObject().getDeltas();
-                                if (!deltas.isEmpty()) {
-                                    WebComponentUtil.showToastForRecordedButUnsavedChanges(target, getValueModel().getObject());
-                                }
-                            } catch (SchemaException e) {
-                                LOGGER.error("Couldn't collect deltas from " + getValueModel().getObject(), e);
-                            }
-                        }
+                        showUnsavedChangesToast(target);
                         showChoiceFragment(target, createTablePanel());
                     }
                 };

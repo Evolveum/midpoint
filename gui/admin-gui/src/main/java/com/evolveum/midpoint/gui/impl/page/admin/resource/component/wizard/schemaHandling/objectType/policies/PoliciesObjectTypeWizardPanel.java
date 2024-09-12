@@ -6,24 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.defaultOperationPolicies.DefaultOperationPoliciesWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.marking.MarkingWizardPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardWithChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author lskublik
@@ -31,8 +24,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 @Experimental
 public class PoliciesObjectTypeWizardPanel extends AbstractWizardWithChoicePanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PoliciesObjectTypeWizardPanel.class);
 
     public PoliciesObjectTypeWizardPanel(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
@@ -54,11 +45,7 @@ public class PoliciesObjectTypeWizardPanel extends AbstractWizardWithChoicePanel
             protected void onTileClickPerformed(PoliciesPreviewTileType value, AjaxRequestTarget target) {
                 switch (value) {
                     case DEFAULT_OPERATION_POLICY:
-                        showWizardFragment(
-                                target,
-                                new WizardPanel(
-                                        getIdOfWizardPanel(),
-                                        new WizardModel(createDefaultOperationPolicyStep())));
+                        showDefaultOperationPoliciesWizardPanel(target);
                         break;
                     case MARKING:
                         showMakingWizardPanel(target);
@@ -74,6 +61,15 @@ public class PoliciesObjectTypeWizardPanel extends AbstractWizardWithChoicePanel
         };
     }
 
+    private void showDefaultOperationPoliciesWizardPanel(AjaxRequestTarget target) {
+        showChoiceFragment(
+                target,
+                new DefaultOperationPoliciesWizardPanel(
+                        getIdOfChoicePanel(),
+                        createHelper(false))
+        );
+    }
+
     private void showMakingWizardPanel(AjaxRequestTarget target) {
         showChoiceFragment(
                 target,
@@ -81,35 +77,5 @@ public class PoliciesObjectTypeWizardPanel extends AbstractWizardWithChoicePanel
                         getIdOfChoicePanel(),
                         createHelper(false))
         );
-    }
-
-    private List<WizardStep> createDefaultOperationPolicyStep() {
-        List<WizardStep> steps = new ArrayList<>();
-        steps.add(new DefaultOperationPolicyStepPanel(getAssignmentHolderModel(), getValueModel()) {
-            @Override
-            public boolean onBackPerformed(AjaxRequestTarget target) {
-                onExitPerformed(target);
-                return false;
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                getAssignmentHolderModel().reloadPrismObjectModel();
-                getHelper().refreshValueModel();
-                showChoiceFragment(target, createTypePreview());
-            }
-
-            @Override
-            protected void onSubmitPerformed(AjaxRequestTarget target) {
-                super.onSubmitPerformed(target);
-                OperationResult result = PoliciesObjectTypeWizardPanel.this.onSavePerformed(target);
-                if (result == null || result.isError()) {
-                    target.add(getFeedback());
-                } else {
-                    onExitPerformed(target);
-                }
-            }
-        });
-        return steps;
     }
 }

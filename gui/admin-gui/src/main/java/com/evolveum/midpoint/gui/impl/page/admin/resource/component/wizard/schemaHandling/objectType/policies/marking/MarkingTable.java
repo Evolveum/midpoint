@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.objectType.policies.marking;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +95,7 @@ public class MarkingTable extends AbstractWizardTable<ShadowMarkingConfiguration
 
     @Override
     protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.PANEL_CORRELATION_ITEMS_WIZARD;
+        return UserProfileStorage.TableId.PANEL_MARKING_WIZARD;
     }
 
     @Override
