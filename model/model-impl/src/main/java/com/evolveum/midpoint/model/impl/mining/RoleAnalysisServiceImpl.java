@@ -1823,11 +1823,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet, @NotNull Task task,
             @NotNull OperationResult result) {
         List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
-        runUserAttributeAnalysis(this, prismUsers, attributeAnalysisStructures, task, result, attributeDefSet);
-
-        //TODO temporary disable (override issue)
-//        runUserAttributeAnalysisCached(this, prismUsers, attributeAnalysisStructures,
-//                userAnalysisCache, task, result, attributeDefSet);
+        runUserAttributeAnalysisCached(this, prismUsers, attributeAnalysisStructures,
+                userAnalysisCache, task, result, attributeDefSet);
         return attributeAnalysisStructures;
     }
 
