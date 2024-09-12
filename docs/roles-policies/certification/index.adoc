@@ -247,8 +247,11 @@ WARNING: This element is deprecated.
 It is advised to use the configuration of the actions for certification items collection view.
 
 
-. *enableCertItemsCollectionView* - defines if the certification items collection view can be reached directly from main menu.
-If not defined (or set to false), the certification items collection view can be reached only from the active campaigns panel.
+. *allowCertificationItemsMenus* - defines if the certification items menu items should be added to the left menu so that "Certification items" and "My certification items" pages can be reached directly from the main menu.
+If not defined (or set to false), the certification items pages can be reached only from the active campaigns panel.
+This configuration option was added to support old behavior where the certification items pages had their own menu items.
+The default value is false.
+By default, the user sees "Active campaigns" and "My active campaigns" menu items going through which certification items page can be reached.
 
 . *multiselect* - defines the possibility to select multiple items in the certification items collection view table (possible values are: _selectAll_ - gives the possibility to select all items at once, _selectIndividualItems_ - gives the possibility to select individual items without possibility to select all at once, _noSelect_ - no possibility to select any items).
 

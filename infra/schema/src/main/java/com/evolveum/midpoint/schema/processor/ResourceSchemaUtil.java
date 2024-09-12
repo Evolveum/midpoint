@@ -79,12 +79,17 @@ public class ResourceSchemaUtil {
             @Nullable ShadowKindType kind,
             @Nullable String intent,
             @Nullable QName objectClassName) throws SchemaException, ConfigurationException {
+
+        if (kind == null && intent == null && objectClassName == null) {
+            return null; // Exotic case. We don't need the schema in this situation. See TestOpenDjNegative.test195.
+        }
+
         ResourceSchema resourceSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
         return findObjectDefinitionPrecisely(resourceSchema, kind, intent, objectClassName, resource);
     }
 
-    public static ResourceObjectDefinition findObjectDefinitionPrecisely(
-            ResourceSchema resourceSchema,
+    static ResourceObjectDefinition findObjectDefinitionPrecisely(
+            @NotNull ResourceSchema resourceSchema,
             @Nullable ShadowKindType kind,
             @Nullable String intent,
             @Nullable QName objectClassName, ResourceType resource) throws SchemaException, ConfigurationException {
