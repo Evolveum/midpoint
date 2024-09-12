@@ -491,8 +491,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         });
 
-        boolean certItemsViewEnabled = WebComponentUtil.isCertItemsViewEnabled(getPageBase());
-        if (certItemsViewEnabled) {
+        boolean certItemsMenusEnabled = WebComponentUtil.isCertItemsMenusEnabled(getPageBase());
+        if (certItemsMenusEnabled) {
             certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationItems", PageCertItems.class));
         }
 
@@ -508,7 +508,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         });
 
-        if (certItemsViewEnabled) {
+        if (certItemsMenusEnabled) {
             certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationItems", PageMyCertItems.class));
         }
 
