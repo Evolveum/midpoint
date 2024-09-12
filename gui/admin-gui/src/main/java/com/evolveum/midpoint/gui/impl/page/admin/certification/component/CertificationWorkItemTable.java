@@ -292,16 +292,14 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         GuiObjectListViewType campaignDefinitionView = getCollectionViewConfigurationFromCampaignDefinition(task, result);
 
         GuiObjectListViewType defaultView = null;
-        if (campaignDefinitionView == null) {
-            try {
-                OperationResult subResult = result.createSubresult(OPERATION_LOAD_CERTIFICATION_CONFIG);
-                var certificationConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(subResult);
-                if (certificationConfig != null) {
-                    defaultView = certificationConfig.getDefaultView();
-                }
-            } catch (Exception e) {
-                LOGGER.error("Couldn't load certification configuration from system configuration, ", e);
+        try {
+            OperationResult subResult = result.createSubresult(OPERATION_LOAD_CERTIFICATION_CONFIG);
+            var certificationConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(subResult);
+            if (certificationConfig != null) {
+                defaultView = certificationConfig.getDefaultView();
             }
+        } catch (Exception e) {
+            LOGGER.error("Couldn't load certification configuration from system configuration, ", e);
         }
 
         if (campaignDefinitionView == null && defaultView == null) {
@@ -312,8 +310,12 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
             CompiledObjectCollectionView compiledView = new CompiledObjectCollectionView();
             compiledView.setContainerType(AccessCertificationWorkItemType.COMPLEX_TYPE);
 
-            getPageBase().getModelInteractionService().compileView(compiledView, campaignDefinitionView, task, result);
-            getPageBase().getModelInteractionService().compileView(compiledView, defaultView, task, result);
+            if (campaignDefinitionView != null) {
+                getPageBase().getModelInteractionService().compileView(compiledView, campaignDefinitionView, task, result);
+            }
+            if (defaultView != null) {
+                getPageBase().getModelInteractionService().compileView(compiledView, defaultView, task, result);
+            }
 
             return compiledView;
         } catch (Exception e) {
