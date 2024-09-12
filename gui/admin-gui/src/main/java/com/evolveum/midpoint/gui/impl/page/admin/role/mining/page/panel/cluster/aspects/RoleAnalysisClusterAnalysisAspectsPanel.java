@@ -128,10 +128,6 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                     return true;
                 }
 
-                @Override
-                protected @NotNull String getChartContainerStyle() {
-                    return "min-height:350px;";
-                }
             };
             roleAnalysisAttributePanel.setOutputMarkupId(true);
             container.add(roleAnalysisAttributePanel);
