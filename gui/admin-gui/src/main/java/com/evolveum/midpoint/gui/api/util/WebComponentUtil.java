@@ -21,7 +21,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
-import com.evolveum.midpoint.gui.impl.component.action.GuiActionDto;
 import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
@@ -718,12 +717,12 @@ public final class WebComponentUtil {
         return isAuthorized(actionUris);
     }
 
-    public static boolean isCertItemsViewEnabled(ModelServiceLocator serviceLocator) {
+    public static boolean isCertItemsMenusEnabled(ModelServiceLocator serviceLocator) {
         try {
             OperationResult result = new OperationResult("loadingCertificationConfiguration");
             AccessCertificationConfigurationType config =
                     serviceLocator.getModelInteractionService().getCertificationConfiguration(result);
-            return config != null && Boolean.TRUE.equals(config.getEnableCertItemsCollectionView());
+            return config != null && Boolean.TRUE.equals(config.getAllowCertificationItemsMenus());
         } catch (SchemaException | ObjectNotFoundException e) {
             return false;
         }
