@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.InfraItemName;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.*;
 
 import jakarta.xml.bind.JAXBElement;
@@ -3784,7 +3785,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertSuccess(result);
         // Not sure why 2 ... but this is not a big problem now
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 1 : 2);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, isCached() ? 0 : 2);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -4198,6 +4199,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     boolean isCached() {
-        return false;
+        return InternalsConfig.isShadowCachingOnByDefault();
     }
 }

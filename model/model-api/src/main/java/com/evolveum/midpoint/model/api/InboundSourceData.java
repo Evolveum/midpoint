@@ -35,11 +35,13 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 public interface InboundSourceData extends DebugDumpable, Serializable {
 
     static InboundSourceData forShadow(
-            @Nullable PrismObject<ShadowType> shadow,
+            @Nullable PrismObject<ShadowType> shadowBeforeChange,
+            @Nullable PrismObject<ShadowType> shadowAfterChange,
             @Nullable ObjectDelta<ShadowType> aPrioriShadowDelta,
             @NotNull ResourceObjectDefinition resourceObjectDefinition) {
         return new Shadow(
-                asObjectable(shadow),
+                asObjectable(shadowBeforeChange),
+                asObjectable(shadowAfterChange),
                 aPrioriShadowDelta,
                 resourceObjectDefinition);
     }
@@ -59,7 +61,11 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
             @NotNull ResourceObjectDefinition objectDefinitionRequired) {
         if (shadowLikeValue instanceof AbstractShadow shadow) {
-            return forShadow(shadow.getPrismObject(), resourceObjectDelta, objectDefinitionRequired);
+            return forShadow(
+                    shadow.getPrismObject(), // TODO reconsider old vs new thing here
+                    shadow.getPrismObject(),
+                    resourceObjectDelta,
+                    objectDefinitionRequired);
         } else if (shadowLikeValue instanceof ShadowAssociationValue associationValue) {
             return forAssociationValue(associationValue, objectDefinitionRequired);
         } else {
@@ -105,21 +111,20 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
     class Shadow implements InboundSourceData {
 
-        @Nullable private final ShadowType shadow;
+        @Nullable private final ShadowType shadowBeforeChange;
+        @Nullable private final ShadowType shadowAfterChange;
         @Nullable private final ObjectDelta<ShadowType> aPrioriShadowDelta;
         @NotNull private final ResourceObjectDefinition resourceObjectDefinition;
 
         public Shadow(
-                @Nullable ShadowType shadow,
+                @Nullable ShadowType shadowBeforeChange,
+                @Nullable ShadowType shadowAfterChange,
                 @Nullable ObjectDelta<ShadowType> aPrioriShadowDelta,
                 @NotNull ResourceObjectDefinition resourceObjectDefinition) {
-            this.shadow = shadow;
+            this.shadowBeforeChange = shadowBeforeChange;
+            this.shadowAfterChange = shadowAfterChange;
             this.aPrioriShadowDelta = aPrioriShadowDelta;
             this.resourceObjectDefinition = resourceObjectDefinition;
-        }
-
-        public @Nullable ShadowType getShadow() {
-            return shadow;
         }
 
         @Override
@@ -149,13 +154,22 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public boolean isEmpty() {
-            return shadow == null;
+            return shadowAfterChange == null;
         }
 
         @Override
         public @Nullable <TA> PrismProperty<TA> getSimpleAttribute(ItemName attributeName) {
+            var path = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName);
+            if (getItemAPrioriDelta(path) != null) {
+                return getSimpleAttribute(shadowBeforeChange, path);
+            } else {
+                return getSimpleAttribute(shadowAfterChange, path); // because of volatile attributes
+            }
+        }
+
+        private @Nullable <TA> PrismProperty<TA> getSimpleAttribute(ShadowType shadow, ItemPath path) {
             if (shadow != null) {
-                return shadow.asPrismObject().findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName));
+                return shadow.asPrismObject().findProperty(path);
             } else {
                 return null;
             }
@@ -163,8 +177,9 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public @Nullable PrismReference getReferenceAttribute(ItemName attributeName) {
-            if (shadow != null) {
-                return shadow.asPrismObject().findReference(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName));
+            // FIXME We assume these are not volatile (for now)
+            if (shadowAfterChange != null) {
+                return shadowAfterChange.asPrismObject().findReference(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName));
             } else {
                 return null;
             }
@@ -172,8 +187,9 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public @Nullable ShadowAssociation getAssociation(ItemName associationName) {
-            if (shadow != null) {
-                return ShadowUtil.getAssociation(shadow.asPrismObject(), associationName);
+            // FIXME We assume these are not volatile (for now)
+            if (shadowAfterChange != null) {
+                return ShadowUtil.getAssociation(shadowAfterChange.asPrismObject(), associationName);
             } else {
                 return null;
             }
@@ -181,8 +197,9 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public @Nullable PrismProperty<QName> getAuxiliaryObjectClasses() {
-            if (shadow != null) {
-                return shadow.asPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+            // FIXME We assume these are not volatile (for now)
+            if (shadowAfterChange != null) {
+                return shadowAfterChange.asPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
             } else {
                 return null;
             }
@@ -199,12 +216,23 @@ public interface InboundSourceData extends DebugDumpable, Serializable {
 
         @Override
         public PrismObject<ShadowType> getShadowIfPresent() {
-            return asPrismObject(shadow);
+            return asPrismObject(shadowAfterChange);
         }
 
         @Override
         public String debugDump(int indent) {
-            return DebugUtil.debugDump(shadow, indent);
+            StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
+            DebugUtil.debugDumpWithLabelLn(
+                    sb, "resourceObjectDefinition", String.valueOf(resourceObjectDefinition), indent + 1);
+            if (shadowBeforeChange != shadowAfterChange) {
+                DebugUtil.debugDumpWithLabelLn(sb, "shadowBeforeChange", shadowBeforeChange, indent + 1);
+                DebugUtil.debugDumpWithLabelLn(sb, "shadowAfterChange", shadowBeforeChange, indent + 1);
+            } else {
+                DebugUtil.debugDumpWithLabelLn(
+                        sb, "shadowBeforeChange=shadowAfterChange", shadowBeforeChange, indent + 1);
+            }
+            DebugUtil.debugDumpWithLabel(sb, "aPrioriShadowDelta", aPrioriShadowDelta, indent + 1);
+            return sb.toString();
         }
     }
 

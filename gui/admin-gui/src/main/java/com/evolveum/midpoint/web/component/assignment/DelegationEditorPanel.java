@@ -38,7 +38,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;

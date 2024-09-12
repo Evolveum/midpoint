@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.component.input;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 
 public class QueryTextAreaPanel extends InputPanel {
 
@@ -70,7 +70,7 @@ public class QueryTextAreaPanel extends InputPanel {
             }
         };
 
-        final TextArea<String> text = new TextArea<String>(ID_INPUT, convertedModel) {
+        final TextArea<String> text = new TextArea<>(ID_INPUT, convertedModel) {
 
             @Override
             protected boolean shouldTrimInput() {

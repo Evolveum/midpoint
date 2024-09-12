@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,8 +53,13 @@ public abstract class ReloadableButton extends AjaxIconButton {
     }
 
     public ReloadableButton(String id, PageBase pageBase, IModel<String> buttonLabel) {
+        this(id, pageBase, buttonLabel, null);
+    }
+
+    public ReloadableButton(String id, PageBase pageBase, IModel<String> buttonLabel, String taskOidForReloaded) {
         super(id, Model.of(""), buttonLabel);
         this.pageBase = pageBase;
+        this.taskOidForReloaded = taskOidForReloaded;
     }
 
     @Override
@@ -62,35 +68,14 @@ public abstract class ReloadableButton extends AjaxIconButton {
 
         setModel(createIconModel());
 
-        add(AttributeAppender.append("class", "btn btn-primary btn-sm mr-2"));
+        add(AttributeAppender.append("class", getButtonCssClass()));
         setOutputMarkupId(true);
         showTitleAsLabel(true);
 
-        add(AttributeAppender.append("class", (IModel<String>) () -> taskOidForReloaded != null ? "disabled" : ""));
-
-        if (taskOidForReloaded != null) {
-            add(reloadedBehaviour);
-        }
+        add(AttributeAppender.append("class", getDisabledClassModel()));
     }
 
-    private LoadableDetachableModel<String> createIconModel() {
-        return new LoadableDetachableModel<String>() {
-            @Override
-            protected String load() {
-                if (taskOidForReloaded == null) {
-                    return getIconCssClass();
-                }
-                return "fa fa-spinner fa-spin-pulse";
-            }
-        };
-    }
-
-    protected String getIconCssClass() {
-        return "fa fa-refresh";
-    }
-
-    private void onClickReloadButton(AjaxRequestTarget target) {
-        taskOidForReloaded = getCreatedTaskOid(target);
+    private void initReloadBehavior() {
         reloadedBehaviour = new AjaxSelfUpdatingTimerBehavior(Duration.ofSeconds(5)) {
 
             @Override
@@ -121,6 +106,27 @@ public abstract class ReloadableButton extends AjaxIconButton {
             }
         };
         add(reloadedBehaviour);
+    }
+
+    private LoadableDetachableModel<String> createIconModel() {
+        return new LoadableDetachableModel<String>() {
+            @Override
+            protected String load() {
+                if (taskOidForReloaded == null) {
+                    return getIconCssClass();
+                }
+                return "fa fa-spinner fa-spin-pulse";
+            }
+        };
+    }
+
+    protected String getIconCssClass() {
+        return "fa fa-refresh";
+    }
+
+    private void onClickReloadButton(AjaxRequestTarget target) {
+        taskOidForReloaded = getCreatedTaskOid(target);
+        initReloadBehavior();
         refresh(target);
     }
 
@@ -190,5 +196,13 @@ public abstract class ReloadableButton extends AjaxIconButton {
 
     protected boolean isEmptyTaskOid() {
         return StringUtils.isEmpty(taskOidForReloaded);
+    }
+
+    protected String getButtonCssClass() {
+        return "btn btn-primary btn-sm mr-2";
+    }
+
+    protected IModel<String> getDisabledClassModel() {
+        return () -> isEmptyTaskOid() ? "" : "disabled";
     }
 }

@@ -9,6 +9,12 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         oid="d6793e11-edf0-40e6-aa23-695c2b9fa98a">
 
+    <_metadata>
+        <storage>
+            <createTimestamp>2023-10-13T10:31:51.882+02:00</createTimestamp>
+        </storage>
+    </_metadata>
+
     <name>user</name>
 
     <metadata>
@@ -53,4 +59,31 @@
             </value>
         </password>
     </credentials>
+
+    <givenName>
+        <_value>Jack</_value>
+        <_metadata>
+            <provenance>
+                <acquisition>
+                    <originRef oid="user" type="ServiceType"/>
+                </acquisition>
+            </provenance>
+        </_metadata>
+        <_metadata>
+            <provenance>
+                <acquisition>
+                    <originRef oid="rest" type="ServiceType"/>
+                </acquisition>
+            </provenance>
+            <storage>
+                <modifierRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+            </storage>
+        </_metadata>
+    </givenName>
+
+    <familyName>Doe</familyName>
+
+    <activation>
+        <disableReason>Custom reason</disableReason>
+    </activation>
 </user>

@@ -72,6 +72,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 
 /**
  * Created by Viliam Repan (lazyman).

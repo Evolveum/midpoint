@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisClusterT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
 
@@ -81,6 +82,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         RoleAnalysisSessionType session = parentClusterByOid.asObjectable();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+        SearchFilterType searchFilter = null;
 
         String columnTitle = "Users";
         String rowTitle = "Roles";
@@ -91,6 +93,9 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
             rowTitle = "Users";
             columnIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED;
             rowIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED;
+            searchFilter = session.getRoleModeOptions().getQuery();
+        } else if (RoleAnalysisProcessModeType.USER.equals(processMode)) {
+            searchFilter = session.getUserModeOptions().getQuery();
         }
 
         String finalColumnIcon = columnIcon;
@@ -124,7 +129,7 @@ public class ImageDetailsPanel extends BasePanel<String> implements Popupable {
         add(columnHeader);
         add(rowHeader);
 
-        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster,
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareExpandedMiningStructure(cluster, searchFilter,
                 true, processMode, result, task, null);
 
         CustomImageResource imageResource;

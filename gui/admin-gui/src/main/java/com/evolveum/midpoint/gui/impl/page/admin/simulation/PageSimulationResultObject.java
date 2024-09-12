@@ -33,7 +33,9 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.component.wizard.NavigationPanel;
+import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -47,7 +49,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.data.CountToolbar;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkWithBadgesColumn;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.prism.show.ChangesPanel;
 import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
@@ -419,7 +421,7 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
     private List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<SimulationResultProcessedObjectType>, String>> columns = new ArrayList<>();
         columns.add(SimulationsGuiUtil.createProcessedObjectIconColumn(PageSimulationResultObject.this));
-        columns.add(new AjaxLinkColumn<>(createStringResource("ProcessedObjectsPanel.nameColumn")) {
+        columns.add(new AjaxLinkWithBadgesColumn<>(createStringResource("ProcessedObjectsPanel.nameColumn")) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
@@ -440,10 +442,38 @@ public class PageSimulationResultObject extends PageAdmin implements SimulationP
                     return SimulationsGuiUtil.getProcessedObjectName(obj, PageSimulationResultObject.this);
                 };
             }
+
+            @Override
+            protected IModel<List<Badge>> createBadgesModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+                return PageSimulationResultObject.this.createBadgesModel(rowModel);
+            }
         });
         columns.add(new LambdaColumn<>(null, row -> SimulationsGuiUtil.getProcessedObjectType(row::getValue)));
 
         return columns;
+    }
+
+    private IModel<List<Badge>> createBadgesModel(IModel<SelectableBean<SimulationResultProcessedObjectType>> rowModel) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected List<Badge> load() {
+                SelectableBean<SimulationResultProcessedObjectType> bean = rowModel.getObject();
+                SimulationResultProcessedObjectType object = bean.getValue();
+                if (object == null || object.getState() == null) {
+                    return Collections.emptyList();
+                }
+
+                ObjectProcessingStateType state = object.getState();
+                if (state != ObjectProcessingStateType.UNMODIFIED) {
+                    return Collections.emptyList();
+                }
+
+                String style = SimulationsGuiUtil.getObjectProcessingStateBadgeCss(state);
+
+                return List.of(new Badge(style, LocalizationUtil.translateEnum(state)));
+            }
+        };
     }
 
     private void onRelatedObjectClicked(SelectableBean<SimulationResultProcessedObjectType> bean) {

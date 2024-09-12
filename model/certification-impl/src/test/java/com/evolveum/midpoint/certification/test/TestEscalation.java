@@ -784,13 +784,15 @@ public class TestEscalation extends AbstractCertificationTest {
 
         List<PrismObject<TaskType>> tasks = getReiterationTasks(campaignOid, startTime, result);
         assertEquals("unexpected number of related tasks", 1, tasks.size());
-        waitForTaskFinish(tasks.get(0).getOid(), 200000, true);
+        String taskOid = tasks.get(0).getOid();
+        waitForTaskFinish(taskOid, 200000, true);
 
-        TaskInformation taskInfo = TaskInformation.createForTask(tasks.get(0).asObjectable(), null);
+        TaskType taskAfter = getTask(taskOid).asObjectable();
+        TaskInformation taskInfo = TaskInformation.createForTask(taskAfter, taskAfter);
         assertEquals("Expected task with fatal error result, ", taskInfo.getResultStatus(), OperationResultStatusType.FATAL_ERROR);
-        //TODO message
-//        String message = taskInfo.getTask().getResult().getMessage();
-//        assertTrue("wrong exception message", message.contains("maximum number of iterations (3) was reached"));
+        
+        String message = taskInfo.getTask().getResult().getMessage();
+        assertTrue("wrong exception message", message.contains("maximum number of iterations (3) was reached"));
     }
 
     @SuppressWarnings("Duplicates")

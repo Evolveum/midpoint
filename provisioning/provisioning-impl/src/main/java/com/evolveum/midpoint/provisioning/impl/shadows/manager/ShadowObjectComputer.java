@@ -98,9 +98,12 @@ class ShadowObjectComputer {
                             repoAttr.addIgnoringEquivalents(inRepoFormat.asReferenceValue());
                         }
                     }
-                    repoShadowObject
-                            .findOrCreateContainer(ShadowType.F_REFERENCE_ATTRIBUTES)
-                            .add(repoAttr);
+                    // Only add reference attributes if values are present.
+                    if (repoAttr.hasAnyValue()) {
+                        repoShadowObject
+                                .findOrCreateContainer(ShadowType.F_REFERENCE_ATTRIBUTES)
+                                .add(repoAttr);
+                    }
                 }
             } else {
                 throw new AssertionError(attribute);

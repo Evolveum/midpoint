@@ -53,14 +53,9 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<ItemPathType> panelCtx) {
         PrismPropertyWrapper<ItemPathType> item = panelCtx.unwrapWrapperModel();
-        List<ResourceAttributeDefinitionType> attributeDefinitions = getAttributeDefinition(item);
 
-        if (attributeDefinitions.isEmpty()) {
-            return super.getPanel(panelCtx);
-        }
-
-        List<ItemPathType> itemPaths = getTargetsOfInboundMappings(attributeDefinitions);
-        if (itemPaths == null || itemPaths.isEmpty()) {
+        List<ItemPathType> itemPaths = getTargetsOfInboundMappings(item);
+        if (itemPaths.isEmpty()) {
             IModel<String> valueModel = new IModel<>() {
                 @Override
                 public String getObject() {
@@ -111,29 +106,33 @@ public class CorrelatorItemRefPanelFactory extends ItemPathPanelFactory implemen
         return Collections.emptyIterator();
     }
 
-    private List<ItemPathType> getTargetsOfInboundMappings(List<ResourceAttributeDefinitionType> attributeDefinitions) {
-        List<ItemPathType> targets = new ArrayList<>();
-        attributeDefinitions.forEach(attributeMapping -> attributeMapping.getInbound()
-                        .forEach(inboundMapping -> {
-                            if (inboundMapping.getTarget() != null && inboundMapping.getTarget().getPath() != null) {
-                                targets.add(new ItemPathType(inboundMapping.getTarget().getPath().getItemPath().stripVariableSegment()));
-                            }
-                        }));
-        return targets;
-    }
-
-    private List<ResourceAttributeDefinitionType> getAttributeDefinition(PrismPropertyWrapper<ItemPathType> item) {
+    private List<ItemPathType> getTargetsOfInboundMappings(PrismPropertyWrapper<ItemPathType> item) {
         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectType = item.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
         if (objectType != null) {
-            return objectType.getRealValue().getAttribute();
+            List<ResourceAttributeDefinitionType> attributeDefinitions = objectType.getRealValue().getAttribute();
+            List<ItemPathType> targets = new ArrayList<>();
+            attributeDefinitions.forEach(attributeMapping -> attributeMapping.getInbound()
+                    .forEach(inboundMapping -> {
+                        if (inboundMapping.getTarget() != null && inboundMapping.getTarget().getPath() != null) {
+                            targets.add(new ItemPathType(inboundMapping.getTarget().getPath().getItemPath().stripVariableSegment()));
+                        }
+                    }));
+            return targets;
         }
 
-        PrismContainerValueWrapper<ShadowAssociationDefinitionType> association = item.getParentContainerValue(ShadowAssociationDefinitionType.class);
+        PrismContainerValueWrapper<AssociationSynchronizationExpressionEvaluatorType> association = item.getParentContainerValue(AssociationSynchronizationExpressionEvaluatorType.class);
         if (association != null) {
-            List<ResourceAttributeDefinitionType> attributes = new ArrayList<>();
-            attributes.addAll(association.getRealValue().getAttribute());
-            attributes.addAll(association.getRealValue().getObjectRef());
-            return attributes;
+            List<AttributeInboundMappingsDefinitionType> attributeDefinitions = new ArrayList<>();
+            attributeDefinitions.addAll(association.getRealValue().getAttribute());
+            attributeDefinitions.addAll(association.getRealValue().getObjectRef());
+            List<ItemPathType> targets = new ArrayList<>();
+            attributeDefinitions.forEach(attributeMapping -> attributeMapping.getMapping()
+                    .forEach(mapping -> {
+                        if (mapping.getTarget() != null && mapping.getTarget().getPath() != null) {
+                            targets.add(new ItemPathType(mapping.getTarget().getPath().getItemPath().stripVariableSegment()));
+                        }
+                    }));
+            return targets;
         }
 
         return Collections.emptyList();

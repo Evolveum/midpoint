@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.web.util.ExpressionUtil;
@@ -16,7 +17,6 @@ import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Nullable;
@@ -95,6 +95,14 @@ public class AceEditor extends TextArea<String> {
         sb.append(");");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+    }
+
+    public void updateMode(AjaxRequestTarget target, Mode mode) {
+        setMode(mode);
+
+        String module = mode!= null? mode.module : "";
+
+        target.appendJavaScript("window.MidPointAceEditor.changeMode('" + getMarkupId() + "','" + module + "');");
     }
 
     public int getMinHeight() {

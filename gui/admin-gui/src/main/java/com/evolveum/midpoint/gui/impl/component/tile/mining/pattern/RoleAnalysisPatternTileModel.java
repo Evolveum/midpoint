@@ -54,7 +54,7 @@ public class RoleAnalysisPatternTileModel<T extends Serializable> extends Tile<T
         }
 
         double percentageCoverage = (metric / totalRoleToUserAssignments) * 100;
-        BigDecimal bd = new BigDecimal(percentageCoverage);
+        BigDecimal bd = BigDecimal.valueOf(percentageCoverage);
         bd = bd.setScale(2, RoundingMode.HALF_UP);
         return bd.doubleValue();
     }

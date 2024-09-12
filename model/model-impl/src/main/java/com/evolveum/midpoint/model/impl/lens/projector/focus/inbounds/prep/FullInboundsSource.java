@@ -193,6 +193,7 @@ public class FullInboundsSource extends InboundsSource {
         try {
             beans.contextLoader.loadFullShadow(projectionContext, "inbound", context.env.task, result);
             sourceData = InboundSourceData.forShadow(
+                    projectionContext.getObjectCurrentRequired(), // TODO reconsider old vs new here
                     projectionContext.getObjectCurrentRequired(),
                     sourceData.getAPrioriDelta(),
                     sourceData.getShadowObjectDefinition());

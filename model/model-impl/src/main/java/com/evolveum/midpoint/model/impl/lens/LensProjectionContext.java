@@ -136,7 +136,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * Lifecycle: Since 4.6 we try to determine the key as soon as realistically possible; and we try to keep it updated all
      * the time. So we try to update along with the shadow in this projection context. Resource OID, kind, and intent
-     * are treated by {@link #updateKeyIfNeeded(ShadowType)}. The {@link ProjectionContextKey#gone} flag should be set via
+     * are treated by {@link #onObjectChange(ShadowType)}. The {@link ProjectionContextKey#gone} flag should be set via
      * {@link #markGone()} method.
      *
      * NOTE: When updating the key, think about invalidating the {@link #state}. It's the most safe to use
@@ -151,6 +151,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *  We need to clarify that.
      */
     private boolean fullShadow;
+
+    /**
+     * A temporary solution for the misuse of {@link ElementState#fresh} field for projections.
+     * We set this to {@code true} when the projection should be re-loaded, at least from the repository. MID-9944.
+     */
+    private boolean reloadNeeded;
 
     /**
      * True if the account is assigned to the user by a valid assignment. It may be false for accounts that are either
@@ -372,43 +378,47 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public void setLoadedObject(@NotNull PrismObject<ShadowType> object) {
         state.setCurrentAndOptionallyOld(object, !state.hasOldObject() && !isAdd());
-        updateKeyIfNeeded(object.asObjectable());
+        onObjectChange(object.asObjectable());
     }
 
     @Override
     public void setInitialObject(@NotNull PrismObject<ShadowType> object) {
         super.setInitialObject(object);
-        updateKeyIfNeeded(object.asObjectable());
+        onObjectChange(object.asObjectable());
     }
 
     @Override
     public void setCurrentObject(@Nullable PrismObject<ShadowType> object) {
         super.setCurrentObject(object);
         if (object != null) {
-            updateKeyIfNeeded(object.asObjectable());
+            onObjectChange(object.asObjectable());
         }
     }
 
     @Override
     public void setCurrentObjectAndOid(@NotNull PrismObject<ShadowType> object) {
         super.setCurrentObjectAndOid(object);
-        updateKeyIfNeeded(object.asObjectable());
+        onObjectChange(object.asObjectable());
     }
 
     @Override
     public void replaceOldAndCurrentObject(String oid, PrismObject<ShadowType> objectOld, PrismObject<ShadowType> objectCurrent) {
         super.replaceOldAndCurrentObject(oid, objectOld, objectCurrent);
         if (objectCurrent != null) {
-            updateKeyIfNeeded(objectCurrent.asObjectable()); // just for sure?
+            onObjectChange(objectCurrent.asObjectable()); // just for sure?
         }
     }
 
     /**
-     * Updates and checks the key against the information from shadow: resource OID, kind, intent.
+     * 1. Invalidates human readable name, as it is heavily bound to the object
+     * 2. Updates and checks the key against the information from shadow: resource OID, kind, intent.
      *
      * We intentionally not deal with the "gone" flag here. The client is responsible for updating that.
      */
-    private void updateKeyIfNeeded(@NotNull ShadowType shadow) {
+    private void onObjectChange(@NotNull ShadowType shadow) {
+
+        invalidateHumanReadableName(); // better safe than sorry
+
         ProjectionContextKey updated =
                 key.checkOrUpdateResourceOid(
                         ShadowUtil.getResourceOidRequired(shadow));
@@ -713,6 +723,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public void setResource(ResourceType resource) {
+        invalidateHumanReadableName();
         this.resource = resource;
         if (resource != null) {
             String existingResourceOid = key.getResourceOid();
@@ -878,11 +889,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.fullShadow = fullShadow;
     }
 
-    private Boolean getGenericItemLoadedAnswer() throws SchemaException, ConfigurationException {
+    private ItemLoadedStatus getGenericItemLoadedAnswer() throws SchemaException, ConfigurationException {
         if (isFullShadow()) {
-            return true;
+            return ItemLoadedStatus.FULL_SHADOW;
         } else if (!isCachedShadowsUseAllowed()) {
-            return false; // The attribute may or may not be cached; but we want to use fresh version anyway
+            return ItemLoadedStatus.NOT_ALLOWED;
         } else {
             return null; // Let's look at the status of the specific item
         }
@@ -890,41 +901,53 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     /** @see #isAttributeLoaded(QName) */
     public boolean isActivationLoaded() throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
         var generic = getGenericItemLoadedAnswer();
         if (generic != null) {
-            return generic;
+            status = generic;
         } else {
-            return ShadowUtil.isActivationCached(
-                    getObjectCurrent(),
-                    getCompositeObjectDefinitionRequired(),
-                    getCurrentTime());
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.getActivationCachedStatus(
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
         }
+        LOGGER.trace("Activation loaded status: {}", status);
+        return status.isLoaded();
     }
 
     /** @see #isAttributeLoaded(QName) */
     public boolean isPasswordValueLoaded() throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
         var generic = getGenericItemLoadedAnswer();
         if (generic != null) {
-            return generic;
+            status = generic;
         } else {
-            return ShadowUtil.isPasswordValueLoaded(
-                    getObjectCurrent(),
-                    getCompositeObjectDefinitionRequired(),
-                    getCurrentTime());
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.isPasswordValueLoaded(
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
         }
+        LOGGER.trace("Password value loaded status: {}", status);
+        return status.isLoaded();
     }
 
     /** @see #isAttributeLoaded(QName) */
     public boolean isAuxiliaryObjectClassPropertyLoaded() throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
         var generic = getGenericItemLoadedAnswer();
         if (generic != null) {
-            return generic;
+            status = generic;
         } else {
-            return ShadowUtil.isAuxiliaryObjectClassPropertyLoaded(
-                    getObjectCurrent(),
-                    getCompositeObjectDefinitionRequired(),
-                    getCurrentTime());
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.isAuxiliaryObjectClassPropertyLoaded(
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
         }
+        LOGGER.trace("Auxiliary object class property loaded status: {}", status);
+        return status.isLoaded();
     }
 
     private static XMLGregorianCalendar getCurrentTime() {
@@ -937,30 +960,38 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * must be allowed.
      */
     public boolean isAttributeLoaded(QName attrName) throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
         var generic = getGenericItemLoadedAnswer();
         if (generic != null) {
-            return generic;
+            status = generic;
         } else {
-            return ShadowUtil.isAttributeLoaded(
-                    ItemName.fromQName(attrName),
-                    getObjectCurrent(),
-                    getCompositeObjectDefinitionRequired(),
-                    getCurrentTime());
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.isAttributeLoaded(
+                            ItemName.fromQName(attrName),
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
         }
+        LOGGER.trace("Attribute '{}' loaded status: {}", attrName, status);
+        return status.isLoaded();
     }
 
     /** @see #isAttributeLoaded(QName) */
     public boolean isAssociationLoaded(QName assocName) throws SchemaException, ConfigurationException {
+        ItemLoadedStatus status;
         var generic = getGenericItemLoadedAnswer();
         if (generic != null) {
-            return generic;
+            status = generic;
         } else {
-            return ShadowUtil.isAssociationLoaded(
-                    ItemName.fromQName(assocName),
-                    getObjectCurrent(),
-                    getCompositeObjectDefinitionRequired(),
-                    getCurrentTime());
+            status = ItemLoadedStatus.fromItemCachedStatus(
+                    ShadowUtil.isAssociationLoaded(
+                            ItemName.fromQName(assocName),
+                            getObjectCurrent(),
+                            getCompositeObjectDefinitionRequired(),
+                            getCurrentTime()));
         }
+        LOGGER.trace("Association '{}' loaded status: {}", assocName, status);
+        return status.isLoaded();
     }
 
     public Collection<QName> getCachedAttributesNames() throws SchemaException, ConfigurationException {
@@ -1498,8 +1529,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public @NotNull String getHumanReadableName() {
         if (humanReadableName == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("account(");
+            var sb = new StringBuilder();
+            sb.append("shadow(");
             String humanReadableAccountIdentifier = getHumanReadableIdentifier();
             if (StringUtils.isEmpty(humanReadableAccountIdentifier)) {
                 sb.append("no ID");
@@ -1508,8 +1539,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 sb.append(humanReadableAccountIdentifier);
             }
             sb.append(", ");
-            ProjectionContextKey key = getKey();
-            ResourceObjectTypeIdentification typeId = key.getTypeIdentification();
+            var typeId = key.getTypeIdentification();
             if (typeId != null) {
                 sb.append(typeId);
             } else {
@@ -1526,6 +1556,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             humanReadableName = sb.toString();
         }
         return humanReadableName;
+    }
+
+    private void invalidateHumanReadableName() {
+        humanReadableName = null;
     }
 
     private String getHumanReadableIdentifier() {
@@ -1586,8 +1620,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                     if (definition == null) {
                         sb.append("(no definition)");
                     } else {
-                        sb.append("(fresh: ");
-                        sb.append(ShadowUtil.isShadowFresh(current, ModelBeans.get().clock.currentTimeXMLGregorianCalendar()));
+                        sb.append("(caching status: ");
+                        sb.append(
+                                ShadowUtil.getShadowCachedStatus(
+                                        current, ModelBeans.get().clock.currentTimeXMLGregorianCalendar()));
                         sb.append(")");
                     }
                 } catch (Throwable t) {
@@ -1613,6 +1649,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             sb.append(", NOT FRESH");
         } else {
             sb.append(", fresh");
+        }
+        if (reloadNeeded) {
+            sb.append(", reload needed");
         }
         if (isGone()) {
             sb.append(", GONE");
@@ -1696,8 +1735,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     public String toString() {
-        return "LensProjectionContext(shadow " + getOid() + " of " + key
-                + (resource != null ? " (" + resource.getName() + ")" : "");
+        try {
+            return getHumanReadableName();
+        } catch (Throwable t) {
+            return simpleToString() + " (error getting human readable name: " + MiscUtil.getClassWithMessage(t) + ")";
+        }
+    }
+
+    private @NotNull String simpleToString() {
+        return "LensProjectionContext(shadow %s of %s%s)".formatted(
+                getOid(), key, resource != null ? " (" + resource.getName() + ")" : "");
     }
 
     /**
@@ -1950,12 +1997,56 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
         rot();
 
+        if (modifiesCachedAttributes(execDelta)) {
+            setReloadNeeded();
+        }
+
         // Propagate to higher-order projections
         for (LensProjectionContext relCtx : lensContext.findRelatedContexts(this)) {
             relCtx.rot();
         }
 
         return true;
+    }
+
+    private boolean modifiesCachedAttributes(ObjectDelta<ShadowType> execDelta) {
+        if (!ObjectDelta.isModify(execDelta)) {
+            return false;
+        }
+        ResourceObjectDefinition def;
+        try {
+            def = getStructuralObjectDefinition();
+        } catch (SchemaException | ConfigurationException e) {
+            LoggingUtils.logUnexpectedException(
+                    LOGGER, "Got unexpected exception while getting structural object definition for {}; "
+                            + "assuming that shadow need to be reloaded", e, this);
+            return true;
+        }
+        if (def == null) {
+            LOGGER.debug("No object definition for {}, assuming that shadow need to be reloaded", this);
+            return true;
+        }
+        for (var modifiedItemPath : execDelta.getModifiedItems()) {
+            if (def.isEffectivelyCached(modifiedItemPath)) {
+                LOGGER.trace("Modified item '{}' is effectively cached -> shadow needs to be reloaded: {}",
+                        modifiedItemPath, this);
+                return true;
+            }
+        }
+        LOGGER.trace("Found no modified items that are effectively cached -> shadow does not need to be reloaded: {}", this);
+        return false;
+    }
+
+    private void setReloadNeeded() {
+        reloadNeeded = true;
+    }
+
+    public void setReloadNotNeeded() {
+        reloadNeeded = false;
+    }
+
+    public boolean isReloadNeeded() {
+        return reloadNeeded;
     }
 
     private <P extends ObjectType> boolean isShadowDeltaSignificant(ObjectDelta<P> delta) {
@@ -2162,10 +2253,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Nullable
     private ObjectOperationPolicyType operationPolicy(OperationResult result) throws ConfigurationException {
-        if (getObjectNewOrCurrentOrOld() == null) {
+        var object = getObjectNewOrCurrentOrOld();
+        if (object == null) {
             return null;
         }
-        return ObjectOperationPolicyHelper.get().getEffectivePolicy(getObjectNewOrCurrentOrOld().asObjectable(), result);
+        return ObjectOperationPolicyHelper.get().getEffectivePolicy(
+                object.asObjectable(),
+                getTaskExecutionMode(),
+                result);
     }
 
     public boolean isMarkedReadOnly(OperationResult result) throws ConfigurationException {
@@ -2185,9 +2280,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     public boolean isOutboundSyncDisabled(OperationResult result) throws ConfigurationException {
+        return Objects.requireNonNullElse(
+                isOutboundSyncDisabledNullable(result),
+                false);
+    }
+
+    public Boolean isOutboundSyncDisabledNullable(OperationResult result) throws ConfigurationException {
         var policy = operationPolicy(result);
         if (policy == null) {
-            return false;
+            return null;
         }
         return isSyncOutboundDisabled(policy); // TODO severity
     }

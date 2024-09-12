@@ -1372,6 +1372,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return InternalMonitor.getCount(counter) - getLastCount(counter);
     }
 
+    /** With caching on by default, the increment may be less than expected. */
     protected void assertCounterIncrement(InternalCounters counter, int expectedIncrement) {
         long currentCount = InternalMonitor.getCount(counter);
         long actualIncrement = currentCount - getLastCount(counter);

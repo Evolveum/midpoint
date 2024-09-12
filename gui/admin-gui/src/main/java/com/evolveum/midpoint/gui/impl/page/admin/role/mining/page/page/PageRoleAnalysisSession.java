@@ -8,14 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
@@ -29,14 +27,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisSessionOperationButtonPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.RoleAnalysisSessionSummaryPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.RoleAnalysisSessionWizardPanel;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -59,8 +56,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     private static final String DOT_CLASS = PageRoleAnalysisSession.class.getName() + ".";
     private static final String OP_DELETE_CLEANUP = DOT_CLASS + "deleteCleanup";
-    private static final String OP_PERFORM_CLUSTERING = DOT_CLASS + "performClustering";
-    private static final Trace LOGGER = TraceManager.getTrace(PageRoleAnalysisSession.class);
 
     public PageRoleAnalysisSession() {
         super();
@@ -85,16 +80,6 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
         String sessionOid = session.getOid();
         roleAnalysisService
                 .deleteSessionClustersMembers(sessionOid, task, result, false);
-    }
-
-    @Override
-    public void savePerformed(AjaxRequestTarget target) {
-        super.savePerformed(target);
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
     }
 
     @Override
@@ -137,7 +122,8 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
     }
 
     @Override
-    protected InlineOperationalButtonsPanel<RoleAnalysisSessionType> createInlineButtonsPanel(String idButtons, LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel) {
+    protected InlineOperationalButtonsPanel<RoleAnalysisSessionType> createInlineButtonsPanel(String idButtons,
+            LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel) {
         return new RoleAnalysisSessionOperationButtonPanel(idButtons, objectWrapperModel, getObjectDetailsModels()) {
             @Override
             protected void submitPerformed(AjaxRequestTarget target) {
@@ -170,12 +156,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
     @Override
     protected String getMainPanelCssStyle() {
-        return "align-items: stretch; overflow: visible";
-    }
-
-    @Override
-    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> createObjectDetailsModels(PrismObject<RoleAnalysisSessionType> object) {
-        return super.createObjectDetailsModels(object);
+        return "align-items: stretch; overflow: visible;min-width:0;";
     }
 
     @Override
@@ -194,38 +175,36 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
             return super.getPanelConfigurations();
         }
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        RoleAnalysisProcedureType analysisProcedureType = analysisOption.getAnalysisProcedureType();
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
-
-            if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")) {
-                if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                    continue;
-                }
-            }
-
-            if (containerPanelConfigurationType.getIdentifier().equals("topOutlierPanel")) {
-                if (!RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                    continue;
-                }
-            }
-
-            if (containerPanelConfigurationType.getIdentifier().equals("userModeSettings")) {
-                if (RoleAnalysisProcessModeType.ROLE.equals(processMode)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                }
-
-            } else if (containerPanelConfigurationType.getIdentifier().equals("roleModeSettings")) {
-                if (RoleAnalysisProcessModeType.USER.equals(processMode)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                }
+            if (containerPanelConfigurationType.getIdentifier().equals("topDetectedPattern")
+                    && analysisProcedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            } else if (containerPanelConfigurationType.getIdentifier().equals("outlierActions")
+                    && analysisProcedureType != RoleAnalysisProcedureType.OUTLIER_DETECTION) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            } else {
+                resolveSessionSettingPanels(containerPanelConfigurationType, processMode);
             }
 
         }
         return panelConfigurations;
+    }
+
+    private static void resolveSessionSettingPanels(
+            @NotNull ContainerPanelConfigurationType containerPanelConfigurationType,
+            @NotNull RoleAnalysisProcessModeType processMode) {
+        if (containerPanelConfigurationType.getIdentifier().equals("userModeSettings")) {
+            if (RoleAnalysisProcessModeType.ROLE.equals(processMode)) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            }
+
+        } else if (containerPanelConfigurationType.getIdentifier().equals("roleModeSettings")
+                && RoleAnalysisProcessModeType.USER.equals(processMode)) {
+            containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+        }
     }
 
     @Override
@@ -241,7 +220,7 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
                 add(new RoleAnalysisSessionWizardPanel(ID_TEMPLATE, createObjectWizardPanelHelper()) {
 
                     @Override
-                    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(AnalysisCategory category, Task task, OperationResult result) {
+                    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(AnalysisCategoryMode category, Task task, OperationResult result) {
                         RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
                         category.generateConfiguration(getRoleAnalysisService(), session, task, result);
                         reloadObjectDetailsModel(session.asPrismObject());

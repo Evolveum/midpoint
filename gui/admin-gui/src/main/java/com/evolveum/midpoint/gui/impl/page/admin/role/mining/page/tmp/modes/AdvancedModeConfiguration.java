@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -59,21 +58,6 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
                         .min(10.0)
                         .max(100.0),
                 RoleAnalysisDetectionProcessType.FULL);
-    }
-
-    @Override
-    public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {
-        return super.getAnalysisSessionOption();
-    }
-
-    @Override
-    public RoleAnalysisDetectionOptionType getDetectionOption() {
-        return super.getDetectionOption();
-    }
-
-    @Override
-    public ItemVisibilityHandler getVisibilityHandler() {
-        return super.getVisibilityHandler();
     }
 
     public @NotNull Integer getMaxPropertyCount() {

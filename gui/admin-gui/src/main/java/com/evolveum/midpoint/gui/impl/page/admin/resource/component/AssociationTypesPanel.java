@@ -8,14 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.AssociationChoicePanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPopupPanel;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -113,7 +111,10 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
 
     @Override
     protected void onNewValue(
-            PrismContainerValue<ShadowAssociationTypeDefinitionType> value, IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+            PrismContainerValue<ShadowAssociationTypeDefinitionType> value,
+            IModel<PrismContainerWrapper<ShadowAssociationTypeDefinitionType>> newWrapperModel,
+            AjaxRequestTarget target,
+            boolean isDuplicate) {
         try {
             CompleteResourceSchema resourceSchema = getObjectDetailsModels().getRefinedSchema();
             List<ShadowReferenceAttributeDefinition> assocDefs = ProvisioningObjectsUtil.getShadowReferenceAttributeDefinitions(resourceSchema);
@@ -157,7 +158,11 @@ public class AssociationTypesPanel extends SchemaHandlingObjectsPanel<ShadowAsso
                 };
                 getPageBase().showMainPopup(confirm, target);
             } else {
-                getObjectDetailsModels().getPageResource().showAssociationTypeWizard(value, target, newWrapperModel.getObject().getPath());
+                if (isDuplicate) {
+                    getObjectDetailsModels().getPageResource().showAssociationTypeWizardForDuplicate(value, target, newWrapperModel.getObject().getPath());
+                } else {
+                    getObjectDetailsModels().getPageResource().showAssociationTypeWizard(value, target, newWrapperModel.getObject().getPath());
+                }
             }
 
         } catch (SchemaException | ConfigurationException e) {

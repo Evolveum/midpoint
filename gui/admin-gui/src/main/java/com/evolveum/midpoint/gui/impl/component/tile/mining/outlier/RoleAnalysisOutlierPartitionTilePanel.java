@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.OutlierPartitionPage;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
@@ -48,6 +49,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 
 public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> extends BasePanel<RoleAnalysisOutlierPartitionTileModel<T>> {
 
@@ -129,7 +132,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
                 getPageBase().navigateToNext(detailsPageClass, parameters);
             }
         };
-        titlePanel.add(AttributeAppender.append("class", "gap-2"));
+        titlePanel.add(AttributeModifier.append(CLASS_CSS, "gap-2"));
 
         titlePanel.setOutputMarkupId(true);
         titlePanel.add(new TooltipBehavior());
@@ -139,11 +142,17 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
     private void initLeftBatch() {
         RoleAnalysisOutlierPartitionType partition = getModelObject().getPartition();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
-        RoleAnalysisOutlierNoiseCategoryType outlierNoiseCategory = partitionAnalysis.getOutlierNoiseCategory();
-        String labelValue = outlierNoiseCategory.value();
+        OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+        String labelValue = "N/A";
+        if (outlierCategory != null) {
+            OutlierNoiseCategoryType outlierNoiseCategory = outlierCategory.getOutlierNoiseCategory();
+            if (outlierNoiseCategory != null) {
+                labelValue = outlierNoiseCategory.value();
+            }
+        }
         Label label = new Label(ID_LEFT_BATCH, labelValue);
         label.setOutputMarkupId(true);
-        label.add(AttributeAppender.append("class", "badge bg-info"));
+        label.add(AttributeModifier.append(CLASS_CSS, "badge bg-info"));
         add(label);
     }
 
@@ -151,7 +160,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         String labelValue = "MOST IMPACTFUL";
         Label label = new Label(ID_RIGHT_BATCH, labelValue);
         label.setOutputMarkupId(true);
-        label.add(AttributeAppender.append("class", "badge bg-danger"));
+        label.add(AttributeModifier.append(CLASS_CSS, "badge bg-danger"));
         label.add(new VisibleBehaviour(() -> getModelObject().isMostImpactful));
         add(label);
     }
@@ -189,7 +198,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, anomalyValue);
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "font-weight-bold"));
+                label.add(AttributeModifier.append(CLASS_CSS, FONT_WEIGHT_BOLD));
                 return label;
             }
         };
@@ -198,6 +207,9 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
         RoleAnalysisPatternAnalysis patternAnalysis = partitionAnalysis.getPatternAnalysis();
         Double confidence = patternAnalysis.getConfidence();
+        if (confidence == null) {
+            confidence = 0.0;
+        }
         BigDecimal bdConfidence = new BigDecimal(Double.toString(confidence));
         bdConfidence = bdConfidence.setScale(2, RoundingMode.HALF_UP);
         double patternCoverageConfidence = bdConfidence.doubleValue();
@@ -222,7 +234,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, confidenceValue);
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "font-weight-bold"));
+                label.add(AttributeModifier.append(CLASS_CSS, FONT_WEIGHT_BOLD));
                 return label;
             }
         };
@@ -231,7 +243,16 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
         RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
         Integer similarObjectsCount = similarObjectAnalysis.getSimilarObjectsCount();
+
+        if (similarObjectsCount == null) {
+            similarObjectsCount = 0;
+        }
+
         Double similarObjectsConfidence = partitionAnalysis.getSimilarObjectsConfidence();
+        if (similarObjectsConfidence == null) {
+            similarObjectsConfidence = 0.0;
+        }
+
         BigDecimal bdSimilarObjectsConfidence = new BigDecimal(Double.toString(similarObjectsConfidence));
         bdSimilarObjectsConfidence = bdSimilarObjectsConfidence.setScale(2, RoundingMode.HALF_UP);
         double similarObjectsConfidenceValue = bdSimilarObjectsConfidence.doubleValue();
@@ -256,7 +277,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, similarObjectsValue);
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "font-weight-bold"));
+                label.add(AttributeModifier.append(CLASS_CSS, FONT_WEIGHT_BOLD));
                 return label;
             }
         };
@@ -264,6 +285,9 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         items.add(similarObjectPanel);
 
         Double outlierAssignmentFrequencyConfidence = partitionAnalysis.getOutlierAssignmentFrequencyConfidence();
+        if (outlierAssignmentFrequencyConfidence == null) {
+            outlierAssignmentFrequencyConfidence = 0.0;
+        }
         BigDecimal bdOutlierAssignmentFrequencyConfidence = new BigDecimal(Double.toString(outlierAssignmentFrequencyConfidence));
         bdOutlierAssignmentFrequencyConfidence = bdOutlierAssignmentFrequencyConfidence.setScale(2, RoundingMode.HALF_UP);
         double outlierAssignmentFrequencyConfidenceValue = bdOutlierAssignmentFrequencyConfidence.doubleValue();
@@ -287,7 +311,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
             protected @NotNull Component getValueComponent(String id) {
                 Label label = new Label(id, outlierAssignmentFrequencyValue);
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "font-weight-bold"));
+                label.add(AttributeModifier.append(CLASS_CSS, FONT_WEIGHT_BOLD));
                 return label;
             }
         };
@@ -326,13 +350,13 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
                 double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
 
-                BigDecimal bd = new BigDecimal(itemsConfidence);
-                bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal bd = BigDecimal.valueOf(itemsConfidence);
+                bd = bd.setScale(2, RoundingMode.HALF_UP);
                 itemsConfidence = bd.doubleValue();
 
                 Label label = new Label(id, itemsConfidence + "%");
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "font-weight-bold"));
+                label.add(AttributeModifier.append(CLASS_CSS, FONT_WEIGHT_BOLD));
                 return label;
             }
         };
@@ -357,7 +381,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
         };
         barMenu.setOutputMarkupId(true);
-        barMenu.add(AttributeModifier.replace("title",
+        barMenu.add(AttributeModifier.replace(TITLE_CSS,
                 createStringResource("RoleAnalysis.menu.moreOptions")));
         barMenu.add(new TooltipBehavior());
         add(barMenu);
@@ -366,10 +390,10 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
     private void initDefaultCssStyle() {
         setOutputMarkupId(true);
 
-        add(AttributeAppender.append("class",
+        add(AttributeModifier.append(CLASS_CSS,
                 "catalog-tile-panel d-flex flex-column align-items-center w-100 h-100 p-0 elevation-1"));
 
-        add(AttributeAppender.append("style", "width:25%"));
+        add(AttributeModifier.append(STYLE_CSS, "width:25%"));
     }
 
     protected Label getTitle() {
@@ -378,7 +402,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
 
     private void initExamineButton() {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                "fa fa-eye", LayeredIconCssStyle.IN_ROW_STYLE);
+                "fa fa-eye", IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton examineButton = new AjaxCompositedIconSubmitButton(
                 ID_EXAMINE,
                 iconBuilder.build(),
@@ -402,7 +426,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
         };
         examineButton.titleAsLabel(true);
         examineButton.setOutputMarkupId(true);
-        examineButton.add(AttributeAppender.append("class", "btn btn-default btn-sm p-2"));
+        examineButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm p-2"));
 
         examineButton.setOutputMarkupId(true);
         add(examineButton);
@@ -460,7 +484,7 @@ public class RoleAnalysisOutlierPartitionTilePanel<T extends Serializable> exten
                         return "font-size:10px";
                     }
                 };
-                panel.add(AttributeAppender.append("class", "h5 text-danger justify-content-end"));
+                panel.add(AttributeModifier.append(CLASS_CSS, "h5 text-danger justify-content-end"));
                 panel.setOutputMarkupId(true);
                 return panel;
             }

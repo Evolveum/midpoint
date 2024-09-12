@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.impl.query.ObjectPagingImpl;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.web.component.data.mining.RoleAnalysisCollapsableTablePanel;
 
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.wicket.chartjs.ChartConfiguration;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -299,10 +298,6 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return false;
     }
 
-    protected boolean isCardTable() {
-        return false;
-    }
-
     protected boolean isListPanelVisible() {
         return true;
     }
@@ -498,6 +493,11 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
                 } else {
                     return super.newRowItem(id, index, item, rowModel);
                 }
+            }
+
+            @Override
+            public boolean isShowAsCard() {
+                return ContainerableListPanel.this.showTableAsCard();
             }
 
             @Override

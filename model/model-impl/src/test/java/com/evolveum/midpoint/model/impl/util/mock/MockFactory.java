@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.util.mock;
 
 import java.util.*;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -309,6 +310,15 @@ public class MockFactory {
             @Override
             public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
                 return new CapabilityCollectionType();
+            }
+
+            @Override
+            public @Nullable ObjectOperationPolicyType getDefaultOperationPolicy(
+                    @NotNull String resourceOid,
+                    @NotNull ResourceObjectTypeIdentification typeIdentification,
+                    @NotNull Task task,
+                    @NotNull OperationResult result) {
+                return null;
             }
         };
     }

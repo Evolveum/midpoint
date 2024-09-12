@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.component;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.component.RoleAnalysisDonutChartUtils.createDoughnutChartConfigFor;
 
 import java.io.Serial;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.gui.impl.component.table.ChartedHeaderDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.widgets.model.IdentifyWidgetItem;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.wicket.chartjs.ChartConfiguration;
 import com.evolveum.wicket.chartjs.DoughnutChartConfiguration;
 
 public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidgetItem>> {
@@ -83,12 +83,12 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
     }
 
     private void initLayout() {
-        add(AttributeModifier.append("class", initDefaultCssClass()));
+        add(AttributeModifier.append(CLASS_CSS, initDefaultCssClass()));
 
         IModel<String> titleModel = getTitleModel();
 
         WebMarkupContainer card = new WebMarkupContainer(ID_CARD);
-        card.add(AttributeAppender.append("class", " m-0"));
+        card.add(AttributeModifier.append(CLASS_CSS, " m-0"));
         card.setOutputMarkupId(true);
         add(card);
 
@@ -121,6 +121,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
     }
 
     protected void onClickFooter(AjaxRequestTarget target) {
+        // do nothing
     }
 
     //TODO
@@ -161,13 +162,14 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
             WidgetRmChartComponent<DoughnutChartConfiguration> header = new WidgetRmChartComponent<>(
                     repeatingView.newChildId(), Model.of(), Model.of(dto));
             header.setOutputMarkupId(true);
+            header.add(AttributeAppender.append(CLASS_CSS,"col-auto p-0"));
             repeatingView.add(header);
         });
 
         return repeatingView;
     }
 
-    private <T extends ChartConfiguration> void initBodyItems(@NotNull WebMarkupContainer card) {
+    private void initBodyItems(@NotNull WebMarkupContainer card) {
         WebMarkupContainer bodyContainer = new WebMarkupContainer(ID_CARD_BODY);
         bodyContainer.setOutputMarkupId(true);
         card.add(bodyContainer);
@@ -181,7 +183,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
         bodyHeaderPanelContainer.add(new VisibleBehaviour(this::isHeaderVisible));
         bodyHeaderPanelContainer.add(bodyHeaderPanel);
 
-        if(getModel() == null){
+        if (getModel() == null) {
             WebMarkupContainer details = new WebMarkupContainer(ID_BODY_ITEM_CONTAINER);
             details.setOutputMarkupId(true);
             details.add(new VisibleBehaviour(() -> false));
@@ -257,7 +259,7 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
     }
 
     protected String initDefaultCssClass() {
-        return ""; /* col-4 */
+        return "";
     }
 
     protected String getBodyHeaderPanelStyle() {

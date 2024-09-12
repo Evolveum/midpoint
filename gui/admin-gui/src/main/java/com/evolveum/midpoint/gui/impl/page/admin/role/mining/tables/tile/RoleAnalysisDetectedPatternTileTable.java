@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.tile;
 
 import static com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil.createDisplayType;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
 import static com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions.LOGGER;
@@ -18,10 +19,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -53,9 +56,7 @@ import com.evolveum.midpoint.gui.api.component.TogglePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.tile.mining.pattern.RoleAnalysisPatternTileModel;
@@ -65,9 +66,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisClusterOccupationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetailsPopup;
-import com.evolveum.midpoint.gui.impl.page.self.requestAccess.PageableListView;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -135,11 +134,6 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                 this, new ListModel<>(detectedPatternList.getObject()) {
 
             @Serial private static final long serialVersionUID = 1L;
-
-            @Override
-            public void setObject(List<DetectedPattern> object) {
-                super.setObject(object);
-            }
 
         }, true);
 
@@ -227,11 +221,6 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
             }
 
             @Override
-            protected void onInitialize() {
-                super.onInitialize();
-            }
-
-            @Override
             protected String getTilesFooterCssClasses() {
                 return "card-footer";
             }
@@ -244,11 +233,6 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
             @Override
             protected ISortableDataProvider<?, ?> createProvider() {
                 return provider;
-            }
-
-            @Override
-            protected PageableListView<?, ?> createTilesPanel(String tilesId, ISortableDataProvider<DetectedPattern, String> provider1) {
-                return super.createTilesPanel(tilesId, provider1);
             }
 
             @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -298,35 +282,18 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
             }
         });
 
+        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
+        OperationResult result = new OperationResult("countUserOwnedRoleAssignment");
+        int allUserOwnedRoleAssignments = roleAnalysisService.countUserOwnedRoleAssignment(result);
+
         columns.add(new AbstractColumn<>(getHeaderTitle("")) {
 
             @Override
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId, IModel<DetectedPattern> rowModel) {
 
-                if (rowModel.getObject() != null && rowModel.getObject() != null) {
-                    DetectedPattern pattern = rowModel.getObject();
-                    double reductionFactorConfidence = pattern.getReductionFactorConfidence();
-                    String formattedReductionFactorConfidence = String.format("%.2f", reductionFactorConfidence);
-                    double metric = pattern.getMetric();
-                    String formattedMetric = String.format("%.2f", metric);
+                IconWithLabel icon = buildReductionPanel(componentId, rowModel, allUserOwnedRoleAssignments);
 
-                    IconWithLabel icon = new IconWithLabel(componentId, Model.of(formattedReductionFactorConfidence + "% ")) {
-                        @Contract(pure = true)
-                        @Override
-                        public @NotNull String getIconCssClass() {
-                            return "fa fa-arrow-down";
-                        }
-
-                        @Override
-                        protected @NotNull Component getSubComponent(String id) {
-                            Label label = new Label(id, Model.of("(" + formattedMetric + ")"));
-                            label.add(AttributeAppender.append("class", "text-muted"));
-                            return label;
-                        }
-                    };
-
-                    item.add(icon);
-                }
+                item.add(icon);
             }
 
             @Override
@@ -364,66 +331,88 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
                     IModel<DetectedPattern> rowModel) {
 
-                if (rowModel.getObject() == null || rowModel.getObject() == null) {
+                if (rowModel.getObject() == null || rowModel.getObject().getUsers() == null) {
                     item.add(new EmptyPanel(componentId));
                     return;
                 }
-
                 DetectedPattern pattern = rowModel.getObject();
-                if (pattern == null || pattern.getRoles() == null || pattern.getUsers() == null) {
-                    item.add(new EmptyPanel(componentId));
-                    return;
-                }
+                Set<String> users = pattern.getUsers();
+                IModel<String> userObjectCount = Model.of(String.valueOf(users.size()));
 
-                IModel<String> roleObjectCount = Model.of(String.valueOf(pattern.getRoles().size()));
-                IModel<String> userObjectCount = Model.of(String.valueOf(pattern.getUsers().size()));
-
-                RoleAnalysisClusterOccupationPanel occupationPanel = new RoleAnalysisClusterOccupationPanel(componentId) {
-                    @Contract("_ -> new")
+                IconWithLabel components = new IconWithLabel(componentId, userObjectCount) {
+                    @Contract(pure = true)
                     @Override
-                    public @NotNull Component createFirstPanel(String idFirstPanel) {
-                        return new IconWithLabel(idFirstPanel, userObjectCount) {
-                            @Override
-                            public String getIconCssClass() {
-                                return "fa fa-user object-user-color";
-                            }
-                        };
-                    }
-
-                    @Contract("_ -> new")
-                    @Override
-                    public @NotNull Component createSecondPanel(String idSecondPanel) {
-                        return new IconWithLabel(idSecondPanel, roleObjectCount) {
-                            @Override
-                            public String getIconCssClass() {
-                                return "fe fe-role object-role-color";
-                            }
-                        };
+                    public @NotNull String getIconCssClass() {
+                        return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
                     }
 
                     @Override
-                    public @NotNull Component createSeparatorPanel(String idSeparatorPanel) {
-                        Label separator = new Label(idSeparatorPanel, "");
-                        separator.add(AttributeModifier.replace("class",
-                                "d-flex align-items-center gap-3 fa-solid fa-grip-lines-vertical"));
-                        separator.setOutputMarkupId(true);
-                        add(separator);
-                        return separator;
+                    protected @NotNull String getComponentCssClass() {
+                        return super.getComponentCssClass() + TEXT_MUTED;
                     }
                 };
 
-                occupationPanel.setOutputMarkupId(true);
-                item.add(occupationPanel);
-
+                components.setOutputMarkupId(true);
+                item.add(components);
             }
 
             @Override
             public Component getHeader(String componentId) {
                 return new LabelWithHelpPanel(componentId,
-                        createStringResource("RoleAnalysisCluster.table.header.cluster.occupation")) {
+                        createStringResource("RoleAnalysis.tile.panel.users")) {
                     @Override
                     protected IModel<String> getHelpModel() {
-                        return createStringResource("RoleAnalysisCluster.table.header.cluster.attribute.statistic.help");
+                        return createStringResource("RoleAnalysisCluster.table.header.cluster.occupation.help");
+                    }
+                };
+            }
+
+        });
+
+        columns.add(new AbstractColumn<>(createStringResource("")) {
+
+            @Override
+            public boolean isSortable() {
+                return false;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<DetectedPattern>> item, String componentId,
+                    IModel<DetectedPattern> rowModel) {
+
+                if (rowModel.getObject() == null || rowModel.getObject().getRoles() == null) {
+                    item.add(new EmptyPanel(componentId));
+                    return;
+                }
+
+                DetectedPattern pattern = rowModel.getObject();
+                Set<String> roles = pattern.getRoles();
+                IModel<String> roleObjectCount = Model.of(String.valueOf(roles.size()));
+
+                IconWithLabel components = new IconWithLabel(componentId, roleObjectCount) {
+                    @Contract(pure = true)
+                    @Override
+                    public @NotNull String getIconCssClass() {
+                        return GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
+                    }
+
+                    @Override
+                    protected @NotNull String getComponentCssClass() {
+                        return super.getComponentCssClass() + TEXT_MUTED;
+                    }
+                };
+
+                components.setOutputMarkupId(true);
+                item.add(components);
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new LabelWithHelpPanel(componentId,
+                        createStringResource("RoleAnalysis.tile.panel.roles")) {
+                    @Override
+                    protected IModel<String> getHelpModel() {
+                        return createStringResource("RoleAnalysisCluster.table.header.cluster.occupation.help");
                     }
                 };
             }
@@ -448,23 +437,23 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
             public void populateItem(Item<ICellPopulator<DetectedPattern>> cellItem, String componentId,
                     IModel<DetectedPattern> model) {
                 String confidence = "";
-                if (model.getObject() != null && model.getObject() != null) {
-                    DetectedPattern pattern = model.getObject();
-                    confidence = String.format("%.2f", pattern.getItemsConfidence()) + "%";
-                } else {
+                if (model == null || model.getObject() == null) {
                     cellItem.add(new EmptyPanel(componentId));
+                    return;
                 }
 
-                CompositedIconBuilder iconBuilder = new CompositedIconBuilder()
-                        .setBasicIcon("fas fa-chart-bar", LayeredIconCssStyle.IN_ROW_STYLE);
+                DetectedPattern pattern = model.getObject();
+                confidence = String.format("%.2f", pattern.getItemsConfidence()) + "%";
 
-                AjaxCompositedIconButton objectButton = new AjaxCompositedIconButton(componentId, iconBuilder.build(),
-                        Model.of(confidence)) {
-
-                    @Serial private static final long serialVersionUID = 1L;
+                LinkIconLabelIconPanel components = new LinkIconLabelIconPanel(componentId, Model.of(confidence)) {
+                    @Contract(pure = true)
+                    @Override
+                    public @NotNull String getIconCssClass() {
+                        return "fa fa-chart-bar";
+                    }
 
                     @Override
-                    public void onClick(AjaxRequestTarget target) {
+                    protected void onClickPerform(AjaxRequestTarget target) {
                         if (model.getObject() != null) {
                             RoleAnalysisDetectedPatternDetailsPopup component = new RoleAnalysisDetectedPatternDetailsPopup(
                                     ((PageBase) getPage()).getMainPopupBodyId(),
@@ -472,13 +461,9 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                             ((PageBase) getPage()).showMainPopup(component, target);
                         }
                     }
-
                 };
-                objectButton.titleAsLabel(true);
-                objectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm "));
-                objectButton.add(AttributeAppender.append("style", "width:120px"));
 
-                cellItem.add(objectButton);
+                cellItem.add(components);
             }
 
             @Override
@@ -508,11 +493,11 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                     item.add(new EmptyPanel(componentId));
                 } else {
                     RepeatingView repeatingView = new RepeatingView(componentId);
-                    item.add(AttributeAppender.append("class", "d-flex align-items-center justify-content-center"));
+                    item.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center justify-content-center"));
                     item.add(repeatingView);
 
                     AjaxCompositedIconSubmitButton migrationButton = buildCandidateButton(repeatingView.newChildId(), rowModel);
-                    migrationButton.add(AttributeAppender.append("class", "mr-1"));
+                    migrationButton.add(AttributeModifier.append(CLASS_CSS, "mr-1"));
                     repeatingView.add(migrationButton);
 
                     AjaxCompositedIconSubmitButton exploreButton = buildExploreButton(repeatingView.newChildId(), rowModel);
@@ -531,13 +516,37 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                     }
                 };
                 display.setOutputMarkupId(true);
-                display.add(AttributeAppender.append("class", "d-flex align-items-center justify-content-center"));
+                display.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center justify-content-center"));
                 return display;
             }
 
         });
 
         return columns;
+    }
+
+    private static @NotNull IconWithLabel buildReductionPanel(String componentId, IModel<DetectedPattern> rowModel, int allUserOwnedRoleAssignments) {
+        return new IconWithLabel(componentId, extractSystemReductionMetric(rowModel, allUserOwnedRoleAssignments)) {
+            @Contract(pure = true)
+            @Override
+            public @NotNull String getIconCssClass() {
+                return "fa fa-arrow-down text-danger";
+            }
+
+            @Contract(pure = true)
+            @Override
+            protected @NotNull String getLabelComponentCssClass() {
+                return "ml-1 text-danger";
+            }
+
+            @Override
+            protected @NotNull Component getSubComponent(String id) {
+                Label label = new Label(id, extractReductionMetric(rowModel));
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
+                label.add(AttributeModifier.append(STYLE_CSS, "font-size: 14px"));
+                return label;
+            }
+        };
     }
 
     private static @NotNull IModel<String> extractProcessMode(@NotNull PageBase pageBase, @NotNull DetectedPattern pattern) {
@@ -569,7 +578,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
     @NotNull
     private AjaxCompositedIconSubmitButton buildCandidateButton(String componentId, IModel<DetectedPattern> rowModel) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_PLUS_CIRCLE, LayeredIconCssStyle.IN_ROW_STYLE);
+                GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
                 iconBuilder.build(),
                 createStringResource("RoleMining.button.title.candidate")) {
@@ -583,17 +592,22 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
 
                 DetectedPattern object = rowModel.getObject();
                 ObjectReferenceType clusterRef = object.getClusterRef();
+
                 @NotNull String status = roleAnalysisService
                         .recomputeAndResolveClusterOpStatus(clusterRef.getOid(), result, task, true, null);
+
+                PrismObject<RoleAnalysisClusterType> prismObjectCluster = roleAnalysisService
+                        .getClusterTypeObject(clusterRef.getOid(), task, result);
+                DetectedPattern pattern = rowModel.getObject();
+
+                if (prismObjectCluster == null || pattern == null) {
+                    return;
+                }
 
                 if (status.equals("processing")) {
                     warn("Couldn't start detection. Some process is already in progress.");
                     LOGGER.error("Couldn't start detection. Some process is already in progress.");
                     target.add(getFeedbackPanel());
-                    return;
-                }
-                DetectedPattern pattern = rowModel.getObject();
-                if (pattern == null) {
                     return;
                 }
 
@@ -626,13 +640,6 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
                     }
                 }
 
-                PrismObject<RoleAnalysisClusterType> prismObjectCluster = roleAnalysisService
-                        .getClusterTypeObject(clusterRef.getOid(), task, result);
-
-                if (prismObjectCluster == null) {
-                    return;
-                }
-
                 BusinessRoleApplicationDto operationData = new BusinessRoleApplicationDto(
                         prismObjectCluster, businessRole, roleApplicationDtos, candidateInducements);
                 operationData.setPatternId(patternId);
@@ -648,14 +655,14 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
         };
         migrationButton.titleAsLabel(true);
         migrationButton.setOutputMarkupId(true);
-        migrationButton.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
+        migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-success btn-sm"));
         return migrationButton;
     }
 
     @NotNull
     private AjaxCompositedIconSubmitButton buildExploreButton(String componentId, IModel<DetectedPattern> rowModel) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+                GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(componentId,
                 iconBuilder.build(),
                 createStringResource("RoleAnalysis.explore.button.title")) {
@@ -686,7 +693,7 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
         };
         migrationButton.titleAsLabel(true);
         migrationButton.setOutputMarkupId(true);
-        migrationButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-primary btn-sm"));
         return migrationButton;
     }
 
@@ -700,7 +707,38 @@ public class RoleAnalysisDetectedPatternTileTable extends BasePanel<String> {
     }
 
     protected void onRefresh(AjaxRequestTarget target) {
+        //override
+    }
 
+    private static @NotNull IModel<String> extractSystemReductionMetric(
+            @NotNull IModel<DetectedPattern> model,
+            int allUserOwnedRoleAssignments) {
+        DetectedPattern value = model.getObject();
+        if (value != null) {
+            Double detectedReductionMetric = value.getMetric();
+            double percentagePart = 0;
+            if (detectedReductionMetric != null && detectedReductionMetric != 0 && allUserOwnedRoleAssignments != 0) {
+                percentagePart = (detectedReductionMetric / allUserOwnedRoleAssignments) * 100;
+            }
+            String formattedReductionFactorConfidence = String.format("%.2f", percentagePart);
+            return Model.of(formattedReductionFactorConfidence + "%");
+        } else {
+            return Model.of("00.00%");
+        }
+    }
+
+    private static @NotNull IModel<String> extractReductionMetric(
+            @NotNull IModel<DetectedPattern> model) {
+        DetectedPattern value = model.getObject();
+        if (value != null) {
+            Double detectedReductionMetric = value.getMetric();
+            if (detectedReductionMetric == null) {
+                detectedReductionMetric = 0.0;
+            }
+            return Model.of("(" + detectedReductionMetric + ")");
+        } else {
+            return Model.of("(0)");
+        }
     }
 
 }

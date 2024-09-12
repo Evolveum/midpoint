@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -110,10 +112,6 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
                     return "col-12 p-0";
                 }
 
-                @Override
-                protected String getInfoBoxClass() {
-                    return super.getInfoBoxClass();
-                }
             };
             statisticsPanel.setOutputMarkupId(true);
             container.add(statisticsPanel);
@@ -248,7 +246,7 @@ public class DebugLabel extends BasePanel<PatternStatistics<?>> implements Popup
 
     private @NotNull AjaxCompositedIconSubmitButton buildExplorePatternButton(DetectedPattern pattern) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+                GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton explorePatternButton = new AjaxCompositedIconSubmitButton(
                 ID_EXPLORE_PATTERN_BUTTON,
                 iconBuilder.build(),

@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.model.api.context.ProjectionContextFilter;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -81,6 +83,11 @@ public class ConstructionTargetKey
         return tag;
     }
 
+    /** Return filter to match this key; `gone` and `order` are irrelevant, `tag` is relevant. */
+    public @NotNull ProjectionContextFilter asFilter() {
+        return new ProjectionContextFilter(resourceOid, kind, intent, tag);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -139,5 +146,9 @@ public class ConstructionTargetKey
 
     public ProjectionContextKey toProjectionContextKey() {
         return ProjectionContextKey.classified(resourceOid, kind, intent, tag);
+    }
+
+    public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
+        return ResourceObjectTypeIdentification.of(kind, intent);
     }
 }

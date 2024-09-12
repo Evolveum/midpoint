@@ -17,7 +17,6 @@ import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
@@ -108,20 +107,7 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
                     objects.add(getPageBase().getRoleAnalysisService()
                             .getFocusTypeObject(objectOid, task, task.getResult()));
                 }
-//                            if (isOutlierDetection() && cluster.getOid() != null && !elements.isEmpty()) {
-//
-//                                //TODO session option min members
-//
-//                                OutlierAnalyseActionDetailsPopupPanel detailsPanel = new OutlierAnalyseActionDetailsPopupPanel(
-//                                        ((PageBase) getPage()).getMainPopupBodyId(),
-//                                        Model.of("Analyzed members details panel"), elements.get(0), cluster.getOid(), 10) {
-//                                    @Override
-//                                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-//                                        super.onClose(ajaxRequestTarget);
-//                                    }
-//                                };
-//                                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
-//                            } else {
+
                 MembersDetailsPopupPanel detailsPanel = new MembersDetailsPopupPanel(
                         getPageBase().getMainPopupBodyId(),
                         createStringResource("RoleAnalysis.analyzed.members.details.panel"),
@@ -159,6 +145,8 @@ public abstract class RoleAnalysisMatrixColumn<A extends MiningBaseTypeChunk> ex
     }
 
     protected abstract void refreshTable(AjaxRequestTarget target);
+
+    protected abstract void refreshTableRows(AjaxRequestTarget target);
 
     protected abstract void setRelationSelected(boolean isRelationSelected);
 

@@ -107,7 +107,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
      * Basic method for creating new value for multivalue container.
      */
     protected final void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
-        newItemPerformed(null, target, relationSepc);
+        newItemPerformed(null, target, relationSepc, false);
     }
 
     /**
@@ -115,7 +115,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
      * but in new wrapper use prism value in parameter 'value'.
      * This method is usefully for duplication.
      */
-    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
 
     }
 
@@ -296,7 +296,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         }
         DuplicationProcessHelper.addDuplicationActionForContainer(
                 menuItems,
-                (value, target) -> newItemPerformed((PrismContainerValue<C>) value, target, null),
+                (value, target) -> newItemPerformed((PrismContainerValue<C>) value, target, null, true),
                 getPageBase());
     }
 

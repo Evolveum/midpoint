@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.model.impl.mining.RoleAnalysisServiceImpl.resolveJaccardCloseObjectResult;
 import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.prepareDetectionOptions;
 import static com.evolveum.midpoint.model.impl.mining.utils.RoleAnalysisAlgorithmUtils.resolveAttributeStatistics;
 
@@ -46,13 +47,13 @@ public class OutlierDetectionOutlineClusterModel {
     List<MiningRoleTypeChunk> miningRoleTypeChunks;
     boolean isSuitableForDetection;
     double minThreshold = 0.5;
+    double minThresholdForTotalOutlier = 0.5;
     ZScoreData zScoreData;
     MutableDouble usedFrequency;
     double similarityThreshold;
 
-    RoleAnalysisOutlierNoiseCategoryType noiseCategory = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
-    OutlierCategory outlierCategory = OutlierCategory.OUTER_OUTLIER;
-
+    OutlierNoiseCategoryType noiseCategory = OutlierNoiseCategoryType.OVERAL_NOISE;
+    OutlierClusterCategoryType outlierCategory = OutlierClusterCategoryType.OUTER_OUTLIER;
 
     public OutlierDetectionOutlineClusterModel(
             @NotNull RoleAnalysisService roleAnalysisService,
@@ -66,7 +67,7 @@ public class OutlierDetectionOutlineClusterModel {
 
         String description = analyzedObjectRef.getDescription();
         if (description != null && !description.equals("unknown")) {
-            noiseCategory = RoleAnalysisOutlierNoiseCategoryType.fromValue(description);
+            noiseCategory = OutlierNoiseCategoryType.fromValue(description);
         }
 
         prepareDetectionModel(roleAnalysisService, outlineModel, userAnalysisCache, analyzedObjectRef, task, result);
@@ -93,18 +94,16 @@ public class OutlierDetectionOutlineClusterModel {
         }
 
         List<String> jaccardCloseObject = prepareJaccardCloseObjects(roleAnalysisService,
-                memberOid,
+                analyzedObjectRef,
                 chunkMap,
-                usedFrequency,
                 outliersClusterMembers,
-                minThreshold,
                 minMembersCount,
                 task,
                 result);
         if (jaccardCloseObject == null || jaccardCloseObject.isEmpty()) {
             this.isSuitableForDetection = false;
             return;
-        }else {
+        } else {
             this.isSuitableForDetection = true;
         }
         RoleAnalysisSessionType session = outlineModel.getSession();
@@ -116,23 +115,23 @@ public class OutlierDetectionOutlineClusterModel {
                 task,
                 result);
 
-        List<MiningRoleTypeChunk> miningRoleTypeChunks = tempMiningOperationChunk.getMiningRoleTypeChunks(
+        List<MiningRoleTypeChunk> tmpMiningRoleTypeChunks = tempMiningOperationChunk.getMiningRoleTypeChunks(
                 RoleAnalysisSortMode.NONE);
 
-        List<MiningUserTypeChunk> miningUserTypeChunks = tempMiningOperationChunk.getMiningUserTypeChunks(
+        List<MiningUserTypeChunk> tmpMiningUserTypeChunks = tempMiningOperationChunk.getMiningUserTypeChunks(
                 RoleAnalysisSortMode.NONE);
 
-        this.miningRoleTypeChunks = miningRoleTypeChunks;
+        this.miningRoleTypeChunks = tmpMiningRoleTypeChunks;
 
         List<RoleAnalysisAttributeDef> userAnalysisAttributeDef = outlineModel.getUserAnalysisAttributeDef();
         List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef = outlineModel.getRoleAnalysisAttributeDef();
-        processClusterAttributeAnalysis(roleAnalysisService, tempCluster, miningRoleTypeChunks,
+        processClusterAttributeAnalysis(roleAnalysisService, tempCluster,
                 userAnalysisAttributeDef, roleAnalysisAttributeDef, userAnalysisCache, task, result);
 
         MutableDouble clusterDensity = new MutableDouble(0);
         MutableDouble clusterRolesCount = new MutableDouble(0);
         calculateTemporaryClusterDensityAndRolesCount(clusterDensity, clusterRolesCount,
-                miningRoleTypeChunks, miningUserTypeChunks);
+                tmpMiningRoleTypeChunks, tmpMiningUserTypeChunks);
         double density = clusterDensity.doubleValue();
         int countOfRoles = clusterRolesCount.intValue();
         AnalysisClusterStatisticType clusterStatistics = tempCluster.getClusterStatistics();
@@ -143,29 +142,45 @@ public class OutlierDetectionOutlineClusterModel {
         RangeType frequencyRange = detectionOption.getFrequencyRange();
         Double sensitivity = detectionOption.getSensitivity();
         this.zScoreData = roleAnalysisService.resolveOutliersZScore(
-                miningRoleTypeChunks, frequencyRange, sensitivity);
+                tmpMiningRoleTypeChunks, frequencyRange, sensitivity);
         this.similarityThreshold = usedFrequency.doubleValue() * 100;
     }
 
     @Nullable
     private List<String> prepareJaccardCloseObjects(
             @NotNull RoleAnalysisService roleAnalysisService,
-            @NotNull String memberOid,
+            @NotNull ObjectReferenceType analyzedObjectRef,
             @NotNull ListMultimap<List<String>, String> chunkMap,
-            @NotNull MutableDouble usedFrequency,
             @NotNull List<String> outliersMembers,
-            double minThreshold,
             @NotNull Integer minMembersCount,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        List<String> jaccardCloseObject = roleAnalysisService.findJaccardCloseObject(
+        String memberOid = analyzedObjectRef.getOid();
+        ListMultimap<Double, String> similarityStats = roleAnalysisService.findJaccardCloseObject(
                 memberOid,
                 chunkMap,
                 usedFrequency,
-                outliersMembers, minThreshold, minMembersCount, task,
+                outliersMembers,
+                minThresholdForTotalOutlier,
+                minMembersCount,
+                task,
                 result);
 
-        if (jaccardCloseObject.isEmpty()) {
+        List<String> jaccardCloseObject = resolveJaccardCloseObjectResult(minMembersCount, usedFrequency, similarityStats);
+
+        if (jaccardCloseObject.isEmpty() || usedFrequency.doubleValue() < minThreshold) {
+//            //TODO total outlier?
+//            List<String> jaccardCloseObjectTotalOutlier = resolveJaccardCloseObjectResult(1, usedFrequency, similarityStats);
+//            if (jaccardCloseObjectTotalOutlier.isEmpty() || jaccardCloseObjectTotalOutlier.get(0).equals(memberOid)) {
+//                PrismObject<UserType> userTypeObject = roleAnalysisService.getUserTypeObject(memberOid, task, result);
+//                if (userTypeObject == null) {
+//                    return null;
+//                }
+//
+//                RoleAnalysisOutlierPartitionType partition = prepareTotalOutlierPartition(clusterRef, sessionRef);
+//
+//                importOrExtendOutlier(roleAnalysisService, memberOid, partition, task, result);
+//            }
             return null;
         }
 
@@ -210,13 +225,12 @@ public class OutlierDetectionOutlineClusterModel {
         }
 
         return roleAnalysisService.prepareBasicChunkStructure(
-                tempCluster, displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
+                tempCluster, null, displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
     }
 
     private void processClusterAttributeAnalysis(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisClusterType temporaryCluster,
-            @NotNull List<MiningRoleTypeChunk> miningRoleTypeChunks,
             @Nullable List<RoleAnalysisAttributeDef> userAnalysisAttributeDef,
             @Nullable List<RoleAnalysisAttributeDef> roleAnalysisAttributeDef,
             @NotNull AttributeAnalysisCache userAnalysisCache,
@@ -315,11 +329,11 @@ public class OutlierDetectionOutlineClusterModel {
         return similarityThreshold;
     }
 
-    public RoleAnalysisOutlierNoiseCategoryType getNoiseCategory() {
+    public OutlierNoiseCategoryType getNoiseCategory() {
         return noiseCategory;
     }
 
-    public OutlierCategory getOutlierCategory() {
+    public OutlierClusterCategoryType getOutlierCategory() {
         return outlierCategory;
     }
 }

@@ -11,7 +11,12 @@
     <name>Import task</name>
     <archetypePolicy>
         <display>
-            <label>Import task</label>
+            <label>
+                <orig>Import task</orig>
+                <translation>
+                    <key>ImportTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Import tasks</orig>
                 <translation>

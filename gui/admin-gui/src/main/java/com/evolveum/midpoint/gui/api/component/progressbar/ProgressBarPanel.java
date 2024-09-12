@@ -169,7 +169,7 @@ public class ProgressBarPanel extends BasePanel<List<ProgressBar>> {
                 icon.add(new VisibleBehaviour(() -> item.getModelObject().getState() != null));
                 item.add(icon);
 
-                Label legendValue = new Label(ID_LEGEND_ITEM_VALUE, item.getModelObject().getValue());
+                Label legendValue = new Label(ID_LEGEND_ITEM_VALUE, getFormattedProgressBarValueModel(item.getModelObject()));
                 item.add(legendValue);
             }
 
@@ -183,6 +183,10 @@ public class ProgressBarPanel extends BasePanel<List<ProgressBar>> {
         };
         legendItems.setOutputMarkupId(true);
         return legendItems;
+    }
+
+    protected IModel<String> getFormattedProgressBarValueModel(ProgressBar progressBar) {
+        return () -> progressBar.getValue() + "";
     }
 
     private IModel<String> getTotalValueModel() {

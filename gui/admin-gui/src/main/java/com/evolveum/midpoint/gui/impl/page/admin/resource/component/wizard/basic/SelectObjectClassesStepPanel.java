@@ -57,6 +57,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -406,7 +407,7 @@ public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<Resour
         return PANEL_TYPE;
     }
 
-    private class SelectedClassWrapper {
+    private class SelectedClassWrapper implements Serializable {
 
         private final boolean enabled;
         private final boolean canBeSaved;

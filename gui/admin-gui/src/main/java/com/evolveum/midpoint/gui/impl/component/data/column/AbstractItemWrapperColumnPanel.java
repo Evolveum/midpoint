@@ -61,7 +61,7 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
 
             @Override
             protected void populateItem(ListItem<VW> item) {
-                populate(item);
+                populate(ID_VALUE, item);
             }
         };
         listView.setReuseItems(true);
@@ -70,7 +70,7 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
         add(listView);
     }
 
-    protected void populate(ListItem<VW> item) {
+    protected void populate(String id, ListItem<VW> item) {
         if (item.getModelObject() != null && item.getModelObject().getParent() != null) {
             item.getModelObject().getParent().revive(getPageBase().getPrismContext());
         }

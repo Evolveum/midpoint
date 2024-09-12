@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.*;
 
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import jakarta.xml.bind.JAXBElement;
@@ -928,7 +929,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertAdministrativeStatusDisabled(userJack);
         assertDummyEnabled("jack");
-        assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
+        if (InternalsConfig.isShadowCachingOnByDefault()) {
+            // The outbound administrativeStatus mapping is STRONG, so the primary delta gets superseded by the computed value.
+            assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
+        } else {
+            // When not caching, a bug in the code prevents that from happening. See MID-9955.
+            assertDummyEnabled(RESOURCE_DUMMY_RED_NAME, "jack");
+        }
     }
 
     /**
@@ -1234,7 +1241,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         // WHEN
         when();
 
-        modelService.executeChanges(MiscSchemaUtil.createCollection(dummyDelta, yellowDelta), null, task, result);
+        modelService.executeChanges(List.of(dummyDelta, yellowDelta), null, task, result);
 
         // THEN
         then();
@@ -1244,7 +1251,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("User after change execution", userJack);
         assertUserJack(userJack);
 
-        checkAdminStatusFor15x(userJack, true, false, false);
+        // With caching disabled, MID-9955 causes that primary delta (-> disable) overrules the strong mapping.
+        // With caching enabled, the bug does not manifest itself. Just as in test130.
+        boolean expectedStatusOnYellow = InternalsConfig.isShadowCachingOnByDefault();
+        checkAdminStatusFor15x(userJack, true, false, expectedStatusOnYellow);
 
         // WHEN (2) - now let's do a reconciliation on both resources
         when();
@@ -1578,9 +1588,11 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
         dummyAccount.setLockoutStatus(true);
 
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
+
         // WHEN
-        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result,
-                LockoutStatusType.NORMAL);
+        modifyUserReplace(
+                USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result, LockoutStatusType.NORMAL);
 
         // THEN
         result.computeStatus();
@@ -2101,8 +2113,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
-                SchemaConstants.LIFECYCLE_ACTIVE);
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_ACTIVE);
 
         // THEN
         then();
@@ -2113,7 +2124,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("user after", userAfter);
         assertUser(userAfter, "user after")
                 .activation()
-                .assertNoAdministrativeStatus()
+                .assertAdministrativeStatus( // When caching is on, more inbounds are evaluated
+                        InternalsConfig.isShadowCachingOnByDefault() ? ActivationStatusType.ENABLED : null)
                 .assertEffectiveStatus(ActivationStatusType.ENABLED);
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
@@ -2143,13 +2155,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         assertUserBefore(USER_RAPP_OID)
                 .activation()
-                .assertNoAdministrativeStatus()
+                .assertAdministrativeStatus( // When caching is on, more inbounds are evaluated
+                        InternalsConfig.isShadowCachingOnByDefault() ? ActivationStatusType.ENABLED : null)
                 .assertEffectiveStatus(ActivationStatusType.ENABLED);
 
         // WHEN
         when();
-        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result,
-                SchemaConstants.LIFECYCLE_SUSPENDED);
+        modifyUserReplace(USER_RAPP_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_SUSPENDED);
 
         // THEN
         then();
@@ -2160,12 +2172,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         display("user after", userAfter);
         assertUser(userAfter, "user after")
                 .activation()
-                // DISABLED administrative status gets propagated here from inbound mapping on dummy resource
-                // This is not ideal configuration ... it dates back to early midpoint.
-                // But we need to live with it ... for now.
-                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                // For not-caching variant:
+                //   DISABLED administrative status gets propagated here from weak inbound mapping on dummy resource
+                //   This is not ideal configuration ... it dates back to early midpoint.
+                //   But we need to live with it ... for now.
+                //
+                // For caching variant:
+                //   The status is ENABLED, so it's not touched by the weak inbound mapping.
+                .assertAdministrativeStatus(
+                        InternalsConfig.isShadowCachingOnByDefault() ?
+                                ActivationStatusType.ENABLED : ActivationStatusType.DISABLED)
                 .assertEffectiveStatus(ActivationStatusType.DISABLED);
-
 
         assertAssignedRoles(userAfter, ROLE_CARIBBEAN_PIRATE_OID, ROLE_CAPTAIN_OID);
         assertAssignments(userAfter, 2);

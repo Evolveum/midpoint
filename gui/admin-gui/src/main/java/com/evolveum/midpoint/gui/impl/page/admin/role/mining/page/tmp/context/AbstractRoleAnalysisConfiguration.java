@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisConfigurator {
 
@@ -100,12 +100,41 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
     protected AbstractAnalysisSessionOptionType getPrimaryOptionContainerFormModel() {
         if (getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
             return object.getRoleModeOptions();
+        } else {
+            return object.getUserModeOptions();
         }
-        return object.getUserModeOptions();
+//            return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
+//                    ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
+//        }
+//        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
+//                ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
     }
 
+//    protected IModel<? extends PrismContainerWrapper<RoleAnalysisDetectionOptionType>> getDetectionOptionFormModel(
+//            @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel
+//    ) {
+//        return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
+//                ItemPath.create(RoleAnalysisSessionType.F_DEFAULT_DETECTION_OPTION));
+//    }
+//
+//    private void setNewPrimaryOptionValue(@NotNull PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType,
+//            ItemName itemName, Object realValue) throws SchemaException {
+//        sessionType.findProperty(itemName).getValue().setRealValue(realValue);
+//    }
+//
+//    private void setNewDetectionOptionValue(@NotNull PrismContainerValueWrapper<RoleAnalysisDetectionOptionType> sessionType,
+//            ItemName itemName, Object realValue) throws SchemaException {
+//
+//        if (sessionType.findProperty(itemName) != null) {
+//            sessionType.findProperty(itemName).getValue().setRealValue(realValue);
+//        } else {
+//            LOGGER.warn("Property not found: " + itemName);
+//        }
+//        return object.getUserModeOptions();
+//    }
+
     public void updatePrimaryOptions(
-            QueryType query,
+            SearchFilterType filter,
             boolean isIndirect,
             RangeType propertiesRange,
             AnalysisAttributeSettingType analysisAttributeSetting,
@@ -125,8 +154,8 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
                     .minMembersCount(minMembersCount)
                     .minPropertiesOverlap(minPropertiesOverlap)
                     .detailedAnalysis(detailedAnalysis);
-            if (query != null) {
-                sessionOptions.query(query.getFilter());
+            if (filter != null) {
+                sessionOptions.query(filter);
             }
 //            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_IS_INDIRECT, isIndirect);
 //            setNewPrimaryOptionValue(primaryOptions, AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE, propertiesRange);

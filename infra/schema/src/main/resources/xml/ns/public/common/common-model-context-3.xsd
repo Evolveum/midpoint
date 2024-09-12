@@ -537,6 +537,7 @@
         <xsd:sequence>
             <xsd:element name="objectDeltaOperation" type="c:ObjectDeltaOperationType"/>
             <xsd:element name="audited" type="xsd:boolean"/>
+            <xsd:element name="wave" type="xsd:int" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

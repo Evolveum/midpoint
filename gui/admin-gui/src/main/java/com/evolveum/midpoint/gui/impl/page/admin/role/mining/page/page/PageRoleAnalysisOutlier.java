@@ -7,11 +7,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import java.io.Serial;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -28,10 +28,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
-import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
@@ -39,12 +35,12 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisOutlierSummaryPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierType;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -64,7 +60,19 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
 
     public static final String PARAM_IS_WIZARD = "isWizard";
     boolean isWizardPanel = false;
-    private static final Trace LOGGER = TraceManager.getTrace(RoleAnalysisOutlierType.class);
+
+    public PageRoleAnalysisOutlier() {
+        super();
+    }
+
+    public PageRoleAnalysisOutlier(PageParameters params) {
+        super(params);
+    }
+
+    public PageRoleAnalysisOutlier(PrismObject<RoleAnalysisOutlierType> outlier) {
+        super(outlier);
+
+    }
 
     public boolean isWizardPanel() {
         StringValue stringValue = getPageParameters().get(PARAM_IS_WIZARD);
@@ -92,9 +100,9 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
     @Override
     public void addAdditionalButtons(RepeatingView repeatingView) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_ICON_RECYCLE, LayeredIconCssStyle.IN_ROW_STYLE);
+                GuiStyleConstants.CLASS_ICON_RECYCLE, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton recertifyButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
-                createStringResource("PageRoleAnalysisOutlier.button.reCertify.outlier")){
+                createStringResource("PageRoleAnalysisOutlier.button.reCertify.outlier")) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -109,34 +117,13 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
         };
         recertifyButton.titleAsLabel(true);
         recertifyButton.setOutputMarkupId(true);
-        recertifyButton.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        recertifyButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-primary"));
         repeatingView.add(recertifyButton);
 
         Form<?> form = recertifyButton.findParent(Form.class);
         if (form != null) {
             form.setDefaultButton(recertifyButton);
         }
-    }
-    public PageRoleAnalysisOutlier() {
-        super();
-    }
-
-    public PageRoleAnalysisOutlier(PageParameters params) {
-        super(params);
-    }
-
-    public PageRoleAnalysisOutlier(PrismObject<RoleAnalysisOutlierType> outlier) {
-        super(outlier);
-
-    }
-    @Override
-    public void savePerformed(AjaxRequestTarget target) {
-        super.savePerformed(target);
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
     }
 
     @Override
@@ -163,35 +150,14 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
         return createStringResource("RoleMining.page.outlier.title");
     }
 
+    @Override
     protected boolean canShowWizard() {
         return isWizardPanel();
     }
 
     @Override
-    protected AssignmentHolderDetailsModel<RoleAnalysisOutlierType> createObjectDetailsModels(PrismObject<RoleAnalysisOutlierType> object) {
-        return super.createObjectDetailsModels(object);
-    }
-
-    @Override
     protected void onBackPerform(AjaxRequestTarget target) {
         ((PageBase) getPage()).navigateToNext(PageRoleAnalysis.class);
-    }
-
-    private DetailsFragment createRoleWizardFragment(Class<? extends AbstractWizardPanel> clazz) {
-
-        return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRoleAnalysisOutlier.this) {
-            @Override
-            protected void initFragmentLayout() {
-                try {
-                    Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
-                    AbstractWizardPanel wizard = constructor.newInstance(ID_TEMPLATE, createObjectWizardPanelHelper());
-                    add(wizard);
-                } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
-                        InvocationTargetException ignored) {
-                    LOGGER.error("Couldn't create wizard panel");
-                }
-            }
-        };
     }
 
     @Override
@@ -206,7 +172,7 @@ public class PageRoleAnalysisOutlier extends PageAssignmentHolderDetails<RoleAna
 
     @Override
     protected InlineOperationalButtonsPanel<RoleAnalysisOutlierType> createInlineButtonsPanel(String idButtons, LoadableModel<PrismObjectWrapper<RoleAnalysisOutlierType>> objectWrapperModel) {
-        return new RoleAnalysisOutlierOperationButtonPanel(idButtons, objectWrapperModel){
+        return new RoleAnalysisOutlierOperationButtonPanel(idButtons, objectWrapperModel) {
 
             @Override
             protected void submitPerformed(AjaxRequestTarget target) {

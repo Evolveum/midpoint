@@ -326,6 +326,28 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         shadowOperatorsOid = operatorsAsserter.singleLink().getOid();
     }
 
+    @Test
+    public void test010Sanity() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        var resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_HR.oid, null, task, result);
+        displayDumpable("HR resource", resource);
+
+        // Hacky code but it's just a sanity check
+        var contractsInboundExpression = resource.asObjectable()
+                .getSchemaHandling()
+                .getAssociationType().get(0)
+                .getSubject().getAssociation().getInbound().get(0)
+                .getExpression();
+        var evaluator = (AssociationSynchronizationExpressionEvaluatorType)
+                contractsInboundExpression.getExpressionEvaluator().get(0).getValue();
+        var pcvId = evaluator.getAttribute().get(0).getId();
+        assertThat(pcvId)
+                .withFailMessage("PCV IDs are not set in the expression evaluators")
+                .isNotNull();
+    }
+
     /** Checks that simply getting the account gets the correct results. A prerequisite for the following test. */
     @Test
     public void test100GetHrPerson() throws Exception {

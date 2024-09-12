@@ -7,11 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.shadow;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
 import com.evolveum.midpoint.gui.impl.component.table.ListItemWithPanelForItemPanel;
@@ -36,6 +38,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -109,7 +112,7 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
                     }
 
                     @Override
-                    protected void newItemPerformed(PrismContainerValue<ShadowAssociationValueType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+                    protected void newItemPerformed(PrismContainerValue<ShadowAssociationValueType> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
                         PrismContainerWrapper<ShadowAssociationValueType> container = getContainerModel().getObject();
                         PrismContainerValue<ShadowAssociationValueType> newValue = value;
                         if (newValue == null) {
@@ -152,7 +155,7 @@ public class ShadowAssociationsTable extends ListItemWithPanelForItemPanel<Shado
                             return columns;
                         }
 
-                        columns.add(new PrismContainerWrapperColumn<>(getContainerModel(), ShadowAssociationValueType.F_OBJECTS, getPageBase()));
+                        columns.add(new ShadowAssociationObjectsColumn(getContainerModel(), getPageBase()));
 
                         ResourceType resource = resourceModel.getObject();
                         if (resource != null && resource.getSchemaHandling() != null) {

@@ -108,7 +108,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
 
                 LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
                 RoleAnalysisOptionType option = resolveSessionAnalysisOption(objectWrapperModel);
-                RoleAnalysisCategoryType analysisCategory = option.getAnalysisCategory();
+                RoleAnalysisProcedureType procedureType = option.getAnalysisProcedureType();
 
                 return wrapper -> {
                     ItemName itemName = wrapper.getItemName();
@@ -116,7 +116,7 @@ public class RoleAnalysisReconfigureSessionPopupPanel
                     if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
                             || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) {
 
-                        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                        if (procedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                             return ItemVisibility.HIDDEN;
                         }
                     }
@@ -182,8 +182,8 @@ public class RoleAnalysisReconfigureSessionPopupPanel
 
                     if (itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)) {
                         LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getObjectWrapperModel();
-                        RoleAnalysisOptionType processModeObject = resolveSessionAnalysisOption(objectWrapperModel);
-                        if (processModeObject.getAnalysisCategory() != RoleAnalysisCategoryType.OUTLIERS) {
+                        RoleAnalysisOptionType analysisOption = resolveSessionAnalysisOption(objectWrapperModel);
+                        if (analysisOption.getAnalysisProcedureType() != RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                             return ItemVisibility.HIDDEN;
                         }
                         return ItemVisibility.AUTO;

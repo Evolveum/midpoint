@@ -87,11 +87,11 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         RoleAnalysisIdentifyWidgetPanel distributionPanel = new RoleAnalysisIdentifyWidgetPanel(ID_DISTRIBUTION_PANEL,
                 createStringResource("Distribution.access.title"), getModelDistribution()) {
 
-            @Contract(pure = true)
+            /*@Contract(pure = true)
             @Override
             protected @NotNull String getBodyHeaderPanelStyle() {
                 return "height:90px;";
-            }
+            }*/
 
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
@@ -143,17 +143,20 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                                 return new IconWithLabel(id, Model.of("Roles")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-success fa-2xs";
+                                        return "fa fa-circle text-success fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-success";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -162,8 +165,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalRolesInSystem);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeAppender.append("style", "font-size:18px"));
                                 return label;
                             }
                         };
@@ -177,17 +180,20 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                                 return new IconWithLabel(id, Model.of("Users")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-danger fa-2xs";
+                                        return "fa fa-circle text-danger fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-danger";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -196,8 +202,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalUsersInSystem);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeAppender.append("style", "font-size:18px"));
                                 return label;
                             }
                         };
@@ -210,7 +216,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                 };
 
                 panel.setOutputMarkupId(true);
-                panel.add(AttributeAppender.append("class", "col-12"));
+                panel.add(AttributeAppender.append("class", "col-12 p-0"));
                 return panel;
             }
 
@@ -247,11 +253,11 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
         RoleAnalysisIdentifyWidgetPanel patternPanel = new RoleAnalysisIdentifyWidgetPanel(ID_PATTERN_PANEL,
                 createStringResource("Pattern.suggestions.title"), getModelPatterns()) {
 
-            @Contract(pure = true)
+            /*@Contract(pure = true)
             @Override
             protected @NotNull String getBodyHeaderPanelStyle() {
                 return "height:90px;";
-            }
+            }*/
 
             @Override
             protected @NotNull Component getBodyHeaderPanel(String id) {
@@ -293,17 +299,20 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                                 return new IconWithLabel(id, Model.of("Resolved")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-success fa-2xs";
+                                        return "fa fa-circle text-success fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-success";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -312,8 +321,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, resolved);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeAppender.append("style", "font-size:18px"));
                                 return label;
                             }
                         };
@@ -327,17 +336,20 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                                 return new IconWithLabel(id, Model.of("In progress")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-warning fa-2xs";
+                                        return "fa fa-circle text-warning fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-warning";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -346,8 +358,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, inProgress);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeAppender.append("style", "font-size:18px"));
                                 return label;
                             }
                         };
@@ -360,7 +372,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
                 };
 
                 panel.setOutputMarkupId(true);
-                panel.add(AttributeAppender.append("class", "col-12"));
+                panel.add(AttributeAppender.append("class", "col-12 p-0"));
                 return panel;
             }
 
@@ -383,11 +395,11 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
 
         RoleAnalysisIdentifyWidgetPanel outlierPanel = new RoleAnalysisIdentifyWidgetPanel(ID_OUTLIER_PANEL,
                 createStringResource("Outlier.suggestions.title"), getModelOutliers()){
-            @Contract(pure = true)
+            /*@Contract(pure = true)
             @Override
             protected @NotNull String getBodyHeaderPanelStyle() {
                 return "height:90px;";
-            }
+            }*/
         };
         outlierPanel.setOutputMarkupId(true);
         add(outlierPanel);
@@ -454,7 +466,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             @Override
             public Component createScoreComponent(String id) {
                 Component valueComponent = super.createScoreComponent(id);
-                valueComponent.add(AttributeAppender.replace("class", "text-dark h5 m-0"));
+                valueComponent.add(AttributeAppender.replace("class", "txt-default text-lg m-0 pr-2 text-right"));
+                valueComponent.add(AttributeAppender.replace("style", "flex-basis:100%;"));
                 return valueComponent;
             }
 
@@ -462,7 +475,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             public Component createTitleComponent(String id) {
                 Label linkPanel = new Label(id, Model.of("Role to user assignment"));
                 linkPanel.setOutputMarkupId(true);
-                linkPanel.add(AttributeAppender.append("class", "text-dark"));
+                linkPanel.add(AttributeAppender.append("class", "txt-default"));
                 return linkPanel;
             }
 
@@ -496,7 +509,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             @Override
             public Component createScoreComponent(String id) {
                 Component valueComponent = super.createScoreComponent(id);
-                valueComponent.add(AttributeAppender.replace("class", "text-dark h5 m-0"));
+                valueComponent.add(AttributeAppender.replace("class", "txt-default text-lg m-0 pr-2 text-right"));
+                valueComponent.add(AttributeAppender.replace("style", "flex-basis:100%;"));
                 return valueComponent;
             }
 
@@ -504,7 +518,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             public Component createTitleComponent(String id) {
                 Label linkPanel = new Label(id, Model.of("Average assignment"));
                 linkPanel.setOutputMarkupId(true);
-                linkPanel.add(AttributeAppender.append("class", "text-dark"));
+                linkPanel.add(AttributeAppender.append("class", "txt-default"));
                 return linkPanel;
             }
 
@@ -538,7 +552,8 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             @Override
             public Component createScoreComponent(String id) {
                 Component valueComponent = super.createScoreComponent(id);
-                valueComponent.add(AttributeAppender.replace("class", "text-dark h5 m-0"));
+                valueComponent.add(AttributeAppender.replace("class", "txt-default text-lg m-0 pr-2 text-right"));
+                valueComponent.add(AttributeAppender.replace("style", "flex-basis:100%;"));
                 return valueComponent;
             }
 
@@ -546,7 +561,7 @@ public class RoleAnalysisInfoPanel extends BasePanel<String> {
             public Component createTitleComponent(String id) {
                 Label linkPanel = new Label(id, Model.of("Applied direct roles"));
                 linkPanel.setOutputMarkupId(true);
-                linkPanel.add(AttributeAppender.append("class", "text-dark"));
+                linkPanel.add(AttributeAppender.append("class", "txt-default"));
                 return linkPanel;
             }
 

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -1286,62 +1287,68 @@ public class ShadowUtil {
         return -1;
     }
 
-    public static boolean isActivationCached(
+    public static @NotNull ItemCachedStatus getActivationCachedStatus(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        return isShadowFresh(shadow, definition, now)
-                && definition.isActivationCached();
+        return getShadowCachedStatus(shadow, definition, now)
+                .item(() -> definition.isActivationCached());
     }
 
-    public static boolean isPasswordValueLoaded(
+    public static @NotNull ItemCachedStatus isPasswordValueLoaded(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        return isShadowFresh(shadow, definition, now)
-                && definition.areCredentialsCached();
+        return getShadowCachedStatus(shadow, definition, now)
+                .item(() -> definition.areCredentialsCached());
     }
 
-    public static boolean isAuxiliaryObjectClassPropertyLoaded(
+    public static @NotNull ItemCachedStatus isAuxiliaryObjectClassPropertyLoaded(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        return isShadowFresh(shadow, definition, now)
-                && definition.isAuxiliaryObjectClassPropertyCached();
+        return getShadowCachedStatus(shadow, definition, now)
+                .item(() -> definition.isAuxiliaryObjectClassPropertyCached());
     }
 
-    public static boolean isAttributeLoaded(
+    public static @NotNull ItemCachedStatus isAttributeLoaded(
             @NotNull ItemName attrName,
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) throws SchemaException {
-        if (!isShadowFresh(shadow, definition, now)) {
-            return false;
+        var shadowStatus = getShadowCachedStatus(shadow, definition, now);
+        if (!shadowStatus.isFresh()) {
+            return shadowStatus;
+        } else {
+            var cached = definition
+                    .findAttributeDefinitionRequired(attrName)
+                    .isEffectivelyCached(definition);
+            return ItemCachedStatus.item(cached);
         }
-        return definition
-                .findAttributeDefinitionRequired(attrName)
-                .isEffectivelyCached(definition);
     }
 
-    public static boolean isAssociationLoaded(
+    public static @NotNull ItemCachedStatus isAssociationLoaded(
             @NotNull ItemName assocName,
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) throws SchemaException {
-        if (!isShadowFresh(shadow, definition, now)) {
-            return false;
+        var shadowStatus = getShadowCachedStatus(shadow, definition, now);
+        if (!shadowStatus.isFresh()) {
+            return shadowStatus;
+        } else {
+            var cached = definition
+                    .findAssociationDefinitionRequired(assocName)
+                    .getReferenceAttributeDefinition()
+                    .isEffectivelyCached(definition);
+            return ItemCachedStatus.item(cached);
         }
-        return definition
-                .findAssociationDefinitionRequired(assocName)
-                .getReferenceAttributeDefinition()
-                .isEffectivelyCached(definition);
     }
 
     public static Collection<QName> getCachedAttributesNames(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull CompositeObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
-        if (!isShadowFresh(shadow, definition, now)) {
+        if (!getShadowCachedStatus(shadow, definition, now).isFresh()) {
             return Set.of(); // TODO or should we provide at least the identifiers?
         }
         return definition.getAttributeDefinitions().stream()
@@ -1356,43 +1363,71 @@ public class ShadowUtil {
      *
      * Requires non-raw shadow.
      */
-    public static boolean isShadowFresh(
+    public static ItemCachedStatus getShadowCachedStatus(
             @NotNull PrismObject<ShadowType> shadow, @NotNull XMLGregorianCalendar now) {
-        return isShadowFresh(
+        return getShadowCachedStatus(
                 shadow,
                 getResourceObjectDefinition(shadow),
                 now);
     }
 
     /** The shadow can be raw here. The definition is provided separately. */
-    public static boolean isShadowFresh(
+    public static @NotNull ItemCachedStatus getShadowCachedStatus(
             @Nullable PrismObject<ShadowType> shadow,
             @NotNull ResourceObjectDefinition definition,
             @NotNull XMLGregorianCalendar now) {
         if (shadow == null) {
-            return false;
+            return ItemCachedStatus.NULL_OBJECT;
         }
         var policy = definition.getEffectiveShadowCachingPolicy();
         if (policy.getCachingStrategy() != CachingStrategyType.PASSIVE) {
             // Caching is disabled. Individual overriding of caching status is not relevant.
-            return false;
+            return ItemCachedStatus.CACHING_DISABLED;
         }
         var timeToLive = policy.getTimeToLive();
         if (timeToLive == null) {
-            return false;
+            return ItemCachedStatus.NO_TTL;
         }
         var cachingMetadata = shadow.asObjectable().getCachingMetadata();
         if (cachingMetadata == null) {
-            return false;
+            return ItemCachedStatus.NO_SHADOW_CACHING_METADATA;
         }
         var retrievalTimestamp = cachingMetadata.getRetrievalTimestamp();
         if (retrievalTimestamp == null) {
-            return false;
+            return ItemCachedStatus.NO_SHADOW_RETRIEVAL_TIMESTAMP;
         }
         var invalidationTimestamp = definition.getBasicResourceInformation().cacheInvalidationTimestamp();
         if (invalidationTimestamp != null && retrievalTimestamp.compare(invalidationTimestamp) != DatatypeConstants.GREATER) {
-            return false;
+            return ItemCachedStatus.INVALIDATED_GLOBALLY;
         }
-        return !XmlTypeConverter.isAfterInterval(retrievalTimestamp, timeToLive, now);
+        if (XmlTypeConverter.isAfterInterval(retrievalTimestamp, timeToLive, now)) {
+            return ItemCachedStatus.SHADOW_EXPIRED;
+        } else {
+            return ItemCachedStatus.SHADOW_FRESH;
+        }
+    }
+
+    public static String getDiagInfo(PrismObject<ShadowType> shadow) {
+        if (shadow == null) {
+            return "(null)";
+        } else {
+            var bean = shadow.asObjectable();
+            return "shadow %s (OID %s), resource %s, type %s/%s (%s), exists %s, dead %s, lifecycle state %s, content %s"
+                    .formatted(
+                            bean.getName(),
+                            bean.getOid(),
+                            PrettyPrinter.prettyPrint(bean.getResourceRef()),
+                            bean.getKind(),
+                            bean.getIntent(),
+                            PrettyPrinter.prettyPrint(bean.getObjectClass()),
+                            bean.isExists(),
+                            bean.isDead(),
+                            bean.getShadowLifecycleState(),
+                            bean.getContentDescription());
+        }
+    }
+
+    public static Object getDiagInfoLazily(PrismObject<ShadowType> shadow) {
+        return DebugUtil.lazy(() -> getDiagInfo(shadow));
     }
 }

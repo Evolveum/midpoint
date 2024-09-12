@@ -6,11 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.aspects;
 
-import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformDefaultPattern;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisAspectsWebUtils.getClusterWidgetModelOutliers;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisAspectsWebUtils.getClusterWidgetModelPatterns;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_TABLE_SETTING;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 import java.io.Serial;
 import java.math.BigDecimal;
@@ -38,7 +36,6 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,6 +72,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_HEADER_ITEMS = "header-items";
     private static final String ID_PANEL = "panelId";
     private static final String ID_PATTERNS = "patterns";
+    private static final String FLEX_SHRINK_GROW = "flex-shrink-1 flex-grow-1 p-0";
 
     public RoleAnalysisClusterAnalysisAspectsPanel(String id, ObjectDetailsModels<RoleAnalysisClusterType> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -104,15 +102,16 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         }
 
         RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
-        RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
+        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
 
-        if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+        if (procedureType == null || procedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+            initInfoPatternPanel(container);
+            initMiningPartNew(roleAnalysisService, task.getResult(), container);
+        } else {
             initInfoOutlierPanel(container);
 //            initOutlierAnalysisHeaderPanel(container);
             initOutlierPartNew(container);
-        } else {
-            initInfoPatternPanel(container);
-            initMiningPartNew(roleAnalysisService, task.getResult(), container);
         }
 
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
@@ -123,9 +122,15 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_PANEL,
                     createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis"),
                     roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+
+                @Override
+                protected boolean isCardTitleVisible() {
+                    return true;
+                }
+
                 @Override
                 protected @NotNull String getChartContainerStyle() {
-                    return "height:25vh;";
+                    return "min-height:350px;";
                 }
             };
             roleAnalysisAttributePanel.setOutputMarkupId(true);
@@ -309,7 +314,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
         statusHeader.setOutputMarkupId(true);
-        statusHeader.add(AttributeAppender.append("class", "col-6 pl-0"));
+        statusHeader.add(AttributeAppender.append(CLASS_CSS, FLEX_SHRINK_GROW));
         cardBodyComponent.add(statusHeader);
 
         List<ProgressBar> progressBars = new ArrayList<>();
@@ -351,14 +356,14 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             }
                         });
                         components.setOutputMarkupId(true);
-                        components.add(AttributeAppender.append("class", "pt-3 pl-3 pr-3"));
+                        components.add(AttributeAppender.append("class", ""));
                         return components;
                     }
 
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getContainerLegendCssClass() {
-                        return "d-flex flex-wrap justify-content-between p-2 pl-3 pr-3";
+                        return "d-flex flex-wrap justify-content-between pt-2 pb-0 px-0";
                     }
 
                     @Override
@@ -372,17 +377,20 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                                         createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.roles")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-success fa-2xs";
+                                        return "fa fa-circle text-success fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-success";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -391,8 +399,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalRolesCount);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeAppender.append("style", "font-size:18px"));
                                 return label;
                             }
                         };
@@ -407,17 +415,20 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                                         createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.users")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-danger fa-2xs";
+                                        return "fa fa-circle text-danger fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-danger";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -426,8 +437,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalUsersCount);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeAppender.append("style", "font-size:18px"));
                                 return label;
                             }
                         };
@@ -522,7 +533,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
 
-        distributionHeader.add(AttributeAppender.append("class", "col-6 pr-0"));
+        distributionHeader.add(AttributeAppender.append(CLASS_CSS, FLEX_SHRINK_GROW));
 
         distributionHeader.setOutputMarkupId(true);
         cardBodyComponent.add(distributionHeader);
@@ -683,7 +694,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
         statusHeader.setOutputMarkupId(true);
-        statusHeader.add(AttributeAppender.append("class", "col-6 pl-0"));
+        statusHeader.add(AttributeAppender.append(CLASS_CSS, FLEX_SHRINK_GROW));
         cardBodyComponent.add(statusHeader);
 
         List<ProgressBar> progressBars = new ArrayList<>();
@@ -725,14 +736,14 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             }
                         });
                         components.setOutputMarkupId(true);
-                        components.add(AttributeAppender.append("class", "pt-3 pl-3 pr-3"));
+                        components.add(AttributeAppender.append("class", ""));
                         return components;
                     }
 
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getContainerLegendCssClass() {
-                        return "d-flex flex-wrap justify-content-between p-2 pl-3 pr-3";
+                        return "d-flex flex-wrap justify-content-between pt-2 pb-0 px-0";
                     }
 
                     @Override
@@ -746,17 +757,20 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                                         createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.roles")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-success fa-2xs";
+                                        return "fa fa-circle text-success fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-success";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -765,8 +779,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalRolesCount);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeAppender.append("style", "font-size:18px"));
                                 return label;
                             }
                         };
@@ -781,17 +795,20 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                                         createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.users")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-danger fa-2xs";
+                                        return "fa fa-circle text-danger fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-danger";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -800,8 +817,8 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalUsersCount);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeAppender.append("style", "font-size:18px"));
                                 return label;
                             }
                         };
@@ -814,7 +831,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
                 };
 
                 panel.setOutputMarkupId(true);
-                panel.add(AttributeAppender.append("class", "col-12 pl-0"));
+                panel.add(AttributeAppender.append("class", "p-0"));
                 return panel;
             }
 
@@ -896,7 +913,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
 
-        distributionHeader.add(AttributeAppender.append("class", "col-6 pr-0"));
+        distributionHeader.add(AttributeAppender.append(CLASS_CSS, FLEX_SHRINK_GROW));
 
         distributionHeader.setOutputMarkupId(true);
         cardBodyComponent.add(distributionHeader);
@@ -1013,253 +1030,6 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
         return searchResultList;
     }
 
-    private void initInfoOutlierPanelOld(WebMarkupContainer container) {
-        RoleAnalysisItemPanel roleAnalysisInfoPatternPanel = new RoleAnalysisItemPanel(ID_PATTERNS,
-                createStringResource("RoleAnalysis.aspect.overview.page.title.discovered.cluster.outliers")) {
-            @Override
-            protected void addItem(RepeatingView repeatingView) {
-                RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
-                PageBase pageBase = RoleAnalysisClusterAnalysisAspectsPanel.this.getPageBase();
-                ModelService modelService = pageBase.getModelService();
-                Task task = pageBase.createSimpleTask("loadRoleAnalysisInfo");
-                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-                OperationResult result = task.getResult();
-                //TODO replace after db schema change
-//                SearchResultList<PrismObject<RoleAnalysisOutlierType>> searchResultList;
-//                try {
-//                    searchResultList = modelService
-//                            .searchObjects(RoleAnalysisOutlierType.class, getQuery(cluster), null, task, result);
-//                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException |
-//                        CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-//                    throw new RuntimeException(e);
-//                }
-
-                //TODO remove hack after db schema change
-                List<PrismObject<RoleAnalysisOutlierType>> searchResultList = new ArrayList<>();
-                String clusterOid = cluster.getOid();
-                ResultHandler<RoleAnalysisOutlierType> resultHandler = (outlier, lResult) -> {
-
-                    RoleAnalysisOutlierType outlierObject = outlier.asObjectable();
-                    List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
-                    for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                        ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
-                        String oid = targetClusterRef.getOid();
-                        if (clusterOid.equals(oid)) {
-                            searchResultList.add(outlier);
-                            break;
-                        }
-                    }
-
-                    return true;
-                };
-
-                try {
-                    modelService.searchObjectsIterative(RoleAnalysisOutlierType.class, null, resultHandler,
-                            null, task, result);
-                } catch (Exception ex) {
-                    throw new RuntimeException("Couldn't search outliers", ex);
-                }
-
-                if (searchResultList == null || searchResultList.isEmpty()) {
-                    return;
-                }
-
-                outliersCount = searchResultList.size();
-                for (int i = 0; i < searchResultList.size(); i++) {
-                    PrismObject<RoleAnalysisOutlierType> outlierTypePrismObject = searchResultList.get(i);
-                    RoleAnalysisOutlierType outlierObject = outlierTypePrismObject.asObjectable();
-                    List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
-                    for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                        RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
-
-                        List<DetectedAnomalyResult> outlierStatResult = outlierPartition.getDetectedAnomalyResult();
-                        anomalyAssignmentCount = outlierStatResult.size();
-                        Double clusterConfidence = partitionAnalysis.getOverallConfidence();
-                        String formattedConfidence = String.format("%.2f", clusterConfidence);
-                        String label;
-
-                        ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
-                        PrismObject<RoleAnalysisClusterType> prismCluster = roleAnalysisService
-                                .getClusterTypeObject(targetClusterRef.getOid(), task, result);
-                        String clusterName = "unknown";
-                        if (prismCluster != null && prismCluster.getName() != null) {
-                            clusterName = prismCluster.getName().getOrig();
-                        }
-
-                        if (outlierStatResult.size() > 1) {
-                            label = outlierStatResult.size() + " anomalies "
-                                    + "with confidence of " + formattedConfidence + "% (" + clusterName.toLowerCase() + ").";
-                        } else {
-                            label = "1 anomalies with confidence of " + formattedConfidence
-                                    + "% (" + clusterName.toLowerCase() + ").";
-                        }
-
-                        int finalI = i;
-                        String finalLabel = label;
-                        repeatingView.add(new RoleAnalysisInfoItem(repeatingView.newChildId(), Model.of(finalLabel)) {
-
-                            @Override
-                            protected String getIconBoxText() {
-//                            return "#" + (finalI + 1);
-                                return null;
-                            }
-
-                            @Override
-                            protected String getIconClass() {
-                                return "fa-2x " + GuiStyleConstants.CLASS_OUTLIER_ICON;
-                            }
-
-                            @Override
-                            protected String getIconBoxIconStyle() {
-                                return super.getIconBoxIconStyle();
-                            }
-
-                            @Override
-                            protected String getIconContainerCssClass() {
-                                return "btn btn-outline-dark";
-                            }
-
-                            @Override
-                            protected void addDescriptionComponents() {
-                                appendText(finalLabel);
-                            }
-
-                            @Override
-                            protected IModel<String> getDescriptionModel() {
-                                return Model.of(finalLabel);
-                            }
-
-                            @Override
-                            protected IModel<String> getLinkModel() {
-                                IModel<String> linkModel = super.getLinkModel();
-                                return Model.of(linkModel.getObject() + " outlier #" + (finalI + 1));
-                            }
-
-                            @Override
-                            protected void onClickLinkPerform(AjaxRequestTarget target) {
-                                PageParameters parameters = new PageParameters();
-                                String outlierOid = outlierObject.getOid();
-                                parameters.add(OnePageParameterEncoder.PARAMETER, outlierOid);
-                                StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
-                                if (fullTableSetting != null && fullTableSetting.toString() != null) {
-                                    parameters.add(PARAM_TABLE_SETTING, fullTableSetting.toString());
-                                }
-
-                                Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                                        .getObjectDetailsPage(RoleAnalysisOutlierType.class);
-                                getPageBase().navigateToNext(detailsPageClass, parameters);
-
-                            }
-
-                            @Override
-                            protected void onClickIconPerform(AjaxRequestTarget target) {
-                                OutlierObjectModel outlierObjectModel = null;
-
-                                PageBase pageBase = getPageBase();
-                                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-                                Task task = pageBase.createSimpleTask("loadOutlierDetails");
-                                ObjectReferenceType targetSessionRef = outlierPartition.getTargetSessionRef();
-                                PrismObject<RoleAnalysisSessionType> sessionTypeObject = roleAnalysisService
-                                        .getSessionTypeObject(targetSessionRef.getOid(), task, task.getResult());
-                                if (sessionTypeObject == null) {
-                                    return;
-                                }
-                                RoleAnalysisSessionType sessionType = sessionTypeObject.asObjectable();
-                                RoleAnalysisProcessModeType processMode = sessionType.getAnalysisOption().getProcessMode();
-
-                                ObjectReferenceType targetClusterRef = outlierPartition.getTargetClusterRef();
-                                PrismObject<RoleAnalysisClusterType> clusterTypeObject = roleAnalysisService
-                                        .getClusterTypeObject(targetClusterRef.getOid(), task, task.getResult());
-                                if (clusterTypeObject == null) {
-                                    return;
-                                }
-                                RoleAnalysisClusterType cluster = clusterTypeObject.asObjectable();
-                                if (processMode.equals(RoleAnalysisProcessModeType.USER)) {
-                                    outlierObjectModel = generateUserOutlierResultModel(
-                                            roleAnalysisService, outlierObject, task, task.getResult(), outlierPartition, getPageBase());
-                                } else {
-                                    //TODO
-                                }
-
-                                if (outlierObjectModel == null) {
-                                    return;
-                                }
-                                String outlierName = outlierObjectModel.getOutlierName();
-                                double outlierConfidence = outlierObjectModel.getOutlierConfidence();
-                                String outlierDescription = outlierObjectModel.getOutlierDescription();
-                                String timeCreated = outlierObjectModel.getTimeCreated();
-
-                                OutlierObjectModel finalOutlierObjectModel = outlierObjectModel;
-                                OutlierResultPanel detailsPanel = new OutlierResultPanel(
-                                        ((PageBase) getPage()).getMainPopupBodyId(),
-                                        createStringResource("RoleAnalysis.aspect.overview.page.title.outlier.details")) {
-
-                                    @Override
-                                    public String getCardCssClass() {
-                                        return "";
-                                    }
-
-                                    @Override
-                                    public Component getCardHeaderBody(String componentId) {
-                                        OutlierHeaderResultPanel components = new OutlierHeaderResultPanel(componentId, outlierName,
-                                                outlierDescription, String.valueOf(outlierConfidence), timeCreated);
-                                        components.setOutputMarkupId(true);
-                                        return components;
-                                    }
-
-                                    @Override
-                                    public Component getCardBodyComponent(String componentId) {
-                                        //TODO just for testing
-                                        RepeatingView cardBodyComponent = (RepeatingView) super.getCardBodyComponent(componentId);
-                                        finalOutlierObjectModel.getOutlierItemModels()
-                                                .forEach(outlierItemModel
-                                                        -> cardBodyComponent.add(
-                                                        new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel)));
-                                        return cardBodyComponent;
-                                    }
-
-                                    @Override
-                                    public void onClose(AjaxRequestTarget ajaxRequestTarget) {
-                                        super.onClose(ajaxRequestTarget);
-                                    }
-
-                                };
-                                ((PageBase) getPage()).showMainPopup(detailsPanel, target);
-                            }
-                        });
-
-                    }
-                }
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getCardBodyCssClass() {
-                return " overflow-auto ";
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String replaceCardCssClass() {
-                return "card p-0";
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String getCardBodyStyle() {
-                return " height:34vh;";
-            }
-
-            @Contract(pure = true)
-            @Override
-            public @NotNull String replaceBtnToolCssClass() {
-                return " position-relative  ml-auto btn btn-primary btn-sm";
-            }
-        };
-        roleAnalysisInfoPatternPanel.setOutputMarkupId(true);
-        container.add(roleAnalysisInfoPatternPanel);
-    }
-
     private void initInfoOutlierPanel(@NotNull WebMarkupContainer container) {
         RoleAnalysisClusterType cluster = getObjectDetailsModels().getObjectType();
         IModel<List<IdentifyWidgetItem>> modelPatterns = getClusterWidgetModelOutliers(cluster, getPageBase());
@@ -1348,7 +1118,7 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected String initDefaultCssClass() {
-                return "col-12 pl-0";
+                return "p-0";
             }
         };
         panel.setOutputMarkupId(true);

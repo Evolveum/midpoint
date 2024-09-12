@@ -192,6 +192,12 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         return showWizard(value, target, pathToValue, ResourceAssociationTypeWizardPanel.class);
     }
 
+    public ResourceAssociationTypeWizardPanel showAssociationTypeWizardForDuplicate(PrismContainerValue<ShadowAssociationTypeDefinitionType> value, AjaxRequestTarget target, ItemPath pathToValue) {
+        ResourceAssociationTypeWizardPanel panel = showWizard(value, target, pathToValue, ResourceAssociationTypeWizardPanel.class);
+        panel.setPanelForDuplicate(true);
+        return panel;
+    }
+
     public ResourceAssociationTypeWizardPanel showAssociationTypeWizard(AjaxRequestTarget target) {
         return showWizard(null, target, ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_ASSOCIATION_TYPE), ResourceAssociationTypeWizardPanel.class);
     }
@@ -213,15 +219,15 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showCapabilitiesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue, CapabilitiesWizardPanel.class);
+        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CONFIGURED_CAPABILITIES), CapabilitiesWizardPanel.class);
     }
 
     public void showCredentialsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue, CredentialsWizardPanel.class);
+        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CREDENTIALS), CredentialsWizardPanel.class);
     }
 
     public void showActivationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue, ActivationsWizardPanel.class);
+        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_ACTIVATION), ActivationsWizardPanel.class);
     }
 
     public void showPoliciesWizard(AjaxRequestTarget target, ItemPath pathToValue) {

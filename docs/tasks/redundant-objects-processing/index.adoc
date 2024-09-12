@@ -8,14 +8,14 @@
 :page-upkeep-status: orange
 
 It often happens that a query yields multiple occurrences of the same object.
-When using such a query to drive e.g. focus recomputation or arbitrary bulk action execution, it may happen that some objects are processed more than once.
+When using such a query to drive e.g. focus recomputation or arbitrary action execution, it may happen that some objects are processed more than once.
 See e.g. bug:MID-4495[] or bug:MID-3293[].
 
 == An example
 
 Let us have user `administrator` that has assigned these 5 roles: `Superuser`, `End user`, `Approver`, `Reviewer`, and `Delegator`.
 
-And now let us consider the following bulk action.
+And now let us consider the following action.
 It is intended to process all users that have an assignment of either `Superuser`, `End user`, `Approver`, `Reviewer`, or `Delegator` role (or any combination of them).
 
 .Simple attempt to select all users having any of given roles
@@ -180,7 +180,7 @@ image::image2018-4-4-19-20-54.png[]
 
 
 
-Therefore, if such a query is used in bulk action task or recomputation task or similar one, each user having all of the mentioned 5 role assignments is processed 2101 times (!).
+Therefore, if such a query is used in action task or recomputation task or similar one, each user having all of the mentioned 5 role assignments is processed 2101 times (!).
 
 
 == Limiting the redundancy, step 1: Exists filter
@@ -268,19 +268,19 @@ It is much better than 2101 results and it might be reduced to 1 in the future, 
 
 Until that time, there are two remaining options.
 
-The first one consists of additional filtering of search results in bulk action interpreter or iterative search task handler.
+The first one consists of additional filtering of search results in action interpreter or iterative search task handler.
 This should be implemented in midPoint, and would comprise a small CPU/memory overhead.
 We would have to maintain a list of already processed OIDs and eliminate all attempts to redundantly process objects with OIDs already present in the list.
 It might be workable with a bit of quirks (e.g. limiting results via paging would not work).
 
 And the second one is available today: it uses the `distinct` option to be used in search queries.
 The use of the option is context-dependent.
-Here we show the use within bulk actions and recomputation tasks.
+Here we show the use within actions and recomputation tasks.
 
 
-=== Distinct option in bulk actions
+=== Distinct option in actions
 
-.Bulk action with 'distinct' query option
+.Action with 'distinct' query option
 
 [source,xml]
 ----

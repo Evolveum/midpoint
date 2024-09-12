@@ -17,7 +17,7 @@ export default class MidPointAceEditor {
         var editorId = textAreaId + ACE_EDITOR_POSTFIX;
 
         var editor = $.aceEditors[editorId];
-        editor.session.setMode("ace/mode/javascript");
+        editor.session.setMode(mode);
     }
 
     initEditor(textAreaId, readonly, resize, height, minHeight, mode, dark) {

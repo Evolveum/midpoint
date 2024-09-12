@@ -97,7 +97,7 @@ public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrati
     public void test018testModifySystemConfig() throws Exception {
         renderPage(com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.PageSystemConfiguration.class);
 
-        tester.executeAjaxEvent("container:additionalButtons:0:additionalButton:compositedButton", "click");
+        tester.executeAjaxEvent("choicePanel:list:0:tile", "click");
         tester.assertRenderedPage(PageSystemBasic.class);
 
         final String mainFormPath = "detailsView:mainForm";

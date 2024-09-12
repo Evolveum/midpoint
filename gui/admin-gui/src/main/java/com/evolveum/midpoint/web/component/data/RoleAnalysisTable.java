@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -42,6 +43,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
@@ -86,6 +88,7 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
     //TODO what is this?
     boolean isRelationSelected = false;
+    int mainChunkSize = 0;
 
     public RoleAnalysisTable(String id, LoadableModel<RoleAnalysisObjectDto> miningOperationChunk) {
         super(id, miningOperationChunk);
@@ -125,6 +128,14 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
         tableContainer.add(table);
         add(tableContainer);
 
+        add(new Behavior() {
+            @Override
+            public void onConfigure(Component component) {
+                initAdditionalChunkIfRequired();
+                super.onConfigure(component);
+            }
+        });
+
         addHeaderToolbar(table, provider);
 
         add(createHeader(ID_HEADER));
@@ -134,6 +145,29 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
         WebMarkupContainer footer2 = createColumnsNavigation(table);
         add(footer2);
+    }
+
+    //TODO check
+    /**
+     * Checks if the size of the main mining chunk has changed and if so, updates the data table columns accordingly.
+     * This method is used to ensure that the data table columns are always in sync with the main mining chunk.
+     * If the size of the main mining chunk has changed, it clears the existing data table columns and replaces them with new ones.
+     * The new columns are initialized based on the updated size of the main mining chunk.
+     * The data table is then replaced with a new one that has the updated columns and is marked for output in the next Ajax response.
+     * This method uses the AjaxRequestTarget to perform the update operation if it is available.
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private void initAdditionalChunkIfRequired() {
+        if (mainChunkSize != getModelObject().getMainMiningChunk().size()) {
+            mainChunkSize = getModelObject().getMainMiningChunk().size();
+            Optional<AjaxRequestTarget> ajaxRequestTarget = RequestCycle.get().find(AjaxRequestTarget.class);
+            ajaxRequestTarget.ifPresent(target -> {
+                var columns = initColumns(1, mainChunkSize);
+                getDataTable().getColumns().clear();
+                getDataTable().getColumns().addAll((List) columns);
+                getDataTable().replaceWith(getDataTable().setOutputMarkupId(true));
+            });
+        }
     }
 
     private @NotNull RoleMiningProvider<A> createRoleMiningProvider() {
@@ -151,7 +185,8 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
 
     private List<IColumn<A, String>> initColumns() {
         List<B> mainChunk = getModelObject().getMainMiningChunk();
-        return initColumns(1, mainChunk.size());
+        mainChunkSize = mainChunk.size();
+        return initColumns(1, mainChunkSize);
     }
 
     public List<IColumn<A, String>> initColumns(int fromCol, long toCol) {
@@ -178,6 +213,11 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
             protected void refreshTable(AjaxRequestTarget target) {
                 RoleAnalysisTable.this.refreshTable(target);
             }
+
+            @Override
+            protected void refreshTableRows(AjaxRequestTarget target) {
+                RoleAnalysisTable.this.refreshTableRows(target);
+            }
         });
 
         IColumn<A, String> column;
@@ -201,6 +241,11 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
                 @Override
                 protected void refreshTable(AjaxRequestTarget target) {
                     RoleAnalysisTable.this.refreshTable(target);
+                }
+
+                @Override
+                protected void refreshTableRows(AjaxRequestTarget target) {
+                    RoleAnalysisTable.this.refreshTableRows(target);
                 }
 
                 @Override

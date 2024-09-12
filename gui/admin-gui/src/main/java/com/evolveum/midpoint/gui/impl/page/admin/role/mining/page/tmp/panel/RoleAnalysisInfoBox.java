@@ -13,12 +13,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.Info
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 
 public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
 
@@ -29,7 +30,7 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
     private static final String ID_INFO_BOX_TEXT = "info-box-text";
     private static final String ID_INFO_BOX_SUB_TEXT = "info-box-sub-text";
     private static final String ID_INFO_BOX_NUMBER = "info-box-number";
-    private static final String ID_INFO_BOX_BAR = "info-box-bar";
+    /*private static final String ID_INFO_BOX_BAR = "info-box-bar";*/
     private static final String ID_INFO_BOX_DESCRIPTION = "info-box-description";
     private static final String ID_INFO_BOX_CONTAINER = "info-box-icon-container";
 
@@ -41,16 +42,16 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
     private void initLayout() {
         WebMarkupContainer infoBox = new WebMarkupContainer(ID_INFO_BOX);
         infoBox.setOutputMarkupId(true);
-        infoBox.add(AttributeModifier.append("class", getInfoBoxCssClass()));
+        infoBox.add(AttributeModifier.append(CLASS_CSS, getInfoBoxCssClass()));
         add(infoBox);
 
         WebMarkupContainer iconContainer = new WebMarkupContainer(ID_INFO_BOX_CONTAINER);
         iconContainer.setOutputMarkupId(true);
-        iconContainer.add(AttributeModifier.replace("style", getIconBoxContainerCssStyle()));
+        iconContainer.add(AttributeModifier.replace(STYLE_CSS, getIconBoxContainerCssStyle()));
         infoBox.add(iconContainer);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_INFO_BOX_ICON);
-        icon.add(AttributeModifier.replace("class", () -> getModelObject().getIconClass()));
+        icon.add(AttributeModifier.replace(CLASS_CSS, () -> getModelObject().getIconClass() + " txt-default"));
         iconContainer.add(icon);
 
         Label text = new Label(ID_INFO_BOX_TEXT, () -> getModelObject().getText());
@@ -62,13 +63,13 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
         Label number = new Label(ID_INFO_BOX_NUMBER, () -> getModelObject().getNumberText());
         infoBox.add(number);
 
-        WebMarkupContainer bar = new WebMarkupContainer(ID_INFO_BOX_BAR);
+        /*WebMarkupContainer bar = new WebMarkupContainer(ID_INFO_BOX_BAR);
         bar.add(AttributeModifier.replace("style", () -> "width: " + getModelObject().getNumber() + "%"));
-        infoBox.add(bar);
+        infoBox.add(bar);*/
 
         Label description = new Label(ID_INFO_BOX_DESCRIPTION, () -> getModelObject().getDescription());
         description.add(new TooltipBehavior());
-        description.add(AttributeAppender.replace("title", getModelObject().getDescription()));
+        description.add(AttributeModifier.replace(TITLE_CSS, getModelObject().getDescription()));
         infoBox.add(description);
     }
 
@@ -77,7 +78,7 @@ public class RoleAnalysisInfoBox extends BasePanel<InfoBoxModel> {
     }
 
     protected String getInfoBoxCssClass() {
-        return "bg-primary";
+        return "bg-white"; /* bg-primary */
     }
 
 }

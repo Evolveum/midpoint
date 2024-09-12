@@ -10,11 +10,12 @@ package com.evolveum.midpoint.model.impl.lens.projector.loader;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 import static com.evolveum.midpoint.schema.GetOperationOptions.isNoFetch;
-import static com.evolveum.midpoint.schema.util.ShadowUtil.isShadowFresh;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.getShadowCachedStatus;
 
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.google.common.base.Preconditions;
@@ -148,8 +149,9 @@ class ProjectionUpdateOperation<F extends ObjectType> {
 
         projectionObject = asObjectable(projectionContext.getObjectCurrent());
 
-        if (shouldLoadCurrentObject()) {
-            return loadCurrentObject(result);
+        var loadingDepth = shouldLoadCurrentObject();
+        if (loadingDepth != null) {
+            return loadCurrentObject(loadingDepth, result);
         } else {
             if (projectionObjectOid != null) {
                 projectionContext.setExists(
@@ -162,23 +164,41 @@ class ProjectionUpdateOperation<F extends ObjectType> {
     /**
      * Should the object be loaded or reloaded?
      *
-     * Coupled with {@link #createProjectionLoadingOptions(OperationResult)} regarding whether `noFetch` option should be used.
+     * Coupled with {@link #createProjectionLoadingOptions(LoadingDepth, OperationResult)} regarding whether `noFetch`
+     * option should be used.
      *
      * There is an interesting side effect of "no fetch" loading of already-loaded object: the "full shadow" flag is discarded
      * in such cases. This may ensure the consistency at the cost of resource object re-loading.
      */
-    private boolean shouldLoadCurrentObject() throws SchemaException, ConfigurationException {
+    private LoadingDepth shouldLoadCurrentObject() throws SchemaException, ConfigurationException {
 
-        LOGGER.trace("Determining whether to load current object for {}", projectionContext);
+        LOGGER.trace("Determining whether and how to load current object for {}", projectionContext);
+
+        List<LensProjectionContext> modifiedDependees = projectionContext.getModifiedDataBoundDependees();
+        if (!modifiedDependees.isEmpty()
+                && projectionContext.hasProjectionWave()
+                && projectionContext.isCurrentProjectionWave()) {
+            // Reloading the projection if some of its data-dependees changed (and if it's wave has come). See MID-8929.
+            // We do not reload if the wave is not known. This is to avoid useless reloading at the very beginning.
+            //
+            // In the future, we may consider optimizing the loading by removing the initial loading of these projections.
+            // See MID-9083.
+            LOGGER.trace(
+                    "Will fully reload context with modified data-bound dependee because its wave has come. "
+                            + "Projection ctx wave = {}, modified data-bound dependees = {}",
+                    projectionContext.getWave(), modifiedDependees);
+            return LoadingDepth.FULL;
+        }
 
         if (projectionContext.getObjectCurrent() == null) {
             LOGGER.trace("Will load current object, as there is none loaded");
-            return true;
+            return LoadingDepth.NORMAL;
         }
 
         if (projectionContext.isDoReconciliation() && !projectionContext.isFullShadow()) {
             LOGGER.trace("Will reload current object, because we are doing reconciliation and we do not have full shadow");
-            return true; // Note that the loading options will ensure that the full object is loaded, unless cache is used.
+            // Note that the loading options will ensure that the full object is loaded, unless cache is used.
+            return LoadingDepth.NORMAL;
         }
 
         // This is kind of brutal. But effective. We are reloading all higher-order dependencies
@@ -192,23 +212,12 @@ class ProjectionUpdateOperation<F extends ObjectType> {
                 && projectionContext.isCurrentProjectionWave()) {
             LOGGER.trace("Will reload higher-order context because its wave has come (projection ctx wave = {})",
                     projectionContext.getWave());
-            return true;
+            return LoadingDepth.NORMAL; // the respective shadow should be already updated (except for volatile attributes)
         }
 
-        List<LensProjectionContext> modifiedDependees = projectionContext.getModifiedDataBoundDependees();
-        if (!modifiedDependees.isEmpty()
-                && projectionContext.hasProjectionWave()
-                && projectionContext.isCurrentProjectionWave()) {
-            // Reloading the projection if some of its data-dependees changed (and if it's wave has come). See MID-8929.
-            // We do not reload if the wave is not known. This is to avoid useless reloading at the very beginning.
-            //
-            // In the future, we may consider optimizing the loading by removing the initial loading of these projections.
-            // See MID-9083.
-            LOGGER.trace(
-                    "Will reload context with modified data-bound dependee because its wave has come. "
-                            + "Projection ctx wave = {}, modified data-bound dependees = {}",
-                    projectionContext.getWave(), modifiedDependees);
-            return true;
+        if (projectionContext.isReloadNeeded()) {
+            LOGGER.trace("Will reload current object because it was marked as to-be-reloaded earlier");
+            return LoadingDepth.NORMAL;
         }
 
         LOGGER.trace("No explicit reason for reloading current object "
@@ -218,7 +227,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
                 projectionContext.getOrder(),
                 projectionContext.getWave(),
                 modifiedDependees);
-        return false;
+        return null;
     }
 
     /**
@@ -272,7 +281,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
      * Loads the current object (objectOld)
      * Returns true if an error occurred.
      */
-    private boolean loadCurrentObject(OperationResult result)
+    private boolean loadCurrentObject(LoadingDepth loadingDepth, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException {
 
@@ -297,11 +306,10 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             return false;
         }
 
-        var options = createProjectionLoadingOptions(result);
+        var options = createProjectionLoadingOptions(loadingDepth, result);
 
         try {
-            LOGGER.trace("Loading shadow {} for projection {}, options={}",
-                    projectionObjectOid, projectionContext.getHumanReadableName(), options);
+            LOGGER.trace("Loading shadow {} for projection {}, options={}", projectionObjectOid, projectionContext, options);
 
             PrismObject<ShadowType> object =
                     beans.provisioningService.getObject(
@@ -313,6 +321,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             projectionObject = object.asObjectable();
             projectionContext.setLoadedObject(object);
 
+            projectionContext.setReloadNotNeeded();
             updateFullShadowFlag(options);
             updateExistsAndGoneFlags();
 
@@ -332,6 +341,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             projectionContext.clearCurrentObject();
             projectionContext.markGone();
             projectionContext.setShadowExistsInRepo(false);
+            projectionContext.setReloadNotNeeded();
             refreshContextAfterShadowNotFound(options, result);
 
         } catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException
@@ -340,6 +350,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             LOGGER.warn("Problem while getting object with oid {}. Projection context {} is marked as broken: {}: {}",
                     projectionObjectOid, projectionContext.getHumanReadableName(), e.getClass().getSimpleName(), e.getMessage());
             projectionContext.setBroken();
+            projectionContext.setReloadNotNeeded();
 
             if (isExceptionFatal(e)) {
                 throw e;
@@ -417,7 +428,8 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         }
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions(OperationResult result)
+    private Collection<SelectorOptions<GetOperationOptions>> createProjectionLoadingOptions(
+            @NotNull LoadingDepth loadingDepth, OperationResult result)
             throws SchemaException, ConfigurationException {
         GetOperationOptionsBuilder builder = beans.schemaService.getOperationOptionsBuilder()
                 //.readOnly() [not yet]
@@ -429,9 +441,16 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         var reconciliation = projectionContext.isDoReconciliation() || context.isDoReconciliationForAllProjections();
 
         if (projectionContext.isInMaintenance()) {
+
             LOGGER.trace("Using 'no fetch' mode because of resource maintenance (to avoid errors being reported)");
             builder = builder.noFetch();
-        } else if (reconciliation && shouldUseFresh(result)) {
+
+        } else if (loadingDepth == LoadingDepth.FULL
+                || reconciliation && shouldUseFresh(result)) {
+
+            // TODO Regarding loading depth: this is quite a hack. The value of FULL means we cannot rely on the cached data.
+            //  Maybe we should invalidated the cached data instead.
+
             builder = builder.forceRefresh();
 
             // We force operation retry "in hard way" only if we do full-scale reconciliation AND we are starting the clockwork.
@@ -483,13 +502,15 @@ class ProjectionUpdateOperation<F extends ObjectType> {
                 return true; // Let's make the regular code throw the exception as usually (when caching is not involved)
             }
         }
-        if (isShadowFresh(
+        var cachedStatus = getShadowCachedStatus(
                 projectionObject.asPrismObject(),
-                ModelBeans.get().clock.currentTimeXMLGregorianCalendar())) {
-            LOGGER.trace("Shadow is fresh, no need to load it in full");
+                ModelBeans.get().clock.currentTimeXMLGregorianCalendar());
+        if (cachedStatus.isFresh()) {
+            LOGGER.trace("Shadow is fresh ({}), no need to load it in full", cachedStatus);
             return false;
         } else {
-            LOGGER.trace("Shadow is not fresh, we'll load it in full:\n{}", projectionObject.debugDumpLazily(1));
+            LOGGER.trace("Shadow is not fresh ({}), we'll load it in full:\n{}",
+                    cachedStatus, projectionObject.debugDumpLazily(1));
             return true;
         }
     }
@@ -500,5 +521,15 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             ExpressionEvaluationException {
         new MissingShadowContextRefresher<>(context, projectionContext, options, task)
                 .refresh(result);
+    }
+
+    @Experimental
+    enum LoadingDepth {
+
+        /** The shadow has to be loaded "normally", i.e., from the repository, if possible. */
+        NORMAL,
+
+        /** The shadow must be loaded from the resource. */
+        FULL
     }
 }

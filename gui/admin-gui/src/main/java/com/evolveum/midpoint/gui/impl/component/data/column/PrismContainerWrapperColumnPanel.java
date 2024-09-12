@@ -38,7 +38,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperColumn.class);
 
-    PrismContainerWrapperColumnPanel(String id, IModel<PrismContainerWrapper<C>> model, ColumnType columnType) {
+    public PrismContainerWrapperColumnPanel(String id, IModel<PrismContainerWrapper<C>> model, ColumnType columnType) {
         super(id, model, columnType);
     }
 
@@ -82,46 +82,9 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
             return ProvisioningObjectsUtil.getPendingOperationLabel((PendingOperationType) realValue, this);
         }
 
-        if (ShadowAttributesType.class.isAssignableFrom(realValue.getClass())) {
-            return getAssociationLabel((PrismContainerValueWrapper<ShadowAttributesType>) object);
-        }
-
         return realValue.toString();
 
     }
-
-    private String getAssociationLabel(PrismContainerValueWrapper<ShadowAttributesType> object) {
-        List<String> stringValues = new ArrayList<>();
-        Iterator<? extends ItemWrapper<?, ?>> iterator = object.getItems().iterator();
-        while (iterator.hasNext()) {
-            ItemWrapper<?, ?> itemWrapper = iterator.next();
-            if (itemWrapper.getValues().isEmpty()) {
-                continue;
-            }
-
-            for (PrismValueWrapper value : itemWrapper.getValues()) {
-                StringBuilder sb = new StringBuilder();
-                Object realValue = value.getRealValue();
-
-                if (realValue != null) {
-                    if (realValue instanceof Referencable reference) {
-                        if (reference.getOid() != null) {
-                            sb.append(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(reference, false));
-                        }
-                    } else {
-                        sb.append(realValue);
-                    }
-                }
-
-                if (!sb.isEmpty()) {
-                    stringValues.add(sb.toString());
-                }
-            }
-        }
-
-        return StringUtils.join(stringValues, ", ");
-    }
-
 
     private String getActivationLabelLabel(ActivationType activation) {
         if (activation.getAdministrativeStatus() != null) {

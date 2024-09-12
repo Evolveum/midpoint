@@ -8,20 +8,21 @@
 package com.evolveum.midpoint.gui.impl.page.admin.certification;
 
 import java.io.Serial;
+import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.SelectReportTemplatePanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectReferenceTypeUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportParameterTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -75,9 +75,9 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCertCampaign.class);
     private static final String DOT_CLASS = PageCertCampaign.class.getName() + ".";
+    private static final String OPERATION_LOAD_RUNNING_TASK = DOT_CLASS + "loadRunningTask";
 
     private LoadableDetachableModel<String> buttonLabelModel;
-    private LoadableDetachableModel<String> buttonCssModel;
 
     private String runningTaskOid;
 
@@ -87,6 +87,21 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
 
     public PageCertCampaign(PageParameters parameters) {
         super(parameters);
+        initRunningTaskOid();
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+    }
+
+    private void initRunningTaskOid() {
+        String campaignOid = getModelObjectType().getOid();
+        OperationResult result = new OperationResult(OPERATION_LOAD_RUNNING_TASK);
+        List<PrismObject<TaskType>> tasks = CertMiscUtil.loadRunningCertTask(campaignOid, result, PageCertCampaign.this);
+        if (!tasks.isEmpty()) {
+            runningTaskOid = tasks.get(0).getOid();
+        }
     }
 
     @Override
@@ -166,7 +181,7 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
         buttonLabelModel = getActionButtonTitleModel();
 
         CampaignActionButton actionButton = new CampaignActionButton(rightButtonsView.newChildId(), PageCertCampaign.this,
-                getCampaignModel(), buttonLabelModel) {
+                getCampaignModel(), buttonLabelModel, runningTaskOid) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -176,8 +191,14 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
                 buttonLabelModel.detach();
             }
 
+//            @Override
+//            protected boolean isEmptyTaskOid() {
+//                return StringUtils.isEmpty(runningTaskOid);
+//            }
+
         };
         actionButton.setOutputMarkupPlaceholderTag(true);
+//        actionButton.add(new EnableBehaviour(() -> StringUtils.isEmpty(runningTaskOid)));
         rightButtonsView.add(actionButton);
     }
 
@@ -309,9 +330,6 @@ public class PageCertCampaign extends PageAssignmentHolderDetails<AccessCertific
     @Override
     protected void onDetach() {
         getObjectDetailsModels().reset();
-        if (buttonCssModel != null) {
-            buttonCssModel.detach();
-        }
         if (buttonLabelModel != null) {
             buttonLabelModel.detach();
         }

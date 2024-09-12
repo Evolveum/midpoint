@@ -104,14 +104,14 @@ public class RoleAnalysisReconfigureClusterPopupPanel
                     return wrapper -> ItemVisibility.HIDDEN;
                 } else {
                     RoleAnalysisSessionType session = sessionTypeObject.asObjectable();
-                    RoleAnalysisCategoryType analysisCategory = session.getAnalysisOption().getAnalysisCategory();
+                    RoleAnalysisProcedureType procedureType = session.getAnalysisOption().getAnalysisProcedureType();
                     return wrapper -> {
                         ItemName itemName = wrapper.getItemName();
 
                         if (itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_ROLES_OCCUPANCY)
                                 || itemName.equivalent(RoleAnalysisDetectionOptionType.F_MIN_USER_OCCUPANCY)) {
 
-                            if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                            if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
                                 return ItemVisibility.HIDDEN;
                             }
                         }

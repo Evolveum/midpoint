@@ -12,7 +12,12 @@
     <archetypeType>auxiliary</archetypeType>
     <archetypePolicy>
         <display>
-            <label>Shadow integrity check task</label>
+            <label>
+                <orig>Shadow integrity check task</orig>
+                <translation>
+                    <key>ShadowIntegrityCheckTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Shadow integrity check tasks</orig>
                 <translation>

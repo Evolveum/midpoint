@@ -33,7 +33,7 @@ public abstract class AbstractWizardChoicePanelWithSeparatedCreatePanel<C extend
         add(createChoiceFragment(createNewTypeWizard()));
     }
 
-    private AbstractWizardPanel<C, ResourceDetailsModel> createNewTypeWizard() {
+    protected AbstractWizardPanel<C, ResourceDetailsModel> createNewTypeWizard() {
         WizardPanelHelper<C, ResourceDetailsModel> helper =
                 new WizardPanelHelper<>(getAssignmentHolderModel()) {
             @Override

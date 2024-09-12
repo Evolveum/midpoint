@@ -102,10 +102,10 @@ MidPoint can be integrated with such engine using their native capabilities or w
 Nevertheless, midPoint offers its own unique approach to workflows that enables you handling most scenarios with efficiency.
 It uses several features that can be easily combined.
 
-=== Scripting tasks and bulk actions
+=== Scripting tasks and actions
 
 Addressing the first requirement for predefined actions, midPoint offers the option to define custom actions that can be executed on demand.
-It's based on xref:/midpoint/reference/misc/bulk/[Bulk Actions], that can be encapsulated in xref:/midpoint/reference/misc/bulk/scripting-tasks/[Scripting Tasks].
+It's based on xref:/midpoint/reference/misc/bulk/[Actions], that can be encapsulated in xref:/midpoint/reference/misc/bulk/scripting-tasks/[Scripting Tasks].
 It gives you easy way to create custom actions using predefined options, or you can prepare a script that can contain complex logic.
 
 The tasks can be integrated as custom actions to midPoint GUI make it easier for non-technical users to execute them.

@@ -49,7 +49,7 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
     @Override
     protected Item<IColumn<T, String>> newCellItem(String id, int index, IModel<IColumn<T, String>> model) {
         Item item = super.newCellItem(id, index, model);
-        if(isBreakTextBehaviourEnabled(index)){
+        if (isBreakTextBehaviourEnabled(index)) {
             item.add(new BreakTextBehaviour(item.getMarkupId()));
         }
         item.add(AttributeAppender.append("style", "word-wrap: break-word !important;"));
@@ -57,32 +57,28 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
         return item;
     }
 
-    protected boolean isBreakTextBehaviourEnabled(int index){
+    protected boolean isBreakTextBehaviourEnabled(int index) {
         return true;
     }
-    @Override
-    protected void onPageChanged() {
-        super.onPageChanged();
-     }
 
-     private class BreakTextBehaviour extends Behavior {
+    private class BreakTextBehaviour extends Behavior {
 
         private final String markId;
 
-         private BreakTextBehaviour(String markId) {
-             this.markId = markId;
-         }
+        private BreakTextBehaviour(String markId) {
+            this.markId = markId;
+        }
 
-         @Override
-         public void renderHead(Component component, IHeaderResponse response) {
-             super.renderHead(component, response);
+        @Override
+        public void renderHead(Component component, IHeaderResponse response) {
+            super.renderHead(component, response);
 
-             StringBuilder sb = new StringBuilder();
-             sb.append("MidPointTheme.breakLongerTextInTableCell('")
-                     .append(markId)
-                     .append("');");
+            StringBuilder sb = new StringBuilder();
+            sb.append("MidPointTheme.breakLongerTextInTableCell('")
+                    .append(markId)
+                    .append("');");
 
-             response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
-         }
-     }
+            response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+        }
+    }
 }

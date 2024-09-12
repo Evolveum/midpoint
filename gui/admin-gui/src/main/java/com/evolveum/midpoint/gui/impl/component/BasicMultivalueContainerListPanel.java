@@ -89,7 +89,7 @@ public abstract class BasicMultivalueContainerListPanel<C extends Containerable>
     }
 
     @Override
-    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {
+    protected void newItemPerformed(PrismContainerValue<C> value, AjaxRequestTarget target, AssignmentObjectRelation relationSpec, boolean isDuplicate) {
         PrismContainerValue<C> newValue = value;
         if (newValue == null) {
             newValue = getContainerModel().getObject().getItem().createNewValue();

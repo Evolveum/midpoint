@@ -8,11 +8,12 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import java.io.IOException;
 
+import com.evolveum.midpoint.gui.api.component.form.TextArea;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;

@@ -105,7 +105,7 @@ public class ResourceObjectTypesPanel extends SchemaHandlingObjectsPanel<Resourc
 
     @Override
     protected void onNewValue(
-            PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target) {
+            PrismContainerValue<ResourceObjectTypeDefinitionType> value, IModel<PrismContainerWrapper<ResourceObjectTypeDefinitionType>> newWrapperModel, AjaxRequestTarget target, boolean isDuplicate) {
         getObjectDetailsModels().getPageResource().showObjectTypeWizard(value, target, newWrapperModel.getObject().getPath());
     }
 

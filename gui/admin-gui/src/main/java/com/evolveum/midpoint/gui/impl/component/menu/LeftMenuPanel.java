@@ -491,8 +491,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         });
 
-        boolean certItemsViewEnabled = WebComponentUtil.isCertItemsViewEnabled(getPageBase());
-        if (certItemsViewEnabled) {
+        boolean certItemsMenusEnabled = WebComponentUtil.isCertItemsMenusEnabled(getPageBase());
+        if (certItemsMenusEnabled) {
             certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.certificationItems", PageCertItems.class));
         }
 
@@ -508,7 +508,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
         });
 
-        if (certItemsViewEnabled) {
+        if (certItemsMenusEnabled) {
             certificationMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.certification.myCertificationItems", PageMyCertItems.class));
         }
 
@@ -591,7 +591,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         item.addMainMenuItem(createObjectTemplatesItems());
         item.addMainMenuItem(createMarkItems());
         item.addMainMenuItem(createSchemaItems());
-        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.bulkActions", "fa fa-bullseye", PageBulkAction.class));
+        item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.actions", "fa fa-bullseye", PageAction.class));
         item.addMainMenuItem(createMainMenuItem("PageAdmin.menu.top.configuration.importObject", "fa fa-upload", PageImportObject.class));
         item.addMainMenuItem(createRepositoryObjectsMenu());
 

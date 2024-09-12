@@ -13,7 +13,6 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,7 +39,7 @@ class MetadataUtil {
         if (ValueMetadataTypeUtil.hasModifyTimestampDelta(modifications.getItemDeltas())) {
             return;
         }
-        LOGGER.debug("'modify timestamp' delta not found, adding it");
+        LOGGER.trace("'modify timestamp' delta not found, adding it");
         modifications.add(
                 ValueMetadataTypeUtil.createModifyTimestampDelta(
                         repoShadow.getBean(),

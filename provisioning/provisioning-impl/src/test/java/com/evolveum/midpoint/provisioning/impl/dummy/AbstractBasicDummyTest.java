@@ -1829,8 +1829,23 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     protected void assertRepoShadowPasswordValue(
             RawRepoShadow shadowRepo, PasswordType passwordBean, String expectedPassword)
             throws SchemaException, EncryptionException {
-        ProtectedStringType passwordValue = passwordBean.getValue();
-        assertNull("Unexpected password value in repo shadow " + shadowRepo, passwordValue);
+        assertRepoShadowCachePasswordValue(
+                shadowRepo, passwordBean, expectedPassword, InternalsConfig.isShadowCachingOnByDefault());
+    }
+
+    void assertRepoShadowCachePasswordValue(
+            RawRepoShadow shadowRepo, PasswordType passwordBean, String expectedPassword, boolean shouldBePresent)
+            throws SchemaException, EncryptionException {
+        if (shouldBePresent) {
+            ProtectedStringType protectedString = passwordBean.getValue();
+            assertNotNull("No password value in repo shadow " + shadowRepo, protectedString);
+            assertProtectedString(
+                    "Wrong password value in repo shadow " + shadowRepo, expectedPassword,
+                    protectedString, CredentialsStorageTypeType.HASHING);
+        } else {
+            ProtectedStringType passwordValue = passwordBean.getValue();
+            assertNull("Unexpected password value in repo shadow " + shadowRepo, passwordValue);
+        }
     }
 
     protected ShadowSimpleAttributeDefinition<?> getAccountAttrDef(String name) throws SchemaException, ConfigurationException {

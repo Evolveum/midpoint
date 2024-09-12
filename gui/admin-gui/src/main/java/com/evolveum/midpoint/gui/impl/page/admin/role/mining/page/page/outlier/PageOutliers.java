@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -45,8 +47,6 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -82,7 +82,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 public class PageOutliers extends PageAdmin {
     @Serial private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageOutliers.class);
     private static final String DOT_CLASS = PageOutliers.class.getName() + ".";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
 
@@ -108,7 +107,14 @@ public class PageOutliers extends PageAdmin {
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<RoleAnalysisOutlierType> table = new MainObjectListPanel<>(ID_TABLE, RoleAnalysisOutlierType.class) {
+        MainObjectListPanel<RoleAnalysisOutlierType> table = createTable();
+        table.setOutputMarkupId(true);
+        mainForm.add(table);
+    }
+
+    //TODO sort by confidence (TBD db support)
+    private @NotNull MainObjectListPanel<RoleAnalysisOutlierType> createTable() {
+        return new MainObjectListPanel<>(ID_TABLE, RoleAnalysisOutlierType.class) {
 
             @Override
             protected TableId getTableId() {
@@ -128,14 +134,10 @@ public class PageOutliers extends PageAdmin {
                 //TODO TBD
             }
 
+            @Contract(pure = true)
             @Override
-            protected String getInlineMenuItemCssClass() {
+            protected @NotNull String getInlineMenuItemCssClass() {
                 return "btn btn-default btn-sm";
-            }
-
-            @Override
-            public InlineMenuItem createMarkInlineMenuAction() {
-                return super.createMarkInlineMenuAction();
             }
 
             @Override
@@ -149,14 +151,7 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public IModel<?> getDataModel(IModel<SelectableBean<RoleAnalysisOutlierType>> iModel) {
                         RoleAnalysisOutlierType outlierObject = iModel.getObject().getValue();
-                        Set<String> anomalies = new HashSet<>();
-                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
-                        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-                            for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
-                                anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
-                            }
-                        }
+                        Set<String> anomalies = resolveOutlierAnomalies(outlierObject);
                         return Model.of(anomalies.size());
                     }
 
@@ -165,14 +160,7 @@ public class PageOutliers extends PageAdmin {
                             String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
 
                         RoleAnalysisOutlierType outlierObject = model.getObject().getValue();
-                        Set<String> anomalies = new HashSet<>();
-                        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
-                        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
-                            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
-                            for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
-                                anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
-                            }
-                        }
+                        Set<String> anomalies = resolveOutlierAnomalies(outlierObject);
                         cellItem.add(new Label(componentId, anomalies.size()));
                     }
 
@@ -184,7 +172,7 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public Component getHeader(String componentId) {
                         return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierTable.outlier.access")){
+                                createStringResource("RoleAnalysisOutlierTable.outlier.access")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierTable.outlier.properties.help");
@@ -219,7 +207,7 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public Component getHeader(String componentId) {
                         return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierType.outlierPartitions")){
+                                createStringResource("RoleAnalysisOutlierType.outlierPartitions")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierTable.outlier.partitions.help");
@@ -256,7 +244,7 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public Component getHeader(String componentId) {
                         return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierTable.outlier.confidence")){
+                                createStringResource("RoleAnalysisOutlierTable.outlier.confidence")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierTable.outlier.confidence.help");
@@ -279,8 +267,7 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>>
                             cellItem, String componentId, IModel<SelectableBean<RoleAnalysisOutlierType>> model) {
-                        SwitchBoxPanel check = new SwitchBoxPanel(componentId, new Model<>(false));
-                        cellItem.add(check);
+                        cellItem.add(new SwitchBoxPanel(componentId, new Model<>(false)));
                     }
 
                     @Override
@@ -291,7 +278,7 @@ public class PageOutliers extends PageAdmin {
                     @Override
                     public Component getHeader(String componentId) {
                         return new LabelWithHelpPanel(componentId,
-                                createStringResource("RoleAnalysisOutlierTable.outlier.mark")){
+                                createStringResource("RoleAnalysisOutlierTable.outlier.mark")) {
                             @Override
                             protected IModel<String> getHelpModel() {
                                 return createStringResource("RoleAnalysisOutlierTable.outlier.mark.help");
@@ -321,8 +308,18 @@ public class PageOutliers extends PageAdmin {
                 return "pageOutliers.message.confirmationMessageForSingleObject";
             }
         };
-        table.setOutputMarkupId(true);
-        mainForm.add(table);
+    }
+
+    private static @NotNull Set<String> resolveOutlierAnomalies(@NotNull RoleAnalysisOutlierType outlierObject) {
+        Set<String> anomalies = new HashSet<>();
+        List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlierObject.getOutlierPartitions();
+        for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
+            List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
+            for (DetectedAnomalyResult detectedAnomaly : detectedAnomalyResult) {
+                anomalies.add(detectedAnomaly.getTargetObjectRef().getOid());
+            }
+        }
+        return anomalies;
     }
 
     @SuppressWarnings("unchecked")
@@ -353,35 +350,30 @@ public class PageOutliers extends PageAdmin {
                         RoleAnalysisService roleAnalysisService = page.getRoleAnalysisService();
                         Task task = page.createSimpleTask(OPERATION_DELETE_OBJECT);
                         OperationResult result = task.getResult();
-                        if (selectedObjects.size() == 1 && getRowModel() == null) {
-                            try {
+                        try {
+                            if (selectedObjects.size() == 1 && getRowModel() == null) {
+
                                 SelectableBean<RoleAnalysisOutlierType> roleAnalysisOutlierSelectableBean = selectedObjects.get(0);
                                 roleAnalysisService
                                         .deleteOutlier(
                                                 roleAnalysisOutlierSelectableBean.getValue(), task, result);
-                            } catch (Exception e) {
-                                throw new RuntimeException("Couldn't delete selected outlier", e);
-                            }
-                        } else if (getRowModel() != null) {
-                            try {
+                            } else if (getRowModel() != null) {
+
                                 IModel<SelectableBean<RoleAnalysisOutlierType>> rowModel = getRowModel();
                                 roleAnalysisService
                                         .deleteOutlier(
                                                 rowModel.getObject().getValue(), task, result);
-                            } catch (Exception e) {
-                                throw new RuntimeException("Couldn't delete selected outlier", e);
-                            }
-                        } else {
-                            for (SelectableBean<RoleAnalysisOutlierType> selectedObject : selectedObjects) {
-                                try {
+
+                            } else {
+                                for (SelectableBean<RoleAnalysisOutlierType> selectedObject : selectedObjects) {
                                     RoleAnalysisOutlierType outlier = selectedObject.getValue();
                                     roleAnalysisService
                                             .deleteOutlier(
                                                     outlier, task, result);
-                                } catch (Exception e) {
-                                    throw new RuntimeException("Couldn't delete selected outlier", e);
                                 }
                             }
+                        } catch (Exception e) {
+                            throw new SystemException("Couldn't delete object(s): " + e.getMessage(), e);
                         }
 
                         getTable().refreshTable(target);
@@ -398,7 +390,7 @@ public class PageOutliers extends PageAdmin {
     }
 
     private static void initDensityProgressPanel(
-            Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
+            @NotNull Item<ICellPopulator<SelectableBean<RoleAnalysisOutlierType>>> cellItem,
             @NotNull String componentId,
             @NotNull Double density) {
 
@@ -436,7 +428,7 @@ public class PageOutliers extends PageAdmin {
 
     @Contract(" -> new")
     private @NotNull InlineMenuItem createRecertifyInlineMenu() {
-        ButtonInlineMenuItem buttonInlineMenuItem = new ButtonInlineMenuItem(
+        return new ButtonInlineMenuItem(
                 createStringResource("RoleAnalysisDetectedAnomalyTable.inline.recertify.title")) {
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
@@ -458,8 +450,6 @@ public class PageOutliers extends PageAdmin {
                 };
             }
         };
-
-        return buttonInlineMenuItem;
     }
 
 }

@@ -8,7 +8,10 @@ package com.evolveum.midpoint.gui.impl.factory.panel.searchfilter;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+
 import jakarta.annotation.PostConstruct;
 
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -25,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 @Component
-public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<SearchFilterType> {
+public class SearchFilterPanelFactory extends AbstractInputGuiComponentFactory<SearchFilterType> {
 
     @PostConstruct
     public void register() {
@@ -38,7 +41,16 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
     }
 
     @Override
-    protected Panel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
+    public void configure(PrismPropertyPanelContext<SearchFilterType> panelCtx, org.apache.wicket.Component component) {
+        if (!(component instanceof AceEditorPanel)) {
+            super.configure(panelCtx, component);
+            return;
+        }
+        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(((AceEditorPanel) component).getEditor()));
+    }
+
+    @Override
+    protected InputPanel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
         PrismPropertyWrapper<SearchFilterType> searchFilterItemWrapper = panelCtx.unwrapWrapperModel();
         PrismContainerValueWrapper<?> containerWrapper = searchFilterItemWrapper.getParent();
         if (containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType) {
@@ -47,14 +59,5 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
         }
         return new SearchFilterConfigurationPanel(
                 panelCtx.getComponentId(), panelCtx.getItemWrapperModel(), panelCtx.getRealValueModel(), null);
-    }
-
-    @Override
-    public void configure(PrismPropertyPanelContext<SearchFilterType> panelCtx, org.apache.wicket.Component component) {
-        if (!(component instanceof AceEditorPanel)) {
-            super.configure(panelCtx, component);
-            return;
-        }
-        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(((AceEditorPanel) component).getEditor()));
     }
 }

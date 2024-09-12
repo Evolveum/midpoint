@@ -147,7 +147,10 @@ public class ShadowAuditHelper {
         }
         // TODO: We should have better API for name resolution instead of getObject()
         ObjectDeltaSchemaLevelUtil.NameResolver nameResolver =
-                (objectClass, oid) -> repositoryService.getObject(objectClass, oid, null, result).getName();
+                (objectClass, oid, lResult) ->
+                        repositoryService
+                                .getObject(objectClass, oid, null, lResult)
+                                .getName();
 
         auditHelper.audit(auditRecord, nameResolver, ctx.getTask(), result);
     }

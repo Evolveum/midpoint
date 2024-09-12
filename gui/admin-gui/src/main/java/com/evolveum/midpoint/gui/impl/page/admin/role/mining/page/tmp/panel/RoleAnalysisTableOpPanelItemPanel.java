@@ -9,9 +9,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 import java.io.Serial;
 import java.util.List;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -19,13 +19,14 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.detection.DetectedPattern;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.OperationPanelModel;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelModel> {
 
@@ -88,11 +89,11 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
         initBodyItem(body);
         initFooterItem(footerItems);
 
-        add(AttributeAppender.append("class", () -> getModelObject().isPanelExpanded() ? "" : "op-panel-collapsed"));
+        add(AttributeModifier.append(CLASS_CSS, () -> getModelObject().isPanelExpanded() ? "" : "op-panel-collapsed"));
     }
 
     protected void initHeaderItem(RepeatingView headerItems) {
-
+        //override
     }
 
     protected void initSubHeaderItem(RepeatingView subHeaderItems) {
@@ -119,10 +120,6 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
             protected void populateItem(ListItem<DetectedPattern> listItem) {
 
                 RoleAnalysisTableOpPanelPatternItem bodyItem = new RoleAnalysisTableOpPanelPatternItem(ID_PATTERN, listItem.getModel()) {
-                    @Override
-                    protected void onConfigure() {
-                        super.onConfigure();
-                    }
 
                     @Override
                     protected void performOnClick(AjaxRequestTarget ajaxRequestTarget) {
@@ -143,7 +140,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
 
                 };
                 listItem.add(bodyItem);
-                listItem.add(AttributeAppender.append("class", "d-flex align-items-center rounded"));
+                listItem.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center rounded"));
             }
         };
         bodyItems.add(patterns);
@@ -173,7 +170,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
             @Contract(pure = true)
             @Override
             public @NotNull String appendIconPanelCssClass() {
-                return "bg-white";
+                return " bg-white";
             }
 
             @Override
@@ -304,7 +301,7 @@ public class RoleAnalysisTableOpPanelItemPanel extends BasePanel<OperationPanelM
     }
 
     public void onPatternSelectionPerform(@NotNull AjaxRequestTarget ajaxRequestTarget) {
-
+    //override
     }
 
     private void handleCompareModeClick(

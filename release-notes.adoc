@@ -124,6 +124,7 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Implementation of new task activities for opening next stage of certification campaign and certification remediation. More details can be found in the xrefv:/midpoint/reference/tasks/activities/work/[Work Definition (Types of Activities)].
 * Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
 * Added the ability to modify selected object classes for resources via the Resource Schema panel. See bug:MID-8476[].
+* Renamed "Bulk actions" to "Actions" in GUI. See bug:MID-9619[].
 
 === Releases Of Other Components
 

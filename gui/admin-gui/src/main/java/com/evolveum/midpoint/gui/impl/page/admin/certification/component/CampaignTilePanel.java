@@ -16,17 +16,17 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.certification.PageCertCampaign;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
@@ -35,6 +35,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignS
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -57,6 +59,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     @Serial private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(CampaignTilePanel.class);
     private static final String DOT_CLASS = CampaignTilePanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_RUNNING_TASK = DOT_CLASS + "loadRunningTask";
 
     private static final String ID_SELECT_TILE_CHECKBOX = "selectTileCheckbox";
     private static final String ID_STATUS = "status";
@@ -81,7 +84,17 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initRunningTaskOid();
         initLayout();
+    }
+
+    private void initRunningTaskOid() {
+        String campaignOid = getCampaign().getOid();
+        OperationResult result = new OperationResult(OPERATION_LOAD_RUNNING_TASK);
+        List<PrismObject<TaskType>> tasks = CertMiscUtil.loadRunningCertTask(campaignOid, result, getPageBase());
+        if (!tasks.isEmpty()) {
+            runningTaskOid = tasks.get(0).getOid();
+        }
     }
 
     protected void initLayout() {
@@ -160,18 +173,23 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
 
         LoadableDetachableModel<String> buttonLabelModel = getActionButtonTitleModel();
 
-        CampaignActionButton actionButton = new CampaignActionButton(ID_ACTION_BUTTON, getPageBase(), getCampaignModel(), buttonLabelModel) {
+        CampaignActionButton actionButton = new CampaignActionButton(ID_ACTION_BUTTON, getPageBase(), getCampaignModel(),
+                buttonLabelModel, runningTaskOid) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void refresh(AjaxRequestTarget target) {
-                runningTaskOid = getRunningTaskOid();
+                CampaignTilePanel.this.runningTaskOid = getRunningTaskOid();
                 buttonLabelModel.detach();
                 target.add(CampaignTilePanel.this);
                 Component feedbackPanel = getPageBase().getFeedbackPanel();
                 target.add(feedbackPanel);
             }
 
+//            @Override
+//            protected boolean isEmptyTaskOid() {
+//                return StringUtils.isEmpty(runningTaskOid);
+//            }
         };
         actionButton.setOutputMarkupPlaceholderTag(true);
         actionButton.add(AttributeModifier.append("class", getActionButtonCssModel()));

@@ -447,6 +447,14 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return this;
     }
 
+    public ShadowAsserter<RA> assertNoPasswordIf(boolean condition) {
+        if (condition) {
+            PrismProperty<PolyStringType> passValProp = getPasswordValueProperty();
+            assertNull("Unexpected password value property in " + desc() + ": " + passValProp, passValProp);
+        }
+        return this;
+    }
+
     private PrismProperty<PolyStringType> getPasswordValueProperty() {
         return getObject().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
     }

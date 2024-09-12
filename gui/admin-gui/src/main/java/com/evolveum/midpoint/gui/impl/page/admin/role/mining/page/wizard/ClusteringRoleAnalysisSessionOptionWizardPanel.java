@@ -7,23 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
-import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -37,10 +28,6 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
     }
 
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-    }
 
     @Override
     protected IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getContainerFormModel() {
@@ -61,11 +48,13 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
         ItemName itemName = itemWrapper.getItemName();
-        return itemName.equivalent(AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT)
-                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP)
-                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
+        if (itemName.equivalent(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
                 || itemName.equivalent(AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING)
-                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING);
+                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)) {
+            return false;
+        }
+        return itemName.equivalent(AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT)
+                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP);
     }
 
     @Override
@@ -87,7 +76,7 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
                 if (analysisOption == null || analysisOption.getAnalysisCategory() == null) {
                     return ItemVisibility.HIDDEN;
                 }
-                if (!analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+                if (!analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
                     return ItemVisibility.HIDDEN;
                 }
             }
@@ -130,4 +119,5 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
     public String getStepId() {
         return WORK_PANEL_TYPE;
     }
+
 }

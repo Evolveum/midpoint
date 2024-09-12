@@ -49,7 +49,7 @@ public class GuiDisplayNameUtil {
                 String displayName = (String) displayNameMethod.invoke(null, containerable);
                 return StringEscapeUtils.escapeHtml4(displayName);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                LOGGER.warn("Cannot invoge getDisplayName() method for {}, fallback to default displayName", prismContainerValue);
+                LOGGER.debug("Cannot invoge getDisplayName() method for {}, fallback to default displayName", prismContainerValue);
             }
         }
 

@@ -28,7 +28,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.factory.panel.ExpressionModel;
+import com.evolveum.midpoint.gui.impl.factory.panel.expression.ExpressionModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.AjaxButton;

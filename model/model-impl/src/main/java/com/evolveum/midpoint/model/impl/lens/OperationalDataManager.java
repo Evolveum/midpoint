@@ -283,7 +283,7 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
 
         var allMetadata = assignment.asPrismContainerValue().getValueMetadata();
         if (allMetadata.hasNoValues()) {
-            LOGGER.warn("No metadata in assignment ({})", desc);
+            LOGGER.debug("No metadata in assignment ({})", desc);
             return;
         }
 
@@ -458,6 +458,11 @@ public class OperationalDataManager implements DeltaExecutionPreprocessor {
 
     private <F extends ObjectType> void setStorageMetadataOnAddOp(
             LensContext<F> context, ValueMetadataType metadata, XMLGregorianCalendar now, Task task) {
+        if (metadata.getStorage() != null) {
+            // Keep previously entered data manually.
+            return;
+        }
+
         var storage = getOrCreateStorageMetadata(metadata);
         storage.setCreateChannel(LensUtil.getChannel(context, task));
         storage.setCreateTimestamp(now);

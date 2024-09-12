@@ -21,6 +21,7 @@ import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
 
@@ -163,6 +164,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     @Autowired(required = false)                        // not required in all circumstances
     private CertificationManager certificationManager;
     @Autowired private OperationalDataManager operationalDataManager;
+    @Autowired private ResourceSchemaRegistry resourceSchemaRegistry;
 
     public ModelObjectResolver getObjectResolver() {
         return objectResolver;
@@ -635,7 +637,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                     }
                     switch (searchProvider) {
                         case REPOSITORY:
-                            list = cacheRepositoryService.searchObjects(type, processedQuery, options, result);
+                            list = cacheRepositoryService.searchObjects(type, normalizeQueryIfShadowUsed(type, processedQuery), options, result);
                             break;
                         case PROVISIONING:
                             list = provisioning.searchObjects(type, processedQuery, options, task, result);
@@ -702,6 +704,29 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             result.close();
             result.cleanup();
         }
+    }
+
+    /**
+     * Normalizes query if search touches shadows on concrete resource
+     *
+     * This normalization is neccessary for repository searches to work, if attributes / associations
+     * are queried.
+     *
+     * @param queryType Root Query Type
+     * @param processedQuery Query to be normalized
+     * @return
+     */
+    private ObjectQuery normalizeQueryIfShadowUsed(Class<?> queryType, ObjectQuery processedQuery) {
+        // FIXME: Queries should be fullscanned
+        // FIXME: Rethink contract - normalization should probably happen on repository level
+        //       in future, but currently provisioning expects repository to not normalize shadow
+        //       queries.
+        // if they contain shadow dereferencing, also nested queries should be normalized
+        // if possible
+        if(ShadowType.class.equals(queryType)) {
+            return resourceSchemaRegistry.tryToNormalizeQuery(processedQuery);
+        }
+        return processedQuery;
     }
 
     /**
@@ -1117,7 +1142,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 switch (searchProvider) {
                     case REPOSITORY:
                         metadata = cacheRepositoryService.searchObjectsIterative(
-                                type, processedQuery, internalHandler, options, true, result);
+                                type, normalizeQueryIfShadowUsed(type, processedQuery), internalHandler, options, true, result);
                         break;
                     case PROVISIONING:
                         metadata = provisioning.searchObjectsIterative(type, processedQuery, options, internalHandler, task, result);
@@ -1200,7 +1225,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ObjectManager objectManager = getObjectManager(type, options);
             count = switch (objectManager) {
                 case PROVISIONING -> provisioning.countObjects(type, processedQuery, options, task, parentResult);
-                case REPOSITORY -> cacheRepositoryService.countObjects(type, processedQuery, options, parentResult);
+                case REPOSITORY -> cacheRepositoryService.countObjects(type, normalizeQueryIfShadowUsed(type,processedQuery), options, parentResult);
                 case TASK_MANAGER -> taskManager.countObjects(type, processedQuery, parentResult);
                 default -> throw new AssertionError("Unexpected objectManager: " + objectManager);
             };

@@ -12,7 +12,6 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +26,7 @@ import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * <p>
@@ -124,8 +124,21 @@ public class DefaultPatternResolver {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
         RoleAnalysisProcessModeType mode = analysisOption.getProcessMode();
 
+        SearchFilterType filter = null;
+        if(mode.equals(RoleAnalysisProcessModeType.ROLE)){
+            RoleAnalysisSessionOptionType roleModeOptions = session.getRoleModeOptions();
+            if(roleModeOptions != null){
+                filter = roleModeOptions.getQuery();
+            }
+        }else if(mode.equals(RoleAnalysisProcessModeType.USER)){
+            UserAnalysisSessionOptionType userModeOptions = session.getUserModeOptions();
+            if(userModeOptions != null){
+                filter = userModeOptions.getQuery();
+            }
+        }
+
         MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareCompressedMiningStructure(
-                clusterType, false, roleAnalysisProcessModeType, operationResult, task);
+                clusterType, filter, false, roleAnalysisProcessModeType, operationResult, task);
         List<MiningRoleTypeChunk> miningRoleTypeChunks = miningOperationChunk.getMiningRoleTypeChunks(
                 RoleAnalysisSortMode.NONE);
         List<MiningUserTypeChunk> miningUserTypeChunks = miningOperationChunk.getMiningUserTypeChunks(

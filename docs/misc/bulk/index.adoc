@@ -2,9 +2,9 @@
 midpoint-feature: actions
 doc-type: config
 ---
-= Bulk Actions (midPoint scripting language)
-:page-nav-title: Bulk Actions
-:page-wiki-name: Bulk actions (midPoint scripting language)
+= Actions (midPoint scripting language)
+:page-nav-title: Actions
+:page-wiki-name: Actions (midPoint scripting language)
 :page-wiki-id: 13991970
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2014-02-19T23:20:19.958+01:00
@@ -29,7 +29,7 @@ Some examples:
 
 . assign a role to a people meeting given criteria.
 
-MidPoint provides a specialized language to define such bulk actions.
+MidPoint provides a specialized language to define such actions.
 It is based on pipes-and-filters architectural pattern, where execution components (responsible for gathering data and acting on them) are connected into chains, pushing an output of an upstream action to be an input of the action that lies downstream.
 Just like good old Unix pipelines.
 

@@ -20,20 +20,26 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
-import com.evolveum.midpoint.gui.impl.component.data.provider.ObjectClassDataProvider;
-import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.SelectObjectClassesStepPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.*;
+import com.evolveum.midpoint.gui.impl.component.data.column.*;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
+import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
-import com.evolveum.midpoint.gui.impl.util.TableUtil;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 
 import com.evolveum.midpoint.schema.util.cases.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
@@ -41,24 +47,23 @@ import com.evolveum.midpoint.gui.impl.page.admin.certification.component.Deadlin
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
 
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,18 +72,10 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -102,7 +99,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ColumnUtils {
+
     private static final Trace LOGGER = TraceManager.getTrace(ColumnUtils.class);
+
+    private static final String DOT_CLASS = ColumnUtils.class.getName() + ".";
+    private static final String OPERATION_LOAD_SHADOW_OBJECT = DOT_CLASS + "loadReferencedShadowObject";
+    private static final String OPERATION_LOAD_RESOURCE_OBJECT = DOT_CLASS + "loadResourceObject";
 
     public static <T> List<IColumn<T, String>> createColumns(List<ColumnTypeDto<String>> columns) {
         List<IColumn<T, String>> tableColumns = new ArrayList<>();
@@ -928,11 +930,125 @@ public class ColumnUtils {
                 AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
                 ProgressBarPanel progressBar = new ProgressBarPanel(componentId,
                         CertMiscUtil.createCampaignCasesProgressBarModel(campaign, null, pageBase));
+                progressBar.add(AttributeModifier.append("class", "mt-1"));
                 progressBar.setOutputMarkupId(true);
                 item.add(progressBar);
             }
         };
         columns.add(column);
+
+        //running task icon column
+        columns.add(new AbstractColumn<>(Model.of("")) {
+
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationCampaignType>>> cellItem,
+                    String componentId, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
+                AccessCertificationCampaignType campaign = rowModel.getObject().getValue();
+
+                LoadableDetachableModel<AccessCertificationCampaignType> campaignModel = new LoadableDetachableModel<>(campaign) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected AccessCertificationCampaignType load() {
+                        return campaign;
+                    }
+                };
+
+                Task task = pageBase.createSimpleTask("loadRunningCertTask");
+                OperationResult result = new OperationResult("loadRunningCertTask");
+                List<PrismObject<TaskType>> runningTasks = CertMiscUtil.loadRunningCertTask(campaign.getOid(), result, pageBase);
+
+                final String[] runningTaskOid = { runningTasks.isEmpty() ? null : runningTasks.get(0).getOid() };
+                IModel<String> runningTaskOidModel = new IModel<>() {
+                    @Override
+                    public String getObject() {
+                        return runningTaskOid[0];
+                    }
+
+                    @Override
+                    public void setObject(String object) {
+                        runningTaskOid[0] = object;
+                    }
+                };
+
+                LoadableDetachableModel<String> buttonLabelModel = new LoadableDetachableModel<>() {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected String load() {
+                        if (StringUtils.isEmpty(runningTaskOidModel.getObject())) {
+                            return "";
+                        }
+
+                        PrismObject<TaskType> runningTask = WebModelServiceUtils.loadObject(TaskType.class,
+                                runningTaskOidModel.getObject(), pageBase, task, result);
+                        TaskType task = runningTask.asObjectable();
+
+                        TaskInformation taskInformation = TaskInformation.createForTask(task, task);
+                        String info = WebComponentUtil.getTaskProgressDescription(taskInformation, true, pageBase);
+                        return StringUtils.isEmpty(info) ? "" : info;
+                    }
+                };
+
+                CampaignActionButton actionButton = new CampaignActionButton(componentId, pageBase, campaignModel,
+                        buttonLabelModel, runningTaskOid[0]) {
+                    @Serial private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void refresh(AjaxRequestTarget target) {
+                        runningTaskOid[0] = getRunningTaskOid();
+                        buttonLabelModel.detach();
+                        target.add(pageBase);
+                    }
+
+//                    @Override
+//                    protected boolean isEmptyTaskOid() {
+//                        return StringUtils.isEmpty(runningTaskOid[0]);
+//                    }
+
+                    @Override
+                    protected LoadableDetachableModel<String> getActionButtonCssModel() {
+                        return new LoadableDetachableModel<>() {
+                            @Serial private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected String load() {
+                                return "fa fa-spinner fa-spin-pulse";
+                            }
+                        };
+                    }
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (StringUtils.isEmpty(runningTaskOid[0])) {
+                            return;
+                        }
+
+                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(runningTaskOid[0], ObjectTypes.TASK);
+                        DetailsPageUtil.dispatchToObjectDetailsPage(ref, pageBase, false);
+                    }
+
+                    protected IModel<String> getDisabledClassModel() {
+                        return () -> "";
+                    }
+
+                    @Override
+                    protected String getButtonCssClass() {
+                        return "btn btn-sm";
+                    }
+
+                };
+                actionButton.setOutputMarkupPlaceholderTag(true);
+                actionButton.add(AttributeAppender.append("title",
+                        createStringResource("PageCertCampaign.button.showRunningTask")));
+                actionButton.setOutputMarkupId(true);
+                actionButton.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(runningTaskOid[0])));
+                cellItem.add(actionButton);
+            }
+
+        });
 
         return columns;
     }
@@ -1025,7 +1141,8 @@ public class ColumnUtils {
         return columns;
     }
 
-    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertCaseColumns(int stageNumber) {
+    public static List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> getDefaultCertCaseColumns(
+            int stageNumber, PageBase pageBase) {
         List<IColumn<PrismContainerValueWrapper<AccessCertificationCaseType>, String>> columns = new ArrayList<>();
 
         //todo progress column
@@ -1098,6 +1215,7 @@ public class ColumnUtils {
 
        });
 
+       //comment icon column
        columns.add(new IconColumn<>(Model.of("")) {
 
            @Serial private static final long serialVersionUID = 1L;
@@ -1715,4 +1833,188 @@ public class ColumnUtils {
         return name;
     }
 
+    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducedAssociationsColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
+        return createAssignmentConstructionColumns(containerModel, true, true, false, page);
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducementConstructionColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
+        return createAssignmentConstructionColumns(containerModel, false, true, true, page);
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
+        return createAssignmentConstructionColumns(containerModel, false, false, false, page);
+    }
+
+    private static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, boolean showColumnForValue, boolean showAssociation,
+            boolean showApplyFor, PageBase page) {
+
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+
+        columns.add(new AbstractColumn<>(createStringResource("SchemaHandlingType.objectType")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(
+                    Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                    String componentId,
+                    IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+
+                IModel<String> objectTypeModel = () -> {
+                    PrismContainerValueWrapper<AssignmentType> wrapper = rowModel.getObject();
+
+                    AssignmentType inducement = unwrapRowRealValue(wrapper);
+                    if (inducement != null && inducement.getConstruction() != null) {
+                        return AssignmentsUtil.getObjectTypeFromConstruction(inducement.getConstruction(), page);
+                    }
+                    return "";
+                };
+
+                item.add(new Label(componentId, objectTypeModel));
+            }
+        });
+
+        if (showAssociation) {
+            columns.add(
+                    new PrismContainerWrapperColumn<>(
+                            containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), page));
+        }
+
+        if (showColumnForValue) {
+            columns.add(new AbstractColumn<>(createStringResource("InducedEntitlements.value")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void populateItem(
+                        org.apache.wicket.markup.repeater.Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                        String componentId,
+                        final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+
+                    ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
+                    List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
+                                    expressionType,
+                                    page.getPrismContext()),
+                            OPERATION_LOAD_SHADOW_OBJECT, page);
+
+                    MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<>(componentId,
+                            Model.ofList(shadowsList), Collections.singletonList(ShadowType.class), false) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected ObjectFilter getCustomFilter() {
+                            ConstructionType construction = rowModel.getObject().getRealValue().getConstruction();
+                            return ProvisioningObjectsUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE_OBJECT,
+                                    page);
+                        }
+
+                        @Override
+                        protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
+                            if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
+                                ExpressionType expression = ProvisioningObjectsUtil.getAssociationExpression(rowModel.getObject(), getPageBase());
+                                ExpressionUtil.removeShadowRefEvaluatorValue(expression, shadow.getOid(), getPageBase().getPrismContext());
+                            }
+                        }
+
+                        @Override
+                        protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
+                            ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
+                            if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
+                                ExpressionType expression = getExpressionFromRowModel(rowModel, true);
+                                ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid());
+                            }
+                        }
+
+                        @Override
+                        protected void selectPerformed(AjaxRequestTarget target, List<ShadowType> chosenValues) {
+                            addPerformed(target, chosenValues);
+                        }
+
+                    };
+                    valuesPanel.setOutputMarkupId(true);
+                    item.add(valuesPanel);
+                }
+            });
+        }
+
+        if (showApplyFor) {
+            columns.add(new AbstractColumn<>(createStringResource("AssignmentConstruction.inducementFor")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void populateItem(
+                        Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                        String componentId,
+                        IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+
+                    IModel<String> objectTypeModel = () -> {
+                        PrismContainerValueWrapper<AssignmentType> wrapper = rowModel.getObject();
+
+                        AssignmentType inducement = unwrapRowRealValue(wrapper);
+                        if (inducement != null) {
+                            QName focus = inducement.getFocusType() != null ? inducement.getFocusType() : ObjectType.COMPLEX_TYPE;
+                            Integer order = inducement.getOrder();
+                            String translatedFocus = focus.getLocalPart();
+                            if (ObjectTypes.getObjectTypeFromTypeQNameIfKnown(focus) != null) {
+                                translatedFocus = WebComponentUtil.translateMessage(
+                                        ObjectTypeUtil.createTypeDisplayInformation(focus, true));
+                            }
+                            if (order != null) {
+                                return translatedFocus + " "
+                                        + LocalizationUtil.translate(
+                                                "AssignmentConstruction.inducementFor.suffix",
+                                                new Object[]{order});
+                            }
+                            return translatedFocus;
+                        }
+                        return "";
+                    };
+
+                    item.add(new Label(componentId, objectTypeModel));
+                }
+            });
+        }
+
+        return columns;
+    }
+
+    private static ExpressionType getExpressionFromRowModel(
+            IModel<PrismContainerValueWrapper<AssignmentType>> rowModel, boolean createIfNotExist) {
+        PrismContainerValueWrapper<AssignmentType> assignment = rowModel.getObject();
+        try {
+            ItemPath path = ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION);
+            PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = assignment.findContainer(path);
+            List<PrismContainerValue<ResourceObjectAssociationType>> associationValueList = associationWrapper.getItem().getValues();
+            PrismContainerValue<ResourceObjectAssociationType> associationValue;
+            if (CollectionUtils.isEmpty(associationValueList)) {
+                if (createIfNotExist) {
+                    associationValue = associationWrapper.createValue();
+                } else {
+                    return null;
+                }
+            } else {
+                associationValue = associationValueList.get(0);
+            }
+
+            ResourceObjectAssociationType association = associationValue.getRealValue();
+            MappingType outbound = association.getOutbound();
+            if (outbound == null) {
+                if (createIfNotExist) {
+                    outbound = association.beginOutbound();
+                } else {
+                    return null;
+                }
+            }
+            ExpressionType expressionType = outbound.getExpression();
+            if (expressionType == null && createIfNotExist) {
+                expressionType = outbound.beginExpression();
+            }
+            return expressionType;
+        } catch (SchemaException ex) {
+            LOGGER.error("Unable to find association container in the construction: {}", ex.getLocalizedMessage());
+        }
+        return null;
+    }
 }

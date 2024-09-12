@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -63,7 +62,7 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
 
     private RangeType createPropertyRange() {
         double minPropertyCount = 2.0;
-        double maxPropertyCount = Double.valueOf(getMaxPropertyCount());
+        double maxPropertyCount = getMaxPropertyCount();
         return new RangeType().min(minPropertyCount).max(maxPropertyCount);
     }
 
@@ -84,21 +83,6 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
     //  Also these structured classes should be used for migration process specification.
     private RangeType createDetectionRange() {
         return new RangeType().min(90.0).max(100.0);
-    }
-
-    @Override
-    public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {
-        return super.getAnalysisSessionOption();
-    }
-
-    @Override
-    public RoleAnalysisDetectionOptionType getDetectionOption() {
-        return super.getDetectionOption();
-    }
-
-    @Override
-    public ItemVisibilityHandler getVisibilityHandler() {
-        return super.getVisibilityHandler();
     }
 
     public @NotNull Integer getMaxPropertyCount() {

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.panel;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.LOGGER;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -18,12 +19,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +75,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", () -> getModelObject().isOpen() ? "open" : null));
+        add(AttributeModifier.append(CLASS_CSS, () -> getModelObject().isOpen() ? "open" : null));
         MenuItemLinkPanel<?> link = new MenuItemLinkPanel<>(ID_LINK, getModel(), 0) {
             @Override
             protected boolean isChevronLinkVisible() {
@@ -118,7 +118,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
                     return super.getPanelComponent(id1);
                 }
 
-                RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadTable(id1, displayValueOption, cluster);
+                RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> table = loadTable(id1, cluster);
                 table.setOutputMarkupId(true);
                 return table;
             }
@@ -131,6 +131,9 @@ public class OutlierClusterItemPanel<T extends Serializable>
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
         RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
+        if (similarObjectAnalysis == null) {
+            return null;
+        }
         List<ObjectReferenceType> similarObjects = similarObjectAnalysis.getSimilarObjects();
         Set<String> similarObjectOids = similarObjects.stream().map(ObjectReferenceType::getOid).collect(Collectors.toSet());
         String sessionOid = partition.getTargetSessionRef().getOid();
@@ -154,15 +157,13 @@ public class OutlierClusterItemPanel<T extends Serializable>
         double minFrequency = 2;
         double maxFrequency = 2;
 
-        if (defaultDetectionOption != null) {
-            if (defaultDetectionOption.getFrequencyRange() != null) {
-                RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
-                if (frequencyRange.getMin() != null) {
-                    minFrequency = frequencyRange.getMin().intValue();
-                }
-                if (frequencyRange.getMax() != null) {
-                    maxFrequency = frequencyRange.getMax().intValue();
-                }
+        if (defaultDetectionOption != null && defaultDetectionOption.getFrequencyRange() != null) {
+            RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
+            if (frequencyRange.getMin() != null) {
+                minFrequency = frequencyRange.getMin().intValue();
+            }
+            if (frequencyRange.getMax() != null) {
+                maxFrequency = frequencyRange.getMax().intValue();
             }
         }
 
@@ -180,8 +181,8 @@ public class OutlierClusterItemPanel<T extends Serializable>
         detectionOption.setFrequencyRange(new RangeType().min(minFrequency).max(maxFrequency));
         cluster.setDetectionOption(detectionOption);
 
-        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster, displayValueOption,
-                RoleAnalysisProcessModeType.USER, null, result, task);
+        MiningOperationChunk miningOperationChunk = roleAnalysisService.prepareBasicChunkStructure(cluster, null,
+                displayValueOption, RoleAnalysisProcessModeType.USER, null, result, task);
 
         RangeType frequencyRange = detectionOption.getFrequencyRange();
         Double sensitivity = detectionOption.getSensitivity();
@@ -214,7 +215,6 @@ public class OutlierClusterItemPanel<T extends Serializable>
     @NotNull
     private RoleAnalysisTable<MiningUserTypeChunk, MiningRoleTypeChunk> loadTable(
             String id,
-            DisplayValueOption displayValueOption,
             @NotNull RoleAnalysisClusterType cluster) {
 
         LoadableModel<RoleAnalysisObjectDto> miningOperationChunk = new LoadableModel<>(false) {
@@ -224,12 +224,6 @@ public class OutlierClusterItemPanel<T extends Serializable>
             protected @NotNull RoleAnalysisObjectDto load() {
                 return new RoleAnalysisObjectDto(cluster, new ArrayList<>(), 0, getPageBase());
 
-            }
-        };
-        LoadableDetachableModel<DisplayValueOption> option = new LoadableDetachableModel<>() {
-            @Override
-            protected DisplayValueOption load() {
-                return displayValueOption;
             }
         };
 
@@ -258,13 +252,16 @@ public class OutlierClusterItemPanel<T extends Serializable>
         RoleAnalysisPartitionAnalysisType partitionAnalysis = partition.getPartitionAnalysis();
         RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = partitionAnalysis.getSimilarObjectAnalysis();
 
+        if (similarObjectAnalysis == null) {
+            return Model.ofList(List.of());
+        }
         List<WidgetItemModel> detailsModel = List.of(
                 new WidgetItemModel(createStringResource(""),
                         Model.of("")) {
                     @Override
                     public Component createValueComponent(String id) {
                         Label label = new Label(id, similarObjectAnalysis.getSimilarObjectsCount());
-                        label.add(AttributeAppender.append("class", " h4"));
+                        label.add(AttributeModifier.append(CLASS_CSS, " h4"));
                         return label;
                     }
 
@@ -291,7 +288,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
                         value = value.setScale(2, RoundingMode.HALF_UP);
                         double doubleValue = value.doubleValue();
                         Label label = new Label(id, doubleValue + "%");
-                        label.add(AttributeAppender.append("class", " h4"));
+                        label.add(AttributeModifier.append(CLASS_CSS, " h4"));
                         return label;
                     }
 
@@ -301,7 +298,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
                                 createStringResource("Density")) {
                             @Override
                             protected IModel<String> getHelpModel() {
-                                return createStringResource("RoleAnalysisOutlierType.anomalyAverageConfidence.help");
+                                return createStringResource("RoleAnalysisOutlierType.density.help");
                             }
                         };
                     }
@@ -319,7 +316,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
                         value = value.setScale(2, RoundingMode.HALF_UP);
                         double doubleValue = value.doubleValue();
                         Label label = new Label(id, doubleValue + "%");
-                        label.add(AttributeAppender.append("class", " h4"));
+                        label.add(AttributeModifier.append(CLASS_CSS, " h4"));
                         return label;
                     }
 
@@ -339,7 +336,7 @@ public class OutlierClusterItemPanel<T extends Serializable>
                     @Override
                     public Component createValueComponent(String id) {
                         Label label = new Label(id, similarObjectAnalysis.getSimilarObjectsThreshold() + "%");
-                        label.add(AttributeAppender.append("class", " h4"));
+                        label.add(AttributeModifier.append(CLASS_CSS, " h4"));
                         return label;
                     }
 

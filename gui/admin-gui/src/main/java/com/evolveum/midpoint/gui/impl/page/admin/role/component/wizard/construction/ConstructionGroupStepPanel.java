@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
@@ -13,13 +14,18 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectObjectTypeTileWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowAssociationObjectsColumn;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -393,11 +399,33 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> item, String id, IModel<SelectableBean<ShadowType>> row) {
                 item.add(AttributeAppender.append("class", "align-middle"));
-                item.add(new Label(id,
-                        () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject())));
+                item.add(new TitleWithMarks(
+                        id,
+                        () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject()),
+                        createRealMarksList(row.getObject().getValue())){
+                    @Override
+                    protected boolean isTitleLinkEnabled() {
+                        return false;
+                    }
+                });
             }
         });
         return columns;
+    }
+
+    private IModel<String> createRealMarksList(ShadowType shadowBean) {
+        return new LoadableDetachableModel<>() {
+
+            @Override
+            protected String load() {
+                if (shadowBean == null) {
+                    return "";
+                }
+
+                List<ObjectReferenceType> refs = shadowBean.getEffectiveMarkRef();
+                return WebComponentUtil.createMarkList(refs, getPageBase());
+            }
+        };
     }
 
     @Override

@@ -12,9 +12,10 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.util.*;
 
-import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -63,8 +64,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.EqualsChecker;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -99,6 +98,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     @Autowired private ConstructionProcessor constructionProcessor;
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
     @Autowired private ModelBeans beans;
+    @Autowired private ProvisioningService provisioningService;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -407,11 +407,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private <AH extends AssignmentHolderType> void distributeConstructions(
             LensContext<AH> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
-            Task ignored,
+            Task task,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
+        //noinspection BooleanMethodIsAlwaysInverted
         ComplexConstructionConsumer<ConstructionTargetKey, EvaluatedAssignedResourceObjectConstructionImpl<AH>> consumer =
                 new ComplexConstructionConsumer<>() {
 
@@ -441,10 +442,20 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     }
 
                     @Override
-                    public void onAssigned(@NotNull ConstructionTargetKey key, String desc)
+                    public void onAssigned(@NotNull ConstructionTargetKey key, String desc, Task task, OperationResult result)
                             throws SchemaException, ConfigurationException {
-                        LensProjectionContext projectionContext =
-                                LensContext.getOrCreateProjectionContext(context, key, false).context;
+                        LensProjectionContext existing = context.findFirstProjectionContext(key, false);
+                        LensProjectionContext projectionContext;
+                        if (existing != null) {
+                            projectionContext = existing;
+                        } else {
+                            if (!areOutboundsNotDisabledByPolicy(key, task, result)) {
+                                LOGGER.trace("Projection {} skip: assigned (valid), but outbounds are disabled by policy", desc);
+                                return;
+                            }
+                            projectionContext =
+                                    LensContext.getOrCreateProjectionContext(context, key, false).context;
+                        }
                         projectionContext.setAssigned(true);
                         projectionContext.setAssignedOldIfUnknown(false);
                         projectionContext.setLegalOldIfUnknown(false);
@@ -456,13 +467,73 @@ public class AssignmentProcessor implements ProjectorProcessor {
                         }
                     }
 
+                    /** Assuming that the context does not exist. */
+                    private boolean areOutboundsNotDisabledByPolicy(
+                            @NotNull ConstructionTargetKey key, Task task, OperationResult result)
+                            throws ConfigurationException {
+                        LOGGER.trace("Are outbounds disabled by policy? Checking related contexts for: {}", key);
+                        var fromRelatedContexts = getFromRelatedContexts(key, result);
+                        if (fromRelatedContexts != null) {
+                            return fromRelatedContexts;
+                        }
+                        LOGGER.trace("Are outbounds disabled by policy? Checking the default operation policy for: {}", key);
+                        ObjectOperationPolicyType policy;
+                        try {
+                            policy = provisioningService.getDefaultOperationPolicy(
+                                    key.getResourceOid(), key.getTypeIdentification(), task, result);
+                        } catch (CommonException | RuntimeException e) {
+                            // The construction information may be wrong. We don't want to fail the whole operation in that case.
+                            // The error in OperationResult is adequate. See TestAssignmentErrors.test100/test101.
+                            LoggingUtils.logExceptionAsWarning(
+                                    LOGGER, "Default operation policy couldn't be found for {}", e, key);
+                            return true;
+                        }
+                        if (policy == null) {
+                            LOGGER.trace("-> no default policy found, assuming outbounds are not disabled");
+                            return true;
+                        }
+                        var enabled = !ObjectOperationPolicyTypeUtil.isSyncOutboundDisabled(policy);
+                        LOGGER.trace("-> determined from the default policy: {}", enabled);
+                        return enabled;
+                    }
+
+                    private Boolean getFromRelatedContexts(@NotNull ConstructionTargetKey key, OperationResult result)
+                            throws ConfigurationException {
+                        var policies = new HashSet<Boolean>();
+                        for (LensProjectionContext projCtx : context.findProjectionContexts(key.asFilter())) {
+                            var isDisabled = projCtx.isOutboundSyncDisabledNullable(result);
+                            if (isDisabled == null) {
+                                LOGGER.trace("-> ignoring a related context, as no policy is determinable from it: {}", projCtx);
+                                continue;
+                            }
+                            var enabled = !isDisabled;
+                            LOGGER.trace("-> policy: {}, in: {}", enabled, projCtx);
+                            policies.add(enabled);
+                        }
+                        if (policies.size() > 1) {
+                            LOGGER.warn("Conflicting outbound synchronization policies found (so using the default policy) for {}:\n{}",
+                                    key, context.debugDump(1));
+                            return null;
+                        } else if (policies.size() == 1) {
+                            return policies.iterator().next();
+                        } else {
+                            LOGGER.trace("-> no contexts found, using the default policy");
+                            return null;
+                        }
+                    }
+
                     @Override
-                    public void onUnchangedValid(@NotNull ConstructionTargetKey key, String desc)
+                    public void onUnchangedValid(
+                            @NotNull ConstructionTargetKey key, String desc, Task task, OperationResult result)
                             throws SchemaException, ConfigurationException {
                         LensProjectionContext projectionContext = context.findFirstProjectionContext(key, false);
                         if (projectionContext == null) {
                             if (processOnlyExistingProjContexts) {
                                 LOGGER.trace("Projection {} skip: unchanged (valid), processOnlyExistingProjContexts", desc);
+                                return;
+                            }
+                            if (!areOutboundsNotDisabledByPolicy(key, task, result)) {
+                                LOGGER.trace("Projection {} skip: unchanged (valid), but outbounds are disabled by policy", desc);
                                 return;
                             }
                             // The projection should exist before the change but it does not
@@ -571,7 +642,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     evaluatedAssignmentTriple,
                     EvaluatedAssignmentImpl::getConstructionTriple,
                     EvaluatedResourceObjectConstructionImpl::getTargetKey,
-                    consumer);
+                    consumer,
+                    task, result);
             LOGGER.trace("Finished construction distribution");
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -627,7 +699,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             try {
                 evaluatedAssignment.evaluateConstructions(focusOdoAbsolute, context::rememberResource, task, result);
             } catch (ObjectNotFoundException ex) {
-                LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
+                LOGGER.trace("Processing of assignment resulted in 'not found' error {}: {}", ex,
                         SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignment()));
                 if (!ModelExecuteOptions.isForce(context.getOptions())) {
                     ModelImplUtils.recordFatalError(result, ex);

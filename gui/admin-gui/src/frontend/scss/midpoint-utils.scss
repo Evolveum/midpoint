@@ -147,3 +147,13 @@ div[role="button"].btn, .btn {
 .txt-default {
   color:$text-color;
 }
+
+@each $color, $value in $theme-colors {
+  $backgroundValue: color-yiq($value);
+  .bg-toned-#{$color} {
+      background-color: mix(#ffffff, $value, 90%);
+  }
+  .text-toned-#{$color} {
+      color: mix(#ffffff, $value, 90%);
+  }
+}

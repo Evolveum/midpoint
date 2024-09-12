@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -18,11 +19,10 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -39,15 +39,22 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.Ro
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+
 public class RoleAnalysisAttributePanel extends BasePanel<String> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
 
     private static final String ID_CARD_CONTAINER = "card-container";
-   /* private static final String ID_CARD_HEADER_TITLE = "cardHeaderTitle";*/
     private static final String ID_CARD_HEADER_REPEATING_BUTTONS = "analysisAttributesButtons";
     private static final String ID_CARD_BODY_COMPONENT = "cardBodyComponent";
+
+    private static final String ID_CARD_HEADER_CONTAINER = "cardHeaderContainer";
+    private static final String ID_CARD_HEADER_TITLE = "cardHeaderTitle";
+
     private static final String ID_CARD_BODY = "cardBody";
+
+    private static final String STATUS_ACTIVE = " active ";
 
     RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult;
     RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult;
@@ -98,10 +105,10 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     private void initLayout() {
         WebMarkupContainer cardContainer = new WebMarkupContainer(ID_CARD_CONTAINER);
         cardContainer.setOutputMarkupId(true);
-        cardContainer.add(AttributeAppender.replace("class", getCssClassForCardContainer()));
+        cardContainer.add(AttributeModifier.replace(CLASS_CSS, getCssClassForCardContainer()));
         add(cardContainer);
 
-        /*initCardHeaderTitle(cardContainer);*/
+        initCardHeaderTitle(cardContainer);
 
         initCardHeaderButtons(cardContainer);
 
@@ -184,39 +191,39 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     public Set<String> getPathToMark() {
-        return null;
+        return Collections.emptySet();
     }
 
     private void initCardHeaderButtons(WebMarkupContainer cardContainer) {
         RepeatingView repeatingView = new RepeatingView(ID_CARD_HEADER_REPEATING_BUTTONS);
 
-        List<ItemPath> userPath = new ArrayList<>();
-        List<ItemPath> rolePath = new ArrayList<>();
+        List<ItemPath> localUserPath = new ArrayList<>();
+        List<ItemPath> localRolePath = new ArrayList<>();
+
         if (userAttributeAnalysisResult != null) {
 
             List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
             for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
-                ItemPathType itemDescription = analysis.getItemPath();
-                if (itemDescription == null) {
-                    continue;
-                }
-                ItemPath itemPath = itemDescription.getItemPath();
-                userPath.add(itemPath);
+
+//                ItemPathType itemDescription = analysis.getItemPath();
+//                if (itemDescription == null) {
+//                    continue;
+//                }
+//                ItemPath itemPath = itemDescription.getItemPath();
+//                userPath.add(itemPath);
+                ItemPath itemDescription = resolveItemDescription(analysis, localUserPath);
+
                 String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_USER_ICON;
 
                 int badge = analysis.getAttributeStatistics().size();
-                initRepeatingChildButtons(classObjectIcon, repeatingView, itemPath, badge);
+                initRepeatingChildButtons(classObjectIcon, repeatingView, itemDescription, badge);
             }
         }
 
         if (roleAttributeAnalysisResult != null) {
             for (RoleAnalysisAttributeAnalysis analysis : roleAttributeAnalysisResult.getAttributeAnalysis()) {
-                ItemPathType itemDescriptionType = analysis.getItemPath();
-                if (itemDescriptionType == null) {
-                    continue;
-                }
-                ItemPath itemDescription = itemDescriptionType.getItemPath();
-                rolePath.add(itemDescription);
+
+                ItemPath itemDescription = resolveItemDescription(analysis, localRolePath);
                 String classObjectIcon = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
 
                 int badge = analysis.getAttributeStatistics().size();
@@ -224,24 +231,46 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             }
         }
 
-        if (!userPath.isEmpty() || !rolePath.isEmpty()) {
+        if (!localUserPath.isEmpty() || !localRolePath.isEmpty()) {
             initOveralResultButton(
-                    repeatingView, userPath, rolePath);
+                    repeatingView, localUserPath, localRolePath);
         }
 
         repeatingView.setOutputMarkupId(true);
         cardContainer.add(repeatingView);
     }
 
-    private void initRepeatingChildButtons(String classObjectIcon, RepeatingView repeatingView,
+
+    private static @Nullable ItemPath resolveItemDescription(
+            @NotNull RoleAnalysisAttributeAnalysis analysis,
+            List<ItemPath> localUserPath) {
+
+            ItemPathType itemDescription = analysis.getItemPath();
+            if (itemDescription == null) {
+                return null;
+            }
+            ItemPath itemPath = itemDescription.getItemPath();
+            localUserPath.add(itemPath);
+
+            return itemPath;
+        }
+//        String itemDescription = analysis.getItemPath();
+//        if (itemDescription != null && !itemDescription.isEmpty()) {
+//            itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
+//            localUserPath.add(itemDescription.toLowerCase());
+//        }
+//        return itemDescription;
+//    }
+
+    private void initRepeatingChildButtons(String classObjectIcon, @NotNull RepeatingView repeatingView,
             ItemPath itemDescription, int badge) {
 
         IconAjaxButtonBadge button = new IconAjaxButtonBadge(repeatingView.newChildId(), Model.of(itemDescription.toString()), true) {
 
             @Override
             protected void onLoadComponent() {
-                add(AttributeAppender.replace("class", isClicked
-                        ? getButtonCssClass() + " active "
+                add(AttributeModifier.replace(CLASS_CSS, isClicked
+                        ? getButtonCssClass() + STATUS_ACTIVE
                         : getButtonCssClass()));
 
                 if (this.isClicked()) {
@@ -274,8 +303,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
                 for (Component component : repeatingView) {
                     IconAjaxButtonBadge btn = (IconAjaxButtonBadge) component;
-                    String buttonTitle = btn.getModelObject().toLowerCase();
-                    if (!buttonTitle.equals("overal result")) {
+                    if (!btn.isUnique) {
                         continue;
                     }
                     boolean clicked = btn.isClicked();
@@ -285,8 +313,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                         btn.setClicked(true);
                     }
 
-                    btn.add(AttributeAppender.replace("class", btn.isClicked()
-                            ? getButtonCssClass() + " active "
+                    btn.add(AttributeModifier.replace(CLASS_CSS, btn.isClicked()
+                            ? getButtonCssClass() + STATUS_ACTIVE
                             : getButtonCssClass()));
 
                     target.add(btn);
@@ -294,8 +322,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
                 switchCardBodyComponent(target, userPath, rolePath);
 
-                this.add(AttributeAppender.replace("class", isClicked
-                        ? getButtonCssClass() + " active "
+                this.add(AttributeModifier.replace(CLASS_CSS, isClicked
+                        ? getButtonCssClass() + STATUS_ACTIVE
                         : getButtonCssClass()));
                 target.add(this);
             }
@@ -335,7 +363,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             List<ItemPath> userPath,
             List<ItemPath> rolePath) {
 
-        IconAjaxButtonBadge button = new IconAjaxButtonBadge(repeatingView.newChildId(), Model.of("Overal result"), false) {
+        IconAjaxButtonBadge button = new IconAjaxButtonBadge(repeatingView.newChildId(), createStringResource(
+                "RoleAnalysisAttributePanel.title.overal.result"), false) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -348,12 +377,11 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
                     for (Component component : repeatingView) {
                         IconAjaxButtonBadge btn = (IconAjaxButtonBadge) component;
-                        String buttonTitle = btn.getModelObject().toLowerCase();
-                        if (buttonTitle.equals("overal result")) {
+                        if (btn.isUnique()) {
                             continue;
                         }
                         btn.setClicked(false);
-                        btn.add(AttributeAppender.replace("class", getButtonCssClass()));
+                        btn.add(AttributeModifier.replace(CLASS_CSS, getButtonCssClass()));
                         target.add(btn);
                     }
                 } else {
@@ -361,20 +389,19 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
                     RoleAnalysisAttributePanel.this.rolePath.addAll(rolePath);
                     for (Component component : repeatingView) {
                         IconAjaxButtonBadge btn = (IconAjaxButtonBadge) component;
-                        String buttonTitle = btn.getModelObject().toLowerCase();
-                        if (buttonTitle.equals("overal result")) {
+                        if (btn.isUnique()) {
                             continue;
                         }
                         btn.setClicked(true);
-                        btn.add(AttributeAppender.replace("class", getButtonCssClass() + " active "));
+                        btn.add(AttributeModifier.replace(CLASS_CSS, getButtonCssClass() + STATUS_ACTIVE));
                         target.add(btn);
                     }
                 }
 
                 switchCardBodyComponent(target, RoleAnalysisAttributePanel.this.userPath, RoleAnalysisAttributePanel.this.rolePath);
 
-                this.add(AttributeAppender.replace("class", isClicked
-                        ? getButtonCssClass() + " active "
+                this.add(AttributeModifier.replace(CLASS_CSS, isClicked
+                        ? getButtonCssClass() + STATUS_ACTIVE
                         : getButtonCssClass()));
                 target.add(this);
             }
@@ -402,7 +429,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
         };
         button.setOutputMarkupId(true);
-        button.add(AttributeAppender.replace("class", getButtonCssClass()));
+        button.setUnique(true);
+        button.add(AttributeModifier.replace(CLASS_CSS, getButtonCssClass()));
         repeatingView.add(button);
     }
 
@@ -420,17 +448,23 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
         target.add(RoleAnalysisAttributePanel.this.get(createComponentPath(ID_CARD_CONTAINER, ID_CARD_BODY, ID_CARD_BODY_COMPONENT)).getParent());
     }
 
-    /*private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
+    private void initCardHeaderTitle(@NotNull WebMarkupContainer cardContainer) {
+        WebMarkupContainer cardHeaderContainer = new WebMarkupContainer(ID_CARD_HEADER_CONTAINER);
+        cardHeaderContainer.setOutputMarkupId(true);
+        cardHeaderContainer.add(new VisibleBehaviour(this::isCardTitleVisible));
+
+        cardContainer.add(cardHeaderContainer);
+
         IconWithLabel label = new IconWithLabel(ID_CARD_HEADER_TITLE, getModel()) {
+            @Contract(pure = true)
             @Override
-            protected String getIconCssClass() {
+            protected @NotNull String getIconCssClass() {
                 return "fa fa-area-chart";
             }
         };
-        label.add(new VisibleBehaviour(this::isCardTitleVisible));
         label.setOutputMarkupId(true);
-        cardContainer.add(label);
-    }*/
+        cardHeaderContainer.add(label);
+    }
 
     public String getIconCssClass() {
         return "";
@@ -476,7 +510,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     }
 
     protected boolean isCardTitleVisible() {
-        return true;
+        return false;
     }
 
 }

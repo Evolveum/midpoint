@@ -532,6 +532,11 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         getDummyResource(RESOURCE_DUMMY_BEIGE_NAME).deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         displayDumpable("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
+        // Actually, the test should work even without invalidating the cache, as (during the processing) the shadow
+        // is tried to be fetched - because credentials are not cached by default. But there is a problem that
+        // the re-creation of the shadow is ordered too late to be executed (in click #5).
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_BEIGE_OID);
+
         // WHEN
         when();
         recomputeUser(USER_JACK_OID, executeOptions().reconcile(), task, result);
@@ -656,9 +661,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         displayDumpable("dummy resource before", getDummyResource());
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_OID);
 
         getDummyResource(RESOURCE_DUMMY_BEIGE_NAME).deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         displayDumpable("beige dummy resource before", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_BEIGE_OID);
+
+        // For invalidations, see the note in test224.
 
         // WHEN
         when();

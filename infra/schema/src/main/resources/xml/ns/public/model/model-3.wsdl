@@ -734,7 +734,7 @@
 
         <operation name="executeScripts">
             <documentation>
-                <p>Executes one or more midPoint scripts (bulk actions).</p>
+                <p>Executes one or more midPoint scripts (actions).</p>
                 <p>NOTE: This method is not fully implemented yet.</p>
             </documentation>
             <input name="executeScripts" message="tns:executeScripts"/>

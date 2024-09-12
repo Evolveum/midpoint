@@ -8,7 +8,7 @@ import java.util.Set;
 import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressIncrement;
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierNoiseCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierNoiseCategoryType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,7 @@ public abstract class Clusterer<T extends Clusterable> {
 
     public abstract List<? extends Cluster<T>> cluster(Collection<T> var1, RoleAnalysisProgressIncrement handler);
 
-    @SuppressWarnings({ "rawtypes", "ClassEscapesDefinedScope" })
+    @SuppressWarnings({ "ClassEscapesDefinedScope" })
     public List<T> getNeighbors(T point, Collection<T> points, Set<ClusterExplanation> explanation, double eps, int minPts,
             DensityBasedClustering.PointStatusWrapper pStatusWrapper) {
         List<T> neighbors = new ArrayList<>();
@@ -46,9 +46,9 @@ public abstract class Clusterer<T extends Clusterable> {
                 }
 
                 if (numberOfOveralRuleNeighbors > minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.SUITABLE;
                 } else {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_NOISE;
                 }
 
                 yield neighbors;
@@ -66,15 +66,17 @@ public abstract class Clusterer<T extends Clusterable> {
                 }
 
                 if (numberOfOveralRuleNeighbors > minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.SUITABLE;
                 } else {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_NOISE;
                 }
 
                 yield neighbors;
             }
             case BALANCED_RULES -> {
                 int numberOfOveralRuleNeighbors = point.getMembersCount();
+                int numberOfAccessNeighbors = point.getMembersCount();
+                int numberOfRulesNeighbors = point.getMembersCount();
                 for (T neighbor : points) {
                     boolean notNeighbor = point != neighbor;
                     boolean accessDistance = this.balancedAccessDistance(neighbor, point) <= eps;
@@ -87,12 +89,32 @@ public abstract class Clusterer<T extends Clusterable> {
                         neighbors.add(neighbor);
                         numberOfOveralRuleNeighbors += neighbor.getMembersCount();
                     }
+
+                    if (accessDistance) {
+                        numberOfAccessNeighbors += neighbor.getMembersCount();
+                    }
+
+                    if (rulesDistance) {
+                        numberOfRulesNeighbors += neighbor.getMembersCount();
+                    }
+
                 }
 
+                OutlierNoiseCategoryType pStatus = pStatusWrapper.pStatus;
                 if (numberOfOveralRuleNeighbors > minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.SUITABLE;
+                } else if (numberOfAccessNeighbors < minPts && numberOfRulesNeighbors < minPts && pStatus == null) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.OVERAL_NOISE;
+                } else if (pStatus == OutlierNoiseCategoryType.ACCESS_NOISE
+                        || pStatus == OutlierNoiseCategoryType.RULE_NOISE
+                        || pStatus == OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
+                } else if (numberOfAccessNeighbors < minPts) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_NOISE;
+                } else if (numberOfRulesNeighbors < minPts) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.RULE_NOISE;
                 } else {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 }
 
                 yield neighbors;
@@ -123,16 +145,21 @@ public abstract class Clusterer<T extends Clusterable> {
                     }
                 }
 
+                OutlierNoiseCategoryType pStatus = pStatusWrapper.pStatus;
                 if (numberOfOveralRuleNeighbors > minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
-                } else if (numberOfAccessNeighbors < minPts && numberOfRulesNeighbors < minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.SUITABLE;
+                } else if (numberOfAccessNeighbors < minPts && numberOfRulesNeighbors < minPts && pStatus == null) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.OVERAL_NOISE;
+                } else if (pStatus == OutlierNoiseCategoryType.ACCESS_NOISE
+                        || pStatus == OutlierNoiseCategoryType.RULE_NOISE
+                        || pStatus == OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 } else if (numberOfAccessNeighbors < minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.ACCESS_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_NOISE;
                 } else if (numberOfRulesNeighbors < minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.RULE_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.RULE_NOISE;
                 } else {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 }
 
                 yield neighbors;
@@ -168,16 +195,23 @@ public abstract class Clusterer<T extends Clusterable> {
                     }
                 }
 
+                OutlierNoiseCategoryType pStatus = pStatusWrapper.pStatus;
                 if (numberOfOveralRuleNeighbors > minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER;
-                } else if (numberOfAccessNeighbors < minPts && numberOfRulesNeighbors <= minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
-                } else if (numberOfAccessNeighbors < minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.ACCESS_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.SUITABLE;
+                } else if (numberOfAccessNeighbors < minPts && numberOfRulesNeighbors < minPts && pStatus == null) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.OVERAL_NOISE;
+                } else if (pStatus == OutlierNoiseCategoryType.ACCESS_NOISE
+                        || pStatus == OutlierNoiseCategoryType.RULE_NOISE
+                        || pStatus == OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 } else if (numberOfRulesNeighbors < minPts) {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.RULE_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.RULE_NOISE;
+                } else if (numberOfAccessNeighbors < minPts) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_NOISE;
+                } else if (numberOfAccessNeighbors > minPts && numberOfRulesNeighbors > minPts) {
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 } else {
-                    pStatusWrapper.pStatus = RoleAnalysisOutlierNoiseCategoryType.OVERAL_NOISE;
+                    pStatusWrapper.pStatus = OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE;
                 }
 
                 yield neighbors;

@@ -11,21 +11,19 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.PageAbstractRole;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleInducementPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 @PanelType(name = "constructionInducements")
 @PanelInstance(identifier = "constructionInducements",
@@ -52,9 +50,19 @@ public class ConstructionInducementsPanel<AR extends AbstractRoleType> extends A
     @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
         if (getPageBase() instanceof PageAbstractRole) {
-            ((PageAbstractRole)getPageBase()).showConstructionWizard(target);
+            ((PageAbstractRole) getPageBase()).showConstructionWizard(target);
             return;
         }
         super.newAssignmentClickPerformed(target);
+    }
+
+    @Override
+    protected String getNameOfAssignment(PrismContainerValueWrapper<AssignmentType> wrapper) {
+        return getNameResourceOfConstruction(wrapper);
+    }
+
+    @Override
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        return ColumnUtils.createInducementConstructionColumns(getContainerModel(), getPageBase());
     }
 }

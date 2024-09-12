@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -406,9 +408,13 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         try {
             testUserSharptoothChangePasswordError(
                     BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
-                    OperationResultStatus.FATAL_ERROR);
+                    InternalsConfig.isShadowCachingOnByDefault() ?
+                            OperationResultStatus.IN_PROGRESS : // when caching is on, there is no ConnId read op to fail
+                            OperationResultStatus.FATAL_ERROR);
 
-            assertNotReached();
+            if (!InternalsConfig.isShadowCachingOnByDefault()) {
+                assertNotReached();
+            }
         } catch (GenericConnectorException e) {
             // expected
         }

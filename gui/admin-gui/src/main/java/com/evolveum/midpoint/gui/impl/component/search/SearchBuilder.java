@@ -353,7 +353,7 @@ public class SearchBuilder<C extends Serializable> {
 
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
             searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(
-                    type, allSearchableItems, searchItem, additionalSearchContext, modelServiceLocator));
+                    type, allSearchableItems, searchItem, additionalSearchContext, collectionView, modelServiceLocator));
         }
 
         return searchConfigWrapper;

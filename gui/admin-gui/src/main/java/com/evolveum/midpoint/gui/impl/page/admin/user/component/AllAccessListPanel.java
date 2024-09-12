@@ -12,7 +12,10 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.util.AccessMetadataUtil;
 
+import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -179,11 +182,17 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                 if (assignmentType == null) {
                     return () -> "";
                 }
-                MetadataType metadataType = assignmentType.getMetadata();
+                ValueMetadataType metadataType = ValueMetadataTypeUtil.getMetadata(assignmentType);
                 if (metadataType == null) {
                     return null;
                 }
-                String chanel = metadataType.getCreateChannel();
+
+                StorageMetadataType storageMetadataType = metadataType.getStorage();
+                if (storageMetadataType == null) {
+                    return () -> "N/A";
+                }
+
+                String chanel = storageMetadataType.getCreateChannel();
                 if (chanel == null) {
                     return () -> "N/A";
                 }
@@ -201,12 +210,16 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                     switch (channel) {
                         case SELF_SERVICE:
                         case USER:
-                            creator = WebModelServiceUtils.resolveReferenceName(metadataType.getCreatorRef(), getPageBase());
-                            approvers = metadataType.getCreateApproverRef()
+                            creator = WebModelServiceUtils.resolveReferenceName(storageMetadataType.getCreatorRef(), getPageBase());
+                            approvers = ValueMetadataTypeUtil.getCreateApproverRefs(assignmentType)
                                     .stream()
+                                    .filter(ref -> StringUtils.isNotEmpty(ref.getOid()))
                                     .map(approver -> WebModelServiceUtils.resolveReferenceName(approver, getPageBase()))
                                     .collect(Collectors.joining(", "));
-                            approverComments = metadataType.getCreateApprovalComment().stream().collect(Collectors.joining(". "));
+                            approverComments = ValueMetadataTypeUtil.getCreateApprovalComments(assignmentType)
+                                    .stream()
+                                    .filter(comment -> comment != null && !comment.isBlank())
+                                    .collect(Collectors.joining(". "));
                             break;
                         case IMPORT:
                         case ASYNC_UPDATE:
@@ -214,7 +227,7 @@ public class AllAccessListPanel extends AbstractObjectMainPanel<UserType, UserDe
                         case LIVE_SYNC:
                         case RECOMPUTATION:
                         case RECONCILIATION:
-                            creator = WebModelServiceUtils.resolveReferenceName(metadataType.getCreateTaskRef(), getPageBase());
+                            creator = WebModelServiceUtils.resolveReferenceName(storageMetadataType.getCreateTaskRef(), getPageBase());
                     }
                     String whyStatement = "Created by: " + creator;
                     if (approvers != null && !approvers.isBlank()) {

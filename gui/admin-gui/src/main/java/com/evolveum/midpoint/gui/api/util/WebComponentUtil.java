@@ -21,7 +21,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.input.converter.DateConverter;
 import com.evolveum.midpoint.gui.impl.component.action.AbstractGuiAction;
-import com.evolveum.midpoint.gui.impl.component.action.GuiActionDto;
+import com.evolveum.midpoint.model.api.trigger.TriggerHandler;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 
@@ -717,12 +717,12 @@ public final class WebComponentUtil {
         return isAuthorized(actionUris);
     }
 
-    public static boolean isCertItemsViewEnabled(ModelServiceLocator serviceLocator) {
+    public static boolean isCertItemsMenusEnabled(ModelServiceLocator serviceLocator) {
         try {
             OperationResult result = new OperationResult("loadingCertificationConfiguration");
             AccessCertificationConfigurationType config =
                     serviceLocator.getModelInteractionService().getCertificationConfiguration(result);
-            return config != null && Boolean.TRUE.equals(config.getEnableCertItemsCollectionView());
+            return config != null && Boolean.TRUE.equals(config.getAllowCertificationItemsMenus());
         } catch (SchemaException | ObjectNotFoundException e) {
             return false;
         }
@@ -843,11 +843,6 @@ public final class WebComponentUtil {
         } else {
             return "";
         }
-    }
-
-    public static IModel<String> createCategoryNameModel(final IModel<String> categorySymbolModel) {
-        return () -> createStringResourceStatic(
-                "pageTasks.category." + categorySymbolModel.getObject()).getString();
     }
 
     public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
@@ -4219,11 +4214,23 @@ public final class WebComponentUtil {
         }
 
         Object[] marks = markRefs.stream()
+                .filter(ref -> ref != null && !ref.asReferenceValue().isEmpty())
                 .map(ref -> WebModelServiceUtils.loadObject(ref, page))
                 .filter(mark -> mark != null)
                 .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
                 .toArray();
 
         return StringUtils.joinWith(", ", marks);
+    }
+
+    public static String translateTriggerUri(String uri, ModelServiceLocator locator) {
+        TriggerHandler handler = locator.getTriggerHandlerRegistry().getHandler(uri);
+        if (handler == null) {
+            return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate("TriggerKey");
+        }
+
+        String key = "trigger." + handler.getClass().getName();
+
+        return com.evolveum.midpoint.gui.api.util.LocalizationUtil.translate(key);
     }
 }

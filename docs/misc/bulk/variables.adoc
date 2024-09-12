@@ -1,5 +1,5 @@
-= Variables in bulk actions
-:page-wiki-name: Variables in bulk actions
+= Variables in actions
+:page-wiki-name: Variables in actions
 :page-wiki-id: 24675674
 :page-wiki-metadata-create-user: mederly
 :page-wiki-metadata-create-date: 2017-10-20T13:34:12.705+02:00
@@ -14,7 +14,7 @@ Some parts (namely, defining variables using expressions other than path-based) 
 
 == Introduction
 
-Bulk actions (midPoint scripts) work in so called _pipes and filters_ model, just like e.g. traditional UNIX shell scripts.
+Actions (midPoint scripts) work in so called _pipes and filters_ model, just like e.g. traditional UNIX shell scripts.
 They consist of a number of primitive activities chained together into a sequence or sometimes into a more complex structure.
 Input from each activity is fed into the activity that immediately follows.
 
@@ -25,7 +25,7 @@ It is split when execution is split, for example when a search is executed and a
 Currently this context contains a set of _variables_. For the time being, these variables are initialized when the midPoint script starts, and are considered read-only during the execution of the whole script.
 In the future we might consider allowing additions or modifications into these variables, making the processing much more flexible (at the cost of deviation from pure pipes and filters model).
 
-The main use of the current implementation is easy parameterization of bulk actions: for example if we want to find all users of employeeType X and set their employeeType to Y, values for X and Y can be stored in bulk action variables.
+The main use of the current implementation is easy parameterization of actions: for example if we want to find all users of employeeType X and set their employeeType to Y, values for X and Y can be stored in action variables.
 
 
 == Default variables
@@ -45,7 +45,7 @@ There are the following variables available by default:
 | ruleEvaluationContext
 | PolicyRuleEvaluationContext
 | Context for policy rule evaluation.
-| When using bulk action in to evaluate object state constraint.
+| When using action in to evaluate object state constraint.
 
 
 |===
@@ -106,7 +106,7 @@ Some of them are path-based (userName, groups); some are defined as literal valu
 For expression-based variables it is necessary to specify their type.
 For value-based the type is derived from the literal value xsi:type (if present).
 
-.Various mechanisms for defining bulk action variables
+.Various mechanisms for defining action variables
 [source,xml]
 ----
 <s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
@@ -146,7 +146,7 @@ For value-based the type is derived from the literal value xsi:type (if present)
             <c:value>true</c:value>
         </s:parameter>
         <s:parameter>
-            <s:name>outputItem</s:name>	<!-- for testing purposes: for the calling Java code to be able to check the result of the bulk action -->
+            <s:name>outputItem</s:name>	<!-- for testing purposes: for the calling Java code to be able to check the result of the action -->
             <c:value>http://midpoint.evolveum.com/xml/ns/public/common/common-3#description</c:value>       <!-- just a plain string -->
         </s:parameter>
     </s:action>
@@ -193,4 +193,4 @@ For value-based the type is derived from the literal value xsi:type (if present)
 
 Available since v3.7devel-714-ga4ad63b (October 20th, 2017).
 
-See also xref:/midpoint/reference/tasks/task-template/[Task template HOWTO] to see how these feature can be used to execute parameterized bulk actions in ad-hoc tasks, created from a task template.
+See also xref:/midpoint/reference/tasks/task-template/[Task template HOWTO] to see how these feature can be used to execute parameterized actions in ad-hoc tasks, created from a task template.

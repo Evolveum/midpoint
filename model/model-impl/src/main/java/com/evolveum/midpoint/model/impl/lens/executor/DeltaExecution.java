@@ -392,8 +392,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         if (!deltaForExecution.hasCompleteDefinition()) { // TODO reconsider this
             throw new SchemaException("object delta does not have complete definition");
         }
-        LensObjectDeltaOperation<E> objectDeltaOp = LensUtil.createObjectDeltaOperation(
-                deltaForExecution.clone(), result, elementContext, null, resource);
+        var objectDeltaOp = LensUtil.createObjectDeltaOperation(deltaForExecution.clone(), result, elementContext, resource);
         LOGGER.trace("Recording executed delta:\n{}", lazy(() -> objectDeltaOp.shorterDebugDump(1)));
         elementContext.addToExecutedDeltas(objectDeltaOp);
         return objectDeltaOp;
@@ -402,7 +401,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
     private void addTrace(LensObjectDeltaOperation<E> objectDeltaOp, OperationResult result) throws SchemaException {
         if (result.isTracingNormal(ModelExecuteDeltaTraceType.class)) {
             TraceType trace = new ModelExecuteDeltaTraceType()
-                    .delta(objectDeltaOp.clone().toLensObjectDeltaOperationType()); // todo kill operation result?
+                    .delta(objectDeltaOp.clone().toLensObjectDeltaOperationBean()); // todo kill operation result?
             result.addTrace(trace);
         }
     }

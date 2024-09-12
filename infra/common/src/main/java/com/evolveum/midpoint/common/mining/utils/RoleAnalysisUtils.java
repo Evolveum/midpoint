@@ -131,6 +131,31 @@ public class RoleAnalysisUtils {
         return dateString + ", " + timeString;
     }
 
+    public static @NotNull String resolveDateAndTime(@NotNull RoleType role) {
+
+        if (role.getMetadata() == null || role.getMetadata().getCreateTimestamp() == null) {
+            return "";
+        }
+
+        XMLGregorianCalendar createTimestamp = role.getMetadata().getCreateTimestamp();
+        int year = createTimestamp.getYear();
+        int month = createTimestamp.getMonth();
+        int day = createTimestamp.getDay();
+        int hours = createTimestamp.getHour();
+        int minutes = createTimestamp.getMinute();
+
+        String dateString = String.format("%04d:%02d:%02d", year, month, day);
+
+        String amPm = (hours < 12) ? "AM" : "PM";
+        hours = hours % 12;
+        if (hours == 0) {
+            hours = 12;
+        }
+        String timeString = String.format("%02d:%02d %s", hours, minutes, amPm);
+
+        return dateString + ", " + timeString;
+    }
+
     public static @NotNull List<RoleAnalysisDetectionPatternType> loadIntersections(
             @NotNull List<DetectedPattern> possibleBusinessRole) {
         List<RoleAnalysisDetectionPatternType> roleAnalysisClusterDetectionTypeList = new ArrayList<>();
@@ -150,20 +175,24 @@ public class RoleAnalysisUtils {
             Set<String> users = detectedPattern.getUsers();
             Set<String> roles = detectedPattern.getRoles();
 
-            for (String usersRef : users) {
-                roleAnalysisClusterDetectionType.getUserOccupancy().add(
-                        new ObjectReferenceType().oid(usersRef).type(UserType.COMPLEX_TYPE));
-
-            }
-
-            for (String rolesRef : roles) {
-                roleAnalysisClusterDetectionType.getRolesOccupancy().add(
-                        new ObjectReferenceType().oid(rolesRef).type(RoleType.COMPLEX_TYPE)
-                );
-            }
+            mapPatternRefs(users, roleAnalysisClusterDetectionType, roles);
 
             roleAnalysisClusterDetectionType.setClusterMetric(detectedPattern.getMetric());
             roleAnalysisClusterDetectionTypeList.add(roleAnalysisClusterDetectionType);
+        }
+    }
+
+    public static void mapPatternRefs(@NotNull Set<String> users, RoleAnalysisDetectionPatternType roleAnalysisClusterDetectionType, Set<String> roles) {
+        for (String usersRef : users) {
+            roleAnalysisClusterDetectionType.getUserOccupancy().add(
+                    new ObjectReferenceType().oid(usersRef).type(UserType.COMPLEX_TYPE));
+
+        }
+
+        for (String rolesRef : roles) {
+            roleAnalysisClusterDetectionType.getRolesOccupancy().add(
+                    new ObjectReferenceType().oid(rolesRef).type(RoleType.COMPLEX_TYPE)
+            );
         }
     }
 

@@ -389,7 +389,7 @@ There are some fundamental limitations stemming from this approach:
 These operations present a bad practice anyway and should be avoided regardless of whether simulation is used or not.
 Examples:
 
-.. direct actions invoked through internal midPoint APIs, like the repository, provisioning, case management, or notification APIsfootnote:[Please avoid also using `notify`, `reencrypt`, and `resumeTask` bulk actions, as they are currently executed also in simulation mode. See bug:MID-8811[], bug:MID-8812[], and bug:MID-8813[].];
+.. direct actions invoked through internal midPoint APIs, like the repository, provisioning, case management, or notification APIsfootnote:[Please avoid also using `notify`, `reencrypt`, and `resumeTask` actions, as they are currently executed also in simulation mode. See bug:MID-8811[], bug:MID-8812[], and bug:MID-8813[].];
 .. direct manipulation of outside objects (files, sockets, and so on).
 +
 If absolutely necessary, your code should check for the execution mode using `task.getExecutionMode()` and related methods and act accordingly.

@@ -721,10 +721,11 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
                                 + "Please fix the shadow or the resource configuration",
                         rawShadowBean, resource);
         var state = ShadowLifecycleStateDeterminer.determineShadowState(this, rawShadowBean);
-        var fresh = ShadowUtil.isShadowFresh(
-                rawRepoShadow.getPrismObject(),
-                definition,
-                CommonBeans.get().clock.currentTimeXMLGregorianCalendar());
+        var fresh = ShadowUtil.getShadowCachedStatus(
+                        rawRepoShadow.getPrismObject(),
+                        definition,
+                        CommonBeans.get().clock.currentTimeXMLGregorianCalendar())
+                .isFresh();
 
         // The following drives how strict we are when reading the shadow. On one hand, we want to work with the correct data.
         // On the other, we do not want to fail hard when the resource schema changes. Hence, we are strict for fresh shadows,
@@ -905,7 +906,8 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
             ConfigurationException, ObjectNotFoundException {
         var computer = createShadowMarksComputer(shadow, shadowState, result);
         var marksAndPolicies =
-                ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(shadow.getBean(), computer, result);
+                ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
+                        shadow.getBean(), computer, getExecutionMode(), result);
         marksAndPolicies.applyTo(shadow.getBean());
         return marksAndPolicies;
     }
@@ -920,6 +922,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
                 repoShadowWithState.getBean(),
                 createShadowMarksComputer(resourceObject, repoShadowWithState.state(), result),
+                getExecutionMode(),
                 result);
     }
 

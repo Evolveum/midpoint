@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil.transformQueryValues;
+import static com.evolveum.midpoint.schema.processor.ShadowsNormalizationUtil.transformQueryValues;
 import static com.evolveum.midpoint.schema.GetOperationOptions.updateToDistinct;
 import static com.evolveum.midpoint.schema.GetOperationOptions.zeroStalenessOptions;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;

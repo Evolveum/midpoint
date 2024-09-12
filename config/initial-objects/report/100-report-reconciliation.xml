@@ -147,7 +147,12 @@
             <column id="10">
                 <name>ownerColumn</name>
                 <display>
-                    <label>Owner</label>
+                    <label>
+                        <orig>Owner</orig>
+                        <translation>
+                            <key>reportReconciliation.ownerColumn.label</key>
+                        </translation>
+                    </label>
                 </display>
                 <export>
                     <expression>

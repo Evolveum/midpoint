@@ -63,7 +63,7 @@ When a custom event is processed, first the ad-hoc handler is used (if present),
 
 == How to submit custom events
 
-=== Using bulk actions
+=== Using actions
 
 In order to easily send custom events there is the *notify* scripting (bulk) action.
 It takes the input from the pipe - usually a list of PrismObjects - and creates an event for each one of them.
@@ -97,7 +97,7 @@ The default behavior is to generate one event for each input object.
 
 All of them are optional.
 
-An example of such bulk action:
+An example of such action:
 
 [source,xml]
 ----
@@ -147,4 +147,4 @@ Event event = new CustomEvent(
 notificationManager.processEvent(event, task, result);
 ----
 
-Just have a look at link:https://github.com/Evolveum/midpoint/blob/master/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/scripting/actions/NotifyExecutor.java[NotifyExecutor Java class] (implementing "notify" bulk action).
+Just have a look at link:https://github.com/Evolveum/midpoint/blob/master/model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/scripting/actions/NotifyExecutor.java[NotifyExecutor Java class] (implementing "notify" action).

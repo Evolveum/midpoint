@@ -10,7 +10,12 @@
     <name>Distributed report export task</name>
     <archetypePolicy>
         <display>
-            <label>Distributed report export task</label>
+            <label>
+                <orig>Distributed report export task</orig>
+                <translation>
+                    <key>DistributedReportExportTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Distributed report export tasks</orig>
                 <translation>
@@ -36,7 +41,12 @@
                         <container id="4">
                             <identifier>reportParam</identifier>
                             <display>
-                                <label>Parameters</label>
+                                <label>
+                                    <orig>Parameters</orig>
+                                    <translation>
+                                        <key>parameters.container.label</key>
+                                    </translation>
+                                </label>
                             </display>
                             <path>activity/work/distributedReportExport/reportParam</path>
                         </container>

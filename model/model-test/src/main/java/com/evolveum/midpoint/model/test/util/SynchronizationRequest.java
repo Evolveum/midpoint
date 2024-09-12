@@ -52,6 +52,8 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Causes a single or multiple accounts be synchronized (imported or reconciled):
  *
@@ -247,7 +249,7 @@ public class SynchronizationRequest {
 
     @SuppressWarnings("WeakerAccess")
     public TestSimulationResult executeOnForegroundSimulated(
-            SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
+            @Nullable SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
         return test.executeWithSimulationResult(
                 taskExecutionMode,
                 simulationDefinition,
@@ -519,7 +521,8 @@ public class SynchronizationRequest {
         }
 
         public TestSimulationResult executeOnForegroundSimulated(
-                SimulationDefinitionType simulationDefinition, Task task, OperationResult result) throws CommonException {
+                @Nullable SimulationDefinitionType simulationDefinition, Task task, OperationResult result)
+                throws CommonException {
             return build().executeOnForegroundSimulated(simulationDefinition, task, result);
         }
 

@@ -11,7 +11,12 @@
     <name>Shadow reclassification task</name>
     <archetypePolicy>
         <display>
-            <label>Shadow reclassification task</label>
+            <label>
+                <orig>Shadow reclassification task</orig>
+                <translation>
+                    <key>ShadowReclassificationTask.label</key>
+                </translation>
+            </label>
             <pluralLabel>
                 <orig>Shadow reclassification tasks</orig>
                 <translation>

@@ -52,7 +52,7 @@ public class DuplicationProcessHelper {
                         if (resolver == null) {
                             duplicatedObject = duplicateObjectDefault(object);
                         } else {
-                            O duplicatedBean = resolver.duplicateObject(bean);
+                            O duplicatedBean = resolver.duplicateObject(bean, pageBase);
                             if (duplicatedBean == null) {
                                 pageBase.error(LocalizationUtil.translate("DuplicationProcessHelper.errorMessage.duplicate"));
                                 return;
@@ -101,7 +101,7 @@ public class DuplicationProcessHelper {
                         if (resolver == null) {
                             duplicatedContainer = duplicateContainerValueDefault(container);
                         } else {
-                            C duplicatedBean = resolver.duplicateObject(bean);
+                            C duplicatedBean = resolver.duplicateObject(bean, pageBase);
                             if (duplicatedBean == null) {
                                 pageBase.error(LocalizationUtil.translate("DuplicationProcessHelper.errorMessage.duplicate"));
                                 return;

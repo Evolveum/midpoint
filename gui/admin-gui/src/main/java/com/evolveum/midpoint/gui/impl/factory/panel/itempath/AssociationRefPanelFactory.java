@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel.itempath;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
@@ -37,11 +38,27 @@ public class AssociationRefPanelFactory extends ItemPathPanelFactory {
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
-        return super.match(wrapper, valueWrapper)
-                && wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
+        if (!super.match(wrapper, valueWrapper)) {
+            return false;
+        }
+
+        if (wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_ASSOCIATION_TYPE,
                 ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                ShadowAssociationDefinitionType.F_REF))) {
+            return true;
+        }
+
+        PrismContainerValueWrapper<ShadowAssociationTypeSubjectDefinitionType> parent =
+                wrapper.getParentContainerValue(ShadowAssociationTypeSubjectDefinitionType.class);
+
+        if (parent == null) {
+            return false;
+        }
+
+        return wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
                 ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
                 ShadowAssociationDefinitionType.F_REF));
     }

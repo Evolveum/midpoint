@@ -127,8 +127,17 @@ public class RoleAnalysisTableCellFillResolver {
         }
 
         ArrayList<String> element = new ArrayList<>(duplicatedElements);
-
-        boolean firstStage = new HashSet<>(rowModel.getProperties()).containsAll(colModel.getMembers());
+        List<String> properties = rowModel.getProperties();
+        List<String> members = colModel.getMembers();
+        boolean firstStage = true;
+        for (String member : members) {
+            if (!properties.contains(member)) {
+                firstStage = false;
+                break;
+            }
+        }
+//        This took multiple times (20ms vs 800ms)
+//        boolean firstStage = new HashSet<>(properties).containsAll(members);
         boolean isCandidate = firstStage && secondStage;
 
         RoleAnalysisOperationMode rowStatus = rowObjectStatus.getRoleAnalysisOperationMode();
@@ -492,7 +501,8 @@ public class RoleAnalysisTableCellFillResolver {
             @NotNull List<MiningUserTypeChunk> users,
             @NotNull List<MiningRoleTypeChunk> roles,
             @NotNull Task task,
-            @NotNull OperationResult result, PageBase pageBase) {
+            @NotNull OperationResult result,
+            @NotNull PageBase pageBase) {
 
         RoleAnalysisObjectStatus roleAnalysisObjectStatus = new RoleAnalysisObjectStatus(RoleAnalysisOperationMode.INCLUDE);
         roleAnalysisObjectStatus.setContainerId(Collections.singleton(candidateRoleId));

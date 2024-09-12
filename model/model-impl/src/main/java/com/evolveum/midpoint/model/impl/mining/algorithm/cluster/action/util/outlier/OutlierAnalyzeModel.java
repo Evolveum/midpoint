@@ -29,8 +29,8 @@ public class OutlierAnalyzeModel {
     PrismObject<UserType> userObject;
     List<MiningRoleTypeChunk> miningRoleTypeChunks;
     List<RoleAnalysisAttributeDef> attributesForUserAnalysis;
-    RoleAnalysisOutlierNoiseCategoryType noiseCategory;
-    OutlierCategory outlierCategory;
+    OutlierNoiseCategoryType noiseCategory;
+    OutlierClusterCategoryType outlierCategory;
 
     public OutlierAnalyzeModel(@NotNull OutlierDetectionOutlineClusterModel clusterModel){
         this.analysisCluster = clusterModel.getAnalysisCluster();
@@ -101,11 +101,11 @@ public class OutlierAnalyzeModel {
         return attributesForUserAnalysis;
     }
 
-    public RoleAnalysisOutlierNoiseCategoryType getNoiseCategory() {
+    public OutlierNoiseCategoryType getNoiseCategory() {
         return noiseCategory;
     }
 
-    public OutlierCategory getOutlierCategory() {
+    public OutlierClusterCategoryType getOutlierCategory() {
         return outlierCategory;
     }
 }
