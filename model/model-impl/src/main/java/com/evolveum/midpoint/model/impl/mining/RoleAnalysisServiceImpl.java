@@ -663,7 +663,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
         if (recomputeStatistics) {
             try {
-                if(sessionObject == null) {
+                if (sessionObject == null) {
                     return;
                 }
                 // FIXME
@@ -1823,6 +1823,9 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
             @NotNull List<RoleAnalysisAttributeDef> attributeDefSet, @NotNull Task task,
             @NotNull OperationResult result) {
         List<AttributeAnalysisStructure> attributeAnalysisStructures = new ArrayList<>();
+        runUserAttributeAnalysis(this, prismUsers, attributeAnalysisStructures, task, result, attributeDefSet);
+
+        //TODO temporary disable (override issue)
         runUserAttributeAnalysisCached(this, prismUsers, attributeAnalysisStructures,
                 userAnalysisCache, task, result, attributeDefSet);
         return attributeAnalysisStructures;
@@ -2013,8 +2016,8 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
 
             List<AttributeAnalysisStructure> userAttributeAnalysisStructures = null;
             if (attributeUserDefSet != null) {
-                userAttributeAnalysisStructures = this.userTypeAttributeAnalysisCached(
-                        users, 100.0, userAnalysisCache, attributeUserDefSet, task, result);
+                userAttributeAnalysisStructures = this.userTypeAttributeAnalysis(
+                        users, 100.0, task, result, attributeUserDefSet);
             }
 
             List<AttributeAnalysisStructure> roleAttributeAnalysisStructures = null;
