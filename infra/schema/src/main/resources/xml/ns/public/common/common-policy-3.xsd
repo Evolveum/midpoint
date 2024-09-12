@@ -3186,7 +3186,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:lifecycleState">
+            <xsd:element ref="tns:lifecycleState" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>
