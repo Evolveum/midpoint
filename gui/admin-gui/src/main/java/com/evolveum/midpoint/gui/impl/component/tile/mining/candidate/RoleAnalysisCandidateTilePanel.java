@@ -175,8 +175,8 @@ public class RoleAnalysisCandidateTilePanel<T extends Serializable> extends Base
 
         int[] taskProgressIfExist = roleAnalysisService.getTaskProgressIfExist(operationStatus, result);
 
-        int actualProgress = taskProgressIfExist[0];
-        int expectedProgress = taskProgressIfExist[1];
+        int actualProgress = taskProgressIfExist[1];
+        int expectedProgress = taskProgressIfExist[0];
         double progressInPercent = 0;
 
         if (actualProgress != 0 && expectedProgress != 0) {
