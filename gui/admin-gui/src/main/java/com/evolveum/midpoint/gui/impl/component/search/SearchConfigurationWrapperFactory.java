@@ -13,6 +13,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.component.search.factory.*;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
@@ -40,9 +41,11 @@ public class SearchConfigurationWrapperFactory {
             PathKeyedMap<ItemDefinition<?>> availableSearchItems,
             SearchItemType item,
             SearchContext additionalSearchContext,
+            CompiledObjectCollectionView collectionView,
             ModelServiceLocator modelServiceLocator) {
 
-        SearchItemContext searchItemContext = new SearchItemContext(type, availableSearchItems, item, additionalSearchContext, modelServiceLocator);
+        SearchItemContext searchItemContext = new SearchItemContext(type, availableSearchItems, item, additionalSearchContext,
+                collectionView, modelServiceLocator);
 
         AbstractSearchItemWrapperFactory<?, ? extends PropertySearchItemWrapper> searchItemFactory =
                 findSearchItemWrapperFactory(searchItemContext);
