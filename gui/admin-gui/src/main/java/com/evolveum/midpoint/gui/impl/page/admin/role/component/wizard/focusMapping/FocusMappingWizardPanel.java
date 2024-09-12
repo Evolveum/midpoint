@@ -70,10 +70,10 @@ public class FocusMappingWizardPanel<AR extends AbstractRoleType> extends Abstra
 
         steps.add(selectResource);
 
-        steps.add( new FocusMappingMappingsStepPanel<>(getHelper().getDetailsModel(), selectResource.getValueModel()) {
+        steps.add( new FocusMappingMappingsStepPanel<>(getHelper().getDetailsModel(), valueModel) {
             @Override
             protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> rowModel, AjaxRequestTarget target) {
-                showMappingAttributeMappingWizardFragment(target, rowModel, selectResource.getValueModel());
+                showMappingAttributeMappingWizardFragment(target, rowModel, valueModel);
             }
 
             @Override
