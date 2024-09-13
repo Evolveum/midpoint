@@ -545,9 +545,19 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(2)
                 .by().identifier("guide:read").find()
                     .assertTargetRef(serviceGuide.getOid(), ServiceType.COMPLEX_TYPE, RELATION_READ)
+                    .valueMetadataSingle()
+                        .assertMappingName("accesses-inbound")
+                        .assertMappingObjectOid(RESOURCE_DUMMY_DMS.oid)
+                        .assertMappingObjectType(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                    .end()
                 .end()
                 .by().identifier("guide:write").find()
                     .assertTargetRef(serviceGuide.getOid(), ServiceType.COMPLEX_TYPE, RELATION_WRITE)
+                    .valueMetadataSingle()
+                        .assertMappingName("accesses-inbound")
+                        .assertMappingObjectOid(RESOURCE_DUMMY_DMS.oid)
+                        .assertMappingObjectType(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                    .end()
                 .end();
         // @formatter:on
     }
@@ -760,6 +770,11 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .assertAssignments(1)
                 .by().targetOid(roleAdministrators.getOid()).find()
                     .assertTargetRef(roleAdministrators.getOid(), RoleType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT)
+                    .valueMetadataSingle()
+                        .assertMappingName("groups-inbound")
+                        .assertMappingObjectOid(RESOURCE_DUMMY_AD.oid)
+                        .assertMappingObjectType(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                    .end()
                 .end();
         // @formatter:on
     }

@@ -347,6 +347,7 @@ class AssociationSynchronizationExpressionEvaluator
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,
                         projectionContext.getResourceRequired(),
+                        projectionContext.getKey().getTypeIdentification(),
                         targetAssignment,
                         context.getTask(),
                         result);
@@ -505,6 +506,7 @@ class AssociationSynchronizationExpressionEvaluator
                 return new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         associationValue,
                         resource,
+                        projectionContext.getKey().getTypeIdentification(),
                         targetAssignment,
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         context.getTask(),

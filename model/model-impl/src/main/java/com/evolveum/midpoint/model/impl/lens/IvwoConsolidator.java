@@ -352,6 +352,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
             String originMappingName = originMappingNameSupplier.get();
             LOGGER.trace("cloneAndApplyMetadata: originMappingName = {}", originMappingName);
             if (originMappingName != null) {
+                // TODO what about other parts of the mapping specification? (object/resource, object type)
                 var metadata = ValueMetadataTypeUtil.getOrCreateMetadata((AssignmentType) clonedPcv.asContainerable());
                 var provenance = ValueMetadataTypeUtil.getOrCreateProvenanceMetadata(metadata);
                 ValueMetadataTypeUtil.getOrCreateMappingSpecification(provenance).setMappingName(originMappingName);
@@ -359,7 +360,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition<?>,
         }
         return cloned;
     }
-
 
     private Collection<I> selectWeakNonNegativeValues() {
         Collection<I> nonNegativeIvwos = ivwoTriple.getNonNegativeValues();

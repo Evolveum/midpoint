@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeIdentificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.util.ResourceObjectTypeDefinitionTypeUtil;
@@ -90,6 +91,17 @@ public class ResourceObjectTypeIdentification implements Serializable {
 
     public @NotNull String getIntent() {
         return intent;
+    }
+
+    public @NotNull ResourceObjectTypeIdentificationType asBean() {
+        return new ResourceObjectTypeIdentificationType()
+                .kind(kind)
+                .intent(intent);
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static ResourceObjectTypeIdentificationType asBean(ResourceObjectTypeIdentification identification) {
+        return identification != null ? identification.asBean() : null;
     }
 
     @Override

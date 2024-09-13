@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundsSource;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.processor.*;
 
@@ -41,6 +42,12 @@ public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containe
 
     @NotNull private final ResourceType resource;
 
+    /**
+     * For what (top-level!) object type we are processing the shadow, see {@link InboundsSource#typeIdentification}.
+     * Should be non-null in reasonable cases.
+     */
+    @Nullable private final ResourceObjectTypeIdentification typeIdentification;
+
     @NotNull private final T preFocus;
 
     @Nullable private final SystemConfigurationType systemConfiguration;
@@ -56,6 +63,7 @@ public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containe
     public DefaultSingleShadowInboundsProcessingContextImpl(
             @NotNull ShadowLikeValue shadowLikeValue,
             @NotNull ResourceType resource,
+            @Nullable ResourceObjectTypeIdentification typeIdentification,
             @NotNull T preFocus,
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task,
@@ -64,6 +72,7 @@ public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containe
             boolean beforeCorrelation) {
         this.shadowLikeValue = shadowLikeValue;
         this.resource = resource;
+        this.typeIdentification = typeIdentification;
         this.preFocus = preFocus;
         this.systemConfiguration = systemConfiguration;
         this.task = task;
@@ -98,6 +107,11 @@ public class DefaultSingleShadowInboundsProcessingContextImpl<T extends Containe
     @Override
     public @NotNull ResourceType getResource() {
         return resource;
+    }
+
+    @Override
+    public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
+        return typeIdentification;
     }
 
     @Override

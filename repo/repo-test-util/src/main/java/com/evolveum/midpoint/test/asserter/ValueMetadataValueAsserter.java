@@ -11,8 +11,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -92,8 +92,16 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter<?>>
         return this;
     }
 
-    public ValueMetadataValueAsserter<RA> assertOriginMappingName(String expected) {
-        return provenance().assertOriginMappingName(expected).end();
+    public ValueMetadataValueAsserter<RA> assertMappingName(String expected) {
+        return provenance().assertMappingName(expected).end();
+    }
+
+    public ValueMetadataValueAsserter<RA> assertMappingObjectType(@NotNull ResourceObjectTypeIdentification expected) {
+        return provenance().assertMappingObjectType(expected).end();
+    }
+
+    public ValueMetadataValueAsserter<RA> assertMappingObjectOid(@NotNull String expected) {
+        return provenance().assertMappingObjectOid(expected).end();
     }
 
     public ValueMetadataValueAsserter<RA> assertModifyTaskOid(String expectedOid) {

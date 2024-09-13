@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.InboundSourceData;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.FullInboundsProcessing;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.MappingEvaluationRequestsMap;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.LoadedStateProvider;
@@ -24,10 +23,7 @@ import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.config.AbstractMappingConfigItem;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.processor.ShadowAssociation;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowAssociationValue;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -68,12 +64,12 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
     @NotNull private final Collection<? extends AbstractMappingConfigItem<?>> mappingsCIs;
 
     /** Path of the source item, like `attributes/ri:firstName`. */
-    @NotNull final ItemPath itemPath;
+    @NotNull private final ItemPath itemPath;
 
     /**
      * A-priori delta for the source item, if present: sync delta or previously computed one.
      *
-     * @see FullInboundsProcessing#getAPrioriDelta(LensProjectionContext)
+     * @see FullInboundsProcessing#getFocusAPrioriDeltaProvider()
      * @see InboundSourceData#getItemAPrioriDelta(ItemPath)
      */
     @Nullable private final ItemDelta<V, D> itemAPrioriDelta;
@@ -267,12 +263,14 @@ class MappedSourceItem<V extends PrismValue, D extends ItemDefinition<?>, T exte
                     .valuePolicySupplier(inboundsContext.createValuePolicySupplier())
                     .originType(OriginType.INBOUND)
                     .originObject(resource)
+                    .mappingSpecification(inboundsSource.createMappingSpec(mappingCI.getName()))
                     .now(inboundsContext.env.now);
 
             if (!inboundsTarget.isFocusBeingDeleted()) {
                 builder.originalTargetValues(
                         ExpressionUtil.computeTargetValues(
-                                inboundsSource.determineTargetPathExecutionOverride(targetFullPath) != null ? inboundsSource.determineTargetPathExecutionOverride(targetFullPath) : targetFullPath,
+                                inboundsSource.determineTargetPathExecutionOverride(targetFullPath) != null ?
+                                        inboundsSource.determineTargetPathExecutionOverride(targetFullPath) : targetFullPath,
                                 new TypedValue<>(inboundsTarget.getTargetRealValue(), inboundsTarget.targetDefinition),
                                 builder.getVariables(),
                                 beans.mappingFactory.getObjectResolver(),
