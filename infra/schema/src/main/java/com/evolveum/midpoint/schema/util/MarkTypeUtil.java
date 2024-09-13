@@ -13,6 +13,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEvaluationTargetType.OBJECT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEvaluationTargetType.PROJECTION;
 
@@ -69,6 +71,25 @@ public class MarkTypeUtil {
             }
         }
         return false;
+    }
+
+    /** Returns {@code true} if this value was added by a marking rule (regardless of whether there are any statements for it). */
+    public static boolean isAddedByMarkingRule(@NotNull ObjectReferenceType markRef) {
+        return ValueMetadataTypeUtil.getMetadataBeans(markRef).stream()
+                .map(ValueMetadataType::getProvenance)
+                .filter(Objects::nonNull)
+                .anyMatch(provenance -> provenance.getMarkingRule() != null);
+    }
+
+    /**
+     * Returns {@code true} if this value was added by a policy statement (positive or negative);
+     * regardless of any other source(s).
+     */
+    public static boolean isAddedByPolicyStatement(@NotNull ObjectReferenceType markRef) {
+        return ValueMetadataTypeUtil.getMetadataBeans(markRef).stream()
+                .map(ValueMetadataType::getProvenance)
+                .filter(Objects::nonNull)
+                .anyMatch(provenance -> provenance.getPolicyStatement() != null);
     }
 
     /**
