@@ -4766,6 +4766,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
+            public DisplayType getDisplay() {
+                return new DisplayType();
+            }
+
+            @Override
+            public GuiActionType getAction() {
+                return new GuiActionType();
+            }
+
+            @Override
             public ModuleAuthentication clone() {
                 return null;
                 //TODO

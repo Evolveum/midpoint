@@ -35,12 +35,12 @@ public class PageOidcSelect extends AbstractPageRemoteAuthenticationSelect {
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageOidcSelect.select.identity.provider");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return Model.of();
     }
 
