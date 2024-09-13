@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -45,6 +46,8 @@ import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAG
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ENTITLEMENT;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -81,7 +84,8 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private static final String INTENT_DEFAULT = "default";
     private static final String INTENT_DOCUMENT = "document";
 
-    private static final String INTENT_GROUP = "group";
+    private static final ResourceObjectTypeIdentification TYPE_GROUP =
+            ResourceObjectTypeIdentification.of(ENTITLEMENT, "group");
 
     private static final String ORG_SCIENCES_NAME = "sciences";
     private static final String ORG_LAW_NAME = "law";
@@ -148,14 +152,14 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private ServiceType serviceGuide;
 
     // AD objects
-    private DummyObject dummyAdministrators;
+    @SuppressWarnings("FieldCanBeLocal") private DummyObject dummyAdministrators;
     private DummyObject dummyGuests;
     private DummyObject dummyTesters;
-    private DummyObject dummyOperators;
+    @SuppressWarnings({ "FieldCanBeLocal", "unused" }) private DummyObject dummyOperators;
 
     /** Managed by midPoint. */
     private RoleType roleAdministrators;
-    private String shadowAdministratorsOid;
+    @SuppressWarnings({ "FieldCanBeLocal", "unused" }) private String shadowAdministratorsOid;
 
     /** Managed by midPoint. */
     private RoleType roleGuests;
@@ -304,7 +308,7 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
     private void importGroups(OperationResult result) throws Exception {
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_AD.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ENTITLEMENT, INTENT_GROUP))
+                .withTypeIdentification(TYPE_GROUP)
                 .withProcessingAllAccounts()
                 .executeOnForeground(result);
 
@@ -1099,12 +1103,112 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
         var userName = "user-" + getTestNameShort();
         var groupName = "group-" + getTestNameShort();
 
+        var scenario = createSingleAccountSingleGroup(userName, groupName, result);
+
+        when("group is marked as managed");
+        markShadow(scenario.groupShadowOid(), MARK_MANAGED.oid, task, result);
+
+        and("user's group membership is deleted on the resource and the user is reconciled");
+        adScenario.accountGroup.delete(scenario.dummyAccount(), scenario.dummyGroup());
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AD.oid);
+        reconcileUser(scenario.userOid(), task, result);
+
+        then("the second user's assignment is untouched and the group membership is restored");
+        assertUser(scenario.userOid(), "user after reconciliation")
+                .display()
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assignments()
+                .assertRole(scenario.roleOid())
+                .assertAssignments(1)
+                .end()
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .associations()
+                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
+                .assertShadowOids(scenario.groupShadowOid());
+    }
+
+    /**
+     * A group is imported, membership transformed into assignments. Now the group is deleted on the resource.
+     * MidPoint should deal with it gracefully.
+     *
+     * MID-9917
+     */
+    @Test
+    public void test400DeletingGroupWithMembership() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+
+        // will use user recomputation (with reconcile option set)
+        var userName1 = "user1-" + getTestNameShort();
+        var groupName1 = "group1-" + getTestNameShort();
+        var scenario1 = createSingleAccountSingleGroup(userName1, groupName1, result);
+
+        // will use accounts reconciliation
+        var userName2 = "user2-" + getTestNameShort();
+        var groupName2 = "group2-" + getTestNameShort();
+        var scenario2 = createSingleAccountSingleGroup(userName2, groupName2, result);
+
+        when("groups are deleted on the resource");
+        adScenario.group.deleteByName(groupName1);
+        adScenario.group.deleteByName(groupName2);
+        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AD.oid);
+
+        and("groups are reconciled");
+        reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withTypeIdentification(TYPE_GROUP)
+                .withProcessingAllAccounts()
+                .execute(result);
+
+        then("roles are gone");
+        assertNoObject(RoleType.class, scenario1.roleOid());
+        assertNoObject(RoleType.class, scenario2.roleOid());
+
+        when("user1 is recomputed (reconciled)");
+        reconcileUser(scenario1.userOid(), task, result);
+
+        then("everything is OK, assignment is gone");
+
+        // Expression evaluator yields FATAL_ERROR because of ObjectNotFoundException, but the mapping (as ending without
+        // an exception) records that as SUCCESS. Maybe unexpected, but that's how it is now. And as it's a minor result,
+        // it gets removed afterwards. NOTE: When running with tracing, the FATAL_ERROR can be found deep inside.
+        assertSuccess(result);
+
+        assertUserAfter(scenario1.userOid())
+                .assertAssignments(0);
+
+        when("accounts are reconciled");
+        reconcileAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.ACCOUNT_DEFAULT)
+                .withProcessingAllAccounts()
+                .execute(result);
+
+        then("assignment is gone");
+        assertUserAfter(scenario2.userOid())
+                .assertAssignments(0);
+    }
+
+    private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_DUMMY_AD.oid)
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
+                .withNameValue(name)
+                .executeOnForeground(result);
+    }
+
+    private @NotNull SingleAccountSingleGroupScenario createSingleAccountSingleGroup(
+            String userName, String groupName, OperationResult result)
+            throws CommonException, IOException {
+
         given("account and group on the resource");
         var dummyAccount = adScenario.account.add(userName);
         var dummyGroup = adScenario.group.add(groupName);
         adScenario.accountGroup.add(dummyAccount, dummyGroup);
 
-        and("group and user account are imported");
+        and("group is imported");
         importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_AD.oid)
                 .withWholeObjectClass(adScenario.group.getObjectClassName().xsd())
@@ -1131,35 +1235,15 @@ public class TestAssociations extends AbstractEmptyModelIntegrationTest {
                 .end()
                 .getOid();
 
-        when("group is marked as managed");
-        markShadow(groupShadowOid, MARK_MANAGED.oid, task, result);
-
-        and("user's group membership is deleted on the resource and the user is reconciled");
-        adScenario.accountGroup.delete(dummyAccount, dummyGroup);
-        invalidateShadowCacheIfNeeded(RESOURCE_DUMMY_AD.oid);
-        reconcileUser(userOid, task, result);
-
-        then("the second user's assignment is untouched and the group membership is restored");
-        assertUser(userOid, "user after reconciliation")
-                .display()
-                .withObjectResolver(createSimpleModelObjectResolver())
-                .assignments()
-                .assertRole(roleOid)
-                .assertAssignments(1)
-                .end()
-                .singleLink()
-                .resolveTarget()
-                .display()
-                .associations()
-                .association(DummyAdTrivialScenario.Account.LinkNames.GROUP.q())
-                .assertShadowOids(groupShadowOid);
+        return new SingleAccountSingleGroupScenario(dummyAccount, dummyGroup, groupShadowOid, roleOid, userOid);
     }
 
-    private void importAdAccount(String name, OperationResult result) throws CommonException, IOException {
-        importAccountsRequest()
-                .withResourceOid(RESOURCE_DUMMY_AD.oid)
-                .withTypeIdentification(ResourceObjectTypeIdentification.of(ShadowKindType.ACCOUNT, INTENT_DEFAULT))
-                .withNameValue(name)
-                .executeOnForeground(result);
+    private record SingleAccountSingleGroupScenario(
+            DummyObject dummyAccount,
+            DummyObject dummyGroup,
+            String groupShadowOid,
+            String roleOid,
+            String userOid
+    ) {
     }
 }

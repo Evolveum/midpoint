@@ -255,11 +255,16 @@ class AssociationSynchronizationExpressionEvaluator
                 }
                 LOGGER.trace("-> No shadow found, not vetoing the removal.");
                 return false;
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logExceptionAsWarning(
+                        LOGGER,
+                        "'Object not found' detected while determining whether to remove assignment {}; so we will remove it",
+                        e, value);
+                return false;
             } catch (CommonException e) {
                 LoggingUtils.logUnexpectedException(
                         LOGGER, "Error while determining whether to remove assignment {}; so we will remove it", e, value);
-                //return false;
-                throw new SystemException(e); // TODO remove before 4.9 release
+                return false;
             }
         }
 
