@@ -5,14 +5,13 @@
 :page-wiki-metadata-create-date: 2017-03-03T14:58:32.782+01:00
 :page-wiki-metadata-modify-user: virgo
 :page-wiki-metadata-modify-date: 2020-11-23T22:06:56.489+01:00
-:page-upkeep-status: yellow
+:page-upkeep-status: green
 
 The responsibility of the recompute task is to process the focal objects (e.g. users), recompute their state with respect to all applicable policies and update any data that need to be updated.
 
-By default the recompute task will recompute everything that is can, including projections.
+By default, the recompute task will recompute everything that is can, including projections.
 This means that all accounts will be retrieved, reconciled and updated as needed.
-Since midPoint 3.6 a lighter recompute flavors may be set up using the model execution options (see below).
-
+When necessary, fine-tuning of recomputed elements may be configured using xref:#_recompute_options[recompute options].
 
 == Example
 
@@ -20,10 +19,22 @@ Since midPoint 3.6 a lighter recompute flavors may be set up using the model exe
 [source,xml]
 ----
 <task>
-    <name>User Recompute</name>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
+    <name>Recompute all users</name>
+    <description>This task recomputes all users in midPoint.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000502" relation="org:default" type="c:ArchetypeType"/>
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                </objects>
+            </recomputation>
+        </work>
+    </activity>
 </task>
 ----
 
@@ -44,17 +55,18 @@ The primary purpose of reconciliation is to "fix" particular resource.
 The purpose of recompute is to make sure that internal midPoint data are consistent.
 Recompute may change the resources (and it really does that in default setting).
 But that is not the primary purpose.
-It is rather a side-effect of updating and re-evaluating focal objects.
+It is rather a side effect of updating and re-evaluating focal objects.
 
+[#_recompute_options]
 == Recompute Options
 
-MidPoint 3.6 (and later) has an ability to fine-tune the recompute process by specifying the model execution options.
+MidPoint has an ability to fine-tune the recompute process by specifying the model execution options.
 This can be used to control whether the recompute process triggers reconciliation, what particular parts of the xref:/midpoint/reference/concepts/clockwork/clockwork-and-projector/[clockwork and projector computation] will take place and so on.
 
 [NOTE]
 .Handle with care!
 ====
-The use of model execution options gives very good control over the recompute process.
+These options give very good control over the recompute process.
 However, not all combinations of the settings are meaningful.
 Some of the combinations may lead to errors and few combinations may even be dangerous and they may destroy data.
 When using this approach please make sure you know what you are doing.
@@ -65,27 +77,38 @@ Use with utmost care.
 
 The following example shows configuration for _light recompute_ - recompute process that only updates the internal integrity of the focal object and does not touch the projections:
 
-.Recompute Users Task
+.Recompute Users Task - light recompute
 [source,xml]
 ----
 <task>
-    <name>User Light Recompute</name>
-    <extension>
-        <modelExecuteOptions>
-            <reconcileFocus>true</reconcileFocus>
-            <partialProcessing>
-                <inbound>skip</inbound>
-                <objectTemplateBeforeAssignments>skip</objectTemplateBeforeAssignments>
-                <objectTemplateAfterAssignments>skip</objectTemplateAfterAssignments>
-                <projection>skip</projection>
-                <approvals>skip</approvals>
-            </partialProcessing>
-        </modelExecuteOptions>
-    </extension>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-    <executionStatus>runnable</executionStatus>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3</handlerUri>
-    <recurrence>single</recurrence>
+    <name>Recompute all users - light recompute</name>
+    <description>This task recomputes all users in midPoint.
+        It updates the internal integrity of midPoint users only and does not touch the projections.
+    </description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000502" relation="org:default" type="c:ArchetypeType"/>
+    </assignment>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <recomputation>
+                <objects>
+                    <type>UserType</type>
+                </objects>
+                <executionOptions>
+                    <partialProcessing>
+                        <inbound>skip</inbound>
+                        <objectTemplateBeforeAssignments>skip</objectTemplateBeforeAssignments>
+                        <objectTemplateAfterAssignments>skip</objectTemplateAfterAssignments>
+                        <projection>skip</projection>
+                        <outbound>skip</outbound>
+                        <approvals>skip</approvals>
+                    </partialProcessing>
+                </executionOptions>
+            </recomputation>
+        </work>
+    </activity>
 </task>
 ----
 
