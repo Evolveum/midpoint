@@ -18,6 +18,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequen
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.core.Authentication;
@@ -235,5 +239,21 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
     @Override
     public int hashCode() {
         return Objects.hash(nameOfModule, type, prefix, nameOfType);
+    }
+
+    @Override
+    public DisplayType getDisplay() {
+        if (sequenceModule == null) {
+            return null;
+        }
+        return sequenceModule.getDisplay();
+    }
+
+    @Override
+    public GuiActionType getAction() {
+        if (sequenceModule == null) {
+            return null;
+        }
+        return sequenceModule.getAction();
     }
 }

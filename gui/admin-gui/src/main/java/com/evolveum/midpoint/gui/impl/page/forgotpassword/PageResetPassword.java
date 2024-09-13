@@ -148,12 +148,12 @@ public class PageResetPassword extends AbstractPageLogin {
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageResetPassword.title");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PageResetPassword.description");
     }
 

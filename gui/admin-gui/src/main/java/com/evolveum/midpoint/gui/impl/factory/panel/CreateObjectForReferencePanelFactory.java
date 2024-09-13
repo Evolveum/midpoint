@@ -46,6 +46,9 @@ public class CreateObjectForReferencePanelFactory
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
+        if (wrapper != null && wrapper.isColumn()) {
+            return false;
+        }
         return valueWrapper instanceof CreateObjectForReferenceValueWrapper<?>;
     }
 

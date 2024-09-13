@@ -289,43 +289,35 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ACCESS_CERT_DEFINITION);
         OperationResult result = task.getResult();
 
-        GuiObjectListViewType view = getCollectionViewConfigurationFromCampaignDefinition(task, result);
+        GuiObjectListViewType campaignDefinitionView = getCollectionViewConfigurationFromCampaignDefinition(task, result);
 
-        String collectionIdentifier = null;
-        if (view != null) {
-            collectionIdentifier = view.getIdentifier();
-        }
-
-        if (collectionIdentifier == null) {
-            try {
-                OperationResult subResult = result.createSubresult(OPERATION_LOAD_CERTIFICATION_CONFIG);
-                var certificationConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(subResult);
-                if (certificationConfig != null) {
-                    collectionIdentifier = certificationConfig.getDefaultView();
-                }
-            } catch (Exception e) {
-                LOGGER.error("Couldn't load certification configuration from system configuration, ", e);
+        GuiObjectListViewType defaultView = null;
+        try {
+            OperationResult subResult = result.createSubresult(OPERATION_LOAD_CERTIFICATION_CONFIG);
+            var certificationConfig = getPageBase().getModelInteractionService().getCertificationConfiguration(subResult);
+            if (certificationConfig != null) {
+                defaultView = certificationConfig.getDefaultView();
             }
+        } catch (Exception e) {
+            LOGGER.error("Couldn't load certification configuration from system configuration, ", e);
         }
 
-        CompiledObjectCollectionView existingGlobalView = null;
-        if (collectionIdentifier != null) {
-            existingGlobalView = WebComponentUtil.getCompiledGuiProfile().findObjectCollectionView(AccessCertificationWorkItemType.COMPLEX_TYPE, collectionIdentifier);
+        if (campaignDefinitionView == null && defaultView == null) {
+            return null;
         }
 
         try {
+            CompiledObjectCollectionView compiledView = new CompiledObjectCollectionView();
+            compiledView.setContainerType(AccessCertificationWorkItemType.COMPLEX_TYPE);
 
-            if (view == null) {
-                return existingGlobalView;
+            if (campaignDefinitionView != null) {
+                getPageBase().getModelInteractionService().compileView(compiledView, campaignDefinitionView, task, result);
             }
-            if (existingGlobalView == null) {
-                existingGlobalView = new CompiledObjectCollectionView();
-                existingGlobalView.setContainerType(AccessCertificationWorkItemType.COMPLEX_TYPE);
+            if (defaultView != null) {
+                getPageBase().getModelInteractionService().compileView(compiledView, defaultView, task, result);
             }
-            CompiledObjectCollectionView mergedView = existingGlobalView.clone();
 
-            getPageBase().getModelInteractionService().compileView(mergedView, view, task, result);
-            return mergedView;
+            return compiledView;
         } catch (Exception e) {
             LOGGER.error("Couldn't load certification work items view, ", e);
         }

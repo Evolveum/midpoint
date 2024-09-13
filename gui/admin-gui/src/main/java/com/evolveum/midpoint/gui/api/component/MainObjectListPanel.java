@@ -637,6 +637,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                                 return createStringResource("pageContentAccounts.menu.mark.select");
                             }
                         };
+                        browser.setUseObjectCollectionSearch(false);
 
                         getPageBase().showMainPopup(browser, target);
                     }
@@ -743,6 +744,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                                 return createStringResource("pageContentAccounts.menu.mark.remove");
                             }
                         };
+                        browser.setUseObjectCollectionSearch(false);
 
                         getPageBase().showMainPopup(browser, target);
                     }

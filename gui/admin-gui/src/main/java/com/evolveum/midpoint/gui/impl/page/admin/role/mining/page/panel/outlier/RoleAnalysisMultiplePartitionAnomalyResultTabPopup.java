@@ -182,10 +182,6 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
                                 createStringResource("RoleAnalysis.analysis.attribute.panel"),
                                 null, roleAnalysisAttributeAnalysisResult,
                                 null, compareAttributeResult) {
-                            @Override
-                            protected @NotNull String getChartContainerStyle() {
-                                return "min-height:350px;";
-                            }
 
                             @Override
                             public Set<String> getPathToMark() {

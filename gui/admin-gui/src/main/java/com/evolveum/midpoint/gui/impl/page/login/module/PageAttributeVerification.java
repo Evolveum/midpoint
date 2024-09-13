@@ -40,12 +40,12 @@ public class PageAttributeVerification extends PageAbstractAttributeVerification
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageAttributeVerification.attributeVerificationLabel");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PageAttributeVerification.description");
     }
 

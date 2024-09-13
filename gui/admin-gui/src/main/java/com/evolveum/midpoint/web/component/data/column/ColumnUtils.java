@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.*;
 import com.evolveum.midpoint.gui.impl.component.data.column.*;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageMyCertItems;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
@@ -1065,8 +1066,8 @@ public class ColumnUtils {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
                 PageParameters parameters = new PageParameters();
-                parameters.set(PageCertDecisions.CAMPAIGN_OID_PARAMETER, rowModel.getObject().getValue().getOid());
-                pageBase.navigateToNext(PageCertDecisions.class, parameters);
+                parameters.set(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getValue().getOid());
+                pageBase.navigateToNext(PageMyCertItems.class, parameters);
             }
         };
         columns.add(column);

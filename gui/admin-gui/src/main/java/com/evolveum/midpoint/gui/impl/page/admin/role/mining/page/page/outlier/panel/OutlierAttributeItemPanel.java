@@ -133,10 +133,6 @@ public class OutlierAttributeItemPanel<T extends Serializable>
                         Model.of("Role analysis attribute panel"),
                         null, userAttributeAnalysisResult,
                         null, clusterCompare) {
-                    @Override
-                    protected @NotNull String getChartContainerStyle() {
-                        return "min-height:350px;";
-                    }
 
                     @Override
                     public Set<String> getPathToMark() {

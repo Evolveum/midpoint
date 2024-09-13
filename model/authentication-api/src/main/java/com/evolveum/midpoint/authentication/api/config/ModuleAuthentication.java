@@ -12,6 +12,10 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
@@ -114,6 +118,10 @@ public interface ModuleAuthentication {
     void recordFailure(AuthenticationException exception);
 
     void setFocusType(QName focusType);
+
+    DisplayType getDisplay();
+
+    GuiActionType getAction();
 
     ModuleAuthentication clone();
 }
