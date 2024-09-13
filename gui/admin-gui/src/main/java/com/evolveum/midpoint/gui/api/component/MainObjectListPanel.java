@@ -16,6 +16,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 
+import com.evolveum.midpoint.schema.util.MarkTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 
 import com.google.common.collect.Lists;
@@ -750,21 +752,21 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     private String[] collectExistingMarks(List<SelectableBean<O>> selected) {
-        Set<String> marks = new HashSet<>();
+        Set<String> markOids = new HashSet<>();
         for (SelectableBean<O> object : selected) {
             for (var statement : object.getValue().getPolicyStatement()) {
 //                if (PolicyStatementTypeType.APPLY.equals(statement.getType())) {
-                    marks.add(statement.getMarkRef().getOid());
+                    markOids.add(statement.getMarkRef().getOid());
 //                }
             }
 
-            for (var mark : object.getValue().getEffectiveMarkRef()){
-                if (!marks.contains(mark.getOid()) && getPageBase().getMarkManager().isMarkStateful(object.getValue(), mark.getOid())) {
-                    marks.add(mark.getOid());
+            for (var markRef : ObjectTypeUtil.getReallyEffectiveMarkRefs(object.getValue())) { // TODO review whether only really effective ones
+                if (MarkTypeUtil.isTransitional(markRef)) {
+                    markOids.add(markRef.getOid());
                 }
             }
         }
-        return marks.toArray(new String[] {});
+        return markOids.toArray(new String[] {});
     }
 
     private void removeObjectMarks(IModel<SelectableBean<O>> rowModel, List<String> markOids,
@@ -795,10 +797,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
 
             List<PrismReferenceValue> effectiveMarks = new ArrayList<>();
-            for (var effectiveMark : object.getValue().getEffectiveMarkRef()) {
-                if (markOids.contains(effectiveMark.getOid())
-                        && getPageBase().getMarkManager().isMarkStateful(object.getValue(), effectiveMark.getOid())) {
-                    effectiveMarks.add(effectiveMark.clone().asReferenceValue());
+            for (var effectiveMarkRef : ObjectTypeUtil.getReallyEffectiveMarkRefs(object.getValue())) { // TODO review whether only really effective ones
+                if (markOids.contains(effectiveMarkRef.getOid())
+                        && MarkTypeUtil.isTransitional(effectiveMarkRef)) {
+                    effectiveMarks.add(effectiveMarkRef.clone().asReferenceValue());
                 }
             }
 

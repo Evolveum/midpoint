@@ -58,7 +58,7 @@ abstract class ObjectPolicyRulesEvaluator<O extends ObjectType> extends PolicyRu
         collector.initialize(result);
         List<EvaluatedPolicyRuleImpl> rules = collector.collectObjectRules(result);
 
-        LOGGER.trace("Selecting rules from {} focus-attached policy rules", rules.size());
+        LOGGER.trace("Selecting rules from {} object-attached policy rules", rules.size());
         List<EvaluatedPolicyRuleImpl> applicableRules = selectAndSetApplicableRules(rules);
         evaluateCollectedRules(applicableRules, result);
     }

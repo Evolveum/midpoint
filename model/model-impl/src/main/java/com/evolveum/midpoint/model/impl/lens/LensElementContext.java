@@ -933,9 +933,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     @Override
     public boolean hasEffectiveMark(@NotNull String oid) {
         var current = getObjectCurrent();
-        return current != null
-                && current.asObjectable().getEffectiveMarkRef().stream()
-                        .anyMatch(ref -> oid.equals(Referencable.getOid(ref)));
+        return current != null && ObjectTypeUtil.hasEffectiveMarkRef(current.asObjectable(), oid);
     }
     //endregion
 

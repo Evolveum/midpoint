@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.MarkTypeUtil;
+
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -278,6 +280,7 @@ public abstract class ProcessedObjectsPanel extends ContainerableListPanel<Simul
 
         List<ObjectReferenceType> refs = shadow.asObjectable().getEffectiveMarkRef();
         Object[] marks = refs.stream()
+                .filter(MarkTypeUtil::isEffective) // TODO reconsider if really needed
                 .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
                 .filter(mark -> mark != null)
                 .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
