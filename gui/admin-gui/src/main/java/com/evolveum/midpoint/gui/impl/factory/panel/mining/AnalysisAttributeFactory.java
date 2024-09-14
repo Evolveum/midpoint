@@ -6,16 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel.mining;
 
+import java.util.Collection;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.AnalysisAttributeSelectorPanel;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import jakarta.annotation.PostConstruct;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -25,19 +18,16 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.AbstractInputGuiComponentFactory;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import java.util.Collection;
-import java.util.List;
-
+//TODO probably should be removed
 @Component
 public class AnalysisAttributeFactory extends AbstractInputGuiComponentFactory<Collection<ItemPathType>> {
 
-    @PostConstruct
-    public void register() {
-        getRegistry().addToRegistry(this);
-    }
 
     @Override
     public <IW extends ItemWrapper<?, ?>, VW extends PrismValueWrapper<?>> boolean match(IW wrapper, VW valueWrapper) {
@@ -50,10 +40,7 @@ public class AnalysisAttributeFactory extends AbstractInputGuiComponentFactory<C
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<Collection<ItemPathType>> panelCtx) {
-        AnalysisAttributeSelectorPanel clusteringAttributeSelectorPanel = new AnalysisAttributeSelectorPanel(panelCtx.getComponentId(),
-                panelCtx.getRealValueModel());
-        clusteringAttributeSelectorPanel.setOutputMarkupId(true);
-        return clusteringAttributeSelectorPanel;
+        return new TextPanel<>(panelCtx.getComponentId(), null);
     }
 
     @Override

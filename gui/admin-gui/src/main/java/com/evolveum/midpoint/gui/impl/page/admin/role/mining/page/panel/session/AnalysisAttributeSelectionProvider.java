@@ -8,12 +8,17 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
 import com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -29,24 +34,29 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathType> {
+public class AnalysisAttributeSelectionProvider extends ChoiceProvider<PrismPropertyValueWrapper<ItemPathType>> {
     private static final long serialVersionUID = 1L;
 
-    public AnalysisAttributeSelectionProvider() {
+    private PrismPropertyWrapper<ItemPathType> parent;
+    private PageBase pageBase;
+
+    public AnalysisAttributeSelectionProvider(PrismPropertyWrapper<ItemPathType> parent, PageBase pageBase) {
+        this.parent = parent;
+        this.pageBase = pageBase;
     }
 
     @Override
-    public String getDisplayValue(ItemPathType value) {
+    public String getDisplayValue(PrismPropertyValueWrapper<ItemPathType> value) {
         return getIdValue(value);
     }
 
     @Override
-    public String getIdValue(ItemPathType value) {
-        return value.toString();
+    public String getIdValue(PrismPropertyValueWrapper<ItemPathType> value) {
+        return value.getRealValue().toString();
     }
 
     @Override
-    public void query(String text, int page, Response<ItemPathType> response) {
+    public void query(String text, int page, Response<PrismPropertyValueWrapper<ItemPathType>> response) {
 
         List<String> choices = collectAvailableDefinitions(text);
 
@@ -54,12 +64,20 @@ public class AnalysisAttributeSelectionProvider extends ChoiceProvider<ItemPathT
     }
 
     @Override
-    public Collection<ItemPathType> toChoices(Collection<String> values) {
+    public Collection<PrismPropertyValueWrapper<ItemPathType>> toChoices(Collection<String> values) {
         return values.stream()
                 .map(value -> PrismContext.get().itemPathParser().asItemPathType(value))
+                .map(path -> createNewValueWrapper(path))
                 .collect(Collectors.toList());
     }
 
+    private PrismPropertyValueWrapper<ItemPathType> createNewValueWrapper(ItemPathType path) {
+        try {
+            return WebPrismUtil.createNewValueWrapper(parent, PrismContext.get().itemFactory().createPropertyValue(path), ValueStatus.ADDED, pageBase);
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public List<String> collectAvailableDefinitions(String input) {
 

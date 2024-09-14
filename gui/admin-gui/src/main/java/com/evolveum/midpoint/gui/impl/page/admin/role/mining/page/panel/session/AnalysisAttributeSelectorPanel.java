@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -21,10 +23,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 public class AnalysisAttributeSelectorPanel extends InputPanel {
     private static final String ID_MULTISELECT = "multiselect";
 
-    protected IModel<Collection<ItemPathType>> model;
+    protected IModel<Collection<PrismPropertyValueWrapper<ItemPathType>>> model;
 
     public AnalysisAttributeSelectorPanel(@NotNull String id,
-            @NotNull IModel<Collection<ItemPathType>> model) {
+            @NotNull IModel<Collection<PrismPropertyValueWrapper<ItemPathType>>> model) {
         super(id);
         this.model = model;
     }
@@ -41,9 +43,9 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
     }
 
     private void initSelectionFragment() {
-        ChoiceProvider<ItemPathType> choiceProvider = buildChoiceProvider();
+        ChoiceProvider<PrismPropertyValueWrapper<ItemPathType>> choiceProvider = buildChoiceProvider();
 
-        Select2MultiChoicePanel<ItemPathType> multiselect = new Select2MultiChoicePanel<>(
+        Select2MultiChoicePanel<PrismPropertyValueWrapper<ItemPathType>> multiselect = new Select2MultiChoicePanel<>(
                 ID_MULTISELECT,
                 getModel(),
                 choiceProvider,
@@ -53,9 +55,9 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
     }
 
     @NotNull
-    private ChoiceProvider<ItemPathType> buildChoiceProvider() {
+    private ChoiceProvider<PrismPropertyValueWrapper<ItemPathType>> buildChoiceProvider() {
 
-        return new AnalysisAttributeSelectionProvider();
+        return new AnalysisAttributeSelectionProvider(getModel().getObject().iterator().next().getParent(), getPageBase());
     }
 
     @Override
@@ -67,7 +69,7 @@ public class AnalysisAttributeSelectorPanel extends InputPanel {
         return (Select2MultiChoicePanel<?>) get(getPageBase().createComponentPath(ID_MULTISELECT));
     }
 
-    public IModel<Collection<ItemPathType>> getModel() {
+    public IModel<Collection<PrismPropertyValueWrapper<ItemPathType>>> getModel() {
         return model;
     }
 }
