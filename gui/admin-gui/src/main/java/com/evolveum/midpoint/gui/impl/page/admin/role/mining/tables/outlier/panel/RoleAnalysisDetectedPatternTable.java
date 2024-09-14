@@ -20,7 +20,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -367,13 +370,13 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                                 .findParent(Item.class).get(ID_SECOND_COLLAPSABLE_CONTAINER);
 
                         if (!collapseContainerUser.isExpanded()) {
-                            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
-                            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
-                            if (model.getObject() != null) {
-                                DetectedPattern pattern = model.getObject();
-                                userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
-                                roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
-                            }
+//                            RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = null;
+//                            RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = null;
+//                            if (model.getObject() != null) {
+//                                DetectedPattern pattern = model.getObject();
+//                                userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
+//                                roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
+//                            }
 
                             CollapsableContainerPanel webMarkupContainerUser = new CollapsableContainerPanel(
                                     ID_FIRST_COLLAPSABLE_CONTAINER);
@@ -382,17 +385,24 @@ public class RoleAnalysisDetectedPatternTable extends BasePanel<String> {
                             webMarkupContainerUser.add(AttributeModifier.replace("style", "display: none;"));
                             webMarkupContainerUser.setExpanded(true);
 
-                            if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
+                            LoadableModel<RoleAnalysisAttributesDto> attributeModel = new LoadableModel<>() {
+                                @Override
+                                protected RoleAnalysisAttributesDto load() {
+                                    return RoleAnalysisAttributesDto.loadFromDetectedPattern("RoleAnalysis.analysis.attribute.panel", model.getObject());
+                                }
+                            };
+//                            if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
                                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_COLLAPSABLE_CONTENT,
-                                        createStringResource("RoleAnalysis.analysis.attribute.panel"),
-                                        roleAttributeAnalysisResult, userAttributeAnalysisResult);
+                                        attributeModel);
+//                                        createStringResource("RoleAnalysis.analysis.attribute.panel"),
+//                                        model);
                                 roleAnalysisAttributePanel.setOutputMarkupId(true);
                                 webMarkupContainerUser.add(roleAnalysisAttributePanel);
-                            } else {
-                                Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
-                                label.setOutputMarkupId(true);
-                                webMarkupContainerUser.add(label);
-                            }
+//                            } else {
+//                                Label label = new Label(ID_COLLAPSABLE_CONTENT, "No data available");
+//                                label.setOutputMarkupId(true);
+//                                webMarkupContainerUser.add(label);
+//                            }
 
                             collapseContainerUser.replaceWith(webMarkupContainerUser);
                             target.add(webMarkupContainerUser);

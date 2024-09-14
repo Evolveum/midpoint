@@ -15,7 +15,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.WidgetItemModel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -129,10 +132,17 @@ public class OutlierAttributeItemPanel<T extends Serializable>
         return new RoleAnalysisWidgetsPanel(id, loadDetailsModel()) {
             @Override
             protected @NotNull Component getPanelComponent(String id1) {
+                LoadableModel<RoleAnalysisAttributesDto> attributesModel = new LoadableModel<>(false) {
+                    @Override
+                    protected RoleAnalysisAttributesDto load() {
+                        return RoleAnalysisAttributesDto.fromPartitionAttributeAnalysis("Role analysis attribute panel", getPartitionModel().getObject());
+                    }
+                };
                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(id1,
-                        Model.of("Role analysis attribute panel"),
-                        null, userAttributeAnalysisResult,
-                        null, clusterCompare) {
+                        attributesModel) {
+//                        Model.of("Role analysis attribute panel"),
+//                        userAttributeAnalysisResult,
+//                        clusterCompare, true) {
                     @Override
                     protected @NotNull String getChartContainerStyle() {
                         return "min-height:350px;";

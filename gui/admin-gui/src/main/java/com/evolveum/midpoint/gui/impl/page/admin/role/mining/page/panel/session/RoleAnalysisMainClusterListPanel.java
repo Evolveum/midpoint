@@ -17,6 +17,7 @@ import java.math.RoundingMode;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.LinkIconLabelIconPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributesDto;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -799,8 +800,19 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
             webMarkupContainerUser.setExpanded(true);
 
             if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
+
+                LoadableModel<RoleAnalysisAttributesDto> attributesModel = new LoadableModel<>(false) {
+                    @Override
+                    protected RoleAnalysisAttributesDto load() {
+                        return RoleAnalysisAttributesDto.loadFromCluster(
+                                "RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis",
+                                model.getObject().getValue());
+                    }
+                };
+
                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_COLLAPSABLE_CONTENT,
-                        Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+                        attributesModel) {
+//                        Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getCssClassForCardContainer() {

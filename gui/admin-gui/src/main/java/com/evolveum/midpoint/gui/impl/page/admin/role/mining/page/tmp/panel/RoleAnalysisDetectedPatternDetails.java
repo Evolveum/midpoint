@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -177,8 +178,17 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         }
 
         if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
+
+            LoadableModel<RoleAnalysisAttributesDto> attributeModel = new LoadableModel<>() {
+                @Override
+                protected RoleAnalysisAttributesDto load() {
+                    return RoleAnalysisAttributesDto.loadFromDetectedPattern(getCardTitle(), getModelObject());
+                }
+            };
+
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_STATISTICS_PANEL,
-                    getCardTitleModel(), getModel()) { //roleAttributeAnalysisResult, userAttributeAnalysisResult
+                    attributeModel) {
+//                    getCardTitleModel(), getModel()) { //roleAttributeAnalysisResult, userAttributeAnalysisResult
                 @Override
                 protected String getCssClassForCardContainer() {
                     String cssClassForCardContainer = RoleAnalysisDetectedPatternDetails.this.getCssClassForCardContainer();
@@ -217,8 +227,8 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         return "col-12 col-sm-12 col-md-12 col-lg-6 col-xl-3 p-2";
     }
 
-    protected IModel<String> getCardTitleModel() {
-        return createStringResource("RoleAnalysisDetectedPatternDetails.panel.title");
+    protected String getCardTitle() {
+        return "RoleAnalysisDetectedPatternDetails.panel.title";
     }
 
     protected String getCssClassForStatisticsPanel() {

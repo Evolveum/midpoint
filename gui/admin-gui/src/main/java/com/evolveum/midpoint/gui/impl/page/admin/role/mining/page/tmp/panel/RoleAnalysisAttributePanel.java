@@ -30,10 +30,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +43,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.chart.Ro
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
-public class RoleAnalysisAttributePanel extends BasePanel<String> implements Popupable {
+public class RoleAnalysisAttributePanel extends BasePanel<RoleAnalysisAttributesDto> implements Popupable {
 
     @Serial private static final long serialVersionUID = 1L;
 
@@ -68,96 +65,8 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     private static final String ID_OVERAL_HEDAER = "overallHeader";
 
 
-    boolean isCompared = false;
-
-    LoadableDetachableModel<List<RoleAnalysisSimpleModel>> chartModel;
-
-    IModel<DetectedPattern> detectedPatternModel;
-
-    LoadableModel<List<RoleAnalysisAttributeAnalysisDto>> attributesModel;
-
-    public RoleAnalysisAttributePanel(
-            @NotNull String id,
-            @NotNull IModel<String> model,
-            @Nullable IModel<DetectedPattern> detectedPatternModel) {
+    public RoleAnalysisAttributePanel(String id, IModel<RoleAnalysisAttributesDto> model) {
         super(id, model);
-
-        this.detectedPatternModel = detectedPatternModel;
-
-        this.attributesModel = new LoadableModel<>(false) {
-            @Override
-            protected List<RoleAnalysisAttributeAnalysisDto> load() {
-                DetectedPattern detectedPattern = detectedPatternModel.getObject();
-                List<RoleAnalysisAttributeAnalysis> attributeStatistics = collectAttributesStatistics(detectedPattern.getUserAttributeAnalysisResult());
-                return attributeStatistics.stream()
-                        .map(attribute -> new RoleAnalysisAttributeAnalysisDto(attribute, UserType.class))
-                        .toList();
-
-
-//                attributeStatistics.addAll(collectAttributesStatistics(detectedPattern.getRoleAttributeAnalysisResult()));//TODO do we need this? where is this set?
-
-//                return RoleAnalysisSimpleModel
-//                        .getRoleAnalysisSimpleModel(roleAttributeAnalysisResult, userAttributeAnalysisResult);
-
-            }
-        };
-
-        chartModel = new LoadableDetachableModel<>() {
-            @Override
-            protected List<RoleAnalysisSimpleModel> load() {
-                DetectedPattern pattern = detectedPatternModel.getObject();
-                RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = pattern.getUserAttributeAnalysisResult();
-                RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult = pattern.getRoleAttributeAnalysisResult();
-
-                return RoleAnalysisSimpleModel
-                        .getRoleAnalysisSimpleModel(roleAttributeAnalysisResult, userAttributeAnalysisResult);
-            }
-        };
-    }
-
-    private List<RoleAnalysisAttributeAnalysis> collectAttributesStatistics(RoleAnalysisAttributeAnalysisResult attributeAnalysisResult) {
-        if (attributeAnalysisResult == null) {
-            return new ArrayList<>();
-        }
-
-        return attributeAnalysisResult.getAttributeAnalysis();
-    }
-
-    @Deprecated
-    public RoleAnalysisAttributePanel(
-            @NotNull String id,
-            @NotNull IModel<String> model,
-            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult,
-            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult) {
-        super(id, model);
-
-        chartModel = new LoadableDetachableModel<>() {
-            @Override
-            protected List<RoleAnalysisSimpleModel> load() {
-                return RoleAnalysisSimpleModel
-                        .getRoleAnalysisSimpleModel(roleAttributeAnalysisResult, userAttributeAnalysisResult);
-            }
-        };
-    }
-
-    public RoleAnalysisAttributePanel(
-            @NotNull String id,
-            @NotNull IModel<String> model,
-            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResult,
-            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult,
-            @Nullable RoleAnalysisAttributeAnalysisResult roleAttributeAnalysisResultCompared,
-            @Nullable RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResultCompared) {
-        super(id, model);
-        this.isCompared = true;
-
-        chartModel = new LoadableDetachableModel<>() {
-            @Override
-            protected List<RoleAnalysisSimpleModel> load() {
-                return RoleAnalysisSimpleModel
-                        .getRoleAnalysisSimpleComparedModel(roleAttributeAnalysisResult, userAttributeAnalysisResult,
-                                roleAttributeAnalysisResultCompared, userAttributeAnalysisResultCompared);
-            }
-        };
     }
 
     @Override
@@ -203,16 +112,12 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
             @Override
             public boolean isCompare() {
-                return isCompared;
+                return RoleAnalysisAttributePanel.this.getModelObject().isCompared();
             }
 
             @Override
             public @NotNull List<RoleAnalysisSimpleModel> prepareRoleAnalysisData() {
-                if (chartModel == null || chartModel.getObject() == null) {
-                    return new ArrayList<>();
-                }
-
-                return chartModel.getObject();
+                return RoleAnalysisAttributePanel.this.getModelObject().getChartModel();
             }
 
             @Override
@@ -230,7 +135,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
     private @NotNull RepeatingAttributeProgressForm initCardBodyComponentRp() {
 
 
-        RepeatingAttributeProgressForm component = new RepeatingAttributeProgressForm(ID_CARD_BODY_COMPONENT, attributesModel) {
+        RepeatingAttributeProgressForm component = new RepeatingAttributeProgressForm(ID_CARD_BODY_COMPONENT, new PropertyModel<>(getModel(), RoleAnalysisAttributesDto.F_ATTRIBUTES_MODEL)) {
             @Override
             protected Set<String> getPathToMark() {
                 return RoleAnalysisAttributePanel.this.getPathToMark();
@@ -246,9 +151,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
     private void initCardHeaderButtons(WebMarkupContainer cardContainer) {
 
-
-
-        ListView<RoleAnalysisAttributeAnalysisDto> attributeStatisticsHeader = new ListView<>(ID_CARD_HEADER_REPEATING_BUTTONS, attributesModel) {
+        ListView<RoleAnalysisAttributeAnalysisDto> attributeStatisticsHeader = new ListView<>(ID_CARD_HEADER_REPEATING_BUTTONS, new PropertyModel<>(getModel(), RoleAnalysisAttributesDto.F_ATTRIBUTES_MODEL)) {
 
             @Override
             protected void populateItem(ListItem<RoleAnalysisAttributeAnalysisDto> item) {
@@ -282,7 +185,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showPerAttributeStatistics = !showPerAttributeStatistics;
-                for (RoleAnalysisAttributeAnalysisDto attribute : attributesModel.getObject()) {
+                for (RoleAnalysisAttributeAnalysisDto attribute : RoleAnalysisAttributePanel.this.getModelObject().getAttributesModel()) {
                     attribute.setSelected(showPerAttributeStatistics);
                 }
 
@@ -327,7 +230,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
             @Override
             public @NotNull String getBadgeValue() {
-                int count = attributesModel.getObject().size();
+                int count = RoleAnalysisAttributePanel.this.getModelObject().getAttributesModel().size();
                 return "(" + count + ")";
             }
 
@@ -373,7 +276,7 @@ public class RoleAnalysisAttributePanel extends BasePanel<String> implements Pop
 
         cardContainer.add(cardHeaderContainer);
 
-        IconWithLabel label = new IconWithLabel(ID_CARD_HEADER_TITLE, getModel()) {
+        IconWithLabel label = new IconWithLabel(ID_CARD_HEADER_TITLE, new PropertyModel<>(getModel(), RoleAnalysisAttributesDto.F_DISPLAY)) {
             @Contract(pure = true)
             @Override
             protected @NotNull String getIconCssClass() {
