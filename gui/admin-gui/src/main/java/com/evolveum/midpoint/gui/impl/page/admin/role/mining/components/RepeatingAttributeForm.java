@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisAttributeAnalysisDto;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -28,10 +32,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.MembersDetailsPanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 
 /**
  * Represents a form containing attribute analysis results for role or user objects.
@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessM
  * <p> - Object section: Displays details of analyzed members with collapsible functionality.
  */
 public class RepeatingAttributeForm extends BasePanel<String> {
+
     private static final String ID_CONTAINER_FIRST_GROUP = "containerFirstGroup";
     private static final String ID_REPEATING_VIEW_FIRST_GROUP = "progressBarFormFirstGroup";
     private static final String ID_OBJECT_TABLE = "objectTable";
@@ -128,7 +129,7 @@ public class RepeatingAttributeForm extends BasePanel<String> {
 
             ProgressBarForm progressBarForm = new ProgressBarForm(
                     repeatingProgressBar.newChildId(),
-                    roleAnalysisAttributeAnalysis,
+                    () -> new RoleAnalysisAttributeAnalysisDto(roleAnalysisAttributeAnalysis, UserType.class),
                     pathToMark);
 
             progressBarForm.setOutputMarkupId(true);

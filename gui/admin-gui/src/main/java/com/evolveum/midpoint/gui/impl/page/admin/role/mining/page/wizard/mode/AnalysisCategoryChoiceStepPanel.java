@@ -67,28 +67,11 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
     @Override
     protected void onTileClickPerformed(AnalysisCategoryMode value, AjaxRequestTarget target) {
         analysisCategoryModel.setObject(value);
-        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getAssignmentHolderDetailsModel()
-                .getObjectWrapperModel();
 
         Task task = getPageBase().createSimpleTask("prepare options");
         OperationResult result = task.getResult();
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         reloadDefaultConfiguration(value, task, result);
 
-//        PrismContainer<Containerable> property = objectWrapper.getObject()
-//                .findContainer(RoleAnalysisSessionType.F_ANALYSIS_OPTION);
-//
-//        property.findProperty(RoleAnalysisOptionType.F_ANALYSIS_CATEGORY)
-//                .setRealValue(value.resolveCategoryMode());
-//        if (!value.requiresProcessModeConfiguration()) {
-//            property.findProperty(RoleAnalysisOptionType.F_PROCESS_MODE)
-//                    .setRealValue(value.getRequiredProcessModeConfiguration());
-//            Task task = getPageBase().createSimpleTask("prepare options");
-//            OperationResult result = task.getResult();
-//            RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-//            value.generateConfiguration(
-//                    roleAnalysisService, objectWrapperModel, task, result);
-//        }
         onSubmitPerformed(target);
     }
 
@@ -96,10 +79,6 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
 
     }
 
-//    @Override
-//    protected String getDescriptionForTile(@NotNull AnalysisCategory type) {
-//        return createStringResource(type.getDescriptionKey()).getString();
-//    }
 
     protected boolean isRequiresProcessModeConfiguration() {
         if (analysisCategoryModel.getObject() == null) {

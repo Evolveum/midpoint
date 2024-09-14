@@ -10,6 +10,8 @@ import java.io.Serial;
 
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;

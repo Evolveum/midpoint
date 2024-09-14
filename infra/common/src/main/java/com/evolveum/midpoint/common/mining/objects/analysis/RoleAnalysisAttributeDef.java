@@ -29,7 +29,7 @@ import javax.xml.namespace.QName;
 public class RoleAnalysisAttributeDef implements Serializable {
 
     ItemPath path;
-    boolean isContainer;
+//    boolean isContainer;
     String displayValue;
     ObjectQuery query;
     Class<? extends ObjectType> targetClassType;
@@ -49,7 +49,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
             boolean isContainer,
             Class<? extends ObjectType> classType) {
         this.path = path;
-        this.isContainer = isContainer;
+//        this.isContainer = isContainer;
         this.targetClassType = classType;
     }
 
@@ -59,7 +59,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
             Class<? extends ObjectType> classType,
             IdentifierType identifierType) {
         this.path = path;
-        this.isContainer = isContainer;
+//        this.isContainer = isContainer;
         this.displayValue = displayValue;
         this.targetClassType = classType;
         this.identifierType = identifierType;
@@ -70,16 +70,16 @@ public class RoleAnalysisAttributeDef implements Serializable {
     }
 
     public boolean isContainer() {
-        return isContainer;
+        return definition instanceof PrismContainerDefinition;
     }
 
     public void setPath(ItemPath path) {
         this.path = path;
     }
 
-    public void setContainer(boolean container) {
-        isContainer = container;
-    }
+//    public void setContainer(boolean container) {
+//        isContainer = container;
+//    }
 
     public String getDisplayValue() {
         return displayValue;
@@ -90,7 +90,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
     }
 
     public String resolveSingleValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
-        if (!isContainer) {
+        if (!isContainer()) {
             Item<PrismValue, ItemDefinition<?>> property = prismObject.findItem(itemPath);
             if (property != null) {
                 Object object = property.getRealValue();
@@ -100,6 +100,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
         return null;
     }
 
+    //TODO
     public @NotNull Set<String> resolveMultiValueItem(@NotNull PrismObject<?> prismObject, @NotNull ItemPath itemPath) {
         Set<String> resolvedValues = new HashSet<>();
         Collection<Item<?, ?>> allItems = prismObject.getAllItems(itemPath);
@@ -186,4 +187,7 @@ public class RoleAnalysisAttributeDef implements Serializable {
         return null;
     }
 
+    public boolean isMultiValue() {
+        return definition.isMultiValue();
+    }
 }

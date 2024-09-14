@@ -144,7 +144,6 @@ public class AttributeAnalysisUtil {
 
             AttributePathResult attributePathResult = targetUserCacheCandidate.computeIfAbsent(path, k -> {
                 AttributePathResult newResult = new AttributePathResult(new HashMap<>(), 0);
-                newResult.setMultiValue(isContainer);
                 newResult.setItemDefinition(item);
                 return newResult;
             });
@@ -185,7 +184,7 @@ public class AttributeAnalysisUtil {
             Map<String, Integer> frequencyMap = new HashMap<>(cachedValue.getFrequencyMap());
             attributePathResult.addToTotalRelation(totalRelation);
             attributePathResult.splitFrequencyMap(frequencyMap);
-            attributePathResult.setMultiValue(multiValue);
+//            attributePathResult.setMultiValue(multiValue);
             attributePathResult.setItemDefinition(itemDefinition);
             attributePathResult.addTotalRelation(totalRelation);
 
@@ -308,6 +307,7 @@ public class AttributeAnalysisUtil {
         RoleAnalysisAttributeDef itemDefinition = attributePathResult.getItemDefinition();
         boolean isMultiValue = attributePathResult.isMultiValue();
         attributeAnalysisStructure.setAttributeStatistics(new ArrayList<>());
+
         frequencyMap.forEach((attributeSimpleValue, inGroupCount) -> {
             Integer inRepoCount = roleAnalysisService
                     .countObjects(objectClass, itemDefinition.getQuery(attributeSimpleValue), null,

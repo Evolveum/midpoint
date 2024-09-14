@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
@@ -41,10 +43,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnalysisSessionType, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -140,6 +138,12 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
                 showWizardFragment(target, new WizardPanel(getIdOfWizardPanel(), new WizardModel(createBasicSteps())));
                 super.onSubmitPerformed(target);
             }
+
+            @Override
+            protected void reloadDefaultConfiguration(RoleAnalysisProcessModeType value, Task task, OperationResult result) {
+                AssignmentHolderDetailsModel<RoleAnalysisSessionType> sessionModel = RoleAnalysisSessionWizardPanel.this.reloadWrapperWithDefaultConfiguration(value, task, result);
+                getHelper().updateDetailsModel(sessionModel);
+            }
         };
     }
 
@@ -160,6 +164,10 @@ public class RoleAnalysisSessionWizardPanel extends AbstractWizardPanel<RoleAnal
     }
 
     protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(AnalysisCategoryMode category, Task task, OperationResult result) {
+        return null;
+    }
+
+    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(RoleAnalysisProcessModeType processMode, Task task, OperationResult result) {
         return null;
     }
 

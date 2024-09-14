@@ -37,6 +37,9 @@ public class AdvancedModeConfiguration extends AbstractRoleAnalysisConfiguration
 
     @Override
     public void updateConfiguration() {
+        if (getProcessMode() == null) {
+            return;
+        }
         RangeType propertyRange = new RangeType()
                 .min(5.0)
                 .max(Double.valueOf(getMaxPropertyCount()));

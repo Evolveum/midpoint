@@ -7,19 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session;
 
+import java.util.Collection;
+
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 import org.wicketstuff.select2.ChoiceProvider;
 
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AnalysisAttributeSettingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import java.util.Collection;
-import java.util.List;
 
 public class AnalysisAttributeSelectorPanel extends InputPanel {
     private static final String ID_MULTISELECT = "multiselect";

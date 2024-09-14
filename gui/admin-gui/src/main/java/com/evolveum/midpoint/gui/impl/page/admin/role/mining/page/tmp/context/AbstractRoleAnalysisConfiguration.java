@@ -24,10 +24,12 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
         RoleAnalysisOptionType analysisOption = object.getAnalysisOption();
         processMode = analysisOption.getProcessMode();
 
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            this.analysisSessionOption = object.getRoleModeOptions();
-        } else {
-            this.analysisSessionOption = object.getUserModeOptions();
+        if (processMode != null) {
+            if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
+                this.analysisSessionOption = object.getRoleModeOptions();
+            } else {
+                this.analysisSessionOption = object.getUserModeOptions();
+            }
         }
 
         this.detectionOption = object.getDefaultDetectionOption();
@@ -98,11 +100,22 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
     }
 
     protected AbstractAnalysisSessionOptionType getPrimaryOptionContainerFormModel() {
-        if (getProcessMode().equals(RoleAnalysisProcessModeType.ROLE)) {
-            return object.getRoleModeOptions();
-        } else {
-            return object.getUserModeOptions();
+        if (RoleAnalysisProcessModeType.ROLE.equals(getProcessMode())) {
+            RoleAnalysisSessionOptionType roleModeOption = object.getRoleModeOptions();
+            if (roleModeOption == null) {
+                roleModeOption = new RoleAnalysisSessionOptionType();
+                object.setRoleModeOptions(roleModeOption);
+            }
+            return roleModeOption;
         }
+
+        UserAnalysisSessionOptionType userModeOption = object.getUserModeOptions();
+        if (userModeOption == null) {
+            userModeOption = new UserAnalysisSessionOptionType();
+            object.setUserModeOptions(userModeOption);
+        }
+        return userModeOption;
+
 //            return PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel,
 //                    ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
 //        }
@@ -179,6 +192,10 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
             RoleAnalysisDetectionProcessType detectionProcessMode) {
 
             RoleAnalysisDetectionOptionType primaryOptions = object.getDefaultDetectionOption();
+            if (primaryOptions == null) {
+                primaryOptions = new RoleAnalysisDetectionOptionType();
+                object.setDefaultDetectionOption(primaryOptions);
+            }
             primaryOptions.minRolesOccupancy(minRolesOccupancy)
                     .minUserOccupancy(minUserOccupancy)
                     .sensitivity(sensitivity)

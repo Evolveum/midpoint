@@ -88,31 +88,31 @@ public enum AnalysisCategoryMode implements TileEnum {
         }
     }
 
-    public static void generateConfiguration(
-            @NotNull RoleAnalysisService service,
-            @NotNull RoleAnalysisCategoryType category,
-            @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
-            @NotNull Task task,
-            @NotNull OperationResult result) {
-        RoleAnalysisProcedureType analysisProcedureType = getRoleAnalysisProcedureType(objectWrapper);
-        RoleAnalysisSessionType session = objectWrapper.getObject().getObject().asObjectable();
-        switch (category) {
-            case BALANCED -> new BalancedCoverageModeConfiguration(service, session, task, result).updateConfiguration();
-            case EXACT -> new ExactSimilarityModeConfiguration(service, session, task, result).updateConfiguration();
-            case DEPARTMENT -> new DepartmentModeConfiguration(service, session, task, result).updateConfiguration();
-            case ADVANCED -> {
-                if (analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
-                    new AdvancedModeConfiguration(service, session, task, result).updateConfiguration();
-                } else {
-                    new OutlierModeConfiguration(service, session, task, result).updateConfiguration();
-                }
-            }
-            case OUTLIERS_DEPARTMENT ->
-                    new OutlierDepartmentModeConfiguration(service, session, task, result).updateConfiguration();
-            case BIRTHRIGHT ->
-                    new BirthrightCoverageModeConfiguration(service, session, task, result).updateConfiguration();
-        }
-    }
+//    public static void generateConfiguration(
+//            @NotNull RoleAnalysisService service,
+//            @NotNull RoleAnalysisCategoryType category,
+//            @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
+//            @NotNull Task task,
+//            @NotNull OperationResult result) {
+////        RoleAnalysisProcedureType analysisProcedureType = getRoleAnalysisProcedureType(objectWrapper);
+//        RoleAnalysisSessionType session = objectWrapper.getObject().getObject().asObjectable();
+//        switch (category) {
+//            case BALANCED -> new BalancedCoverageModeConfiguration(service, session, task, result).updateConfiguration();
+//            case EXACT -> new ExactSimilarityModeConfiguration(service, session, task, result).updateConfiguration();
+//            case DEPARTMENT -> new DepartmentModeConfiguration(service, session, task, result).updateConfiguration();
+//            case ADVANCED -> {
+//                if (analysisProcedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+//                    new AdvancedModeConfiguration(service, session, task, result).updateConfiguration();
+//                } else {
+//                    new OutlierModeConfiguration(service, session, task, result).updateConfiguration();
+//                }
+//            }
+//            case OUTLIERS_DEPARTMENT ->
+//                    new OutlierDepartmentModeConfiguration(service, session, task, result).updateConfiguration();
+//            case BIRTHRIGHT ->
+//                    new BirthrightCoverageModeConfiguration(service, session, task, result).updateConfiguration();
+//        }
+//    }
 
     private static RoleAnalysisProcedureType getRoleAnalysisProcedureType(
             @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper) {
@@ -130,6 +130,22 @@ public enum AnalysisCategoryMode implements TileEnum {
             case ROLE_MINING_ADVANCED -> RoleAnalysisCategoryType.ADVANCED;
             case OUTLIER_DETECTION_ADVANCED -> RoleAnalysisCategoryType.ADVANCED;
             case OUTLIERS_DEPARTMENT -> RoleAnalysisCategoryType.OUTLIERS_DEPARTMENT;
+        };
+    }
+
+    public static AnalysisCategoryMode resolveCategoryMode(RoleAnalysisSessionType session) {
+        RoleAnalysisOptionType option = session.getAnalysisOption();
+        RoleAnalysisCategoryType categoryType = option.getAnalysisCategory();
+        RoleAnalysisProcedureType processMode = option.getAnalysisProcedureType();
+
+        return switch (categoryType) {
+            case BIRTHRIGHT -> BIRTHRIGHT_ROLE;
+            case BALANCED -> BALANCED_COVERAGE;
+            case EXACT -> EXACT_ACCESS_SIMILARITY;
+            case EXPLORATION -> null;
+            case DEPARTMENT -> DEPARTMENT;
+            case ADVANCED -> processMode == RoleAnalysisProcedureType.ROLE_MINING ? ROLE_MINING_ADVANCED : OUTLIER_DETECTION_ADVANCED;
+            case OUTLIERS_DEPARTMENT -> OUTLIERS_DEPARTMENT;
         };
     }
 

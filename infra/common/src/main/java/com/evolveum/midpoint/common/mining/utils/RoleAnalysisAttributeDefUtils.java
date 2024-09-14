@@ -223,7 +223,7 @@ public class RoleAnalysisAttributeDefUtils {
         PrismContainerDefinition<AssignmentType> assignmentDefinition = userDefinition.findContainerDefinition(F_ASSIGNMENT);
         List<AnalysisAttributeRuleType> assignmentRules = analysisAttributeSetting.getAssignmentRule();
         for (AnalysisAttributeRuleType rule : assignmentRules) {
-            RoleAnalysisAttributeDef attributeDef = new RoleAnalysisAssignmentAttributeDef(F_ASSIGNMENT, assignmentDefinition, rule);
+            RoleAnalysisAttributeDef attributeDef = new RoleAnalysisAssignmentAttributeDef(ItemPath.create(F_ASSIGNMENT, AssignmentType.F_TARGET_REF), assignmentDefinition, rule);
             attributeDefs.add(attributeDef);
         }
 

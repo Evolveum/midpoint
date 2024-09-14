@@ -31,6 +31,8 @@ public class RoleAnalysisSimpleModel implements Serializable {
 
     boolean isCompared = false;
 
+    private boolean selected = false;
+
     public RoleAnalysisSimpleModel(double density, String description) {
         this.density = density;
         this.description = description;

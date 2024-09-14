@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode.ProcessModeChoiceStepPanel;
+import com.evolveum.midpoint.util.exception.CommonException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -221,8 +223,40 @@ public class PageRoleAnalysisSession extends PageAssignmentHolderDetails<RoleAna
 
                     @Override
                     protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(AnalysisCategoryMode category, Task task, OperationResult result) {
-                        RoleAnalysisSessionType session = getObjectDetailsModels().getObjectType();
+                        RoleAnalysisSessionType session = null;
+                        try {
+                            session = getObjectDetailsModels().getObjectWrapper().getObjectApplyDelta().asObjectable();
+                        } catch (CommonException e) {
+                            session = getObjectDetailsModels().getObjectWrapper().getObjectOld().asObjectable();
+                        }
+                        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+                        if (analysisOption == null) {
+                            analysisOption = new RoleAnalysisOptionType();
+                            session.setAnalysisOption(analysisOption);
+                        }
+                        analysisOption.setAnalysisCategory(category.resolveCategoryMode());
+
+                        if (!category.requiresProcessModeConfiguration()) {
+                            session.getAnalysisOption().setProcessMode(category.getRequiredProcessModeConfiguration());
+                        }
                         category.generateConfiguration(getRoleAnalysisService(), session, task, result);
+                        reloadObjectDetailsModel(session.asPrismObject());
+                        return getObjectDetailsModels();
+                    }
+
+                    @Override
+                    protected AssignmentHolderDetailsModel<RoleAnalysisSessionType> reloadWrapperWithDefaultConfiguration(RoleAnalysisProcessModeType processMode, Task task, OperationResult result) {
+                        RoleAnalysisSessionType session = null;
+                        try {
+                            session = getObjectDetailsModels().getObjectWrapper().getObjectApplyDelta().asObjectable();
+                        } catch (CommonException e) {
+                            session = getObjectDetailsModels().getObjectWrapper().getObjectOld().asObjectable();
+                        }
+                        RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
+                        analysisOption.setProcessMode(processMode);
+
+                        AnalysisCategoryMode categoryMode = AnalysisCategoryMode.resolveCategoryMode(session);
+                        categoryMode.generateConfiguration(getRoleAnalysisService(), session, task, result);
                         reloadObjectDetailsModel(session.asPrismObject());
                         return getObjectDetailsModels();
                     }

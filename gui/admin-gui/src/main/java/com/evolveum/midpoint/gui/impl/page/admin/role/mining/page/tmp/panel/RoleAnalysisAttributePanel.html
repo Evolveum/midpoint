@@ -16,13 +16,20 @@
 
         <div class="p-0">
             <div class="d-flex flex-wrap px-3 pt-3 gap-1">
-                <div wicket:id="analysisAttributesButtons" style="max-width:160px"></div>
+                <div wicket:id="analysisAttributesButtons" style="max-width:160px">
+                    <div wicket:id="attributeHeader"></div>
+                </div>
+                <div style="max-width:160px">
+                    <div wicket:id="overallHeader"></div>
+                </div>
             </div>
         </div>
 
         <div class="card-body p-0" wicket:id="cardBody">
             <div wicket:id="cardBodyComponent"></div>
+            <div wicket:id="overallCardBodyComponent"></div>
         </div>
+
     </div>
 
 </wicket:panel>

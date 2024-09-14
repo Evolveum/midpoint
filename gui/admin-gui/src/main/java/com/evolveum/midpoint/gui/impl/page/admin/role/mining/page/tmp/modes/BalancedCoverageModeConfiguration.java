@@ -62,7 +62,7 @@ public class BalancedCoverageModeConfiguration extends AbstractRoleAnalysisConfi
 
     public @NotNull Integer getMaxPropertyCount() {
         Class<? extends ObjectType> propertiesClass = UserType.class;
-        if (getProcessMode().equals(RoleAnalysisProcessModeType.USER)) {
+        if (RoleAnalysisProcessModeType.USER.equals(getProcessMode())) {
             propertiesClass = RoleType.class;
         }
 
