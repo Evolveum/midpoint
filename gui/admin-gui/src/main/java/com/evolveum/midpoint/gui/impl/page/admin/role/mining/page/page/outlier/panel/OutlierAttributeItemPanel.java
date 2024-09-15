@@ -106,8 +106,6 @@ public class OutlierAttributeItemPanel<T extends Serializable>
             return new RoleAnalysisWidgetsPanel(id, loadDetailsModel());
         }
 
-        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = attributeAnalysis.getUserAttributeAnalysisResult();
-        RoleAnalysisAttributeAnalysisResult clusterCompare = attributeAnalysis.getUserClusterCompare();
         RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
         ObjectReferenceType targetSessionRef = partition.getTargetSessionRef();
 

@@ -215,12 +215,12 @@ public class PageSecurityQuestions extends PageAbstractAuthenticationModule<Cred
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageSecurityQuestions.questions");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PageSecurityQuestions.description");
     }
 

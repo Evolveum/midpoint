@@ -92,6 +92,6 @@ public class RoleAnalysisAttributeResultChartPanel extends BasePanel<RoleAnalysi
     }
 
     protected String getChartContainerStyle(){
-        return "min-height:350px;";
+        return null;
     }
 }

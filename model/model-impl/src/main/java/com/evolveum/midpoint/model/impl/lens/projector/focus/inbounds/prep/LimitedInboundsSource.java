@@ -43,6 +43,7 @@ public class LimitedInboundsSource extends InboundsSource {
                         ctx.getObjectDefinitionRequired()),
                 ctx.getInboundDefinition(),
                 ctx.getResource(),
+                ctx.getTypeIdentification(),
                 ctx.toString());
         this.ctx = ctx;
     }

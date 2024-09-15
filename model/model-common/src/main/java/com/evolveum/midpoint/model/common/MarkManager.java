@@ -195,26 +195,4 @@ public class MarkManager {
         }
         return map;
     }
-
-    /**
-     * Returns {@code true} if the mark for particular object was computed in a non-repeatable (stateful) way, so it makes
-     * sense to (e.g.) remove it manually.
-     *
-     * Temporary implementation:
-     *
-     * - Currently supported only for shadow marks.
-     * - In that case, it uses the resource object type definition to know how marking is defined for the particular mark
-     * (that's why the object - with the correct definition - is required).
-     *
-     * For policy rule based marks, we'd need the explicit information, probably connected to the {@link MarkType} object itself.
-     * Or, perhaps, some metadata for given mark on the object.
-     */
-    public boolean isMarkStateful(@NotNull ObjectType object, @NotNull String markOid) {
-        if (!(object instanceof ShadowType shadow)) {
-            return false; // Currently supported only for shadows
-        }
-        return ShadowUtil.getResourceObjectDefinition(shadow)
-                .getShadowMarkingRules()
-                .isMarkStateful(markOid);
-    }
 }

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -57,6 +58,9 @@ public class PreMappingsEvaluator {
                 new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         AbstractShadow.of(shadowedResourceObject),
                         resource,
+                        // We may reconsider if we shouldn't require type identification explicitly from the caller;
+                        // but for now, it seems that the type definition is derived straight from the SynchronizationPolicy
+                        objectTypeDefinition.getTypeIdentification(),
                         PrismContext.get().createObjectable(focusClass),
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         task,
@@ -76,6 +80,7 @@ public class PreMappingsEvaluator {
             @NotNull ResourceObjectDefinition resourceObjectDefinition,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull ResourceType resource,
+            @Nullable ResourceObjectTypeIdentification typeIdentification,
             @NotNull C targetObject,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -85,6 +90,7 @@ public class PreMappingsEvaluator {
                 new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         associationValue,
                         resource,
+                        typeIdentification,
                         targetObject,
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         task,

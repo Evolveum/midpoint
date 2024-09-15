@@ -252,7 +252,7 @@ It is in form of `itemPath matches (subfilter)`, where subfilter (and item paths
 The `subfilter` is any supported filter, where paths are relative to container
 and allows us to specify multiple conditions (joined using <<Logical Filters>>), which must be met by container value.
 
-Example matches filter:
+Example of matches filter:
 ----
 activation matches (
   validFrom > "2022-01-01"
@@ -272,6 +272,21 @@ The filter `assignment/validFrom > "2022-01-01" and assignment/validTo <"2023-01
 First will match user who has one assignment starting after 2022 and possible other assignment ending by 2023.
 The second filter with match user who has an assignment which starts in 2022 and expires before 2023.
 ====
+
+=== inOid filter
+
+midPoint query allows querying objects by its oid using `inOid` filter.
+The inOid queries is triplet consisting of object representation, `inOid` filter and list of oid values enclosed in brackets.
+The midPoint object is represented by `.` (dot character).
+
+Example of querying one specific object by its OID:
+
+`. inOid ("00000000-0000-0000-0000-000000000702")`
+
+Example of querying 2 specific objects by their OID:
+
+`. inOid ("eb21455d-17cc-4390-a736-f1d6afa82057", "87e048ae-6fcf-47bb-a55e-60acb8604ead")`
+
 
 === Reference Filters
 

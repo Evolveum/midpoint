@@ -54,13 +54,17 @@ public abstract class AbstractGuiAction<C extends Containerable> implements Seri
             return;
         }
 
-        ContainerPanelConfigurationType panel = guiActionType.getPanel();
-        if (panel != null) {
+        if (isConfigurationPanelVisible()) {
+            ContainerPanelConfigurationType panel = guiActionType.getPanel();
             showActionConfigurationPanel(panel, objectsToProcess, pageBase, target);
             return;
         }
         executeAction(objectsToProcess, pageBase, target);
 
+    }
+
+    protected boolean isConfigurationPanelVisible() {
+        return guiActionType != null && guiActionType.getPanel() != null;
     }
 
     protected void showActionConfigurationPanel(ContainerPanelConfigurationType panelConfig, List<C> objectsToProcess,

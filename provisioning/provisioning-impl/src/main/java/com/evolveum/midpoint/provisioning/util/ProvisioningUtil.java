@@ -162,28 +162,6 @@ public class ProvisioningUtil {
         opResult.markExceptionRecorded();
     }
 
-    public static void checkShadowActivationConsistency(RepoShadow shadow) {
-        if (shadow == null) { // just for sure
-            return;
-        }
-        ActivationType activation = shadow.getBean().getActivation();
-        if (activation == null) {
-            return;
-        }
-        if (activation.getAdministrativeStatus() != null ||
-                activation.getEffectiveStatus() != null ||
-                activation.getValidFrom() != null ||
-                activation.getValidTo() != null ||
-                activation.getValidityStatus() != null ||
-                activation.getLockoutStatus() != null ||
-                activation.getLockoutExpirationTimestamp() != null ||
-                activation.getValidityChangeTimestamp() != null) {
-            String m = "Unexpected content in shadow.activation for " + ObjectTypeUtil.toShortString(shadow.getBean()) + ": " + activation;
-            LOGGER.warn("{}", m);
-            //throw new IllegalStateException(m);        // use only for testing
-        }
-    }
-
     public static Duration getPendingOperationRetentionPeriod(ProvisioningContext ctx) {
         Duration period = null;
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();

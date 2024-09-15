@@ -2135,7 +2135,7 @@
                         <p>It is necessary that the output be a simple object convertible to a String type</p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AnalysisAttributeRuleType.attributeIdentifier</a:displayName>
+                        <a:displayName>AnalysisAttributeRuleType.targetType</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2147,7 +2147,7 @@
                         <p>It is necessary that the output be a simple object convertible to a String type</p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AnalysisAttributeRuleType.attributeIdentifier</a:displayName>
+                        <a:displayName>AnalysisAttributeRuleType.rootOrganization</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2159,7 +2159,7 @@
                         <p>It is necessary that the output be a simple object convertible to a String type</p>
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AnalysisAttributeRuleType.attributeIdentifier</a:displayName>
+                        <a:displayName>AnalysisAttributeRuleType.archetypeRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

@@ -147,12 +147,12 @@ public class PageFocusIdentification extends PageAbstractAuthenticationModule<Fo
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageFocusIdentification.title");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PageFocusIdentification.description");
     }
 

@@ -255,11 +255,16 @@ class AssociationSynchronizationExpressionEvaluator
                 }
                 LOGGER.trace("-> No shadow found, not vetoing the removal.");
                 return false;
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logExceptionAsWarning(
+                        LOGGER,
+                        "'Object not found' detected while determining whether to remove assignment {}; so we will remove it",
+                        e, value);
+                return false;
             } catch (CommonException e) {
                 LoggingUtils.logUnexpectedException(
                         LOGGER, "Error while determining whether to remove assignment {}; so we will remove it", e, value);
-                //return false;
-                throw new SystemException(e); // TODO remove before 4.9 release
+                return false;
             }
         }
 
@@ -347,6 +352,7 @@ class AssociationSynchronizationExpressionEvaluator
                                 projectionContext.getCompositeObjectDefinitionRequired(),
                         inboundDefinition,
                         projectionContext.getResourceRequired(),
+                        projectionContext.getKey().getTypeIdentification(),
                         targetAssignment,
                         context.getTask(),
                         result);
@@ -505,6 +511,7 @@ class AssociationSynchronizationExpressionEvaluator
                 return new DefaultSingleShadowInboundsProcessingContextImpl<>(
                         associationValue,
                         resource,
+                        projectionContext.getKey().getTypeIdentification(),
                         targetAssignment,
                         ModelBeans.get().systemObjectCache.getSystemConfigurationBean(result),
                         context.getTask(),

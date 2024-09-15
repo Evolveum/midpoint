@@ -38,7 +38,7 @@ public abstract class PoliciesObjectTypeWizardChoicePanel
 
     public enum PoliciesPreviewTileType implements TileEnum {
 
-        DEFAULT_OPERATION_POLICY("fa fa-circle"),
+        DEFAULT_OPERATION_POLICY("fa fa-balance-scale"),
         MARKING("fa-solid fa-tag");
 
         private final String icon;

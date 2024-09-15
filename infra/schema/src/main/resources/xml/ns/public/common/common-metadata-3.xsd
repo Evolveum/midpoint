@@ -89,7 +89,8 @@
             <xsd:element name="provenance" type="tns:ProvenanceMetadataType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Provenance metadata provide high-level information about origin of the value.
+                        Some parts of it also serve as the business key for (multivalued) value metadata.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -569,21 +570,166 @@
                 This is high-level information without excessive details, designed for long-term storage with the data.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:operational>false</a:operational> <!-- intentionally -->
+                <!--
+                    Intentionally NOT marked as operational, as this is used to distinguish individual metadata values
+                    (although recently we can use "a:alwaysUseForEquals" for this purpose).
+                -->
+                <a:operational>false</a:operational>
                 <a:container/>
                 <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="acquisition" type="tns:ProvenanceAcquisitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The ultimate origin(s) of the value.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
-            <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType" minOccurs="0">
+                <!-- The shorter name of "mapping" would be perhaps better. -->
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mapping that (immediately) provided the value. Can be used for any focus item targeted by mappings.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
-            <xsd:element name="assignmentPath" type="tns:AssignmentPathMetadataType" minOccurs="0" maxOccurs="1">
+            <xsd:choice>
+                <!-- One value can have multiple origins; but there's one provenance object for each one. Hence "choice" here. -->
+                <xsd:element name="policyRule" type="tns:PolicyRuleSpecificationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The policy rule that provided the value. Used for effectiveMarkRef item.
+
+                            NOTE: Currently unused
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="markingRule" type="tns:MarkingRuleSpecificationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The marking rule that provided the value. Used for effectiveMarkRef item for shadows.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="policyStatement" type="tns:PolicyStatementSpecificationType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The policy statement that provided the value. Used for effectiveMarkRef item for shadows.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.9</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+            <xsd:element name="assignmentPath" type="tns:AssignmentPathMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Assignment that provided the value. Used for roleMembershipRef item.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="provenanceMetadata" type="tns:ProvenanceMetadataType"/>
+
+    <xsd:complexType name="MarkingRuleSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about the marking rule that provided a value for effectiveMarkRef (for shadows).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>false</a:operational> <!-- because it's used for comparisons -->
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ruleId" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The PCV ID of the marking rule.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:transitional" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PolicyRuleSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about the policy rule that provided a value for effectiveMarkRef.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>false</a:operational> <!-- because it's used for comparisons -->
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ruleName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The name of the policy rule.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="assignmentPath" type="tns:AssignmentPathMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For assigned rules: path pointing to the object holding the rule.
+                        For not assigned rules (global policy rules present in the system config or marks):
+                        only the "sourceRef" object is present.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:transitional" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="transitional" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Was the mark provision transitional in nature? I.e., was that one-time event that is not expected to be repeated?
+                A typical example is a mark for newly discovered shadow. Or, a mark that a particular sensitive object property
+                was changed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="PolicyStatementSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about the policy statement that provided a value for effectiveMarkRef (for shadows).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>false</a:operational> <!-- because it's used for comparisons -->
+                <a:container/>
+                <a:since>4.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="statementId" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The PCV ID of the policy statement.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="ProvenanceAcquisitionType">
         <xsd:annotation>
@@ -677,8 +823,31 @@
         <xsd:sequence>
             <xsd:element name="assignmentId" type="xsd:string" minOccurs="0"/>
             <xsd:element name="definitionObjectRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object in which the mapping resides.
+
+                        Beware: when the mapping is related to a resource that uses a resource template, i.e., that has
+                        a super-resource, the actual (expanded, child) resource OID is provided here, even if the mapping
+                        physically resides in the super-resource.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
-            <xsd:element name="mappingName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="objectType" type="c:ResourceObjectTypeIdentificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object type (like account/default) in which this mapping is defined.
+
+                        This is necessary to avoid requiring mapping name uniqueness across the whole resource, but
+                        also to ensure working of mappings (1) inherited from the super-type to subtypes, (2) applied to
+                        multiple object types (like those in association types). Such mappings would have the same specification
+                        even when they are in fact executed as two distinct instances on different data.
+
+                        Currently provided for inbound mappings.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mappingName" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType"/>
