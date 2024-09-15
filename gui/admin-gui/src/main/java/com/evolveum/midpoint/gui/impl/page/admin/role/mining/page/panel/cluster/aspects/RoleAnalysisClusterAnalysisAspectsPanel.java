@@ -131,8 +131,6 @@ public class RoleAnalysisClusterAnalysisAspectsPanel extends AbstractObjectMainP
 
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_PANEL,
                     attributesModel) {
-//                    createStringResource("RoleAnalysis.aspect.overview.page.title.clustering.attribute.analysis"),
-//                    roleAttributeAnalysisResult, userAttributeAnalysisResult) {
 
                 @Override
                 protected boolean isCardTitleVisible() {

@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.chart.options.ChartDataRm;
 
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,11 +24,11 @@ import com.evolveum.wicket.chartjs.*;
  */
 public class RoleAnalysisAttributeResultChartModel extends LoadableModel<ChartConfiguration> {
 
-    LoadableDetachableModel<List<RoleAnalysisSimpleModel>> roleAnalysisModels;
+    IModel<List<RoleAnalysisSimpleModel>> roleAnalysisModels;
     ChartType chartType;
 
     public RoleAnalysisAttributeResultChartModel(
-            @NotNull LoadableDetachableModel<List<RoleAnalysisSimpleModel>> roleAnalysisModel,
+            @NotNull IModel<List<RoleAnalysisSimpleModel>> roleAnalysisModel,
             @NotNull ChartType chartType) {
         this.roleAnalysisModels = roleAnalysisModel;
         this.chartType = chartType;

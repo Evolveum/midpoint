@@ -179,7 +179,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
         if (userAttributeAnalysisResult != null || roleAttributeAnalysisResult != null) {
 
-            LoadableModel<RoleAnalysisAttributesDto> attributeModel = new LoadableModel<>() {
+            LoadableModel<RoleAnalysisAttributesDto> attributeModel = new LoadableModel<>(false) {
                 @Override
                 protected RoleAnalysisAttributesDto load() {
                     return RoleAnalysisAttributesDto.loadFromDetectedPattern(getCardTitle(), getModelObject());
@@ -188,7 +188,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
             RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_STATISTICS_PANEL,
                     attributeModel) {
-//                    getCardTitleModel(), getModel()) { //roleAttributeAnalysisResult, userAttributeAnalysisResult
+
                 @Override
                 protected String getCssClassForCardContainer() {
                     String cssClassForCardContainer = RoleAnalysisDetectedPatternDetails.this.getCssClassForCardContainer();

@@ -187,9 +187,7 @@ public class RoleAnalysisSinglePartitionAnomalyResultTabPopup extends BasePanel<
                         };
                         RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(id1,
                                 attributesModel) {
-//                                createStringResource("RoleAnalysis.analysis.attribute.panel"),
-//                                roleAttributeAnalysisResult,
-//                                userRoleMembersCompare, true) {
+
                             @Override
                             protected @NotNull String getChartContainerStyle() {
                                 return "min-height:350px;";

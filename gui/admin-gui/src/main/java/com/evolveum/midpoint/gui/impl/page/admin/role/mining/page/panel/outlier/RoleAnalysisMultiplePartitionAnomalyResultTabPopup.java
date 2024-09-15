@@ -190,9 +190,7 @@ public class RoleAnalysisMultiplePartitionAnomalyResultTabPopup extends BasePane
 
                         RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(id1,
                                 attributesModel) {
-//                                createStringResource("RoleAnalysis.analysis.attribute.panel"),
-//                                roleAnalysisAttributeAnalysisResult,
-//                                compareAttributeResult, true) {
+
                             @Override
                             protected @NotNull String getChartContainerStyle() {
                                 return "min-height:350px;";

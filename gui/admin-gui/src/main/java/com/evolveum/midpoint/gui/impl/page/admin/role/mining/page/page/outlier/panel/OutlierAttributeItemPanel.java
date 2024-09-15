@@ -140,9 +140,7 @@ public class OutlierAttributeItemPanel<T extends Serializable>
                 };
                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(id1,
                         attributesModel) {
-//                        Model.of("Role analysis attribute panel"),
-//                        userAttributeAnalysisResult,
-//                        clusterCompare, true) {
+
                     @Override
                     protected @NotNull String getChartContainerStyle() {
                         return "min-height:350px;";

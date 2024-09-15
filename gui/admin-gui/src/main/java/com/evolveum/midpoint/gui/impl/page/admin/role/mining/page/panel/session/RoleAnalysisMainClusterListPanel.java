@@ -812,7 +812,7 @@ public class RoleAnalysisMainClusterListPanel extends AbstractObjectMainPanel<Ro
 
                 RoleAnalysisAttributePanel roleAnalysisAttributePanel = new RoleAnalysisAttributePanel(ID_COLLAPSABLE_CONTENT,
                         attributesModel) {
-//                        Model.of("Role analysis attribute panel"), roleAttributeAnalysisResult, userAttributeAnalysisResult) {
+
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getCssClassForCardContainer() {

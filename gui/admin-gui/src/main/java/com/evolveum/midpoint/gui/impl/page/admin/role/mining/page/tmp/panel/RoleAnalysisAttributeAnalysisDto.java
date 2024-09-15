@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Evolveum and contributors
+ * Copyright (C) 2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarForm;
+import java.io.Serializable;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -15,16 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysis;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeStatistics;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class RoleAnalysisAttributeAnalysisDto implements Serializable {
 
@@ -33,6 +29,10 @@ public class RoleAnalysisAttributeAnalysisDto implements Serializable {
     private int attributeValuesSize;
     private Class<?> type;
     private List<RoleAnalysisAttributeStatistics> attributeStatistics;
+
+    private RoleAnalysisAttributeAnalysisDto() {
+
+    }
 
     public RoleAnalysisAttributeAnalysisDto(RoleAnalysisAttributeAnalysis analysis, Class<? extends FocusType> type) {
         this.attributeStatistics = analysis.getAttributeStatistics();
@@ -49,7 +49,7 @@ public class RoleAnalysisAttributeAnalysisDto implements Serializable {
             }
         }
 
-
+        //TODO what to do whit this?
 
 //            List<RoleAnalysisAttributeStatistics> attributeStatistics = analysis.getAttributeStatistics();
 //            if (attributeStatistics != null && !attributeStatistics.isEmpty()) {
@@ -63,30 +63,14 @@ public class RoleAnalysisAttributeAnalysisDto implements Serializable {
 //        });
 //
 //        int totalBars = toSort.size();
+    }
 
-
-
-//        if (roleAttributeAnalysisResult != null) {
-//            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = roleAttributeAnalysisResult.getAttributeAnalysis();
-//            for (RoleAnalysisAttributeAnalysis analysis : attributeAnalysis) {
-////                        if (rolePath.contains(analysis.getItemPath().getItemPath())) {
-//                analysisAttributeToDisplay.getAttributeAnalysis().add(analysis.clone());
-////                        }
-//            }
-//        }
-//
-//        //TODO duplicate?
-//        RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = detectedPattern.getUserAttributeAnalysisResult();
-//        if (userAttributeAnalysisResult != null) {
-//            List<RoleAnalysisAttributeAnalysis> userAttributeAnalysis = userAttributeAnalysisResult.getAttributeAnalysis();
-//            for (RoleAnalysisAttributeAnalysis analysis : userAttributeAnalysis) {
-////                        if (userPath.contains(analysis.getItemPath().getItemPath())) {
-//                analysisAttributeToDisplay.getAttributeAnalysis().add(analysis.clone());
-////                        }
-//            }
-//        }
-//
-//        return analysisAttributeToDisplay;
+    public static RoleAnalysisAttributeAnalysisDto forOverallResult(int attributeSize) {
+        RoleAnalysisAttributeAnalysisDto overallAttribute = new RoleAnalysisAttributeAnalysisDto();
+        overallAttribute.attributeValuesSize = attributeSize;
+        overallAttribute.displayNameKey = "RoleAnalysisAttributePanel.title.overal.result";
+        overallAttribute.selected = false;
+        return overallAttribute;
     }
 
     public boolean isSelected() {
@@ -118,11 +102,4 @@ public class RoleAnalysisAttributeAnalysisDto implements Serializable {
         return attributeStatistics;
     }
 
-    //        String itemDescription = analysis.getItemPath();
-//        if (itemDescription != null && !itemDescription.isEmpty()) {
-//            itemDescription = Character.toUpperCase(itemDescription.charAt(0)) + itemDescription.substring(1);
-//            localUserPath.add(itemDescription.toLowerCase());
-//        }
-//        return itemDescription;
-//    }
 }
