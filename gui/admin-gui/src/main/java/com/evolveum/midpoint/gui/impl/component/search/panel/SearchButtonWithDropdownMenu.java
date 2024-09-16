@@ -67,11 +67,6 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
             protected void onSubmit(AjaxRequestTarget target) {
                 searchPerformed(target);
             }
-
-            @Override
-            public String getMarkupId() {
-                return ID_SEARCH_BUTTON;
-            }
         };
         searchButton.setOutputMarkupId(true);
         searchButton.add(getSearchButtonVisibleEnableBehavior());
