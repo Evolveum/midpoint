@@ -216,6 +216,9 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
 
     private IModel<String> getConfiguredLoginPanelDescriptionModel() {
         ModuleAuthentication module = getAuthenticationModuleConfiguration();
+        if (module == null) {
+            return Model.of();
+        }
         DisplayType display = module.getDisplay();
         return () -> GuiDisplayTypeUtil.getHelp(display);
     }

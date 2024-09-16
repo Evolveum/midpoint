@@ -166,6 +166,12 @@ Value of this element must match the identifier of existing authentication modul
 | true
 | _String_
 
+| `display`
+| Display properties of the module UI form.
+E.g. module form can be configured with a title (by label element) and a description (by help element).
+| false
+| _DisplayType_
+
 | `description`
 | Free form description (administrator comment).
 | false
@@ -191,6 +197,12 @@ The same can apply for example for security questions.
 In case the module can be skipped, accept empty must be set to `true`. When such module exits and it is skipped, it is marked as CALLED_OFF in the sequence.
 | false
 | false
+
+| `action`
+| Action which can be produced from this module's UI form.
+E.g. redirecting to the documentation page can be configured within action -> target -> targetUrl element.
+| false
+| GuiActionType
 
 |===
 

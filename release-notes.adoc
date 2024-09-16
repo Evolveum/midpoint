@@ -125,6 +125,8 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
 * Added the ability to modify selected object classes for resources via the Resource Schema panel. See bug:MID-8476[].
 * Renamed "Bulk actions" to "Actions" in GUI. See bug:MID-9619[].
+* Added the ability to configure UI form of the authentication sequence module with a label, description and external link.
+More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/modules/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
 
 === Releases Of Other Components
 
