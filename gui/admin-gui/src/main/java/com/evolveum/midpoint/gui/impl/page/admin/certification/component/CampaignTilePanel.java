@@ -16,13 +16,16 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
@@ -64,6 +67,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private static final String ID_SELECT_TILE_CHECKBOX = "selectTileCheckbox";
     private static final String ID_STATUS = "status";
     private static final String ID_REDIRECT_TO_TASK_BUTTON = "redirectToTaskButton";
+    private static final String ID_RUNNING_TASK_PROGRESS_LABEL = "runningTaskProgressLabel";
     private static final String ID_MENU = "menu";
     private static final String ID_TITLE = "title";
     private static final String ID_DESCRIPTION = "description";
@@ -76,6 +80,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     private static final String ID_DETAILS_LABEL = "detailsLabel";
 
     String runningTaskOid;
+    LoadableDetachableModel<String> runningTaskLabelModel;
 
     public CampaignTilePanel(String id, IModel<TemplateTile<SelectableBean<AccessCertificationCampaignType>>> model) {
         super(id, model);
@@ -85,6 +90,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
     protected void onInitialize() {
         super.onInitialize();
         initRunningTaskOid();
+        initRunningTaskLabelModel();
         initLayout();
     }
 
@@ -95,6 +101,33 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         if (!tasks.isEmpty()) {
             runningTaskOid = tasks.get(0).getOid();
         }
+    }
+
+    private void initRunningTaskLabelModel() {
+        runningTaskLabelModel = new LoadableDetachableModel<>() {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String load() {
+                if (StringUtils.isEmpty(runningTaskOid)) {
+                    return "";
+                }
+
+                OperationResult result = new OperationResult(OPERATION_LOAD_RUNNING_TASK);
+                Task task = getPageBase().createSimpleTask(OPERATION_LOAD_RUNNING_TASK);
+                PrismObject<TaskType> runningTaskObj = WebModelServiceUtils.loadObject(TaskType.class,
+                        runningTaskOid, getPageBase(), task, result);
+                TaskType runningTask = runningTaskObj.asObjectable();
+
+                TaskInformation taskInformation = TaskInformation.createForTask(runningTask, runningTask);
+                String info = WebComponentUtil.getTaskProgressDescription(taskInformation, true, getPageBase());
+                //todo hack for now
+                if ("0".equals(info)) {
+                    return "0%";
+                }
+                return StringUtils.isEmpty(info) ? "" : info;
+            }
+        };
     }
 
     protected void initLayout() {
@@ -113,7 +146,7 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         status.add(new VisibleBehaviour(this::isAuthorizedForCampaignActions));
         add(status);
 
-        AjaxLink<Void> redirectToTaskButton = new AjaxLink<>(ID_REDIRECT_TO_TASK_BUTTON) {
+        AjaxLink<String> redirectToTaskButton = new AjaxLink<>(ID_REDIRECT_TO_TASK_BUTTON) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
@@ -126,6 +159,9 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
         redirectToTaskButton.add(AttributeAppender.append("title", createStringResource("PageCertCampaign.button.showRunningTask")));
         redirectToTaskButton.add(new VisibleBehaviour(() -> isAuthorizedForCampaignActions() && StringUtils.isNotEmpty(runningTaskOid)));
         add(redirectToTaskButton);
+
+        Label runningTaskProgressLabel = new Label(ID_RUNNING_TASK_PROGRESS_LABEL, runningTaskLabelModel);
+        redirectToTaskButton.add(runningTaskProgressLabel);
 
         DropdownButtonPanel menu = new DropdownButtonPanel(ID_MENU, createMenuDropDownButtonModel().getObject()) {
             @Serial private static final long serialVersionUID = 1L;
@@ -181,9 +217,10 @@ public class CampaignTilePanel extends BasePanel<TemplateTile<SelectableBean<Acc
             protected void refresh(AjaxRequestTarget target) {
                 CampaignTilePanel.this.runningTaskOid = getRunningTaskOid();
                 buttonLabelModel.detach();
+                runningTaskLabelModel.detach();
                 target.add(CampaignTilePanel.this);
-                Component feedbackPanel = getPageBase().getFeedbackPanel();
-                target.add(feedbackPanel);
+//                Component feedbackPanel = getPageBase().getFeedbackPanel();
+//                target.add(feedbackPanel);
             }
 
 //            @Override
