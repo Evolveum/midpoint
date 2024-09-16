@@ -12,12 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -66,9 +69,14 @@ public class PageActiveCampaigns extends PageAdminCertification {
         super.onAfterRender();
         List<PrismObject<AccessCertificationCampaignType>> campaigns = loadActiveCampaigns();
         boolean isSingleActiveCampaign = campaigns.size() == 1;
-        if (isSingleActiveCampaign) {
+        if (isSingleActiveCampaign && isRedirectedFromDashboardPage()) {
             showCertItems(campaigns.get(0).getOid());
         }
+    }
+
+    private boolean isRedirectedFromDashboardPage() {
+        Breadcrumb previousPage = getPreviousBreadcrumb();
+        return previousPage != null &&  PageSelfDashboard.class.equals(previousPage.getPageClass());
     }
 
     @Override
