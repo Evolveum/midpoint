@@ -27,6 +27,7 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -206,6 +207,9 @@ public abstract class AbstractPageLogin<MA extends ModuleAuthentication>  extend
 
     private IModel<String> getConfiguredLoginPanelTitleModel() {
         ModuleAuthentication module = getAuthenticationModuleConfiguration();
+        if (module == null) {
+            return Model.of();
+        }
         DisplayType display = module.getDisplay();
         return () -> GuiDisplayTypeUtil.getTranslatedLabel(display);
     }
