@@ -136,7 +136,7 @@ public class SaveSearchPanel<C extends Serializable> extends BasePanel<Search<C>
         };
         saveButton.setOutputMarkupId(true);
         buttonsPanel.add(saveButton);
-        form.setDefaultButton(saveButton);
+        form.setDefaultSubmit(saveButton);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON, createStringResource("Button.cancel")) {
             @Override
