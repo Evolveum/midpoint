@@ -272,16 +272,16 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
 
     protected ObjectQuery getOpenCertWorkItemsQuery() {
         ObjectQuery query;
-        if (StringUtils.isNotEmpty(getCampaignOid())) {
-            query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(getCampaignOid()),
-                    getPageBase().getPrincipal(), false);
-        } else {
-            query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
-                    .build();
-        }
         MidPointPrincipal principal = null;
         if (isMyCertItems()) {
             principal = getPageBase().getPrincipal();
+        }
+        if (StringUtils.isNotEmpty(getCampaignOid())) {
+            query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(getCampaignOid()),
+                    principal, false);
+        } else {
+            query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
+                    .build();
         }
         return QueryUtils.createQueryForOpenWorkItems(query, principal, false);
     }
