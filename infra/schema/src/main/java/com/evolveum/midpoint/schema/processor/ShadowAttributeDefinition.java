@@ -106,10 +106,6 @@ public interface ShadowAttributeDefinition<
             return false;
         }
 
-        if (ProtectedStringType.class.equals(getTypeClass())) {
-            return false; // FIXME implement more seriously (and remove after protected attributes are support by the repo)
-        }
-
         var override = isCached();
         if (override != null) {
             return override;
