@@ -3189,7 +3189,9 @@
             <xsd:element ref="tns:lifecycleState" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
+                        <a:displayName>ObjectType.lifecycleState</a:displayName>
                         <a:since>4.9</a:since>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

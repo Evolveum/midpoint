@@ -81,6 +81,14 @@ public class MarkTypeUtil {
                 .anyMatch(provenance -> provenance.getMarkingRule() != null);
     }
 
+    /** Returns {@code true} if this value was added by a policy rule (regardless of whether there are any statements for it). */
+    public static boolean isAddedByPolicyRule(@NotNull ObjectReferenceType markRef) {
+        return ValueMetadataTypeUtil.getMetadataBeans(markRef).stream()
+                .map(ValueMetadataType::getProvenance)
+                .filter(Objects::nonNull)
+                .anyMatch(provenance -> provenance.getPolicyRule() != null);
+    }
+
     /**
      * Returns {@code true} if this value was added by a policy statement (positive or negative);
      * regardless of any other source(s).

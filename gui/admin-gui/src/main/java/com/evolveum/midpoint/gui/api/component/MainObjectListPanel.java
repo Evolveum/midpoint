@@ -12,10 +12,23 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.dialog.OnePanelPopupPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.focus.FocusDetailsModels;
+import com.evolveum.midpoint.gui.impl.page.admin.mark.component.MarksOfObjectListPopupPanel;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -28,8 +41,10 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
@@ -595,6 +610,75 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         }
     }
 
+    public InlineMenuItem modifyMarkInlineMenuAction() {
+        return new InlineMenuItem(createStringResource("MainObjectListPanel.menu.modifyMark"), true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isHeaderMenuItem() {
+                return false;
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<O>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
+
+                        IModel<SelectableBean<O>> selected = getRowModel();
+                        if (selected == null) {
+                            warn(getString("MainObjectListPanel.message.noFocusSelected"));
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+
+                        LoadableDetachableModel<PrismObjectWrapper<O>> focusModel = loadWrapper(selected.getObject().getValue());
+
+                        MarksOfObjectListPopupPanel popup = new MarksOfObjectListPopupPanel(
+                                getPageBase().getMainPopupBodyId(), focusModel);
+
+                        getPageBase().showMainPopup(popup, target);
+                    }
+                };
+            }
+        };
+    }
+
+    private LoadableDetachableModel<PrismObjectWrapper<O>> loadWrapper(O objectBean) {
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected PrismObjectWrapper<O> load() {
+                if (objectBean == null) {
+                    return null;
+                }
+
+                Task task = getPageBase().createSimpleTask("createWrapper");
+
+                Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_MARK_REF)).resolve()
+                        .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_LIFECYCLE_STATE)).resolve()
+                        .build();
+
+                try {
+                    PrismObject<O> prismObject = (PrismObject<O>) WebModelServiceUtils.loadObject(
+                            objectBean.getClass(), objectBean.getOid(), options, getPageBase(), task, task.getResult());
+
+                    PrismObjectWrapperFactory<O> factory = getPageBase().findObjectWrapperFactory(prismObject.getDefinition());
+                    OperationResult result = task.getResult();
+                    WrapperContext ctx = new WrapperContext(task, result);
+                    ctx.setCreateIfEmpty(true);
+
+                    return factory.createObjectWrapper(prismObject, ItemStatus.NOT_CHANGED, ctx);
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create wrapper for " + objectBean, e);
+                }
+                return null;
+            }
+        };
+    }
+
     public InlineMenuItem createMarkInlineMenuAction() {
         return new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark"), true) {
             private static final long serialVersionUID = 1L;
@@ -690,7 +774,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     public InlineMenuItem createUnmarkInlineMenuAction() {
-            return new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark.remove"), true) {
+        return new InlineMenuItem(createStringResource("pageContentAccounts.menu.mark.remove"), true) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -758,7 +842,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         for (SelectableBean<O> object : selected) {
             for (var statement : object.getValue().getPolicyStatement()) {
 //                if (PolicyStatementTypeType.APPLY.equals(statement.getType())) {
-                    markOids.add(statement.getMarkRef().getOid());
+                markOids.add(statement.getMarkRef().getOid());
 //                }
             }
 

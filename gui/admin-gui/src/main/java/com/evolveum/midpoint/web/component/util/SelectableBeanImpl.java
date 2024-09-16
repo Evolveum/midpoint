@@ -44,6 +44,7 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
 
     /** FIXME TEMPORARY */
     private Object customData;
+    private boolean detachCustomData = true;
 
     /**
      * Result of object retrieval (or attempt of object retrieval). It case that it is not error the result is optional.
@@ -178,7 +179,14 @@ public class SelectableBeanImpl<T extends Serializable> extends Selectable<T> im
     }
 
     @Override
+    public void setDetachCustomData(boolean detachCustomData) {
+        this.detachCustomData = detachCustomData;
+    }
+
+    @Override
     public void detach() {
-        customData = null;
+        if (detachCustomData) {
+            customData = null;
+        }
     }
 }
