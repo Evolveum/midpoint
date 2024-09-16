@@ -362,13 +362,14 @@ public class FullInboundsProcessing<F extends FocusType> extends AbstractInbound
                                 .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account, ShadowType.class)
                                 .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
                                 .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
-                                .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, this.projectionContext.getResource(), ResourceType.class)
+                                .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projectionContext.getResource(), ResourceType.class)
                                 .valuePolicySupplier(inboundsContext.createValuePolicySupplier())
                                 .mappingKind(MappingKindType.INBOUND)
                                 .implicitSourcePath(sourcePath)
                                 .implicitTargetPath(targetPath)
                                 .originType(OriginType.INBOUND)
-                                .originObject(this.projectionContext.getResource());
+                                .originObject(this.projectionContext.getResource())
+                                .mappingSpecification(inboundsSource.createMappingSpec(builder.getMappingName()));
 
                         return builder;
                     };

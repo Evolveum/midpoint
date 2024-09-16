@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.api.InboundSourceData;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -19,6 +21,7 @@ import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +71,16 @@ public abstract class InboundsSource implements DebugDumpable {
 
     @NotNull private final ResourceType resource;
 
+    /**
+     * For what object type we evaluate the mappings. Note that we are interested in the "top-level" type here: even if
+     * we are technically evaluating a mapping for `association/xyz` object type, we are interested in the type of (e.g.)
+     * `account/default` in which the association resides.
+     *
+     * Should be non-null in reasonable cases; only for really broken (unclassified, or without-resource)
+     * {@link LensProjectionContext}s it may be null. See the typology of projection contexts in {@link ProjectionContextKey}.
+     */
+    @Nullable private final ResourceObjectTypeIdentification typeIdentification;
+
     @NotNull final String humanReadableName;
 
     @NotNull final ResourceObjectInboundDefinition inboundDefinition;
@@ -76,11 +89,13 @@ public abstract class InboundsSource implements DebugDumpable {
             @NotNull InboundSourceData sourceData,
             @NotNull ResourceObjectInboundDefinition inboundDefinition,
             @NotNull ResourceType resource,
+            @Nullable ResourceObjectTypeIdentification typeIdentification,
             @NotNull String humanReadableName) {
         this.sourceData = sourceData;
         this.aPrioriDelta = sourceData.getAPrioriDelta();
         this.inboundDefinition = inboundDefinition;
         this.resource = resource;
+        this.typeIdentification = typeIdentification;
         this.humanReadableName = humanReadableName;
     }
 
@@ -95,6 +110,10 @@ public abstract class InboundsSource implements DebugDumpable {
      */
     @NotNull ResourceType getResource() {
         return resource;
+    }
+
+    public @Nullable ResourceObjectTypeIdentification getTypeIdentification() {
+        return typeIdentification;
     }
 
     /** Returns human-readable name of the context, for logging/reporting purposes. */
@@ -269,5 +288,12 @@ public abstract class InboundsSource implements DebugDumpable {
     /** Only for full processing. */
     @NotNull CachedShadowsUseType getCachedShadowsUse() throws SchemaException, ConfigurationException {
         throw new UnsupportedOperationException("Not implemented for " + this);
+    }
+
+    public MappingSpecificationType createMappingSpec(@Nullable String mappingName) {
+        return new MappingSpecificationType()
+                .mappingName(mappingName)
+                .definitionObjectRef(ObjectTypeUtil.createObjectRef(resource))
+                .objectType(ResourceObjectTypeIdentification.asBean(typeIdentification));
     }
 }

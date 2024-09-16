@@ -13,10 +13,11 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.evolveum.midpoint.repo.common.ObjectMarkHelper.MarkPresence;
+import com.evolveum.midpoint.repo.common.ObjectMarkHelper.ObjectMarksComputer;
 
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.ObjectMarksComputer;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AbstractShadow;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MarkingRuleSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -63,15 +65,24 @@ public class ShadowMarksComputerConfiguration {
         return new ShadowMarksComputerConfiguration(rulesWithEvaluatedFilterExpressions);
     }
 
-    ObjectMarksComputer computerFor(@NotNull AbstractShadow shadow, @Nullable ShadowState shadowState) {
+    ObjectMarksComputer computerFor(@NotNull AbstractShadow shadow, @NotNull ShadowState shadowState) {
 
         return new ObjectMarksComputer() {
 
             @Override
-            public boolean computeObjectMarkPresence(String markOid, OperationResult result) throws SchemaException {
+            public MarkPresence computeObjectMarkPresence(@NotNull String markOid, @NotNull OperationResult result)
+                    throws SchemaException {
                 stateCheck(rules.areExpressionsEvaluated(), "expressions are not evaluated");
                 var rule = rules.getMarkingRulesMap().get(markOid);
-                return rule != null && rule.matches(shadow);
+                if (rule != null && rule.matches(shadow)) {
+                    return MarkPresence.of(
+                            markOid,
+                            new MarkingRuleSpecificationType()
+                                    .ruleId(rule.getRuleId())
+                                    .transitional(rule.isTransitional()));
+                } else {
+                    return null;
+                }
             }
 
             @Override
@@ -82,7 +93,7 @@ public class ShadowMarksComputerConfiguration {
                         .collect(Collectors.toUnmodifiableSet());
             }
 
-            private boolean isApplicableInState(@NotNull MarkingRule rule, @Nullable ShadowState shadowState) {
+            private boolean isApplicableInState(@NotNull MarkingRule rule, @NotNull ShadowState shadowState) {
                 return switch (rule.getApplicationTime()) {
                     case ALWAYS -> true;
                     case CLASSIFICATION -> shadowState.isClassified();

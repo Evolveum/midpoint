@@ -1465,4 +1465,26 @@ public class ObjectTypeUtil {
                 getAssignment(object, id),
                 "No assignment with ID %d in %s", id, object);
     }
+
+    /**
+     * This method selects only really effective `effectiveMarkRef` values.
+     *
+     * @see MarkTypeUtil#isEffective(ObjectReferenceType)
+     */
+    public static @NotNull List<ObjectReferenceType> getReallyEffectiveMarkRefs(@NotNull ObjectType object) {
+        return getReallyEffectiveMarkRefStream(object)
+                .toList();
+    }
+
+    /** @see MarkTypeUtil#isEffective(ObjectReferenceType) */
+    @SuppressWarnings("WeakerAccess")
+    public static @NotNull Stream<ObjectReferenceType> getReallyEffectiveMarkRefStream(@NotNull ObjectType object) {
+        return object.getEffectiveMarkRef().stream()
+                .filter(MarkTypeUtil::isEffective);
+    }
+
+    public static boolean hasEffectiveMarkRef(@NotNull ObjectType object, @NotNull String markOid) {
+        return getReallyEffectiveMarkRefStream(object)
+                .anyMatch(ref -> markOid.equals(ref.getOid()));
+    }
 }

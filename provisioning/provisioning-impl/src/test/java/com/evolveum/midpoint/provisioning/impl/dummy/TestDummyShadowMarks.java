@@ -93,12 +93,15 @@ public class TestDummyShadowMarks extends AbstractDummyTest {
 
         then("shadow is marked as protected (when obtained by provisioning)");
         var accountAfter = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
-        assertShadow(accountAfter, "after")
+        assertShadow(accountAfter, "after marking (from provisioning)")
+                .displayXml()
+                .asShadow()
                 .assertProtected()
                 .assertEffectiveMarks(MARK_PROTECTED_OID);
 
         var accountAfterRepo = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
-        assertShadow(accountAfterRepo, "after")
+        assertShadow(accountAfterRepo, "after marking (from repo)")
+                .displayXml()
                 .assertEffectiveMarks(MARK_PROTECTED_OID);
 
         when("shadow is unmarked");
@@ -106,12 +109,15 @@ public class TestDummyShadowMarks extends AbstractDummyTest {
 
         then("shadow is no longer marked as protected (when obtained by provisioning)");
         var accountAfter2 = provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
-        assertShadow(accountAfter2, "after")
+        assertShadow(accountAfter2, "after unmarking (from provisioning)")
+                .displayXml()
+                .asShadow()
                 .assertNotProtected()
                 .assertEffectiveMarks();
 
         var accountAfterRepo2 = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
-        assertShadow(accountAfterRepo2, "after")
+        assertShadow(accountAfterRepo2, "after unmarking (from repo)")
+                .displayXml()
                 .assertEffectiveMarks();
     }
 
@@ -135,7 +141,8 @@ public class TestDummyShadowMarks extends AbstractDummyTest {
         var shadow = shadows.get(0);
 
         then("shadow is correctly marked");
-        assertShadowAfter(shadow.getPrismObject())
+        assertShadow(shadow.getPrismObject(), "after marking")
+                .displayXml()
                 .assertEffectiveMarks(MARK_INVALID_DATA.oid);
     }
 

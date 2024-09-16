@@ -468,8 +468,8 @@ public class ProcessedObjectImpl<O extends ObjectType> implements ProcessedObjec
 
     @Override
     public @NotNull Collection<ObjectReferenceType> getEffectiveObjectMarksRefs() {
-        return getBeforeOrAfterRequired()
-                .getEffectiveMarkRef();
+        return ObjectTypeUtil.getReallyEffectiveMarkRefs(
+                getBeforeOrAfterRequired());
     }
 
     @Override

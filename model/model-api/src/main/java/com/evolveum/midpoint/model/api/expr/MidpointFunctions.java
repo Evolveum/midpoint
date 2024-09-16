@@ -18,16 +18,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaUtil;
 import com.evolveum.midpoint.schema.query.PreparedQuery;
 import com.evolveum.midpoint.schema.query.TypedQuery;
-import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -48,9 +45,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -1438,12 +1432,7 @@ public interface MidpointFunctions {
      * Use only in situations where you know the provided object has effective marks computed.
      */
     default boolean hasEffectiveMark(@Nullable ObjectType object, @NotNull String markOid) {
-        if (object == null) {
-            return false;
-        } else {
-            return object.getEffectiveMarkRef().stream()
-                    .anyMatch(ref -> markOid.equals(ref.getOid()));
-        }
+        return object != null && ObjectTypeUtil.hasEffectiveMarkRef(object, markOid);
     }
 
     default <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {

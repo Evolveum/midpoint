@@ -115,7 +115,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
                     .single()
                         .assertRole(ROLE_PIRATE_GREEN_OID) // automatically assigned by the object template
                         .valueMetadataSingle()
-                            .assertOriginMappingName("pirate-assignment")
+                            .assertMappingName("pirate-assignment")
                             .end()
                         .end()
                     .end()
@@ -154,7 +154,7 @@ public class TestInbounds extends AbstractInitializedModelIntegrationTest {
                     .single()
                         .assertRole(ROLE_BUCCANEER_GREEN_OID) // automatically assigned by the object template
                         .valueMetadataSingle()
-                            .assertOriginMappingName("buccaneer-assignment")
+                            .assertMappingName("buccaneer-assignment")
                             .end()
                         .end()
                     .end()

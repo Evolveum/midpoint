@@ -301,6 +301,7 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                 .mappingName(mappingBean.getName())
                 .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject))
                 .assignmentId(createAssignmentId(assignmentPathVariables));
+        // object type is not applicable here (as this is not a resource mapping)
 
         MappingBuilder<V, D> mappingBuilder = // [EP:M:FM] DONE
                 beans.mappingFactory.<V, D>createMappingBuilder(mappingBean, request.getMappingOrigin(), contextDesc)

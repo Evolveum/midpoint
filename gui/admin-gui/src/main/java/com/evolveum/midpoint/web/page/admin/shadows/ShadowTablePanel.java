@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -333,6 +334,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
                         List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
                         Object[] marks = refs.stream()
+                                .filter(MarkTypeUtil::isEffective) // TODO reconsider if really needed
                                 .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
                                 .filter(mark -> mark != null)
                                 .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))

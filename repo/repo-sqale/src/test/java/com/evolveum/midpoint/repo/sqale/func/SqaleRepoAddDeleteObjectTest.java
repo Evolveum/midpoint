@@ -1107,7 +1107,6 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .modifyChannel("modify-channel")
                 .modifyTimestamp(MiscUtil.asXMLGregorianCalendar(2L));
         var provenanceMetadata = new ProvenanceMetadataType().mappingSpecification(new MappingSpecificationType().mappingName("foo"));
-                ;
 
         var assignmentBase = new AssignmentType().targetRef(modifierRefOid.toString(), RoleType.COMPLEX_TYPE);
         var assignment = assignmentBase.clone();

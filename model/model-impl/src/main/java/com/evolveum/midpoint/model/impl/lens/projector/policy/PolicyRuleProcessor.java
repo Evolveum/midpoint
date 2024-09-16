@@ -47,7 +47,6 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
 
     @Autowired private PolicyStatementProcessor policyStatementProcessor;
 
-
     public <F extends AssignmentHolderType> void evaluateAssignmentPolicyRules(
             @NotNull LensFocusContext<F> focusContext,
             @NotNull Task task,
@@ -117,7 +116,11 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         ProjectionPolicyRulesEvaluator evaluator = new ProjectionPolicyRulesEvaluator(projectionContext, task);
         evaluator.evaluate(result);
 
-        //TODO marks for projections?
+        // TODO statements for projections
+        //  As for statements, they are currently processed by ObjectMarkHelper, which is invoked e.g. right from provisioning
+        //  (when maintaining the shadows). We should integrate this with the policy rule processing eventually. (Fortunately,
+        //  the object policy rules are not used for projections now, only the event policy rules are.)
+
 //        policyStatementProcessor.processPolicyStatements(projectionContext, task, result);
         evaluator.record(result);
     }

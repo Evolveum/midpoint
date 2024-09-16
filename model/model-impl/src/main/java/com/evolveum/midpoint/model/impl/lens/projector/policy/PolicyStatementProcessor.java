@@ -34,16 +34,18 @@ public class PolicyStatementProcessor implements ProjectorProcessor {
     private static final String CLASS_DOT = PolicyStatementProcessor.class.getName() + ".";
     private static final String OP_PROCESS_POLICY_STATEMENTS = CLASS_DOT + "processPolicyStatements";
 
-    // TODO result
-    public <O extends ObjectType> void processPolicyStatements(LensFocusContext<O> focusContext, Task task, OperationResult result) throws SchemaException {
-        OperationResult subresult = result.createSubresult(OP_PROCESS_POLICY_STATEMENTS);
-
-
-        EvaluatedPolicyStatements evaluatedPolicyStatements = collectPolicyStatements(focusContext, subresult);
-        focusContext.addEvaluatedPolicyStatements(evaluatedPolicyStatements);
-
-        subresult.computeStatusIfUnknown();
-
+    <O extends ObjectType> void processPolicyStatements(
+            LensFocusContext<O> focusContext, Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(OP_PROCESS_POLICY_STATEMENTS);
+        try {
+            EvaluatedPolicyStatements evaluatedPolicyStatements = collectPolicyStatements(focusContext, result);
+            focusContext.addEvaluatedPolicyStatements(evaluatedPolicyStatements);
+        } catch (Exception e) {
+            result.recordException(e);
+            throw e;
+        } finally {
+            result.close();
+        }
     }
 
     private <O extends ObjectType> EvaluatedPolicyStatements collectPolicyStatements(LensFocusContext<O> focusContext, OperationResult result) {
@@ -69,11 +71,9 @@ public class PolicyStatementProcessor implements ProjectorProcessor {
 
         EvaluatedPolicyStatements evaluatedPolicyStatements = new EvaluatedPolicyStatements();
 
-        if (deletedStatements != null) {
-            for (var deleted : deletedStatements) {
-                if (APPLY.equals(deleted.getType())) {
-                    evaluatedPolicyStatements.addMarkRefToDelete(deleted.getMarkRef().clone());
-                }
+        for (var deleted : deletedStatements) {
+            if (APPLY.equals(deleted.getType())) {
+                evaluatedPolicyStatements.addMarkRefToDelete(deleted.getMarkRef().clone());
             }
         }
 

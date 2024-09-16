@@ -378,6 +378,9 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
+                <a:schemaContext>
+                    <a:type>UserType</a:type>
+                </a:schemaContext>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

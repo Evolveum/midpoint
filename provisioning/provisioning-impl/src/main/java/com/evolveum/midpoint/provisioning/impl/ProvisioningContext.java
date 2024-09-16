@@ -21,10 +21,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState;
+import com.evolveum.midpoint.repo.common.ObjectMarkHelper.ObjectMarksComputer;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.ObjectMarksComputer;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -928,7 +928,7 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
 
     private ObjectMarksComputer createShadowMarksComputer(
             @NotNull AbstractShadow shadow,
-            @Nullable ShadowState shadowState,
+            @NotNull ShadowState shadowState,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
