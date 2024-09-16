@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
@@ -186,7 +187,7 @@ public class CertResponseDetailsPanel extends BasePanel<PrismContainerValueWrapp
 
     private ChatMessageItem createChatMessageItem(AccessCertificationWorkItemType workItem) {
         ObjectReferenceType userRef = getPerformerOrAssigneeRef(workItem);
-        if (userRef == null) {
+        if (userRef == null || StringUtils.isEmpty(userRef.getOid())) {
             return new ChatMessageItem(Model.of(new DisplayType().label("CertResponseDetailsPanel.unavailablePerformer")),
                     Model.of());
         }

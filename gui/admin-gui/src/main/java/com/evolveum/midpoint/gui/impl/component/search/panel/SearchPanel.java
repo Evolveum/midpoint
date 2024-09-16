@@ -144,7 +144,7 @@ public abstract class SearchPanel<C extends Serializable> extends BasePanel<Sear
 
         searchButtonPanel.setOutputMarkupId(true);
         form.add(searchButtonPanel);
-        form.setDefaultButton(searchButtonPanel.getSearchButton());
+        form.setDefaultSubmit(searchButtonPanel.getSearchButton());
 
         initSavedFiltersContainer(form);
     }

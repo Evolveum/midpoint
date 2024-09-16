@@ -37,6 +37,8 @@ public class CertItemResolveAction extends AbstractCertItemDecisionAction {
     private static final String DOT_CLASS = CertItemResolveAction.class.getName() + ".";
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordCertItemAction";
 
+    List<AccessCertificationResponseType> configuredResponses;
+
     public CertItemResolveAction() {
         super();
     }
@@ -102,5 +104,9 @@ public class CertItemResolveAction extends AbstractCertItemDecisionAction {
     protected boolean isVisibleForRow(AccessCertificationWorkItemType certItem) {
         String itemResponse = certItem != null && certItem.getOutput() != null ? certItem.getOutput().getOutcome() : null;
         return certItem == null || itemResponse == null;
+    }
+
+    public void setConfiguredResponses(List<AccessCertificationResponseType> configuredResponses) {
+        this.configuredResponses = configuredResponses;
     }
 }
