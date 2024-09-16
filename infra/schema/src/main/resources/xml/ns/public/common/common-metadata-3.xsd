@@ -823,8 +823,31 @@
         <xsd:sequence>
             <xsd:element name="assignmentId" type="xsd:string" minOccurs="0"/>
             <xsd:element name="definitionObjectRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object in which the mapping resides.
+
+                        Beware: when the mapping is related to a resource that uses a resource template, i.e., that has
+                        a super-resource, the actual (expanded, child) resource OID is provided here, even if the mapping
+                        physically resides in the super-resource.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
-            <xsd:element name="mappingName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="objectType" type="c:ResourceObjectTypeIdentificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object type (like account/default) in which this mapping is defined.
+
+                        This is necessary to avoid requiring mapping name uniqueness across the whole resource, but
+                        also to ensure working of mappings (1) inherited from the super-type to subtypes, (2) applied to
+                        multiple object types (like those in association types). Such mappings would have the same specification
+                        even when they are in fact executed as two distinct instances on different data.
+
+                        Currently provided for inbound mappings.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mappingName" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType"/>

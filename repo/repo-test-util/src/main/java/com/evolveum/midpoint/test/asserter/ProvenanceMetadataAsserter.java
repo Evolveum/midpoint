@@ -13,6 +13,9 @@ import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasOrigin
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
@@ -79,10 +82,32 @@ public class ProvenanceMetadataAsserter<RA extends AbstractAsserter<?>>
         return getProvenance().getMappingSpecification();
     }
 
-    public ProvenanceMetadataAsserter<RA> assertOriginMappingName(String expected) {
+    public ProvenanceMetadataAsserter<RA> assertMappingName(String expected) {
         MappingSpecificationType mappingSpec = getMappingSpecification();
         assertThat(mappingSpec).as("mapping spec").isNotNull();
         assertThat(mappingSpec.getMappingName()).as("mapping name").isEqualTo(expected);
+        return this;
+    }
+
+    public ProvenanceMetadataAsserter<RA> assertMappingObjectType(@NotNull ResourceObjectTypeIdentification expected) {
+        assertThat(getMappingSpecification())
+                .as("mapping spec")
+                .isNotNull()
+                .extracting(m -> m.getObjectType())
+                .as("mapping object type")
+                .isNotNull()
+                .extracting(t -> ResourceObjectTypeIdentification.of(t))
+                .isEqualTo(expected);
+        return this;
+    }
+
+    public ProvenanceMetadataAsserter<RA> assertMappingObjectOid(@NotNull String expected) {
+        assertThat(getMappingSpecification())
+                .as("mapping spec")
+                .isNotNull()
+                .extracting(m -> Referencable.getOid(m.getDefinitionObjectRef()))
+                .as("mapping object OID")
+                .isEqualTo(expected);
         return this;
     }
 }

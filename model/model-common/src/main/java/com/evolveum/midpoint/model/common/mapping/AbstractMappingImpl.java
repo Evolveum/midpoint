@@ -11,6 +11,9 @@ import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
 
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateNonNull;
+
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -214,7 +217,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * Information on the object where the mapping is defined (e.g. role, resource, and so on).
      * Used for diagnostic and reporting purposes.
      *
-     * Probably will be replaced by the origin in {@link #mappingConfigItem}.
+     * Probably will be replaced by the origin in {@link #mappingConfigItem}, although - for resources - this currently points
+     * to the actual (expanded) resource, not necessarily to the super-resource, where the mapping may be defined.
      */
     private final ObjectType originObject;
 
@@ -283,7 +287,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private final QName targetItemName;
 
     /**
-     * Mapping specification: name, containing object OID, assignment path.
+     * Mapping specification: name, containing object OID, object type (for resource), and assignment path.
+     *
+     * Provided either explicitly via builder or created by {@link #createDefaultSpecification()};
+     * MUST be provided explicitly for inbound mappings (we need object type information there).
      */
     @NotNull private final MappingSpecificationType mappingSpecification;
 
@@ -431,8 +438,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         profiling = builder.isProfiling();
         contextDescription = builder.getContextDescription();
         targetItemName = builder.targetItemName;
-        mappingSpecification = builder.getMappingSpecification() != null ?
-                builder.getMappingSpecification() : createDefaultSpecification();
+        if (builder.getMappingSpecification() != null) {
+            mappingSpecification = builder.getMappingSpecification();
+        } else {
+            stateCheck(mappingKind != MappingKindType.INBOUND,
+                    "Inbound mappings must have an explicit mapping specification; in %s", originObject);
+            mappingSpecification = createDefaultSpecification();
+        }
         mappingAliasSpecifications = createMappingAliasSpecifications(mappingSpecification,mappingBean.getMappingAlias());
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
@@ -443,9 +455,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private MappingSpecificationType createDefaultSpecification() {
         MappingSpecificationType specification = new MappingSpecificationType();
         specification.setMappingName(mappingBean.getName());
-        if (originObject != null) {
-            specification.setDefinitionObjectRef(ObjectTypeUtil.createObjectRef(originObject));
-        }
+        specification.setDefinitionObjectRef(ObjectTypeUtil.createObjectRef(originObject));
         return specification;
     }
 
@@ -554,7 +564,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     /** Should be called on prepared mapping. */
     public @NotNull ExpressionProfile getExpressionProfile() {
-        return MiscUtil.stateNonNull(
+        return stateNonNull(
                 expressionProfileReference.getValue(),
                 "no expression profile; state = %s", state);
     }
@@ -1681,7 +1691,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             return null;
         }
         return new MappingSpecificationType()
-                .definitionObjectRef(spec.getDefinitionObjectRef().clone())
+                .definitionObjectRef(CloneUtil.cloneCloneable(spec.getDefinitionObjectRef()))
+                .objectType(CloneUtil.cloneCloneable(spec.getObjectType()))
                 .mappingName(alias);
     }
 

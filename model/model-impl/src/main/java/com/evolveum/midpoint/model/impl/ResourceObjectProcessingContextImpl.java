@@ -96,26 +96,20 @@ public class ResourceObjectProcessingContextImpl implements ResourceObjectProces
         private SystemConfigurationType systemConfiguration;
         private String explicitChannel;
         @NotNull private final Task task;
-        @NotNull private final ModelBeans beans;
 
         private ResourceObjectProcessingContextBuilder(
                 @NotNull ShadowType shadowedResourceObject,
                 @NotNull ResourceType resource,
-                @NotNull Task task,
-                @NotNull ModelBeans beans) {
+                @NotNull Task task) {
             this.shadowedResourceObject = shadowedResourceObject;
             this.resource = resource;
             this.task = task;
-            this.beans = beans;
         }
 
         // We include all obligatory parameters here to make sure they are not forgotten during initialization.
         public static ResourceObjectProcessingContextBuilder aResourceObjectProcessingContext(
-                @NotNull ShadowType shadow,
-                @NotNull ResourceType resource,
-                @NotNull Task task,
-                @NotNull ModelBeans beans) {
-            return new ResourceObjectProcessingContextBuilder(shadow, resource, task, beans);
+                @NotNull ShadowType shadow, @NotNull ResourceType resource, @NotNull Task task) {
+            return new ResourceObjectProcessingContextBuilder(shadow, resource, task);
         }
 
         public ResourceObjectProcessingContextBuilder withResourceObjectDelta(ObjectDelta<ShadowType> resourceObjectDelta) {
