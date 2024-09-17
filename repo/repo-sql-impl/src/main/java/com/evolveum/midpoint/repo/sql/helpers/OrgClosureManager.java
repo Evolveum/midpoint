@@ -163,25 +163,11 @@ public class OrgClosureManager {
 
     private Context onBeginTransaction(EntityManager em) {
         // table locking
-        if (isH2() || isOracle() || isSQLServer()) {
+        if (isOracle() || isSQLServer()) {
             lockClosureTable(em);
         }
         // other
-        Context ctx = new Context();
-        if (isH2()) {
-            ctx.temporaryTableName = generateDeltaTempTableName();
-            String createTableQueryText = "create temporary table " + ctx.temporaryTableName + " (\n" +
-                    "  descendant_oid VARCHAR(36) NOT NULL,\n" +
-                    "  ancestor_oid   VARCHAR(36) NOT NULL,\n" +
-                    "  val            INTEGER     NOT NULL,\n" +
-                    "  PRIMARY KEY (descendant_oid, ancestor_oid)\n" +
-                    ")";
-            long start = System.currentTimeMillis();
-            Query q = em.createNativeQuery(createTableQueryText);
-            q.executeUpdate();
-            LOGGER.trace("Temporary table {} created in {} ms", ctx.temporaryTableName, System.currentTimeMillis() - start);
-        }
-        return ctx;
+        return new Context();
     }
 
     // may cause implicit commit!!! (in H2)
@@ -191,18 +177,6 @@ public class OrgClosureManager {
         }
         if (closureContext.temporaryTableName == null) {
             return;
-        }
-        if (isH2()) {
-            // beware, this does implicit commit!
-            try {
-                em.getTransaction().begin();
-                Query dropQuery = em.createNativeQuery("drop table if exists " + closureContext.temporaryTableName);
-                dropQuery.executeUpdate();
-                closureContext.temporaryTableName = null;
-            } catch (RuntimeException ex) {
-                em.getTransaction().rollback();
-                throw ex;
-            }
         }
     }
 
@@ -515,22 +489,7 @@ public class OrgClosureManager {
         LOGGER.trace("===================== ADD INDEPENDENT EDGES: {} ================", edges);
 
         if (!edges.isEmpty()) {
-            // for unknown reason, queries in the form of
-            // select t1.descendant_oid as descendant_oid, t2.ancestor_oid as ancestor_oid, sum(t1.val*t2.val) as val
-            // from m_org_closure t1, m_org_closure t2 where
-            //        (t1.ancestor_oid = 'o21101..-....-....-....-............' and t2.descendant_oid = 'o1101...-....-....-....-............')
-            //     or (t1.ancestor_oid = 'o21101..-....-....-....-............' and t2.descendant_oid = 'o2130...-....-....-....-............')
-            // group by t1.descendant_oid, t2.ancestor_oid
-            //
-            // take radically longer in H2 than queries without the disjunction (i.e. having only one "ancestor=X and descendant=Y" item)
-            // So, in H2, we insert the edges one-by-one
-            if (isH2()) {
-                for (Edge edge : edges) {
-                    addIndependentEdgesInternal(singletonList(edge), context, em);
-                }
-            } else {
-                addIndependentEdgesInternal(edges, context, em);
-            }
+            addIndependentEdgesInternal(edges, context, em);
         }
 
         em.flush();
@@ -580,7 +539,7 @@ public class OrgClosureManager {
 
                 long startUpdate = System.currentTimeMillis();
                 String updateInClosureQueryText;
-                if (isH2() || isPostgreSQL()) {
+                if (isPostgreSQL()) {
                     updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
                             "set val = val + (select val from " + deltaTempTableName + " td " +
                             "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
@@ -604,9 +563,7 @@ public class OrgClosureManager {
                                 "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
                 if (countUpdate > 0) {
                     // Can/must be unified with PG after H2 > 1.4.200 if no other issues emerge.
-                    if (isH2()) {
-                        addQuery += " where (descendant_oid, ancestor_oid) not in (select descendant_oid, ancestor_oid from " + CLOSURE_TABLE_NAME + ")";
-                    } else if (isPostgreSQL()) {
+                    if (isPostgreSQL()) {
                         addQuery += " where not exists (select 1 from " + CLOSURE_TABLE_NAME + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
                     } else {
                         throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
@@ -762,14 +719,7 @@ public class OrgClosureManager {
         LOGGER.trace("===================== REMOVE INDEPENDENT EDGES: {} ================", edges);
 
         if (!edges.isEmpty()) {
-            // for the reason for this decomposition, see addIndependentEdges
-            if (isH2()) {
-                for (Edge edge : edges) {
-                    removeIndependentEdgesInternal(singletonList(edge), context, em);
-                }
-            } else {
-                removeIndependentEdgesInternal(edges, context, em);
-            }
+            removeIndependentEdgesInternal(edges, context, em);
         }
         em.flush();
         em.clear();
@@ -784,19 +734,7 @@ public class OrgClosureManager {
             int count;
 
             String deleteFromClosureQueryText, updateInClosureQueryText;
-            // Can/must be unified with PG after H2 > 1.4.200 if no other issues emerge.
-            if (isH2()) {
-                // delete with join is not supported by H2
-                // and the "postgresql/oracle version" does not work for some reasons
-                deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " cl " +
-                        "where exists (" +
-                        "select 0 from " + deltaTempTableName + " delta " +
-                        "where cl.descendant_oid = delta.descendant_oid and cl.ancestor_oid = delta.ancestor_oid and cl.val = delta.val)";
-                updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                        "set val = val - (select val from " + deltaTempTableName + " td " +
-                        "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
-                        "where (descendant_oid, ancestor_oid) in (select descendant_oid, ancestor_oid from " + deltaTempTableName + ")";
-            } else if (isPostgreSQL() || isOracle()) {
+            if (isPostgreSQL() || isOracle()) {
                 deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " " +
                         "where (descendant_oid, ancestor_oid, val) in " +
                         "(select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ")";
@@ -870,11 +808,7 @@ public class OrgClosureManager {
     private void lockClosureTable(EntityManager em) {
         long start = System.currentTimeMillis();
         LOGGER.trace("Locking closure table");
-        if (isH2()) {
-            Query q = em.createNativeQuery(
-                    "SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
-            q.getResultList();
-        } else if (isOracle()) {
+        if (isOracle()) {
             Query q = em.createNativeQuery(
                     "LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
             q.executeUpdate();
@@ -943,12 +877,6 @@ public class OrgClosureManager {
             String createTablePrefix;
             if (isPostgreSQL()) {
                 createTablePrefix = "create local temporary table " + deltaTempTableName + " on commit drop as ";
-            } else if (isH2()) {
-                // todo skip if this is first in this transaction
-                Query q = em.createNativeQuery("delete from " + deltaTempTableName);
-                int c = q.executeUpdate();
-                LOGGER.trace("Deleted {} rows from temporary table {}", c, deltaTempTableName);
-                createTablePrefix = "insert into " + deltaTempTableName + " ";
             } else if (isOracle()) {
                 // todo skip if this is first in this transaction
                 Query q = em.createNativeQuery("delete from " + deltaTempTableName);
@@ -1201,10 +1129,6 @@ public class OrgClosureManager {
 
     private boolean isSQLServer() {
         return baseHelper.getConfiguration().isUsingSQLServer();
-    }
-
-    private boolean isH2() {
-        return baseHelper.getConfiguration().isUsingH2();
     }
 
     private boolean isPostgreSQL() {

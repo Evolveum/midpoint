@@ -685,7 +685,8 @@ public interface RepositoryService extends OrgTreeEvaluator, CaseSupportMixin, A
         return getRepositoryType().equals("Native");
     }
 
-    /** Is this a generic repository implementation running over anything other than H2? */
+    /** There's already {@link #isNative()} method. H2 is not supported since midPoint 4.9 */
+    @Deprecated
     boolean isGenericNonH2();
 
     /** Returns `true` if the given object type is supported. */

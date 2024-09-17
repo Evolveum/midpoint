@@ -88,7 +88,6 @@ Tree node search is now same for all nodes.
 
 * Spring Boot/hibernate upgrade
 ** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
-** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
 
 * Shadow table Partitioning in Native PostgreSQL Repository
 ** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
@@ -127,7 +126,7 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Renamed "Bulk actions" to "Actions" in GUI. See bug:MID-9619[].
 * Added the ability to configure UI form of the authentication sequence module with a label, description and external link.
 More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/modules/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
-* Support of H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
+* Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
 Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
 
 === Releases Of Other Components

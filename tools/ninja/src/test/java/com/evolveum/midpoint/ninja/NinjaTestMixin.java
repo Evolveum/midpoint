@@ -104,10 +104,6 @@ public interface NinjaTestMixin {
             SchemaService schemaService = context.getBean(SchemaService.class);
 
             SqlRepositoryConfiguration repoConfig = baseHelper.getConfiguration();
-            if (repoConfig.isEmbedded()) {
-                return;
-            }
-
             SqlRepoContext fakeRepoContext = new SqlRepoContext(
                     repoConfig, baseHelper.dataSource(), schemaService, null);
             try (JdbcSession jdbcSession = fakeRepoContext.newJdbcSession().startTransaction()) {

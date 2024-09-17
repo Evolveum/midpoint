@@ -182,9 +182,6 @@ public class SqaleServiceBase {
         JdbcRepositoryConfiguration config = repositoryConfiguration();
         diag.setDriverShortName(config.getDriverClassName());
         diag.setRepositoryUrl(config.getJdbcUrl());
-        diag.setEmbedded(config.isEmbedded());
-
-        diag.setH2(config.getDatabaseType() == SupportedDatabase.H2);
 
         Enumeration<Driver> drivers = DriverManager.getDrivers();
         while (drivers.hasMoreElements()) {

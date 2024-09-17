@@ -92,9 +92,6 @@ public abstract class SqlBaseService {
         //todo improve, find and use real values (which are used by sessionFactory) MID-1219
         diag.setDriverShortName(config.getDriverClassName());
         diag.setRepositoryUrl(config.getJdbcUrl());
-        diag.setEmbedded(config.isEmbedded());
-
-        diag.setH2(config.getDatabaseType() == SupportedDatabase.H2);
 
         Enumeration<Driver> drivers = DriverManager.getDrivers();
         while (drivers.hasMoreElements()) {
@@ -120,7 +117,7 @@ public abstract class SqlBaseService {
     }
 
     public boolean isGenericNonH2() {
-        return sqlConfiguration().getDatabaseType() != SupportedDatabase.H2;
+        return true;
     }
 
     private void readDetailsFromConnection(RepositoryDiag diag, final SqlRepositoryConfiguration config) {

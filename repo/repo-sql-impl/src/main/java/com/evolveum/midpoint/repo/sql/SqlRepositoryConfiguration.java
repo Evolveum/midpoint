@@ -8,9 +8,6 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import static com.evolveum.midpoint.repo.sql.Database.H2;
-
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
@@ -171,21 +168,11 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     }
 
     // This needs to be "explicitly relative" (or absolute), unless -Dh2.implicitRelativePath=true
-    private static final String DEFAULT_FILE_NAME = "./midpoint";
-    private static final String DEFAULT_EMBEDDED_H2_JDBC_USERNAME = "sa";
-    private static final String DEFAULT_EMBEDDED_H2_JDBC_PASSWORD = "";
-    private static final int DEFAULT_EMBEDDED_H2_PORT = 5437;
     private static final int DEFAULT_MIN_POOL_SIZE = 8;
     private static final int DEFAULT_MAX_POOL_SIZE = 20;
     private static final int DEFAULT_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD = 500;
 
-    public static final String PROPERTY_BASE_DIR = "baseDir";
     public static final String PROPERTY_DROP_IF_EXISTS = "dropIfExists";
-    public static final String PROPERTY_AS_SERVER = "asServer";
-    public static final String PROPERTY_PORT = "port";
-    public static final String PROPERTY_FILE_NAME = "fileName";
-    public static final String PROPERTY_TCP_SSL = "tcpSSL";
-    public static final String PROPERTY_EMBEDDED = "embedded";
     public static final String PROPERTY_HIBERNATE_HBM2DDL = "hibernateHbm2ddl";
     public static final String PROPERTY_HIBERNATE_DIALECT = "hibernateDialect";
 
@@ -229,13 +216,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     private final Database database;
     private final SupportedDatabase databaseType; // the same as Database, but more general type
 
-    //embedded configuration
-    private final boolean embedded;
-    private final boolean asServer;
-    private final String baseDir;
-    private final String fileName;
-    private final boolean tcpSSL;
-    private final int port;
+    // embedded configuration
     private final boolean dropIfExists;
     //connection for hibernate
     private final String driverClassName;
@@ -312,7 +293,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         Database configuredDatabase = Database.findDatabase(configuration.getString(PROPERTY_DATABASE));
         String configuredDriverClassName = configuration.getString(PROPERTY_DRIVER_CLASS_NAME);
         String configuredHibernateDialect = configuration.getString(PROPERTY_HIBERNATE_DIALECT);
-        Boolean configuredEmbedded = configuration.getBoolean(PROPERTY_EMBEDDED, null);
 
         if (configuredDatabase != null) {
             database = configuredDatabase;
@@ -326,30 +306,15 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
                 // may be still null for unknown dialects
                 guessedDatabase = Database.findByHibernateDialect(configuredHibernateDialect);
             }
-            if (guessedDatabase == null && Boolean.TRUE.equals(configuredEmbedded)) {
-                guessedDatabase = H2;
-            }
-            if (guessedDatabase == null && dataSource == null && configuredDriverClassName == null
-                    && configuredHibernateDialect == null && configuredEmbedded == null) {
-                guessedDatabase = H2;
-            }
             database = guessedDatabase;
         }
         databaseType = database != null ? SupportedDatabase.valueOf(database.name()) : null;
 
         driverClassName = Objects.requireNonNullElse(configuredDriverClassName, getDefaultDriverClassName(dataSource, database));
         hibernateDialect = Objects.requireNonNullElse(configuredHibernateDialect, getDefaultHibernateDialect(database));
-        embedded = Objects.requireNonNullElse(configuredEmbedded, getDefaultEmbedded(dataSource, database));
-
-        // other properties
-        asServer = configuration.getBoolean(PROPERTY_AS_SERVER, embedded);
-        String baseDirOption = configuration.getString(PROPERTY_BASE_DIR);
-        // there's logging there so we call it only if necessary
-        baseDir = baseDirOption != null ? baseDirOption : getDerivedBaseDir();
-        fileName = configuration.getString(PROPERTY_FILE_NAME, DEFAULT_FILE_NAME);
 
         hibernateHbm2ddl = configuration.getString(PROPERTY_HIBERNATE_HBM2DDL, getDefaultHibernateHbm2ddl(database));
-        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, embedded ? DEFAULT_EMBEDDED_H2_JDBC_USERNAME : null);
+        jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, null);
 
         String jdbcPasswordFile = configuration.getString(PROPERTY_JDBC_PASSWORD_FILE);
         if (jdbcPasswordFile != null) {
@@ -359,10 +324,9 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
                 throw new SystemException("Couldn't read JDBC password from specified file '" + jdbcPasswordFile + "': " + e.getMessage(), e);
             }
         } else {
-            jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, embedded ? DEFAULT_EMBEDDED_H2_JDBC_PASSWORD : null);
+            jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, null);
         }
-        port = configuration.getInt(PROPERTY_PORT, DEFAULT_EMBEDDED_H2_PORT);
-        tcpSSL = configuration.getBoolean(PROPERTY_TCP_SSL, false);
+
         dropIfExists = configuration.getBoolean(PROPERTY_DROP_IF_EXISTS, false);
         minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, DEFAULT_MIN_POOL_SIZE);
         maxPoolSize = configuration.getInt(PROPERTY_MAX_POOL_SIZE, DEFAULT_MAX_POOL_SIZE);
@@ -378,7 +342,7 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
                 .toLowerCase();
 
         // requires asServer, baseDir, fileName, port
-        jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, embedded ? getDefaultEmbeddedJdbcUrl() : null);
+        jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, null);
 
         computeDefaultConcurrencyParameters();
         transactionIsolation = TransactionIsolation.fromValue(
@@ -448,24 +412,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         }
     }
 
-    private String getDefaultEmbeddedJdbcUrl() {
-        return getDefaultEmbeddedJdbcUrlPrefix()
-                // TODO: Was used for 1.4.193, but do we really need it?
-                // + ";MVCC=FALSE" // Turn off MVCC, revert to table locking.
-                // Disable database closing on exit. By default, a database is closed when the last connection is closed.
-                + ";DB_CLOSE_ON_EXIT=FALSE"
-                // Both read locks and write locks are kept until the transaction commits.
-                + ";LOCK_MODE=1"
-                // This is experimental setting - let's resolve locking conflicts by midPoint itself
-                + ";LOCK_TIMEOUT=100"
-                // We want to store blob data i.e. full xml object right in table (it's often only a few kb)
-                + ";MAX_LENGTH_INPLACE_LOB=10240"
-                // We are using "value" as name of column in m_audit_prop_value, "value" became a keyword
-                // Keywords can be converted to identifier via NON_KEYWORDS option, see:
-                // https://h2database.com/html/commands.html#set_non_keywords
-                + ";NON_KEYWORDS=VALUE";
-    }
-
     private String getDerivedBaseDir() {
         LOGGER.debug("Base dir path in configuration was not defined.");
         String rv;
@@ -481,34 +427,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
                     MidpointConfiguration.MIDPOINT_HOME_PROPERTY, MidpointConfiguration.USER_HOME_PROPERTY);
         }
         return rv;
-    }
-
-    /**
-     * Prepares a prefix (first part) of JDBC URL for embedded database. Used also by configurator of tasks (quartz)
-     * module; it adds its own db names and parameters to this string.
-     *
-     * @return prefix of JDBC URL like jdbc:h2:file:d:\midpoint\midpoint
-     */
-    public String getDefaultEmbeddedJdbcUrlPrefix() {
-        File baseDirFile = new File(baseDir);
-        if (!baseDirFile.exists() || !baseDirFile.isDirectory()) {
-            throw new SystemException("File '" + baseDir + "' defined as baseDir doesn't exist or is not a directory.");
-        }
-        StringBuilder jdbcUrl = new StringBuilder("jdbc:h2:");
-        if (asServer) {
-            //jdbc:h2:tcp://<server>[:<port>]/[<path>]<databaseName>
-            jdbcUrl.append("tcp://127.0.0.1:");
-            jdbcUrl.append(port);
-            jdbcUrl.append("/");
-            jdbcUrl.append(fileName);
-        } else {
-            //jdbc:h2:[file:][<path>]<databaseName>
-            jdbcUrl.append("file:");
-
-            File databaseFile = new File(baseDir, fileName);
-            jdbcUrl.append(databaseFile.getAbsolutePath());
-        }
-        return jdbcUrl.toString();
     }
 
     // The methods below are static to highlight their data dependencies and to avoid using properties
@@ -534,17 +452,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         }
     }
 
-    private static Boolean getDefaultEmbedded(String dataSource, Database database) {
-        // Embedded means we want to start the database ourselves i.e. from midPoint.
-        // This option is obviously supported only for H2; and for H2, it is the default.
-        // Note that when using dataSource, we assume the database was started elsewhere.
-        // (However, it can be hardly expected anyone would use H2 with the data source,
-        // except for DataSourceTest.)
-        return dataSource == null && database == H2;
-    }
-
     private static String getDefaultHibernateHbm2ddl(Database database) {
-        return database == H2 ? HBM2DDL_UPDATE : HBM2DDL_NONE;
+        return HBM2DDL_NONE;
     }
 
     private void computeDefaultConcurrencyParameters() {
@@ -617,15 +526,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         notEmpty(hibernateDialect, "Hibernate dialect is empty or not defined.");
         notEmpty(hibernateHbm2ddl, "Hibernate hbm2ddl option is empty or not defined.");
 
-        if (embedded) {
-            notEmpty(baseDir, "Base dir is empty or not defined.");
-            if (asServer) {
-                if (port < 0 || port > 65535) {
-                    throw new RepositoryServiceFactoryException("Port must be in interval (0-65534)");
-                }
-            }
-        }
-
         if (minPoolSize <= 0) {
             throw new RepositoryServiceFactoryException("Min. pool size must be greater than zero.");
         }
@@ -647,24 +547,8 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         }
     }
 
-    /**
-     * @return Returns true if repository is running in embedded server mode, otherwise false. Default is false.
-     */
-    public boolean isAsServer() {
-        return asServer;
-    }
-
-    public String getBaseDir() {
-        return baseDir;
-    }
-
     public String getDriverClassName() {
         return driverClassName;
-    }
-
-    @Override
-    public boolean isEmbedded() {
-        return embedded;
     }
 
     /**
@@ -702,31 +586,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
      */
     public String getJdbcUsername() {
         return jdbcUsername;
-    }
-
-    /**
-     * @return Port number if repository is running in embedded server mode. Default is 5437.
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * Value represents repository running in embedded server mode with SSL turned on/off. Default value is false.
-     *
-     * @return Returns true if repository is running in embedded server mode and SSL turned on.
-     */
-    public boolean isTcpSSL() {
-        return tcpSSL;
-    }
-
-    /**
-     * Used in embedded mode to define h2 database file name. Default will be "midpoint".
-     *
-     * @return name of DB file
-     */
-    public String getFileName() {
-        return fileName;
     }
 
     public boolean isDropIfExists() {

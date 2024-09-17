@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.dialect.H2Dialect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,8 +22,6 @@ import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 public enum Database {
 
     // Order of dialects is important, the first value is the default.
-    H2("org.h2.Driver",
-            H2Dialect.class.getName()),
     POSTGRESQL("org.postgresql.Driver",
             MidPointPostgreSQLDialect.class.getName(),
             org.hibernate.dialect.PostgreSQLDialect.class.getName(),

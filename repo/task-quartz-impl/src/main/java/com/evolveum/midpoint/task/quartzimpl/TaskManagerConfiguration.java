@@ -211,7 +211,6 @@ public class TaskManagerConfiguration {
     private boolean createQuartzTables;
 
     private SupportedDatabase database;
-    private boolean databaseIsEmbedded;
 
     /*
      * Are we in the test mode?
@@ -416,13 +415,11 @@ public class TaskManagerConfiguration {
     }
 
     private static final Map<SupportedDatabase, String> SCHEMAS = Map.ofEntries(
-            entry(SupportedDatabase.H2, "tables_h2.sql"),
             entry(SupportedDatabase.POSTGRESQL, "tables_postgres.sql"),
             entry(SupportedDatabase.ORACLE, "tables_oracle.sql"),
             entry(SupportedDatabase.SQLSERVER, "tables_sqlServer.sql"));
 
     private static final Map<SupportedDatabase, String> DELEGATES = Map.ofEntries(
-            entry(SupportedDatabase.H2, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
             entry(SupportedDatabase.POSTGRESQL, "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate"),
             // TODO shouldn't we use OracleDelegate?
             entry(SupportedDatabase.ORACLE, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate"),
@@ -442,7 +439,6 @@ public class TaskManagerConfiguration {
         jdbcDriverDelegateClass = taskManagerConf.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
 
         createQuartzTables = taskManagerConf.getBoolean(CREATE_QUARTZ_TABLES_CONFIG_ENTRY, CREATE_QUARTZ_TABLES_DEFAULT);
-        databaseIsEmbedded = jdbcConfig != null && jdbcConfig.isEmbedded();
 
         String explicitJdbcUrl = taskManagerConf.getString(JDBC_URL_CONFIG_ENTRY, null);
         useRepositoryConnectionProvider = taskManagerConf.getBoolean(
@@ -450,23 +446,12 @@ public class TaskManagerConfiguration {
                 repositoryService.isNative() && explicitJdbcUrl == null);
         if (useRepositoryConnectionProvider) {
             LOGGER.info("Using connection provider from repository (ignoring all the other database-related configuration)");
-            if (jdbcConfig != null && jdbcConfig.isUsingH2()) {
-                LOGGER.warn("This option is not supported for H2! Please change the task manager configuration.");
-            }
         } else {
             jdbcDriver = taskManagerConf.getString(JDBC_DRIVER_CONFIG_ENTRY,
                     jdbcConfig != null ? jdbcConfig.getDriverClassName() : null);
 
             if (explicitJdbcUrl == null) {
-                if (jdbcConfig != null) {
-                    if (jdbcConfig.isEmbedded()) {
-                        jdbcUrl = jdbcConfig.getDefaultEmbeddedJdbcUrlPrefix() + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
-                    } else {
-                        jdbcUrl = jdbcConfig.getJdbcUrl("mp-scheduler");
-                    }
-                } else {
-                    jdbcUrl = null;
-                }
+                jdbcUrl = jdbcConfig != null ? jdbcConfig.getJdbcUrl("mp-scheduler") : null;
             } else {
                 jdbcUrl = explicitJdbcUrl;
             }
@@ -593,11 +578,6 @@ public class TaskManagerConfiguration {
     @SuppressWarnings("unused")
     public boolean isStopOnInitializationFailure() {
         return stopOnInitializationFailure;
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    public boolean isDatabaseIsEmbedded() {
-        return databaseIsEmbedded;
     }
 
     public int getNodeTimeout() {
