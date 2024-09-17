@@ -1540,9 +1540,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Specifies a default view for a presentation of the certification items collection. This means that
-                            every certification campaign created on the basis of this definition will use this view
-                            while displaying certification items collection.
+                            Specifies a default view for a presentation of the certification items collection.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
