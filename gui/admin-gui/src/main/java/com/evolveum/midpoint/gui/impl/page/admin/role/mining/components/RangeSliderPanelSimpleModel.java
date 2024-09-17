@@ -50,7 +50,7 @@ public class RangeSliderPanelSimpleModel extends InputPanel {
 
                 double maxValueD = getMaxValueD();
                 Integer object = model.getObject();
-                if (object == null || object == 0) {
+                if (object == null || object == 0 || maxValueD == 0) {
                     return 0 + "% (" + 0 + ")";
                 }
                 double value = (object * 100 / maxValueD);

@@ -161,11 +161,9 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
 
         setSearchFilterOption(filter);
 
-        int minOverlap;
-        if(totalUserOwnedRole > 1){
+        int minOverlap = 0;
+        if(totalUserOwnedRole != 0){
             minOverlap = (int) Math.round(totalUserOwnedRole * defaultPercentageMembership / 100);
-        }else{
-            minOverlap = 1;
         }
 
         minMembersOverlapModel.setObject(minOverlap);

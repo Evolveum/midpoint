@@ -43,7 +43,10 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
                 .min(2.0)
                 .max((double) maxPropertyCount);
 
-        int minOverlap = (int) Math.round(maxPropertyCount * defaultPercentageMembership / 100);
+        int minOverlap = 0;
+        if (maxPropertyCount != 0) {
+            minOverlap = (int) Math.round(maxPropertyCount * defaultPercentageMembership / 100);
+        }
 
         updatePrimaryOptions(null,
                 false,
@@ -63,8 +66,6 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
                         .max(100.0),
                 RoleAnalysisDetectionProcessType.FULL);
     }
-
-
 
     public @NotNull Integer getMaxPropertyCount() {
         Class<? extends ObjectType> propertiesClass = UserType.class;
