@@ -289,7 +289,9 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
         if (getPageStorage() == null || getPageStorage().getContentSearch().getIntent() == null) {
             ResourceObjectTypeDefinition defaultObjectTypeDef = getObjectDetailsModels().getDefaultObjectType(getKind());
-            objectTypeModel.setObject(defaultObjectTypeDef.getTypeIdentification());
+            if (defaultObjectTypeDef != null) {
+                objectTypeModel.setObject(defaultObjectTypeDef.getTypeIdentification());
+            }
         }
 
         LoadableDetachableModel<List<? extends ResourceObjectTypeIdentification>> choices = new LoadableDetachableModel<>() {

@@ -99,9 +99,9 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                         .toList());
 
                 selectedMarks.addAll(objectModel.getObject().getValue().getRealValue().getPolicyStatement().stream()
-                                .filter(policyStatementType -> policyStatementType.getMarkRef() != null
-                                        && StringUtils.isNotEmpty(policyStatementType.getMarkRef().getOid())
-                                        && !selectedMarks.contains(policyStatementType.getMarkRef().getOid()))
+                        .filter(policyStatementType -> policyStatementType.getMarkRef() != null
+                                && StringUtils.isNotEmpty(policyStatementType.getMarkRef().getOid())
+                                && !selectedMarks.contains(policyStatementType.getMarkRef().getOid()))
                         .map(policyStatementType -> policyStatementType.getMarkRef().getOid())
                         .toList());
 
@@ -129,33 +129,30 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
             protected List<SelectableBean<MarkType>> createDataObjectWrappers(Class<MarkType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommonException {
                 List<SelectableBean<MarkType>> list = super.createDataObjectWrappers(type, query, options, task, result);
                 PrismContainerWrapper<PolicyStatementType> container = objectModel.getObject().findContainer(ObjectType.F_POLICY_STATEMENT);
-                container.getValues().stream().filter(value -> {
-                    if (value == null || value.getRealValue() == null) {
-                        return false;
-                    }
-                    return value.getRealValue().getMarkRef() == null
-                            || StringUtils.isEmpty(value.getRealValue().getMarkRef().getOid());
-                }).forEach(value -> {
-                    SelectableBeanImpl<MarkType> selectableBean = new SelectableBeanImpl<>();
-                    selectableBean.setCustomData(new EffectiveMarkDto<>(value));
-                    selectableBean.setDetachCustomData(false);
-                    list.add(selectableBean);
-                });
+                container.getValues().stream()
+                        .filter(value -> addStatementPolicyMarkValue(value))
+                        .forEach(value -> {
+                            SelectableBeanImpl<MarkType> selectableBean = new SelectableBeanImpl<>();
+                            selectableBean.setCustomData(new EffectiveMarkDto<>(value));
+                            selectableBean.setDetachCustomData(false);
+                            list.add(selectableBean);
+                        });
                 return list;
             }
 
             @Override
             protected int internalSize() {
                 int count = super.internalSize();
+
+                if (objectModel == null || objectModel.getObject() == null) {
+                    return count;
+                }
+
                 try {
                     PrismContainerWrapper<PolicyStatementType> container = objectModel.getObject().findContainer(ObjectType.F_POLICY_STATEMENT);
-                    List<PrismContainerValueWrapper<PolicyStatementType>> emptyValues = container.getValues().stream().filter(value -> {
-                        if (value == null || value.getRealValue() == null) {
-                            return false;
-                        }
-                        return value.getRealValue().getMarkRef() == null
-                                || StringUtils.isEmpty(value.getRealValue().getMarkRef().getOid());
-                    }).toList();
+                    List<PrismContainerValueWrapper<PolicyStatementType>> emptyValues = container.getValues().stream()
+                            .filter(value -> addStatementPolicyMarkValue(value))
+                            .toList();
                     count = count + emptyValues.size();
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't find policy statement container in " + objectModel.getObject());
@@ -163,6 +160,19 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                 return count;
             }
         };
+    }
+
+    private boolean addStatementPolicyMarkValue(PrismContainerValueWrapper<PolicyStatementType> value) {
+        if (value == null || value.getRealValue() == null) {
+            return false;
+        }
+        if (value.getRealValue().getMarkRef() == null
+                || StringUtils.isEmpty(value.getRealValue().getMarkRef().getOid())) {
+            return true;
+        }
+
+        return objectModel.getObject().getValue().getRealValue().getEffectiveMarkRef().stream()
+                .noneMatch(ref -> value.getRealValue().getMarkRef().getOid().equals(ref.getOid()));
     }
 
     @Override
@@ -471,6 +481,11 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
             value.setSelected(false);
         });
         refreshTable(target);
+    }
+
+    @Override
+    protected boolean isNewObjectButtonEnabled() {
+        return objectModel != null && objectModel.getObject() != null;
     }
 
     @Override
