@@ -2175,6 +2175,9 @@
                 <p>Contains information about matching rules for clustering process.</p>
                 <p>Matching rule presupposes the business logic for the comparison of objects.</p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
 
@@ -2221,18 +2224,18 @@
                 </xsd:annotation>
             </xsd:element>
 
-            <xsd:element name="assignmentRule" type="tns:AnalysisAttributeRuleType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Matching rule for attribute clustering.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AnalysisAttributeSettingType.assignmentRule</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
+            <!--<xsd:element name="assignmentRule" type="tns:AnalysisAttributeRuleType" minOccurs="0" maxOccurs="unbounded">-->
+            <!--    <xsd:annotation>-->
+            <!--        <xsd:documentation>-->
+            <!--            <p>-->
+            <!--                Matching rule for attribute clustering.-->
+            <!--            </p>-->
+            <!--        </xsd:documentation>-->
+            <!--        <xsd:appinfo>-->
+            <!--            <a:displayName>AnalysisAttributeSettingType.assignmentRule</a:displayName>-->
+            <!--        </xsd:appinfo>-->
+            <!--    </xsd:annotation>-->
+            <!--</xsd:element>-->
 
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -2251,7 +2254,7 @@
         </xsd:annotation>
         <xsd:sequence>
 
-            <xsd:element name="attributeIdentifier" type="xsd:string" minOccurs="0">
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>Path to the property used for comparison.</p>

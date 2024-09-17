@@ -140,7 +140,6 @@ public class AttributeAnalysisUtil {
         for (RoleAnalysisAttributeDef item : itemDef) {
             ItemPath path = item.getPath();
             String displayValue = item.getDisplayValue();
-            boolean isContainer = item.isContainer();
 
             AttributePathResult attributePathResult = targetUserCacheCandidate.computeIfAbsent(path, k -> {
                 AttributePathResult newResult = new AttributePathResult(new HashMap<>(), 0);
@@ -148,7 +147,7 @@ public class AttributeAnalysisUtil {
                 return newResult;
             });
 
-            if (isContainer) {
+            if (item.isMultiValue()) {
                 Set<String> values = item.resolveMultiValueItem(prismObject, path);
                 for (String value : values) {
                     attributePathResult.incrementFrequency(value);

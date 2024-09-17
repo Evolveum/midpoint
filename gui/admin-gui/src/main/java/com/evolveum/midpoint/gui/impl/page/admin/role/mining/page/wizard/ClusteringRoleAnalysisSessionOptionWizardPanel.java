@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -28,6 +31,34 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
     }
 
+//    @Override
+//    protected void initLayout() {
+//        super.initLayout();
+//
+//        VerticalFormPanel<RoleAnalysisSessionType> clusterPropertiesPanel = new VerticalFormPanel(ID_CLUSTERING_RULES, getContainerFormModel(), settings, getContainerConfiguration()) {
+//            @Override
+//            protected String getIcon() {
+//                return AbstractFormWizardStepPanel.this.getIcon();
+//            }
+//
+//            @Override
+//            protected IModel<?> getTitleModel() {
+//                return getFormTitle();
+//            }
+//
+//            @Override
+//            protected WrapperContext createWrapperContext() {
+//                return getDetailsModel().createWrapperContext();
+//            }
+//
+//            @Override
+//            protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+//                return false;
+//            }
+//        };
+//        clusterPropertiesPanel.setOutputMarkupId(true);
+//        add(clusterPropertiesPanel);
+//    }
 
     @Override
     protected IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getContainerFormModel() {

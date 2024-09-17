@@ -66,11 +66,11 @@ public class DepartmentModeConfiguration extends AbstractRoleAnalysisConfigurati
         return new RangeType().min(minPropertyCount).max(maxPropertyCount);
     }
 
+    //TODO let the user choose the archetype or root for departmnet structre
     private @NotNull ClusteringAttributeSettingType createClusteringSetting() {
-        RoleAnalysisAttributeDef orgAssignment = RoleAnalysisAttributeDefUtils.getOrgAssignment();
         ClusteringAttributeSettingType clusteringSetting = new ClusteringAttributeSettingType();
         ClusteringAttributeRuleType rule = new ClusteringAttributeRuleType()
-                .attributeIdentifier(orgAssignment.getDisplayValue())
+                .path(FocusType.F_PARENT_ORG_REF.toBean())
                 .isMultiValue(true)
                 .weight(1.0)
                 .similarity(100.0);

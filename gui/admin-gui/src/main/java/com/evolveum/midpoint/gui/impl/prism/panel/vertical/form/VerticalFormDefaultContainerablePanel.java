@@ -16,12 +16,14 @@ import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeSettingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
@@ -166,40 +168,10 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     @Override
     protected void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
         PrismContainerWrapper<?> itemWrapper = container.getModelObject();
-        IModel<ItemWrapper> wrapperModel = () -> container.getModelObject();
+        IModel<PrismContainerWrapper<?>> wrapperModel = container.getModel();
 
         ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
-        Panel panel = new VerticalFormPrismContainerPanel<>("container", (IModel) wrapperModel, settings) {
-
-            @Override
-            protected IModel<String> getTitleModel() {
-                VirtualContainersSpecificationType containerConfig = getConfigurationForVirtualContainer();
-                if (containerConfig != null
-                        && containerConfig.getDisplay() != null
-                        && containerConfig.getDisplay().getLabel() != null) {
-                    return () -> WebComponentUtil.getTranslatedPolyString(containerConfig.getDisplay().getLabel());
-                }
-                return super.getTitleModel();
-            }
-
-            @Override
-            protected String getIcon() {
-                VirtualContainersSpecificationType containerConfig = getConfigurationForVirtualContainer();
-                if (containerConfig != null
-                        && containerConfig.getDisplay() != null) {
-                    String iconCssClass = GuiDisplayTypeUtil.getIconCssClass(containerConfig.getDisplay());
-                    if (StringUtils.isNoneEmpty(iconCssClass)) {
-                        return iconCssClass;
-                    }
-                }
-                return "fa fa-circle";
-            }
-
-            @Override
-            protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
-                return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainer(c);
-            }
-        };
+        Panel panel = createContainerPanel(wrapperModel, settings);
         panel.setOutputMarkupId(true);
         container.add(new VisibleEnableBehaviour() {
             @Override
@@ -245,5 +217,42 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
 
     public Component getFormContainer() {
         return get(createComponentPath(ID_PROPERTIES_LABEL, ID_FORM_CONTAINER));
+    }
+
+    private VerticalFormPrismContainerPanel<?> createContainerPanel(IModel<PrismContainerWrapper<?>> wrapperModel, ItemPanelSettings settings) {
+        if (QNameUtil.match(wrapperModel.getObject().getTypeName(), ClusteringAttributeSettingType.COMPLEX_TYPE)) {
+            return new VerticalFormClusteringAttributesPanel("container", (IModel) wrapperModel, settings);
+        }
+        return new VerticalFormPrismContainerPanel<>("container", (IModel) wrapperModel, settings) {
+
+            @Override
+            protected IModel<String> getTitleModel() {
+                VirtualContainersSpecificationType containerConfig = getConfigurationForVirtualContainer();
+                if (containerConfig != null
+                        && containerConfig.getDisplay() != null
+                        && containerConfig.getDisplay().getLabel() != null) {
+                    return () -> WebComponentUtil.getTranslatedPolyString(containerConfig.getDisplay().getLabel());
+                }
+                return super.getTitleModel();
+            }
+
+            @Override
+            protected String getIcon() {
+                VirtualContainersSpecificationType containerConfig = getConfigurationForVirtualContainer();
+                if (containerConfig != null
+                        && containerConfig.getDisplay() != null) {
+                    String iconCssClass = GuiDisplayTypeUtil.getIconCssClass(containerConfig.getDisplay());
+                    if (StringUtils.isNoneEmpty(iconCssClass)) {
+                        return iconCssClass;
+                    }
+                }
+                return "fa fa-circle";
+            }
+
+            @Override
+            protected boolean isVisibleSubContainer(PrismContainerWrapper c) {
+                return VerticalFormDefaultContainerablePanel.this.isVisibleSubContainer(c);
+            }
+        };
     }
 }

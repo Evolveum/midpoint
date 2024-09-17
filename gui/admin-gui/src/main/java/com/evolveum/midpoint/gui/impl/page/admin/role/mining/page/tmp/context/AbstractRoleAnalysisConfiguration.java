@@ -59,14 +59,18 @@ public abstract class AbstractRoleAnalysisConfiguration implements RoleAnalysisC
         this.visibilityHandler = visibilityHandler;
     }
 
+    //TODO load from system config
     public AnalysisAttributeSettingType getDefaultAnalysisAttributes() {
         AnalysisAttributeSettingType value = new AnalysisAttributeSettingType();
         value.getPath().add(UserType.F_TITLE.toBean());
+        value.getPath().add(UserType.F_PARENT_ORG_REF.toBean());
+        value.getPath().add(UserType.F_ARCHETYPE_REF.toBean());
+        value.getPath().add(UserType.F_LOCALITY.toBean());
 
-        AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
-        rule.setTargetType(ArchetypeType.COMPLEX_TYPE);
-        value.getAssignmentRule().add(rule);
-        //TODO load from system config
+//        AnalysisAttributeRuleType rule = new AnalysisAttributeRuleType();
+//        rule.setTargetType(ArchetypeType.COMPLEX_TYPE);
+//        value.getAssignmentRule().add(rule);
+
 //        List<AnalysisAttributeRuleType> analysisAttributeRule = new ArrayList<>();
 //        RoleAnalysisAttributeDef title = RoleAnalysisAttributeDefUtils.getTitle();
 //        RoleAnalysisAttributeDef archetypeRef = RoleAnalysisAttributeDefUtils.getArchetypeRef();

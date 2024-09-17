@@ -187,29 +187,30 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         labelWithHelpPanel.setOutputMarkupId(true);
         add(labelWithHelpPanel);
 
-        ChoiceRenderer<RoleAnalysisAttributeDef> renderer = new ChoiceRenderer<>("displayValue");
+        //TODO decide what to do with this?
+//        ChoiceRenderer<RoleAnalysisAttributeDef> renderer = new ChoiceRenderer<>("displayValue");
 
-        List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = createSimpleRoleAttributeChoiceSet();
-        IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(roleAnalysisAttributeDef.getObject());
-
-        DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(
-                ID_SELECTOR_ROLE, selectedModel,
-                attributesForRoleAnalysis, renderer);
-
-        dropDownChoice.setOutputMarkupId(true);
-        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                if (option.getObject() == null) {
-                    option.setObject(new DisplayValueOption());
-                }
-                roleAnalysisAttributeDef.setObject(selectedModel.getObject());
-                option.getObject().setRoleAnalysisRoleDef(selectedModel.getObject());
-            }
-        });
-        dropDownChoice.setOutputMarkupId(true);
-        dropDownChoice.setEnabled(isRoleExpanded);
-        add(dropDownChoice);
+//        List<RoleAnalysisAttributeDef> attributesForRoleAnalysis = createSimpleRoleAttributeChoiceSet();
+//        IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(roleAnalysisAttributeDef.getObject());
+//
+//        DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(
+//                ID_SELECTOR_ROLE, selectedModel,
+//                attributesForRoleAnalysis, renderer);
+//
+//        dropDownChoice.setOutputMarkupId(true);
+//        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//                if (option.getObject() == null) {
+//                    option.setObject(new DisplayValueOption());
+//                }
+//                roleAnalysisAttributeDef.setObject(selectedModel.getObject());
+//                option.getObject().setRoleAnalysisRoleDef(selectedModel.getObject());
+//            }
+//        });
+//        dropDownChoice.setOutputMarkupId(true);
+//        dropDownChoice.setEnabled(isRoleExpanded);
+//        add(dropDownChoice);
     }
 
     private void initUserHeaderSelector() {
@@ -240,27 +241,28 @@ public class RoleAnalysisTableSettingPanel extends BasePanel<String> implements 
         ChoiceRenderer<RoleAnalysisAttributeDef> renderer = new ChoiceRenderer<>("displayValue");
 
         //TODO mark good
-        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = createSimpleUserAttributeChoiceSet();
-        IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(userAnalysisAttributeDef.getObject());
-
-        DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(
-                ID_SELECTOR_USER, selectedModel,
-                attributesForUserAnalysis, renderer);
-
-        dropDownChoice.setOutputMarkupId(true);
-        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                if (option.getObject() == null) {
-                    option.setObject(new DisplayValueOption());
-                }
-                userAnalysisAttributeDef.setObject(selectedModel.getObject());
-                option.getObject().setUserAnalysisUserDef(selectedModel.getObject());
-            }
-        });
-        dropDownChoice.setOutputMarkupId(true);
-        dropDownChoice.setEnabled(isUserExpanded);
-        add(dropDownChoice);
+        //TODO decide what to do with this?
+//        List<RoleAnalysisAttributeDef> attributesForUserAnalysis = createSimpleUserAttributeChoiceSet();
+//        IModel<RoleAnalysisAttributeDef> selectedModel = Model.of(userAnalysisAttributeDef.getObject());
+//
+//        DropDownChoice<RoleAnalysisAttributeDef> dropDownChoice = new DropDownChoice<>(
+//                ID_SELECTOR_USER, selectedModel,
+//                attributesForUserAnalysis, renderer);
+//
+//        dropDownChoice.setOutputMarkupId(true);
+//        dropDownChoice.add(new AjaxFormComponentUpdatingBehavior("change") {
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//                if (option.getObject() == null) {
+//                    option.setObject(new DisplayValueOption());
+//                }
+//                userAnalysisAttributeDef.setObject(selectedModel.getObject());
+//                option.getObject().setUserAnalysisUserDef(selectedModel.getObject());
+//            }
+//        });
+//        dropDownChoice.setOutputMarkupId(true);
+//        dropDownChoice.setEnabled(isUserExpanded);
+//        add(dropDownChoice);
     }
 
     public void initSortingSetting() {

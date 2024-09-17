@@ -11,12 +11,14 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -108,9 +110,16 @@ public class RoleAnalysisAttributeDef implements Serializable {
             boolean isMultiValue = !item.isSingleValue();
 
             if (isMultiValue) {
+//                    return item.getRealValues()
+//                            .stream()
+//                            .filter(value -> value != null)
+//                            .map(value -> ((ObjectReferenceType) value).getOid())
+//                            .collect(Collectors.toSet());
                 Collection<?> realValues = item.getRealValues();
                 for (Object realValue : realValues) {
-                    if (realValue != null) {
+                    if (realValue instanceof ObjectReferenceType refValue) {
+                        resolvedValues.add(refValue.getOid());
+                    } else if (realValue != null) {
                         resolvedValues.add(realValue.toString());
                     }
                 }
@@ -189,5 +198,9 @@ public class RoleAnalysisAttributeDef implements Serializable {
 
     public boolean isMultiValue() {
         return definition.isMultiValue();
+    }
+
+    public boolean isReference() {
+        return definition instanceof PrismReferenceDefinition;
     }
 }

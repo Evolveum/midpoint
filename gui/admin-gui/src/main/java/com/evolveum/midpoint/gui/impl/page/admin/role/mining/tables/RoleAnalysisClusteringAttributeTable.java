@@ -13,6 +13,16 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.provider.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBuilder;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -25,6 +35,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.validation.validator.RangeValidator;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClusteringAttributeR
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
-public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
+public class RoleAnalysisClusteringAttributeTable extends BasePanel<PrismContainerWrapper<ClusteringAttributeRuleType>> {
 
     private static final String ID_DATATABLE = "datatable";
 
@@ -49,16 +60,30 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
 
     public RoleAnalysisClusteringAttributeTable(
             @NotNull String id,
-            ListModel<ClusteringAttributeRuleType> selectedObject,
+            IModel<PrismContainerWrapper<ClusteringAttributeRuleType>> rulesModel,
             boolean isSimplePanel) {
-        super(id);
+        super(id, rulesModel);
 
         this.isSimplePanel = isSimplePanel;
 
-        RoleMiningProvider<ClusteringAttributeRuleType> provider = new RoleMiningProvider<>(
-                this, selectedObject, false);
+        //TODO use multivalue container panel instead
+    }
 
-        BoxedTablePanel<ClusteringAttributeRuleType> table = new BoxedTablePanel<>(
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
+        IModel<Search<ClusteringAttributeRuleType>> searchModel = createSearchModel();
+        MultivalueContainerListDataProvider<ClusteringAttributeRuleType> provider = new MultivalueContainerListDataProvider<>(
+                this, searchModel, new PropertyModel<>(getModel(), "values"));
+
+//        RoleMiningProvider<ClusteringAttributeRuleType> provider = new RoleMiningProvider<>(
+//                this, selectedObject, false);
+
+        BoxedTablePanel<PrismContainerValueWrapper<ClusteringAttributeRuleType>> table = new BoxedTablePanel<>(
                 ID_DATATABLE, provider, initColumns()) {
 
             @Override
@@ -89,15 +114,23 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
         add(table);
     }
 
-    public List<IColumn<ClusteringAttributeRuleType, String>> initColumns() {
+    private IModel<Search<ClusteringAttributeRuleType>> createSearchModel() {
+        return () -> {
+            SearchBuilder<ClusteringAttributeRuleType> searchBuilder = new SearchBuilder<>(ClusteringAttributeRuleType.class)
+                    .modelServiceLocator(getPageBase());
+            return searchBuilder.build();
+        };
+    }
 
-        List<IColumn<ClusteringAttributeRuleType, String>> columns = new ArrayList<>();
+    public List<IColumn<PrismContainerValueWrapper<ClusteringAttributeRuleType>, String>> initColumns() {
+
+        List<IColumn<PrismContainerValueWrapper<ClusteringAttributeRuleType>, String>> columns = new ArrayList<>();
 
         columns.add(new IconColumn<>(null) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
-            protected DisplayType getIconDisplayType(IModel<ClusteringAttributeRuleType> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<ClusteringAttributeRuleType>> rowModel) {
                 return createDisplayType(GuiStyleConstants.CLASS_TASK_ACTIVITY_ICON);
             }
         });
@@ -110,9 +143,12 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<ClusteringAttributeRuleType>> item, String componentId,
-                    IModel<ClusteringAttributeRuleType> rowModel) {
-                String attributeIdentifier = rowModel.getObject().getAttributeIdentifier();
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ClusteringAttributeRuleType>>> item, String componentId,
+                    IModel<PrismContainerValueWrapper<ClusteringAttributeRuleType>> rowModel) {
+                ItemPathType pathType = rowModel.getObject().getRealValue().getPath();
+                //TODO use display name instead. but we need the definition if it's role or user mode
+                String attributeIdentifier = pathType != null ? pathType.toString() : "";
+
                 item.add(new Label(componentId, attributeIdentifier));
             }
 
@@ -133,11 +169,12 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<ClusteringAttributeRuleType>> item, String componentId,
-                    IModel<ClusteringAttributeRuleType> rowModel) {
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ClusteringAttributeRuleType>>> item, String componentId,
+                    IModel<PrismContainerValueWrapper<ClusteringAttributeRuleType>> rowModel) {
                 if (rowModel.getObject() != null) {
-                    NumberFormatSelectorPanel field = new NumberFormatSelectorPanel(componentId,
-                            Model.of(rowModel.getObject().getWeight())) {
+                    PrismPropertyWrapperModel<ClusteringAttributeRuleType, Double> propertyModel = PrismPropertyWrapperModel.fromContainerValueWrapper(rowModel, ClusteringAttributeRuleType.F_WEIGHT);
+                    ItemRealValueModel<Double> realValueModel = new ItemRealValueModel<>(new PropertyModel<>(propertyModel, "value"));
+                    NumberFormatSelectorPanel field = new NumberFormatSelectorPanel(componentId, realValueModel) {
                         @Override
                         public DisplayType getImage() {
                             DisplayType displayType = new DisplayType();
@@ -147,10 +184,10 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
                             return displayType;
                         }
 
-                        @Override
-                        public void onChangePerform(Double newValue) {
-                            rowModel.getObject().setWeight(newValue);
-                        }
+//                        @Override
+//                        public void onChangePerform(Double newValue) {
+//                            rowModel.getObject().setWeight(newValue);
+//                        }
                     };
 
                     field.setEnabled(true);
@@ -176,11 +213,13 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<ClusteringAttributeRuleType>> item, String componentId,
-                    IModel<ClusteringAttributeRuleType> rowModel) {
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<ClusteringAttributeRuleType>>> item, String componentId,
+                    IModel<PrismContainerValueWrapper<ClusteringAttributeRuleType>> rowModel) {
                 if (rowModel.getObject() != null) {
+                    PrismPropertyWrapperModel<ClusteringAttributeRuleType, Double> propertyModel = PrismPropertyWrapperModel.fromContainerValueWrapper(rowModel, ClusteringAttributeRuleType.F_SIMILARITY);
+                    ItemRealValueModel<Double> realValueModel = new ItemRealValueModel<>(new PropertyModel<>(propertyModel, "value"));
                     NumberFormatSelectorPanel field = new NumberFormatSelectorPanel(componentId,
-                            Model.of(rowModel.getObject().getSimilarity())) {
+                            realValueModel) {
                         @Override
                         public RangeValidator<Double> getRangeValidator() {
                             return RangeValidator.range(0.0, 100.0);
@@ -195,12 +234,12 @@ public class RoleAnalysisClusteringAttributeTable extends BasePanel<String> {
                             return displayType;
                         }
 
-                        @Override
-                        public void onChangePerform(Double newValue) {
-                            rowModel.getObject().setWeight(newValue);
-                        }
+//                        @Override
+//                        public void onChangePerform(Double newValue) {
+//                            rowModel.getObject().setWeight(newValue);
+//                        }
                     };
-                    field.setEnabled(rowModel.getObject().isIsMultiValue());
+//                    field.setEnabled(rowModel.getObject().isIsMultiValue());
                     item.add(field);
                 }
             }

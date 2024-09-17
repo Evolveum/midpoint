@@ -82,7 +82,7 @@ public class AdvancedClustering implements Clusterable {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
-                sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
+                sessionOptionType.getClusteringAttributeSetting(),
                 RoleAnalysisProcessModeType.ROLE);
 
         SearchFilterType query = sessionOptionType.getQuery();
@@ -131,7 +131,7 @@ public class AdvancedClustering implements Clusterable {
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
 
         List<RoleAnalysisAttributeDefConvert> roleAnalysisAttributeDefConverts = generateMatchingRulesList(
-                sessionOptionType.getClusteringAttributeSetting().getClusteringAttributeRule(),
+                sessionOptionType.getClusteringAttributeSetting(),
                 RoleAnalysisProcessModeType.USER);
 
         SearchFilterType query = sessionOptionType.getQuery();

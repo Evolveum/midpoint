@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
-import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributeByDisplayValue;
+import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getAttributeByItemPath;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -22,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttributeDef;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -100,22 +100,26 @@ public class ClusterExplanation implements Serializable {
                     if (attributeStatisticsList.size() == 1) {
                         RoleAnalysisAttributeStatistics attributeStatistic = attributeStatisticsList.get(0);
                         String value = attributeStatistic.getAttributeValue();
-                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
+                        RoleAnalysisAttributeDef attribute = getAttributeByItemPath(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
+
+                        if (attribute == null) {
+                            continue;
+                        }
 
                         String candidateName;
-                        if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
+                        if (attribute.isReference()) {
+                            PrismObject<? extends ObjectType> object;
+                            object = roleAnalysisService.getObject(FocusType.class, value, task, result);
+                            candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
+                        } else {
                             if (value.isEmpty()) {
                                 candidateName = "unknown";
                             }else {
                                 candidateName = itemPath + "-" + value;
                             }
-                        } else {
-                            PrismObject<? extends ObjectType> object;
-                            object = roleAnalysisService.getObject(FocusType.class, value, task, result);
-
-                            candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
                         }
                         candidateNames.add(candidateName);
+
                     }
                 }
             }
@@ -134,15 +138,17 @@ public class ClusterExplanation implements Serializable {
                     if (attributeStatisticsList.size() == 1) {
                         RoleAnalysisAttributeStatistics attributeStatistic = attributeStatisticsList.get(0);
                         String value = attributeStatistic.getAttributeValue();
-                        RoleAnalysisAttributeDef attribute = getAttributeByDisplayValue(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
-
+                        RoleAnalysisAttributeDef attribute = getAttributeByItemPath(itemPath, sessionOptionType.getUserAnalysisAttributeSetting());
+                        if (attribute == null) {
+                            continue;
+                        }
                         String candidateName;
-                        if (attribute.getIdentifierType().equals(RoleAnalysisAttributeDef.IdentifierType.FINAL)) {
-                            candidateName = itemPath + "-" + value;
-                        } else {
+                        if (attribute.isReference()) {
                             PrismObject<? extends ObjectType> object;
                             object = roleAnalysisService.getObject(FocusType.class, value, task, result);
                             candidateName = object != null ? itemPath + "-" + object.getName() : itemPath + "-" + value;
+                        } else {
+                            candidateName = itemPath + "-" + value;
                         }
                         candidateNames.add(candidateName);
                     }
@@ -156,7 +162,11 @@ public class ClusterExplanation implements Serializable {
     private static @NotNull Set<ItemPath> extractRuleIdentifiers(@NotNull List<ClusteringAttributeRuleType> matchingRule) {
         Set<ItemPath> ruleIdentifiers = new HashSet<>();
         for (ClusteringAttributeRuleType ruleType : matchingRule) {
-            ruleIdentifiers.add(ItemPath.create(ruleType.getAttributeIdentifier()));
+            ItemPathType path = ruleType.getPath();
+            if (path == null) {
+                continue;
+            }
+            ruleIdentifiers.add(path.getItemPath());
         }
         return ruleIdentifiers;
     }

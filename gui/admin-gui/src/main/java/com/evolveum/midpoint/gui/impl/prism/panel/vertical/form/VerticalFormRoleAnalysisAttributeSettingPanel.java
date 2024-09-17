@@ -33,7 +33,7 @@ public class VerticalFormRoleAnalysisAttributeSettingPanel extends VerticalFormP
 
     @Override
     protected Component createValuesPanel() {
-        AnalysisAttributeSelectorPanel attributeSelectorPanel = new AnalysisAttributeSelectorPanel(ID_ATTRIBUTE, new PropertyModel<>(getModel(), "values"));
+        AnalysisAttributeSelectorPanel attributeSelectorPanel = new AnalysisAttributeSelectorPanel(ID_ATTRIBUTE, getModel());
         attributeSelectorPanel.setOutputMarkupId(true);
         return attributeSelectorPanel;
     }

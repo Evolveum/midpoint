@@ -28,7 +28,7 @@ public class RoleAnalysisAttributeSettingPropertyFactory extends PrismPropertyWr
         if (!super.match(def)) {
             return false;
         }
-        if (parent == null) {
+        if (parent == null || parent.getDefinition() == null) {
             return false;
         }
         return AbstractAnalysisSessionOptionType.F_USER_ANALYSIS_ATTRIBUTE_SETTING.equivalent(parent.getDefinition().getItemName());

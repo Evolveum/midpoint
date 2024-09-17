@@ -10,6 +10,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -34,34 +39,22 @@ public class AttributeSettingPopupPanel extends BasePanel<String> implements Pop
     private static final String ID_BUTTON_CLOSE = "closeButton";
     private static final String ID_BUTTON_SAVE = "saveButton";
 
-    ListModel<ClusteringAttributeRuleType> clusteringAttributeRuleModel;
-    IModel<PrismPropertyValueWrapper<ClusteringAttributeSettingType>> model;
+    PrismContainerWrapperModel<ClusteringAttributeSettingType, ClusteringAttributeRuleType> clusteringAttributeRuleModel;
+    IModel<PrismContainerWrapper<ClusteringAttributeSettingType>> model;
 
     public AttributeSettingPopupPanel(
             @NotNull String id,
             @NotNull IModel<String> messageModel,
-            IModel<PrismPropertyValueWrapper<ClusteringAttributeSettingType>> selectedObject) {
+            IModel<PrismContainerWrapper<ClusteringAttributeSettingType>> selectedObject) {
         super(id, messageModel);
         this.model = selectedObject;
 
-        List<ClusteringAttributeRuleType> clusteringAttributeRule = new ArrayList<>(
-                model.getObject().getRealValue().getClusteringAttributeRule());
-        clusteringAttributeRuleModel = new ListModel<>(clusteringAttributeRule) {
-            @Override
-            public List<ClusteringAttributeRuleType> getObject() {
-                return super.getObject();
-            }
-
-            @Override
-            public void setObject(List<ClusteringAttributeRuleType> object) {
-                super.setObject(object);
-            }
-        };
+        clusteringAttributeRuleModel = PrismContainerWrapperModel.fromContainerWrapper(model, ClusteringAttributeSettingType.F_CLUSTERING_ATTRIBUTE_RULE);
 
         initLayout(selectedObject);
     }
 
-    public void initLayout(IModel<PrismPropertyValueWrapper<ClusteringAttributeSettingType>> selectedObject) {
+    public void initLayout(IModel<PrismContainerWrapper<ClusteringAttributeSettingType>> selectedObject) {
         AjaxButton cancelButton = new AjaxButton(ID_BUTTON_CLOSE,
                 createStringResource("AttributeSettingPopupPanel.button.cancelButton")) {
 
@@ -78,13 +71,19 @@ public class AttributeSettingPopupPanel extends BasePanel<String> implements Pop
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                ClusteringAttributeSettingType realValue = model.getObject().getRealValue();
-                realValue.getClusteringAttributeRule().clear();
-                for (ClusteringAttributeRuleType clusteringAttributeRuleType : clusteringAttributeRuleModel.getObject()) {
-                    realValue.getClusteringAttributeRule().add(clusteringAttributeRuleType.clone());
-                }
-
-                onClose(ajaxRequestTarget);
+//                ClusteringAttributeSettingType realValue = null;
+//                try {
+//                    realValue = model.getObject().getValue().getRealValue();
+//                } catch (SchemaException e) {
+//                    throw new RuntimeException(e);
+//                    //TODO handling
+//                }
+//                realValue.getClusteringAttributeRule().clear();
+//                for (ClusteringAttributeRuleType clusteringAttributeRuleType : clusteringAttributeRuleModel.getObject()) {
+//                    realValue.getClusteringAttributeRule().add(clusteringAttributeRuleType.clone());
+//                }
+//
+//                onClose(ajaxRequestTarget);
             }
         };
         saveButton.setOutputMarkupId(true);
