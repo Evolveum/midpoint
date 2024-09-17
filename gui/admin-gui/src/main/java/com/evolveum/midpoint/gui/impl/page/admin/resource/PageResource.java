@@ -155,13 +155,15 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                         ItemPath.create(
                                 ResourceType.F_SCHEMA_HANDLING,
                                 SchemaHandlingType.F_OBJECT_TYPE,
-                                ResourceObjectTypeDefinitionType.F_DEFAULT_OPERATION_POLICY_REF)).resolve()
+                                ResourceObjectTypeDefinitionType.F_DEFAULT_OPERATION_POLICY,
+                                DefaultOperationPolicyConfigurationType.F_POLICY_REF)).resolve()
                 .item(
                         ItemPath.create(
                                 ResourceType.F_SCHEMA_HANDLING,
                                 SchemaHandlingType.F_OBJECT_TYPE,
                                 ResourceObjectTypeDefinitionType.F_MARKING,
                                 ShadowMarkingConfigurationType.F_MARK_REF)).resolve();
+
 
         if (useNoFetchOption()) {
             builder.noFetch();

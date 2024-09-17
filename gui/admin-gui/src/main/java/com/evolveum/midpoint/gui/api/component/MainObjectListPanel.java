@@ -657,6 +657,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 Task task = getPageBase().createSimpleTask("createWrapper");
 
                 Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()
+                        .noFetch()
                         .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_MARK_REF)).resolve()
                         .item(ItemPath.create(ObjectType.F_POLICY_STATEMENT, PolicyStatementType.F_LIFECYCLE_STATE)).resolve()
                         .build();
