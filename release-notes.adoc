@@ -127,6 +127,8 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Renamed "Bulk actions" to "Actions" in GUI. See bug:MID-9619[].
 * Added the ability to configure UI form of the authentication sequence module with a label, description and external link.
 More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/modules/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
+* Support of H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
+Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
 
 === Releases Of Other Components
 
@@ -273,14 +275,6 @@ PostgreSQL 16 is recommended.
 xref:/midpoint/reference/repository/generic/[Generic repository implementation] is based on object-relational
 mapping abstraction (Hibernate), supporting several database engines with the same code.
 Following database engines are supported with this implementation:
-
-* H2 (embedded).
-Supported only in embedded mode.
-Not supported for production deployments.
-Only the version specifically bundled with midPoint is supported. +
-H2 is intended only for development, demo and similar use cases.
-It is *not* supported for any production use.
-Also, upgrade of deployments based on H2 database are not supported.
 
 * Oracle 21c
 * Microsoft SQL Server 2019
