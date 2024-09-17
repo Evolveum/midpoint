@@ -94,6 +94,7 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                 List<String> selectedMarks = new ArrayList<>();
 
                 selectedMarks.addAll(objectModel.getObject().getValue().getRealValue().getEffectiveMarkRef().stream()
+                        .filter(ref -> ref != null && StringUtils.isNotEmpty(ref.getOid()))
                         .map(AbstractReferencable::getOid)
                         .toList());
 
@@ -105,7 +106,7 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                         .toList());
 
                 if (selectedMarks.isEmpty()) {
-                    warn(getString("pageContentAccounts.message.noMarkOnSelectedAccount"));
+                    LOGGER.trace("Selected object does not contain any mark.");
                     return PrismContext.get().queryFor(MarkType.class).none().build();
                 }
 
