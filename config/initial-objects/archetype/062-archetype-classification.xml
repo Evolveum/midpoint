@@ -10,18 +10,8 @@
     <description>Archetype for information classifications (labels, levels, compartments).</description>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Classification</orig>
-                <translation>
-                    <key>classification.label</key>
-                </translation>
-            </label>
-            <pluralLabel>
-                <orig>Classifications</orig>
-                <translation>
-                    <key>classifications.pluralLabel</key>
-                </translation>
-            </pluralLabel>
+            <label>Classification</label>
+            <pluralLabel>Classifications</pluralLabel>
             <icon>
                 <cssClass>fa fa-tags</cssClass>
                 <color>green</color>

@@ -44,7 +44,7 @@ public class ShadowBasicPanel extends AbstractShadowPanel {
     private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ACTIVATION = "activation";
     private static final String ID_PASSWORD = "password";
-    private static final String ID_POLICY_STATEMENT = "policyStatement";
+//    private static final String ID_POLICY_STATEMENT = "policyStatement";
 
     private ContainerPanelConfigurationType config;
 
@@ -92,13 +92,13 @@ public class ShadowBasicPanel extends AbstractShadowPanel {
             passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));
             add(passwordPanel);
 
-            ItemPanelSettingsBuilder markSettingsBuilder = new ItemPanelSettingsBuilder()
-                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
-            Panel markPanel = getPageBase().initItemPanel(ID_POLICY_STATEMENT, PolicyStatementType.COMPLEX_TYPE,
-                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_POLICY_STATEMENT)),
-                    markSettingsBuilder.build());
-            markPanel.add(new VisibleBehaviour(() -> isPolicyStatementSupported()));
-            add(markPanel);
+//            ItemPanelSettingsBuilder markSettingsBuilder = new ItemPanelSettingsBuilder()
+//                    .visibilityHandler(itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+//            Panel markPanel = getPageBase().initItemPanel(ID_POLICY_STATEMENT, PolicyStatementType.COMPLEX_TYPE,
+//                    PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_POLICY_STATEMENT)),
+//                    markSettingsBuilder.build());
+//            markPanel.add(new VisibleBehaviour(() -> isPolicyStatementSupported()));
+//            add(markPanel);
         } catch (SchemaException e) {
             getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
             LOGGER.trace("Cannot create panels for shadow, reason: {}", e.getMessage(), e);

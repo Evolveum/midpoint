@@ -16,18 +16,8 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Trace</orig>
-                <translation>
-                    <key>trace.label</key>
-                </translation>
-            </label>
-            <pluralLabel>
-                <orig>Traces</orig>
-                <translation>
-                    <key>trace.pluralLabel</key>
-                </translation>
-            </pluralLabel>
+            <label>Trace</label>
+            <pluralLabel>Traces</pluralLabel>
             <icon>
                 <cssClass>fa fa-stethoscope</cssClass>
             </icon>

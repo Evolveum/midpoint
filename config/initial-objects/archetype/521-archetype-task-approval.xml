@@ -10,12 +10,7 @@
     <name>Approval-related task</name>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Approval-related task</orig>
-                <translation>
-                    <key>ApprovalRelatedTask.label</key>
-                </translation>
-            </label>
+            <label>Approval-related task</label>
             <pluralLabel>
                 <orig>Approval-related tasks</orig>
                 <translation>

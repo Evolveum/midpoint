@@ -11,12 +11,7 @@
     <name>Report export task</name>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Report export task</orig>
-                <translation>
-                    <key>ReportExportTask.label</key>
-                </translation>
-            </label>
+            <label>Report export task</label>
             <pluralLabel>
                 <orig>Report export tasks</orig>
                 <translation>
@@ -42,12 +37,7 @@
                         <container id="4">
                             <identifier>reportParam</identifier>
                             <display>
-                                <label>
-                                    <orig>Parameters</orig>
-                                    <translation>
-                                        <key>parameters.container.label</key>
-                                    </translation>
-                                </label>
+                                <label>Parameters</label>
                             </display>
                             <path>activity/work/reportExport/reportParam</path>
                         </container>

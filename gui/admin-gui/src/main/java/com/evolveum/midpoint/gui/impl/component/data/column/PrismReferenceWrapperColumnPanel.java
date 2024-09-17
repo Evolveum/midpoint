@@ -33,7 +33,7 @@ public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends Ab
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismReferenceWrapperColumnPanel.class);
 
-    PrismReferenceWrapperColumnPanel(String id, IModel<PrismReferenceWrapper<R>> model, ColumnType columnType) {
+    public PrismReferenceWrapperColumnPanel(String id, IModel<PrismReferenceWrapper<R>> model, ColumnType columnType) {
         super(id, model, columnType);
     }
 
