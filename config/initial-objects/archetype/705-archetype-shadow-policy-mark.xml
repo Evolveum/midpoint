@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000705"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Shadow policy mark</name>
+    <description>
+        A special type of object mark that represents a shadow object operations policy, like whether inbound and/or
+        outbound synchronization is allowed. These marks can be used specifically to describe default operation
+        policies for resource object types.
+    </description>
+    <assignment id="1">
+        <identifier>holderType</identifier>
+        <assignmentRelation id="2">
+            <holderType>MarkType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypeType>structural</archetypeType>
+    <superArchetypeRef oid="00000000-0000-0000-0000-000000000701"/>
+    <archetypePolicy>
+        <display>
+            <label>Shadow Policy Mark</label>
+            <pluralLabel>Shadow Policy Marks</pluralLabel>
+            <icon>
+                <cssClass>fa fa-tag</cssClass> <!-- TODO -->
+                <color>blue</color>  <!-- TODO -->
+            </icon>
+        </display>
+    </archetypePolicy>
+</archetype>

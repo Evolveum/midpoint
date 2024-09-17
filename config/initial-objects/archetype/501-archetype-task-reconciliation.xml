@@ -11,13 +11,8 @@
     <name>Reconciliation task</name>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Reconciliation task</orig>
-                <translation>
-                    <key>ReconciliationTask.label</key>
-                </translation>
-            </label>
-             <pluralLabel>
+            <label>Reconciliation task</label>
+            <pluralLabel>
                 <orig>Reconciliation tasks</orig>
                 <translation>
                     <key>ReconciliationTasks.title</key>

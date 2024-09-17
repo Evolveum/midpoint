@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright (C) 2010-2024 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<mark xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000805">
+    <name>Unmanaged</name>
+    <documentation>
+        Marks a shadow that is tolerated by midPoint but not managed by it.
+        MidPoint should not create, modify, nor delete such objects (at the low level).
+        MidPoint should not execute outbound mappings on such objects.
+        MidPoint should not manage membership of these objects (if applicable; e.g., for groups).
+    </documentation>
+    <assignment id="1">
+        <identifier>archetype</identifier>
+        <targetRef oid="00000000-0000-0000-0000-000000000705" type="ArchetypeType"/>
+    </assignment>
+    <objectOperationPolicy>
+        <!-- TODO reconsider these -->
+        <add>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </add>
+        <modify>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </modify>
+        <delete>
+            <enabled>false</enabled>
+            <severity>error</severity>
+        </delete>
+        <synchronize>
+            <inbound>
+                <enabled>true</enabled>
+            </inbound>
+            <outbound>
+                <enabled>false</enabled>
+                <severity>info</severity>
+            </outbound>
+            <membership>
+                <inbound>
+                    <enabled>true</enabled>
+                </inbound>
+                <outbound>
+                    <enabled>false</enabled>
+                    <severity>info</severity>
+                </outbound>
+                <tolerant>true</tolerant>
+            </membership>
+        </synchronize>
+    </objectOperationPolicy>
+</mark>

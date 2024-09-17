@@ -439,7 +439,12 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
             @Override
             public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
                     IModel<RoleType> rowModel) {
-                item.add(new Label(componentId, resolveDateAndTime(rowModel.getObject().getMetadata().getCreateTimestamp())));
+                RoleType object = rowModel.getObject();
+                if (object == null || object.getMetadata() == null || object.getMetadata().getCreateTimestamp() == null) {
+                    item.add(new Label(componentId, ""));
+                } else {
+                    item.add(new Label(componentId, resolveDateAndTime(object.getMetadata().getCreateTimestamp())));
+                }
             }
 
         });

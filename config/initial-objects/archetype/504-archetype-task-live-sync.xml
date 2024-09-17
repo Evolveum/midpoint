@@ -12,12 +12,7 @@
     <name>Live synchronization task</name>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Live synchronization task</orig>
-                <translation>
-                    <key>LiveSynchronizationTask.label</key>
-                </translation>
-            </label>
+            <label>Live synchronization task</label>
             <pluralLabel>
                 <orig>Live synchronization tasks</orig>
                 <translation>

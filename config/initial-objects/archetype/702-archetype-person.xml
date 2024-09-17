@@ -11,18 +11,8 @@ oid="00000000-0000-0000-0000-000000000702">
     <description>Archetype for person users.</description>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Person</orig>
-                <translation>
-                    <key>Person.label</key>
-                </translation>
-            </label>
-            <pluralLabel>
-                <orig>Persons</orig>
-                <translation>
-                    <key>Persons.pluralLabel</key>
-                </translation>
-            </pluralLabel>
+            <label>Person</label>
+            <pluralLabel>Persons</pluralLabel>
             <tooltip>Person</tooltip>
             <icon>
                 <cssClass>fa fa-user</cssClass>

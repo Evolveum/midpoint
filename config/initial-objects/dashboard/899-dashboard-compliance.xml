@@ -25,9 +25,6 @@
         <display>
             <label>
                 <orig>Understaffed security roles</orig>
-                <translation>
-                    <key>UnderstaffedSecurityRoles.label</key>
-                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-person-arrow-down-to-line</cssClass>
@@ -94,9 +91,6 @@
         <display>
             <label>
                 <orig>Orphaned roles</orig>
-                <translation>
-                    <key>OrphanedRoles.label</key>
-                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-user-xmark</cssClass>
@@ -148,9 +142,6 @@
         <display>
             <label>
                 <orig>Orphaned applications</orig>
-                <translation>
-                    <key>OrphanedApplications.label</key>
-                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-user-xmark</cssClass>
@@ -202,9 +193,6 @@
         <display>
             <label>
                 <orig>Suspicious roles</orig>
-                <translation>
-                    <key>SuspiciousRoles.label</key>
-                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-handcuffs</cssClass>
@@ -255,9 +243,6 @@
         <display>
             <label>
                 <orig>Suspicious users</orig>
-                <translation>
-                    <key>SuspiciousUsers.label</key>
-                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-handcuffs</cssClass>
@@ -310,9 +295,6 @@
         <display>
             <label>
                 <orig>Information security roles</orig>
-                <translation>
-                    <key>InformationSecurityRoles.label</key>
-                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-building-shield</cssClass>
@@ -343,9 +325,6 @@
         <display>
             <label>
                 <orig>Privileged roles</orig>
-                <translation>
-                    <key>PrivilegedRoles.label</key>
-                </translation>
             </label>
             <icon>
                 <cssClass>fa fa-circle-radiation</cssClass>
