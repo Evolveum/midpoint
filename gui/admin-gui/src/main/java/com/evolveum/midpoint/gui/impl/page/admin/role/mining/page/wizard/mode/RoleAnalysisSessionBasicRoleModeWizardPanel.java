@@ -86,6 +86,8 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
     private static final String ID_LABEL_ROLES = "label-roles";
     private static final String ID_SELECTED_ROLES = "selected-roles";
 
+    double defaultPercentageMembership = 60.0;
+
     LoadableModel<Integer> totalUsersModel = new LoadableModel<>(true) {
         @Contract(pure = true)
         @Override
@@ -159,7 +161,12 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
 
         setSearchFilterOption(filter);
 
-        int minOverlap = Math.min(totalUserOwnedRole, 30);
+        int minOverlap;
+        if(totalUserOwnedRole > 1){
+            minOverlap = (int) Math.round(totalUserOwnedRole * defaultPercentageMembership / 100);
+        }else{
+            minOverlap = 1;
+        }
 
         minMembersOverlapModel.setObject(minOverlap);
         target.add(getArchetypeSelectionLabel());

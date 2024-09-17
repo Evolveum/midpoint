@@ -16,7 +16,6 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.util.convert.ConversionException;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -54,9 +53,9 @@ public class RangeSliderPanelSimpleModel extends InputPanel {
                 if (object == null || object == 0) {
                     return 0 + "% (" + 0 + ")";
                 }
-                double value = (int) (object * 100 / maxValueD);
-                BigDecimal bd = new BigDecimal(value);
-                bd = bd.setScale(1, RoundingMode.HALF_UP);
+                double value = (object * 100 / maxValueD);
+                BigDecimal bd = BigDecimal.valueOf(value);
+                bd = bd.setScale(1, RoundingMode.UP);
                 value = bd.doubleValue();
                 return value + "% (" + object + ")";
             }
@@ -76,18 +75,13 @@ public class RangeSliderPanelSimpleModel extends InputPanel {
             }
 
             @Override
-            protected Integer convertValue(String[] value) throws ConversionException {
-                return super.convertValue(value);
-            }
-
-            @Override
             protected void onInitialize() {
                 super.onInitialize();
                 add(new AjaxFormComponentUpdatingBehavior("input") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
                         double value = Double.parseDouble(getBaseFormComponent().getValue());
-                        BigDecimal bd = new BigDecimal(value);
+                        BigDecimal bd = BigDecimal.valueOf(value);
                         bd = bd.setScale(1, RoundingMode.HALF_UP);
                         value = bd.doubleValue();
                         sliderSimilarityValue = value;
@@ -102,6 +96,8 @@ public class RangeSliderPanelSimpleModel extends InputPanel {
             @Override
             public void onConfigure(Component component) {
                 slider.add(AttributeModifier.replace("max", getMaxValueD()));
+                slider.add(AttributeModifier.replace("value", getModelSimilarity()));
+                slider.add(AttributeModifier.replace("style", "width:" + getSliderWidth() + getSliderWidthUnit()));
             }
         });
 
@@ -113,7 +109,7 @@ public class RangeSliderPanelSimpleModel extends InputPanel {
     }
 
     protected void onUpdatePerform(AjaxRequestTarget target) {
-
+        //override in subclass
     }
 
     public Integer getModelSimilarity() {
@@ -123,11 +119,6 @@ public class RangeSliderPanelSimpleModel extends InputPanel {
     @Override
     public FormComponent<?> getBaseFormComponent() {
         return (FormComponent<?>) get(ID_SLIDER);
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
     }
 
     public int getDefaultValue() {
