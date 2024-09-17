@@ -12,10 +12,7 @@ import static com.evolveum.midpoint.common.LocalizationTestUtil.getLocalizationS
 import java.io.Serial;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -26,12 +23,17 @@ import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -103,6 +105,7 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     private static final String ID_OBJECT_TYPE = "objectType";
     private static final String ID_TABLE = "table";
     private static final String ID_TITLE = "title";
+    private static final String ID_DEFAULT_OPERATIONAL_POLICIES = "defaultOperationalPolicies";
     private static final String ID_CONFIGURATION = "configuration";
     private static final String ID_LIFECYCLE_STATE = "lifecycleState";
     private static final String OP_SET_LIFECYCLE_STATE_FOR_OBJECT_TYPE = DOT_CLASS + "setLyfecycleStateForObjectType";
@@ -130,6 +133,8 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
 
         createShowStatistics();
         createStatisticsPanel();
+
+        createDefaultOperationalPolicies();
 
         createShadowTable();
 
@@ -201,33 +206,35 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private void createPanelTitle() {
-        TitleWithMarks title = new TitleWithMarks(ID_TITLE, getLabelModel(), getDefaultOperationPolicy()){
-            @Override
-            protected boolean isTitleLinkEnabled() {
-                return false;
-            }
-
-            @Override
-            protected IModel<String> createPrimaryMarksTitle() {
-                IModel<String> objectTypeModel = () -> {
-                    ResourceObjectTypeDefinition def = getSelectedObjectTypeDefinition();
-                    if (def == null) {
-                        return null;
-                    }
-
-                    return GuiDisplayNameUtil.getDisplayName(getSelectedObjectTypeDefinition().getDefinitionBean());
-                };
-
-                return createStringResource(
-                        "ResourceObjectsPanel.defaultOperationPolicy",
-                        new Object[]{
-                                objectTypeModel,
-                                getDefaultOperationPolicy()}
-                        );
-            }
-        };
+        Label title = new Label(ID_TITLE, getLabelModel());
         title.setOutputMarkupId(true);
         add(title);
+    }
+
+    private void createDefaultOperationalPolicies() {
+        Label defaultOperationalPolicies = new Label(ID_DEFAULT_OPERATIONAL_POLICIES, getDefaultOperationPolicy());
+        defaultOperationalPolicies.add(AttributeAppender.append("title", getDefaultOperationPolicyTitle()));
+        defaultOperationalPolicies.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getDefaultOperationPolicy().getObject())));
+        defaultOperationalPolicies.setOutputMarkupId(true);
+        add(defaultOperationalPolicies);
+    }
+
+    private IModel<String> getDefaultOperationPolicyTitle() {
+        IModel<String> objectTypeModel = () -> {
+            ResourceObjectTypeDefinition def = getSelectedObjectTypeDefinition();
+            if (def == null) {
+                return null;
+            }
+
+            return GuiDisplayNameUtil.getDisplayName(getSelectedObjectTypeDefinition().getDefinitionBean());
+        };
+
+        return createStringResource(
+                "ResourceObjectsPanel.defaultOperationPolicy",
+                new Object[] {
+                        objectTypeModel,
+                        getDefaultOperationPolicy() }
+        );
     }
 
     private IModel<String> getDefaultOperationPolicy() {
@@ -238,51 +245,69 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
             }
 
             @NotNull ResourceObjectTypeDefinitionType objectType = def.getDefinitionBean();
-            if (objectType.getDefaultOperationPolicyRef() == null
-                    || objectType.getDefaultOperationPolicyRef().asReferenceValue().isEmpty()) {
+            if (objectType.getDefaultOperationPolicy().isEmpty()) {
                 return null;
             }
 
-            @Nullable PrismObject<ObjectType> mark = WebModelServiceUtils.loadObject(objectType.getDefaultOperationPolicyRef(), getPageBase());
-            if (mark == null) {
-                return null;
-            }
+            Object[] marks = objectType.getDefaultOperationPolicy().stream()
+                    .filter(policy -> policy != null && policy.getPolicyRef() != null && !policy.getPolicyRef().asReferenceValue().isEmpty())
+                    .map(policy -> new AbstractMap.SimpleEntry(WebModelServiceUtils.loadObject(policy.getPolicyRef(), getPageBase()), policy.getLifecycleState()))
+                    .filter(pair -> pair.getKey() != null)
+                    .map(pair -> WebComponentUtil.getDisplayNameOrName((PrismObject) pair.getKey())
+                            + (((pair.getValue() != null && !SchemaConstants.LIFECYCLE_ACTIVE.equals(pair.getValue())) ?
+                            (" (" + LocalizationUtil.translateLifecycleState((String) pair.getValue(), getPageBase()) + ")") : "")))
+                    .toArray();
 
-            return WebComponentUtil.getDisplayNameOrName(mark);
+            return StringUtils.joinWith(", ", marks);
         };
     }
 
     private void createObjectTypeChoice() {
 
-        LoadableDetachableModel<ResourceObjectTypeDefinition> objectTypeModel = new LoadableDetachableModel<>() {
+        LoadableDetachableModel<ResourceObjectTypeIdentification> objectTypeModel = new LoadableDetachableModel<>() {
             @Override
-            protected ResourceObjectTypeDefinition load() {
+            protected ResourceObjectTypeIdentification load() {
                 ResourceContentStorage storage = getPageStorage();
                 String intent = null;
                 if (storage != null) {
                     intent = storage.getContentSearch().getIntent();
                 }
-                return getObjectDetailsModels().getObjectTypeDefinition(getKind(), intent);
+                if (intent == null) {
+                    return null;
+                }
+                return getObjectDetailsModels().getObjectTypeDefinition(getKind(), intent).getTypeIdentification();
             }
 
             @Override
-            public void setObject(ResourceObjectTypeDefinition object) {
-                super.setObject(object);
+            public void setObject(ResourceObjectTypeIdentification object) {
                 ResourceContentStorage storage = getPageStorage();
                 if (storage != null) {
                     storage.getContentSearch().setIntent(object == null ? null : object.getIntent());
                 }
             }
         };
+
+        if (getPageStorage() == null || getPageStorage().getContentSearch().getIntent() == null) {
+            ResourceObjectTypeDefinition defaultObjectTypeDef = getObjectDetailsModels().getDefaultObjectType(getKind());
+            if (defaultObjectTypeDef != null) {
+                objectTypeModel.setObject(defaultObjectTypeDef.getTypeIdentification());
+            }
+        }
+
+        LoadableDetachableModel<List<? extends ResourceObjectTypeIdentification>> choices = new LoadableDetachableModel<>() {
+            @Override
+            protected List<? extends ResourceObjectTypeIdentification> load() {
+                List<? extends ResourceObjectTypeDefinition> choices = getObjectDetailsModels()
+                        .getResourceObjectTypesDefinitions(getKind());
+                return choices != null ? choices.stream().map(ResourceObjectTypeDefinition::getTypeIdentification).toList() : Collections.emptyList();
+            }
+        };
+
         var objectTypes = new DropDownChoicePanel<>(
                 ID_OBJECT_TYPE,
                 objectTypeModel,
-                () -> {
-                    List<? extends ResourceObjectTypeDefinition> choices = getObjectDetailsModels()
-                            .getResourceObjectTypesDefinitions(getKind());
-                    return choices != null ? choices : Collections.emptyList();
-                },
-                new ResourceObjectTypeChoiceRenderer(), true) {
+                choices,
+                new ResourceObjectTypeChoiceRenderer(getObjectDetailsModels()), true) {
 
         };
 
@@ -293,9 +318,10 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
                 target.add(get(ID_LIFECYCLE_STATE).getParent());
                 target.add(get(ID_CONFIGURATION));
                 target.add(get(ID_TASKS));
-                target.add(get(ID_TITLE));
+                target.add(get(ID_DEFAULT_OPERATIONAL_POLICIES));
                 target.add(getShadowTable());
                 lifecycleStateModel.detach();
+                objectTypeModel.detach();
             }
         });
         objectTypes.setOutputMarkupId(true);
@@ -937,9 +963,10 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     private ResourceObjectTypeDefinition getSelectedObjectTypeDefinition() {
-        DropDownChoicePanel<ResourceObjectTypeDefinition> objectTypeSelector = getObjectTypeSelector();
-        if (objectTypeSelector != null && objectTypeSelector.getModel() != null) {
-            return objectTypeSelector.getModel().getObject();
+        DropDownChoicePanel<ResourceObjectTypeIdentification> objectTypeSelector = getObjectTypeSelector();
+        if (objectTypeSelector != null && objectTypeSelector.getModel() != null && objectTypeSelector.getModel().getObject() != null) {
+            ResourceObjectTypeIdentification objectTypeIdentifier = objectTypeSelector.getModel().getObject();
+            return getObjectDetailsModels().getObjectTypeDefinition(objectTypeIdentifier.getKind(), objectTypeIdentifier.getIntent());
         }
         return null;
     }
@@ -961,8 +988,8 @@ public abstract class ResourceObjectsPanel extends AbstractResourceObjectPanel {
     }
 
     @SuppressWarnings("unchecked")
-    private DropDownChoicePanel<ResourceObjectTypeDefinition> getObjectTypeSelector() {
-        return (DropDownChoicePanel<ResourceObjectTypeDefinition>) get(ID_OBJECT_TYPE);
+    private DropDownChoicePanel<ResourceObjectTypeIdentification> getObjectTypeSelector() {
+        return (DropDownChoicePanel<ResourceObjectTypeIdentification>) get(ID_OBJECT_TYPE);
     }
 
     private ShadowTablePanel getShadowTable() {

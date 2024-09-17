@@ -14,6 +14,8 @@ import java.io.Serial;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.component.action.CertItemResolveAction;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -145,10 +147,21 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
         List<GuiActionType> actions = getCertItemsViewActions();
         List<AbstractGuiAction<AccessCertificationWorkItemType>> actionsList =
                 CertMiscUtil.mergeCertItemsResponses(availableResponses, actions, getPageBase());
+        resetAvailableResponses(availableResponses, actionsList);
         return actionsList
                 .stream()
                 .sorted(Comparator.comparingInt(AbstractGuiAction::getOrder))
                 .toList();
+    }
+
+    //hack for Resolve item and Change decision actions; they should contain configured responses as well
+    private void resetAvailableResponses(List<AccessCertificationResponseType> availableResponses,
+            List<AbstractGuiAction<AccessCertificationWorkItemType>> actionsList) {
+        for (AbstractGuiAction<AccessCertificationWorkItemType> action : actionsList) {
+            if (action instanceof CertItemResolveAction) {
+                ((CertItemResolveAction) action).setConfiguredResponses(availableResponses);
+            }
+        }
     }
 
     private List<GuiActionType> getCertItemsViewActions() {
@@ -259,16 +272,16 @@ public class CertificationWorkItemTable extends ContainerableListPanel<AccessCer
 
     protected ObjectQuery getOpenCertWorkItemsQuery() {
         ObjectQuery query;
-        if (StringUtils.isNotEmpty(getCampaignOid())) {
-            query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(getCampaignOid()),
-                    getPageBase().getPrincipal(), false);
-        } else {
-            query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
-                    .build();
-        }
         MidPointPrincipal principal = null;
         if (isMyCertItems()) {
             principal = getPageBase().getPrincipal();
+        }
+        if (StringUtils.isNotEmpty(getCampaignOid())) {
+            query = QueryUtils.createQueryForOpenWorkItemsForCampaigns(Collections.singletonList(getCampaignOid()),
+                    principal, false);
+        } else {
+            query = PrismContext.get().queryFor(AccessCertificationWorkItemType.class)
+                    .build();
         }
         return QueryUtils.createQueryForOpenWorkItems(query, principal, false);
     }

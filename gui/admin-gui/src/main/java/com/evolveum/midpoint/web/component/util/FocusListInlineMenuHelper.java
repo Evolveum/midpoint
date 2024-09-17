@@ -201,8 +201,9 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
         });
 
-        menu.add(focusListComponent.createMarkInlineMenuAction());
-        menu.add(focusListComponent.createUnmarkInlineMenuAction());
+        menu.add(focusListComponent.modifyMarkInlineMenuAction());
+//        menu.add(focusListComponent.createMarkInlineMenuAction());
+//        menu.add(focusListComponent.createUnmarkInlineMenuAction());
 
         return menu;
     }

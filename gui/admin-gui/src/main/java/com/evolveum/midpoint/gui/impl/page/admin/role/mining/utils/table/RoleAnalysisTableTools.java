@@ -7,10 +7,26 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table;
 
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningBaseTypeChunk;
+import com.evolveum.midpoint.common.mining.objects.chunk.MiningRoleTypeChunk;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
+import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * Utility class for role analysis table tools and operations.
@@ -167,6 +183,40 @@ public class RoleAnalysisTableTools {
             }
             throw new IllegalArgumentException("No such level with size: " + sizeInPixels);
         }
+    }
+
+    public static <T extends MiningBaseTypeChunk> CompositedIcon createCompositedObjectIcon(
+            @NotNull T rowModel,
+            @NotNull IModel<RoleAnalysisObjectDto> modelDto) {
+        List<String> roles = rowModel.getRoles();
+
+        boolean isRoleMode = rowModel instanceof MiningRoleTypeChunk;
+
+        String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(isRoleMode ? RoleType.COMPLEX_TYPE : UserType.COMPLEX_TYPE);
+        CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
+                IconCssStyle.IN_ROW_STYLE);
+
+        String iconColor = rowModel.getIconColor();
+        if (iconColor != null) {
+            compositedIconBuilder.appendColorHtmlValue(iconColor);
+        }
+
+        if (isRoleMode) {
+            List<ObjectReferenceType> resolvedPattern = modelDto.getObject().getResolvedPattern();
+            for (ObjectReferenceType ref : resolvedPattern) {
+                if (roles.contains(ref.getOid())) {
+                    compositedIconBuilder.setBasicIcon(defaultBlackIcon + " " + GuiStyleConstants.GREEN_COLOR,
+                            IconCssStyle.IN_ROW_STYLE);
+                    IconType icon = new IconType();
+                    icon.setCssClass(GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED
+                            + " " + GuiStyleConstants.GREEN_COLOR);
+                    compositedIconBuilder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                    break;
+                }
+            }
+        }
+
+        return compositedIconBuilder.build();
     }
 
 }

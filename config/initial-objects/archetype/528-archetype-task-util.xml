@@ -10,12 +10,7 @@
     <name>Utility task</name>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Utility task</orig>
-                <translation>
-                    <key>UtilityTask.label</key>
-                </translation>
-            </label>
+            <label>Utility task</label>
             <pluralLabel>
                 <orig>Utility tasks</orig>
                 <translation>

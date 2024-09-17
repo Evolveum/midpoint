@@ -97,7 +97,8 @@ public class PageShadows extends PageAdmin {
 
                     @Override
                     public Collection<SelectorOptions<GetOperationOptions>> getOptions() {
-                        return getObjectCollectionView().getOptions();
+                        CompiledObjectCollectionView view = getObjectCollectionView();
+                        return view != null ? view.getOptions() : null;
                     }
                 };
             }

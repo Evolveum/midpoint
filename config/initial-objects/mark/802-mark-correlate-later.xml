@@ -24,6 +24,17 @@
                 <enabled>false</enabled>
                 <severity>error</severity>
             </outbound>
+            <membership>
+                <inbound>
+                    <enabled>false</enabled>
+                    <severity>info</severity>
+                </inbound>
+                <outbound>
+                    <enabled>false</enabled>
+                    <severity>info</severity>
+                </outbound>
+                <tolerant>true</tolerant>
+            </membership>
         </synchronize>
         <!--  Provisioning level -->
         <add>

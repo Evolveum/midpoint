@@ -11,19 +11,21 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REDUCE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
 
 /**
- * TODO implement more cleanly
+ // available responses can be configured in 3 places:
+ // 1. systemConfiguration -> accessCertification -> availableResponses
+ // 2. certificationCampaign -> accessCertification -> defaultView -> action
+ // 3. accessCertificationDefinition -> view -> action
+ // todo for now this class takes care only for 2 first options. the third should be counted as well
  */
 public class AvailableResponses implements Serializable {
 
@@ -41,6 +43,9 @@ public class AvailableResponses implements Serializable {
 
         addResponse(config, "PageCertDecisions.menu.accept", ACCEPT);
         addResponse(config, "PageCertDecisions.menu.revoke", REVOKE);
+
+        List<GuiActionType> configuredActions = config != null && config.getDefaultView() != null ? config.getDefaultView().getAction() : new ArrayList<>();
+        addResponses(configuredActions);
 
         //starting from 4.9 the default responses are Accept a Revoke. All others should be configured if needed
 //        addResponse(config, "PageCertDecisions.menu.reduce", REDUCE);
@@ -64,6 +69,16 @@ public class AvailableResponses implements Serializable {
         responseValues.add(response);
     }
 
+    private void addResponses(List<GuiActionType> configuredActions) {
+        for (GuiActionType action : configuredActions) {
+            var response = CertificationItemResponseHelper.getResponseForGuiAction(action);
+            if (response != null && !responseValues.contains(response)) {
+                var responseHelper = new CertificationItemResponseHelper(response);
+                responseKeys.add(responseHelper.getLabelKey());
+                responseValues.add(response);
+            }
+        }
+    }
 
     public boolean isAvailable(AccessCertificationResponseType response) {
         return response == null || responseValues.contains(response);

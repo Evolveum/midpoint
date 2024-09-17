@@ -58,24 +58,14 @@
                 <name>name</name>
                 <path>name</path>
                 <display>
-                    <label>
-                        <orig>Name</orig>
-                        <translation>
-                            <key>reportCertificationCampaigns.nameColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Name</label>
                 </display>
             </column>
             <column id="3">
                 <name>owner</name>
                 <path>ownerRef</path>
                 <display>
-                    <label>
-                        <orig>Owner</orig>
-                        <translation>
-                            <key>reportCertificationCampaigns.ownerColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Owner</label>
                 </display>
                 <previousColumn>name</previousColumn>
             </column>
@@ -83,12 +73,7 @@
                 <name>startTimestamp</name>
                 <path>startTimestamp</path>
                 <display>
-                    <label>
-                        <orig>Start</orig>
-                        <translation>
-                            <key>reportCertificationCampaigns.startTimestampColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Start</label>
                 </display>
                 <previousColumn>owner</previousColumn>
             </column>
@@ -96,12 +81,7 @@
                 <name>endTimestamp</name>
                 <path>endTimestamp</path>
                 <display>
-                    <label>
-                        <orig>Finish</orig>
-                        <translation>
-                            <key>reportCertificationCampaigns.endTimestampColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Finish</label>
                 </display>
                 <previousColumn>startTimestamp</previousColumn>
             </column>
@@ -109,12 +89,7 @@
                 <name>cases</name>
                 <path>case</path>
                 <display>
-                    <label>
-                        <orig>Cases</orig>
-                        <translation>
-                            <key>reportCertificationCampaigns.casesColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Cases</label>
                 </display>
                 <previousColumn>endTimestamp</previousColumn>
                 <displayValue>number</displayValue>
@@ -123,12 +98,7 @@
                 <name>state</name>
                 <path>state</path>
                 <display>
-                    <label>
-                        <orig>State</orig>
-                        <translation>
-                            <key>reportCertificationCampaigns.stateColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>State</label>
                 </display>
                 <previousColumn>cases</previousColumn>
             </column>
@@ -136,24 +106,14 @@
                 <name>stageNumber</name>
                 <path>stageNumber</path>
                 <display>
-                    <label>
-                        <orig>Actual stage</orig>
-                        <translation>
-                            <key>reportCertificationCampaigns.stageNumberColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Actual stage</label>
                 </display>
                 <previousColumn>state</previousColumn>
             </column>
             <column id="9">
                 <name>stageCases</name>
                 <display>
-                    <label>
-                        <orig>Stage cases</orig>
-                        <translation>
-                            <key>reportCertificationCampaigns.stageCasesColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Stage cases</label>
                 </display>
                 <previousColumn>stageNumber</previousColumn>
                 <export>
@@ -173,12 +133,7 @@
             <column id="10">
                 <name>percentComplete</name>
                 <display>
-                    <label>
-                        <orig>% complete</orig>
-                        <translation>
-                            <key>reportCertificationCampaigns.percentCompleteColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>% complete</label>
                 </display>
                 <previousColumn>stageCases</previousColumn>
                 <export>

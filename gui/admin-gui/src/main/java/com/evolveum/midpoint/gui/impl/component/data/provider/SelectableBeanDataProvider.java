@@ -135,7 +135,7 @@ public abstract class SelectableBeanDataProvider<T extends Serializable> extends
         return optionsBuilder;
     }
 
-    private List<SelectableBean<T>> createDataObjectWrappers(Class<T> type, ObjectQuery query,
+    protected List<SelectableBean<T>> createDataObjectWrappers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws CommonException {
         List<T> list = searchObjects(type, query, options, task, result);

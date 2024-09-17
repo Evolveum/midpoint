@@ -2124,7 +2124,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            Action which can be produced from this module. E.g. redirecting to the documentation page
+                            Action which can be produced from this module's UI form. E.g. redirecting to the documentation page
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

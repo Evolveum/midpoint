@@ -853,6 +853,15 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView id="269">
+                <identifier>shadow-policy-mark</identifier>
+                <type>c:MarkType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000705" relation="org:default" type="c:ArchetypeType">
+                        <!-- Shadow policy mark -->
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
             <objectCollectionView id="80">
                 <description>Persons</description>
                 <documentation>This view displays all users with archetype "Person"</documentation>

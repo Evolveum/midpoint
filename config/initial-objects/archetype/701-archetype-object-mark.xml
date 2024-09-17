@@ -18,18 +18,8 @@
     <archetypeType>structural</archetypeType>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Object mark</orig>
-                <translation>
-                    <key>ObjectMark.label</key>
-                </translation>
-            </label>
-            <pluralLabel>
-                <orig>Object marks</orig>
-                <translation>
-                    <key>ObjectMarks.pluralLabel</key>
-                </translation>
-            </pluralLabel>
+            <label>Object Mark</label>
+            <pluralLabel>Object Marks</pluralLabel>
             <icon>
                 <cssClass>fa fa-tag</cssClass>
                 <color>blue</color>
@@ -40,12 +30,7 @@
                 <panel id="3">
                     <identifier>shadowMarksList</identifier>
                     <display>
-                        <label>
-                            <orig>Marked shadows</orig>
-                            <translation>
-                                <key>MarkedShadows.label</key>
-                            </translation>
-                        </label>
+                        <label>Marked shadows</label>
                     </display>
                     <applicableForOperation>modify</applicableForOperation>
                     <panelType>markedShadowList</panelType>

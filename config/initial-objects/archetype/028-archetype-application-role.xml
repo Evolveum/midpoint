@@ -18,18 +18,8 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Application role</orig>
-                <translation>
-                    <key>applicationRole.label</key>
-                </translation>
-            </label>
-            <pluralLabel>
-                <orig>Correlation cases</orig>
-                <translation>
-                    <key>applicationRole.pluralLabel</key>
-                </translation>
-            </pluralLabel>
+            <label>Application role</label>
+            <pluralLabel>Application roles</pluralLabel>
             <icon>
                 <cssClass>fe fe-role</cssClass>
                 <color>blue</color>

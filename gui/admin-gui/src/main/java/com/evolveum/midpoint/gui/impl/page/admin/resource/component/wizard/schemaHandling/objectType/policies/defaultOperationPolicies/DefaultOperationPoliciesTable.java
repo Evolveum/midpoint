@@ -54,7 +54,7 @@ public class DefaultOperationPoliciesTable extends AbstractWizardTable<DefaultOp
                 getPageBase()) {
             @Override
             public String getCssClass() {
-                return "col-8";
+                return "col-6";
             }
         });
 

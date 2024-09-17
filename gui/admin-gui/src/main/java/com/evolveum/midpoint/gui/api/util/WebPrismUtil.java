@@ -285,7 +285,7 @@ public class WebPrismUtil {
         return value;
     }
 
-    private static void cleanupValueMetadata(PrismValue value) {
+    public static void cleanupValueMetadata(PrismValue value) {
         if (value.hasValueMetadata()) {
             cleanupEmptyValues(value.getValueMetadata());
         }
