@@ -9,6 +9,9 @@ package com.evolveum.midpoint.web.page.error;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FeedbackMessagesHookType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -101,7 +104,7 @@ public class PageError extends PageBase {
         add(labelLabel);
 
         final IModel<String> message = () -> {
-            if (exClass == null) {
+            if (exClass == null || !isStackTraceVisible()) {
                 return null;
             }
 
@@ -149,6 +152,30 @@ public class PageError extends PageBase {
         super.renderHead(response);
 
         response.render(OnDomReadyHeaderItem.forScript("$('div.content-wrapper').css('margin-left', '0');"));
+    }
+
+    private boolean isStackTraceVisible() {
+        UserInterfaceElementVisibilityType stackTraceVisibility = null;
+
+
+        FeedbackMessagesHookType feedbackConfig = getCompiledGuiProfile().getFeedbackMessagesHook();
+        if (feedbackConfig != null) {
+            stackTraceVisibility = feedbackConfig.getStackTraceVisibility();
+        }
+
+        if (stackTraceVisibility == null) {
+            stackTraceVisibility = UserInterfaceElementVisibilityType.VISIBLE;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.VISIBLE) {
+            return true;
+        }
+
+        if (stackTraceVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override

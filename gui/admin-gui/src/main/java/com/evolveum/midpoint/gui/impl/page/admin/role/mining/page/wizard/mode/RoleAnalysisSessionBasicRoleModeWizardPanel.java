@@ -12,11 +12,14 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismProperty;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -61,6 +64,10 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+
 public class RoleAnalysisSessionBasicRoleModeWizardPanel
         extends AbstractWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -78,6 +85,8 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
     //    private static final String ID_TITLE_ROLES = "title-roles";
     private static final String ID_LABEL_ROLES = "label-roles";
     private static final String ID_SELECTED_ROLES = "selected-roles";
+
+    double defaultPercentageMembership = 60.0;
 
     LoadableModel<Integer> totalUsersModel = new LoadableModel<>(true) {
         @Contract(pure = true)
@@ -122,11 +131,6 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
         return totalUserOwnedRole;
     }
 
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-    }
-
     private void initLayout() {
         IconWithLabel cardTitle = new IconWithLabel(ID_CARD_TITLE,
                 createStringResource("RoleAnalysisSessionBasicRoleModeWizardPanel.card.title.label")) {
@@ -148,7 +152,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
 
         if (archetypeOid != null) {
             query = PrismContext.get().queryFor(UserType.class)
-                    .item(UserType.F_ARCHETYPE_REF)
+                    .item(AssignmentHolderType.F_ARCHETYPE_REF)
                     .ref(archetypeOid).build();
         }
 
@@ -157,7 +161,10 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
 
         setSearchFilterOption(filter);
 
-        int minOverlap = Math.min(totalUserOwnedRole, 30);
+        int minOverlap = 0;
+        if(totalUserOwnedRole != 0){
+            minOverlap = (int) Math.round(totalUserOwnedRole * defaultPercentageMembership / 100);
+        }
 
         minMembersOverlapModel.setObject(minOverlap);
         target.add(getArchetypeSelectionLabel());
@@ -172,7 +179,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
                     objectWrapper).getObject().getValue();
             setupQueryProperty(primaryOptions, filter);
         } catch (SchemaException e) {
-            throw new RuntimeException("Cannot set query filter", e);
+            throw new SystemException("Cannot set query filter", e);
         }
     }
 
@@ -180,7 +187,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
         PrismContainer<Containerable> container = getObjectWrapper().getObject()
                 .findContainer(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS);
 
-        PrismProperty<Object> property = container.findProperty(RoleAnalysisSessionOptionType.F_PROPERTIES_RANGE);
+        PrismProperty<Object> property = container.findProperty(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
 
         if (property.getRealValue() instanceof RangeType rangeType) {
             rangeType.setMin((double) minUsers);
@@ -225,7 +232,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
                 onSubmit(target, null, null);
             }
         };
-        removeArchetypeButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        removeArchetypeButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
         removeArchetypeButton.setOutputMarkupId(true);
         removeArchetypeButton.showTitleAsLabel(false);
 
@@ -258,7 +265,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
                 PrismContainerValueWrapper<Containerable> parent = getObjectWrapper().findContainerValue(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS);
                 if (parent != null) {
                     PrismPropertyWrapper<Integer> objectClass = parent.findProperty(
-                            RoleAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP);
+                            AbstractAnalysisSessionOptionType.F_MIN_PROPERTIES_OVERLAP);
                     return objectClass.getValue();
                 }
                 return null;
@@ -276,12 +283,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
         };
 
         RangeSliderPanelSimpleModel rangeSliderPanel = new RangeSliderPanelSimpleModel(ID_INPUT_MEMBERSHIP,
-                minMembersOverlapModel, totalUsersModel) {
-            @Override
-            protected void onUpdatePerform(AjaxRequestTarget target) {
-                super.onUpdatePerform(target);
-            }
-        };
+                minMembersOverlapModel, totalUsersModel);
         rangeSliderPanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         rangeSliderPanel.setOutputMarkupId(true);
         add(rangeSliderPanel);
@@ -314,7 +316,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
                 PrismContainerValueWrapper<Containerable> parent = getObjectWrapper().findContainerValue(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS);
                 if (parent != null) {
                     PrismPropertyWrapper<Integer> objectClass = parent.findProperty(
-                            RoleAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT);
+                            AbstractAnalysisSessionOptionType.F_MIN_MEMBERS_COUNT);
                     return objectClass.getValue();
                 }
                 return null;
@@ -351,10 +353,6 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
         return getDetailsModel().getObjectWrapper();
     }
 
-    private LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> getObjectWrapperModel() {
-        return getDetailsModel().getObjectWrapperModel();
-    }
-
     @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("RoleAnalysisSessionBasicRoleModeWizardPanel.text");
@@ -370,7 +368,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
         return true;
     }
 
-    protected IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getPrimaryOptionContainerFormModel(
+    protected IModel<PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getPrimaryOptionContainerFormModel(
             @NotNull LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel) {
         RoleAnalysisSessionType session = objectWrapperModel.getObject().getObject().asObjectable();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
@@ -400,7 +398,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
             }
         };
         changeArchetype.showTitleAsLabel(true);
-        changeArchetype.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        changeArchetype.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
         changeArchetype.setOutputMarkupId(true);
         return changeArchetype;
     }
@@ -414,26 +412,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
-                if (newAssignmentsList != null && newAssignmentsList.size() == 1) {
-                    AssignmentType assignmentType = newAssignmentsList.get(0);
-                    if (assignmentType.getTargetRef() != null) {
-                        ObjectReferenceType archetypeRef = assignmentType.getTargetRef();
-                        if (archetypeRef.getOid() != null) {
-                            archetypeNameModel.setObject(archetypeRef.getTargetName().getOrig());
-                            ObjectFilter query = PrismContext.get().queryFor(UserType.class)
-                                    .item(UserType.F_ARCHETYPE_REF)
-                                    .ref(archetypeRef.getOid()).buildFilter();
-
-                            SearchFilterType queryType;
-                            try {
-                                queryType = PrismContext.get().getQueryConverter().createSearchFilterType(query);
-                            } catch (SchemaException e) {
-                                throw new IllegalStateException("Couldn't create query type from query: " + query, e);
-                            }
-                            onSubmit(target, queryType, archetypeRef.getOid());
-                        }
-                    }
-                }
+                performOnArchetypeSelection(target, newAssignmentsList);
 
             }
 
@@ -458,7 +437,14 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
 
                             @Override
                             protected ObjectQuery addFilterToContentQuery() {
-                                return null;
+                                ObjectQuery query = getPrismContext().queryFactory().createQuery();
+                                List<String> archetypeOidsList = WebComponentUtil.getArchetypeOidsListByHolderType(
+                                        UserType.class, getPageBase());
+                                ObjectFilter filter = getPrismContext().queryFor(ArchetypeType.class)
+                                        .id(archetypeOidsList.toArray(new String[0]))
+                                        .buildFilter();
+                                query.addFilter(filter);
+                                return query;
                             }
 
                             @SuppressWarnings("rawtypes")
@@ -491,14 +477,38 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
                 return tabs;
             }
 
+            @Contract(pure = true)
             @Override
-            protected IModel<String> getWarningMessageModel() {
-                return createStringResource("PageAdminObjectDetails.button.changeArchetype.warningMessage");
+            protected @Nullable IModel<String> getWarningMessageModel() {
+                return null;
             }
         };
 
         changeArchetypePopup.setOutputMarkupPlaceholderTag(true);
         getPageBase().showMainPopup(changeArchetypePopup, target);
+    }
+
+    private void performOnArchetypeSelection(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
+        if (newAssignmentsList != null && newAssignmentsList.size() == 1) {
+            AssignmentType assignmentType = newAssignmentsList.get(0);
+            if (assignmentType.getTargetRef() != null) {
+                ObjectReferenceType archetypeRef = assignmentType.getTargetRef();
+                if (archetypeRef.getOid() != null) {
+                    archetypeNameModel.setObject(archetypeRef.getTargetName().getOrig());
+                    ObjectFilter query = PrismContext.get().queryFor(UserType.class)
+                            .item(AssignmentHolderType.F_ARCHETYPE_REF)
+                            .ref(archetypeRef.getOid()).buildFilter();
+
+                    SearchFilterType queryType;
+                    try {
+                        queryType = PrismContext.get().getQueryConverter().createSearchFilterType(query);
+                    } catch (SchemaException e) {
+                        throw new IllegalStateException("Couldn't create query type from query: " + query, e);
+                    }
+                    onSubmit(target, queryType, archetypeRef.getOid());
+                }
+            }
+        }
     }
 
     public Component getArchetypeSelectionLabel() {
