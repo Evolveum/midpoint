@@ -132,8 +132,7 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                     if (value == null || value.getRealValue() == null) {
                         return false;
                     }
-                    return value.getStatus() == ValueStatus.ADDED
-                            || value.getRealValue().getMarkRef() == null
+                    return value.getRealValue().getMarkRef() == null
                             || StringUtils.isEmpty(value.getRealValue().getMarkRef().getOid());
                 }).forEach(value -> {
                     SelectableBeanImpl<MarkType> selectableBean = new SelectableBeanImpl<>();
@@ -153,8 +152,7 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                         if (value == null || value.getRealValue() == null) {
                             return false;
                         }
-                        return value.getStatus() == ValueStatus.ADDED
-                                || value.getRealValue().getMarkRef() == null
+                        return value.getRealValue().getMarkRef() == null
                                 || StringUtils.isEmpty(value.getRealValue().getMarkRef().getOid());
                     }).toList();
                     count = count + emptyValues.size();
