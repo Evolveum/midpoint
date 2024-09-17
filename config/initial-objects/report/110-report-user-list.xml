@@ -121,12 +121,7 @@
                 <name>roleColumn</name>
                 <path>assignment</path>
                 <display>
-                    <label>
-                        <orig>Role</orig>
-                        <translation>
-                            <key>reportUserList.roleColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Role</label>
                 </display>
                 <export>
                     <expression>
@@ -153,12 +148,7 @@
                 <name>orgColumn</name>
                 <path>assignment</path>
                 <display>
-                    <label>
-                        <orig>Organization</orig>
-                        <translation>
-                            <key>reportUserList.orgColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Organization</label>
                 </display>
                 <export>
                     <expression>
@@ -185,12 +175,7 @@
                 <name>accountColumn</name>
                 <path>linkRef</path>
                 <display>
-                    <label>
-                        <orig>Account</orig>
-                        <translation>
-                            <key>reportUserList.accountColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Account</label>
                 </display>
                 <export>
                     <expression>

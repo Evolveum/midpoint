@@ -11,12 +11,7 @@
     <name>Recomputation task</name>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Recomputation task</orig>
-                <translation>
-                    <key>RecomputationTask.label</key>
-                </translation>
-            </label>
+            <label>Recomputation task</label>
             <pluralLabel>
                 <orig>Recomputation tasks</orig>
                 <translation>

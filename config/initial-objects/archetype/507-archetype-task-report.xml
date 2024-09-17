@@ -12,12 +12,7 @@
     <description>Super archetype for all report archetypes</description>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Report task</orig>
-                <translation>
-                    <key>ReportTask.label</key>
-                </translation>
-            </label>
+            <label>Report task</label>
             <pluralLabel>
                 <orig>Report tasks</orig>
                 <translation>
