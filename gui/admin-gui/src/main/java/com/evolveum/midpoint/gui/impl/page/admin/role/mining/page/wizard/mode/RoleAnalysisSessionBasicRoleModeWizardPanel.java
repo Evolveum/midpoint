@@ -432,10 +432,7 @@ public class RoleAnalysisSessionBasicRoleModeWizardPanel
 
                             @Override
                             protected ObjectQuery addFilterToContentQuery() {
-                                ObjectQuery query = super.addFilterToContentQuery();
-                                if (query == null) {
-                                    query = getPrismContext().queryFactory().createQuery();
-                                }
+                                ObjectQuery query = getPrismContext().queryFactory().createQuery();
                                 List<String> archetypeOidsList = WebComponentUtil.getArchetypeOidsListByHolderType(
                                         UserType.class, getPageBase());
                                 ObjectFilter filter = getPrismContext().queryFor(ArchetypeType.class)
