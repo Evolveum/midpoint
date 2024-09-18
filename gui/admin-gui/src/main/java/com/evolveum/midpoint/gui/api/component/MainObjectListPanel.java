@@ -646,7 +646,12 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                         }
 
                         MarksOfObjectListPopupPanel popup = new MarksOfObjectListPopupPanel(
-                                getPageBase().getMainPopupBodyId(), focusModel);
+                                getPageBase().getMainPopupBodyId(), focusModel) {
+                            @Override
+                            protected void refreshTable(AjaxRequestTarget target) {
+                                MainObjectListPanel.this.refreshTable(target);
+                            }
+                        };
 
                         getPageBase().showMainPopup(popup, target);
                     }
