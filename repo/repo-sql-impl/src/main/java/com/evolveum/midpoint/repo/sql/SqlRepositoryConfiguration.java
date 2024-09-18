@@ -338,7 +338,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
                         System.getProperty(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML))
                 .toLowerCase();
 
-        // requires asServer, baseDir, fileName, port
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, null);
 
         computeDefaultConcurrencyParameters();

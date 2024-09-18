@@ -9,7 +9,7 @@
 <!--
 Configuration key-value can be added or overridden using -Dkey=value JVM argument.
 Key is a path to element, starting at "midpoint", separated with "." - for example:
--Dmidpoint.repository.asServer=false
+-Dmidpoint.repository.database=sqlserver
 or
 -Dmidpoint.profilingEnabled=true
 See more: https://docs.evolveum.com/midpoint/reference/deployment/midpoint-home-directory/overriding-config-xml-parameters/

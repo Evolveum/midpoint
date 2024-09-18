@@ -12,8 +12,6 @@
         </global>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
-            <port>5438</port>
-            <asServer>true</asServer>
             <dropIfExists>true</dropIfExists>
         </repository>
         <workflow>
