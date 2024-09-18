@@ -191,7 +191,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         Collection<ResourceObjectClassDefinition> objectClasses = parsedSchema.getObjectClassDefinitions();
         List<QName> objectClassesToGenerate = ResourceTypeUtil.getSchemaGenerationConstraints(resourceTypeRepoAfter);
-        if (objectClassesToGenerate != null && !objectClasses.isEmpty()) {
+        if (!objectClassesToGenerate.isEmpty() && !objectClasses.isEmpty()) {
             assertEquals("Unexpected object classes in generate schema", objectClassesToGenerate.size(), objectClasses.size());
         }
 

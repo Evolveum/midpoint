@@ -364,7 +364,8 @@ class ResourceCompletionOperation {
                 throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
                 SchemaException {
             LOGGER.trace("Fetching resource schema for {}", resource);
-            nativeResourceSchema = schemaFetcher.fetchResourceSchema(resource, nativeConnectorsCapabilities, result);
+            nativeResourceSchema =
+                    schemaFetcher.fetchResourceSchema(resource, nativeConnectorsCapabilities, true, result);
             if (nativeResourceSchema == null) {
                 LOGGER.warn("No resource schema fetched from {}", resource);
             } else if (nativeResourceSchema.isEmpty()) {

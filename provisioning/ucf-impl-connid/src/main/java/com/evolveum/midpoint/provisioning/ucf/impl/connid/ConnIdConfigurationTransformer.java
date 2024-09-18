@@ -24,7 +24,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorConfigurationOptions;
 import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -53,6 +52,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.identityconnectors.framework.common.objects.SuggestedValues;
 import org.identityconnectors.framework.common.objects.ValueListOpenness;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorFactoryConnIdImpl.*;
 
 /**
  * @author semancik
@@ -75,21 +77,20 @@ class ConnIdConfigurationTransformer {
     }
 
     /**
-     * Transforms midPoint XML configuration of the connector to the ICF
-     * configuration.
-     * <p/>
-     * The "configuration" part of the XML resource definition will be used.
-     * <p/>
-     * The provided ICF APIConfiguration will be modified, some values may be
-     * overwritten.
+     * Transforms midPoint XML configuration of the connector to the ICF configuration.
      *
-     * @throws SchemaException
-     * @throws ConfigurationException
+     * The "configuration" part of the XML resource definition will be used.
+     *
+     * The provided ICF APIConfiguration will be modified, some values may be overwritten.
      */
-    APIConfiguration transformConnectorConfiguration(PrismContainerValue<?> configuration)
+    APIConfiguration transformConnectorConfiguration(@Nullable PrismContainerValue<?> configuration)
             throws SchemaException, ConfigurationException {
 
         APIConfiguration apiConfig = connectorInfo.createDefaultAPIConfiguration();
+        if (configuration == null) {
+            return apiConfig;
+        }
+
         ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
 
         // The namespace of all the configuration properties specific to the
@@ -97,45 +98,37 @@ class ConnIdConfigurationTransformer {
         // namespace can be found in the resource definition.
         String connectorConfNs = connectorBean.getNamespace();
 
-        PrismContainer<?> configurationPropertiesContainer = configuration
-                .findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
+        PrismContainer<?> configurationPropertiesContainer =
+                configuration.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES_NAME);
         if (configurationPropertiesContainer == null) {
             // Also try this. This is an older way.
-            configurationPropertiesContainer = configuration.findContainer(new QName(connectorConfNs,
-                    SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME));
+            configurationPropertiesContainer = configuration.findContainer(
+                    new QName(connectorConfNs, SchemaConstants.ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME));
         }
 
         transformConnectorConfigurationProperties(configProps, configurationPropertiesContainer, connectorConfNs);
 
-        PrismContainer connectorPoolContainer = configuration.findContainer(new QName(
-                SchemaConstants.NS_ICF_CONFIGURATION,
-                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME));
+        var connectorPoolContainer = configuration.findContainer(CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT);
         @NotNull ObjectPoolConfiguration connectorPoolConfiguration = apiConfig.getConnectorPoolConfiguration();
         transformConnectorPoolConfiguration(connectorPoolConfiguration, connectorPoolContainer);
 
-        PrismProperty producerBufferSizeProperty = configuration.findProperty(new ItemName(
-                SchemaConstants.NS_ICF_CONFIGURATION,
-                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME));
+        var producerBufferSizeProperty = configuration.findProperty(CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT);
         if (producerBufferSizeProperty != null) {
             apiConfig.setProducerBufferSize(parseInt(producerBufferSizeProperty));
         }
 
-        PrismContainer connectorTimeoutsContainer = configuration.findContainer(new QName(
-                SchemaConstants.NS_ICF_CONFIGURATION,
-                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME));
+        var connectorTimeoutsContainer = configuration.findContainer(CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT);
         transformConnectorTimeoutsConfiguration(apiConfig, connectorTimeoutsContainer);
 
-        PrismContainer resultsHandlerConfigurationContainer = configuration.findContainer(new QName(
-                SchemaConstants.NS_ICF_CONFIGURATION,
-                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME));
+        var resultsHandlerConfigurationContainer =
+                configuration.findContainer(CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT);
         ResultsHandlerConfiguration resultsHandlerConfiguration = apiConfig.getResultsHandlerConfiguration();
         transformResultsHandlerConfiguration(resultsHandlerConfiguration, resultsHandlerConfigurationContainer);
 
         return apiConfig;
-
     }
 
-    public Collection<PrismProperty<?>> transformSuggestedConfiguration(Map<String, SuggestedValues> suggestions)
+    Collection<PrismProperty<?>> transformSuggestedConfiguration(Map<String, SuggestedValues> suggestions)
             throws SchemaException {
         APIConfiguration apiConfig = connectorInfo.createDefaultAPIConfiguration();
         ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
@@ -205,8 +198,7 @@ class ConnIdConfigurationTransformer {
             def.mutator().setDocumentation(propertyDef.getDocumentation());
             def.mutator().setMaxOccurs(propertyDef.isMultiValue() ? -1 : 1);
 
-            PrismProperty<Object> property = (PrismProperty<Object>) def.instantiate();
-            convertedSuggestions.add(property);
+            convertedSuggestions.add(def.instantiate());
         }
         return convertedSuggestions;
     }
@@ -282,37 +274,31 @@ class ConnIdConfigurationTransformer {
                 QName propertyQName = prismProperty.getElementName();
                 if (propertyQName.getNamespaceURI().equals(SchemaConstants.NS_ICF_CONFIGURATION)) {
                     String subelementName = propertyQName.getLocalPart();
-                    if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS
-                            .equals(subelementName)) {
+                    if (CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS.equals(subelementName)) {
                         connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(prismProperty));
-                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE
-                            .equals(subelementName)) {
+                    } else if (CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE.equals(subelementName)) {
                         connectorPoolConfiguration.setMinIdle(parseInt(prismProperty));
-                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE
-                            .equals(subelementName)) {
+                    } else if (CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE.equals(subelementName)) {
                         connectorPoolConfiguration.setMaxIdle(parseInt(prismProperty));
-                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS
-                            .equals(subelementName)) {
+                    } else if (CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS.equals(subelementName)) {
                         connectorPoolConfiguration.setMaxObjects(parseInt(prismProperty));
-                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT
-                            .equals(subelementName)) {
+                    } else if (CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT.equals(subelementName)) {
                         connectorPoolConfiguration.setMaxWait(parseLong(prismProperty));
-                    } else if (ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE_TIME_MILLIS
-                            .equals(subelementName)) {
+                    } else if (CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE_TIME_MILLIS.equals(subelementName)) {
                         connectorPoolConfiguration.setMaxIdleTimeMillis(parseLong(prismProperty));
                     } else {
                         throw new SchemaException(
                                 "Unexpected element "
                                         + propertyQName
                                         + " in "
-                                        + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
+                                        + CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
                     }
                 } else {
                     throw new SchemaException(
                             "Unexpected element "
                                     + propertyQName
                                     + " in "
-                                    + ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
+                                    + CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
                 }
             }
         }
@@ -396,17 +382,13 @@ private boolean determineResultHandlerConfiguration(PrismContainer<?> resultsHan
 
     private long parseLong(PrismProperty<?> prop) {
         Object realValue = prop.getRealValue();
-        if (realValue instanceof Long) {
-            return (Long) realValue;
-        } else if (realValue instanceof Integer) {
-            return (Integer) realValue;
+        if (realValue instanceof Long longValue) {
+            return longValue;
+        } else if (realValue instanceof Integer integerValue) {
+            return integerValue;
         } else {
             throw new IllegalArgumentException("Cannot convert " + realValue.getClass() + " to long");
         }
-    }
-
-    private boolean parseBoolean(PrismProperty<?> prop) {
-        return prop.getRealValue(Boolean.class);
     }
 
     private Object convertToConnIdSingle(PrismProperty<?> configProperty, Class<?> expectedType)
@@ -423,7 +405,7 @@ private boolean determineResultHandlerConfiguration(PrismContainer<?> resultsHan
         Object valuesArrary = Array.newInstance(componentType, values.size());
         for (int j = 0; j < values.size(); ++j) {
             Object icfValue = convertToConnId(values.get(j), componentType);
-            if (icfValue != null && icfValue instanceof RawType) {
+            if (icfValue instanceof RawType) {
                 throw new SchemaException("Cannot convert value of " + prismProperty.getElementName().getLocalPart() + " because it is still raw. Missing definition in connector schema?");
             }
             Array.set(valuesArrary, j, icfValue);
@@ -451,12 +433,12 @@ private boolean determineResultHandlerConfiguration(PrismContainer<?> resultsHan
             // TODO
 //            return new GuardedByteArray(Base64.decodeBase64((ProtectedByteArrayType) pval.getValue()));
             return new GuardedByteArray(((ProtectedByteArrayType) pval.getValue()).getClearBytes());
-        } else if (midPointRealValue instanceof PolyString) {
-            return ((PolyString) midPointRealValue).getOrig();
-        } else if (midPointRealValue instanceof PolyStringType) {
-            return ((PolyStringType) midPointRealValue).getOrig();
-        } else if (expectedType.equals(File.class) && midPointRealValue instanceof String) {
-            return new File((String) midPointRealValue);
+        } else if (midPointRealValue instanceof PolyString polyStringValue) {
+            return polyStringValue.getOrig();
+        } else if (midPointRealValue instanceof PolyStringType polyStringTypeValue) {
+            return polyStringTypeValue.getOrig();
+        } else if (expectedType.equals(File.class) && midPointRealValue instanceof String stringValue) {
+            return new File(stringValue);
         } else if (expectedType.equals(String.class) && midPointRealValue instanceof ProtectedStringType) {
             try {
                 return protector.decryptString((ProtectedStringType) midPointRealValue);

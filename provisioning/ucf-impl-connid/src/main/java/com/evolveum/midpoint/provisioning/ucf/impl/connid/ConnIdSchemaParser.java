@@ -57,7 +57,7 @@ class ConnIdSchemaParser {
     /** When schema parsing is requested. */
     ConnIdSchemaParser(
             @NotNull Schema connIdSchema,
-            @NotNull List<QName> objectClassesToParse,
+            @NotNull Collection<QName> objectClassesToParse,
             Boolean configuredLegacySchema) {
         this.connIdSchema = connIdSchema;
         this.legacySchema = Objects.requireNonNullElseGet(configuredLegacySchema, () -> detectLegacySchema(connIdSchema));

@@ -56,7 +56,7 @@ public class UcfAddReturnValue extends AsynchronousOperationReturnValue<Collecti
     /**
      * Some or all attributes of the created object - if the UCF connector supports this.
      *
-     * @see ConnectorInstance#addObject(PrismObject, UcfExecutionContext, OperationResult)
+     * @see ConnectorInstance#addObject(PrismObject, SchemaAwareUcfExecutionContext, OperationResult)
      */
     public @Nullable Collection<ShadowSimpleAttribute<?>> getKnownCreatedObjectAttributes() {
         return getReturnValue();

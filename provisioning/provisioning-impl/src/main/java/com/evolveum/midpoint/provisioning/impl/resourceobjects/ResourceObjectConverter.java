@@ -227,8 +227,9 @@ public class ResourceObjectConverter {
     }
 
     /**
-     * Returns known executed deltas as reported by {@link ConnectorInstance#modifyObject(ResourceObjectIdentification.WithPrimary,
-     * PrismObject, Collection, ConnectorOperationOptions, UcfExecutionContext, OperationResult)}.
+     * Returns known executed deltas as reported by {@link ConnectorInstance#modifyObject(
+     * ResourceObjectIdentification.WithPrimary, PrismObject, Collection, ConnectorOperationOptions,
+     * SchemaAwareUcfExecutionContext, OperationResult)}.
      */
     public ResourceObjectModifyReturnValue modifyResourceObject(
             @NotNull ProvisioningContext ctx,

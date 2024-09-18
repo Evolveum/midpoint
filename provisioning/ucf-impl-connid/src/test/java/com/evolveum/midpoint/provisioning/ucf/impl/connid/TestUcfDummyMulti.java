@@ -18,9 +18,8 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
-import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.context.ContextConfiguration;
@@ -35,17 +34,12 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfObjectHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
-import com.evolveum.midpoint.schema.processor.ShadowAttributesContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+
 import com.google.common.io.Files;
 
 /**
@@ -91,7 +85,9 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-        resourceSchema = ResourceSchemaFactory.nativeToBare(cc.fetchResourceSchema(result));
+        var nativeResourceSchema = cc.fetchResourceSchema(result);
+        resourceSchema = ResourceSchemaFactory.nativeToBare(nativeResourceSchema);
+        completeResourceSchema = ResourceSchemaFactory.parseCompleteSchema(resourceBean, nativeResourceSchema);
         assertNotNull("No resource schema", resourceSchema);
     }
 
@@ -114,7 +110,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
 
         // WHEN
-        cc.addObject(shadow, null, result);
+        cc.addObject(shadow, createExecutionContext(), result);
 
         // THEN
         DummyAccount dummyAccount = dummyResource.getAccountByName(ACCOUNT_JACK_USERNAME);
@@ -127,7 +123,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     public void test110SearchNonBlocking() throws Exception {
         // GIVEN
 
-        UcfExecutionContext ctx = createExecutionContext();
+        var ctx = createExecutionContext();
 
         final ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
@@ -160,8 +156,8 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     @Test
     public void test200BlockingSearch() throws Exception {
         // GIVEN
-        UcfExecutionContext ctx = createExecutionContext();
-        OperationResult result = createOperationResult();
+        var ctx = createExecutionContext();
+        var result = createOperationResult();
 
         final ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
@@ -182,8 +178,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             try {
                 cc.search(accountDefinition, null, handler, null, null,
                         null, null, ctx, result);
-            } catch (CommunicationException | GenericFrameworkException | SchemaException
-                    | SecurityViolationException | ObjectNotFoundException e) {
+            } catch (CommonException | GenericFrameworkException e) {
                 logger.error("Error in the search: {}", e.getMessage(), e);
             }
         });
@@ -221,7 +216,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
     @Test
     public void test210TwoBlockingSearches() throws Exception {
         // GIVEN
-        UcfExecutionContext ctx = createExecutionContext();
+        var ctx = createExecutionContext();
 
         final ResourceObjectClassDefinition accountDefinition =
                 resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
@@ -249,8 +244,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
         Thread t1 = new Thread(() -> {
             try {
                 cc.search(accountDefinition, null, handler1, null, null, null, null, ctx, result1);
-            } catch (CommunicationException | GenericFrameworkException | SchemaException
-                    | SecurityViolationException | ObjectNotFoundException e) {
+            } catch (CommonException | GenericFrameworkException e) {
                 logger.error("Error in the search: {}", e.getMessage(), e);
             }
         });
@@ -271,8 +265,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
             try {
                 cc.search(accountDefinition, null, handler2, null, null,
                         null, null, ctx, result2);
-            } catch (CommunicationException | GenericFrameworkException | SchemaException
-                    | SecurityViolationException | ObjectNotFoundException e) {
+            } catch (CommonException | GenericFrameworkException e) {
                 logger.error("Error in the search: {}", e.getMessage(), e);
             }
         });

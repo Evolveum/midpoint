@@ -31,13 +31,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  *
  * Responsibilities:
  *
- * 1. Reports executed operations to a given {@link Task} (currently only ICF/ConnId operations are reported this way):
+ * . Provides current {@link ResourceType} object - for reporting purposes.
+ *
+ * . Reports executed operations to a given {@link Task} (currently only ICF/ConnId operations are reported this way):
  * both statistics and state message. This includes creation of {@link ConnIdOperation} objects carrying e.g. the lightweight
  * identifier.
  *
- * 2. Lets the called method know if the task was suspended (see {@link #canRun()}).
+ * . Lets the called method know if the task was suspended (see {@link #canRun()}).
  *
- * Because of a complex nature of some operations (search and sync) this task has to keep some information
+ * Because of a complex nature of some operations (search and sync) this object has to keep some information
  * about the current operation being executed.
  */
 public class UcfExecutionContext {
@@ -49,8 +51,7 @@ public class UcfExecutionContext {
     /** Resource - used only for reporting purposes. */
     @NotNull private final ResourceType resource;
 
-    /** TODO can be null? */
-    private final Task task;
+    @NotNull private final Task task;
 
     /**
      * Operation currently being executed. (It is at most one at any given time, so it can be stored in a single field.)
@@ -60,7 +61,7 @@ public class UcfExecutionContext {
     public UcfExecutionContext(
             @NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
             @NotNull ResourceType resource,
-            Task task) {
+            @NotNull Task task) {
         this.lightweightIdentifierGenerator = lightweightIdentifierGenerator;
         this.resource = resource;
         this.task = task;
@@ -82,11 +83,7 @@ public class UcfExecutionContext {
         }
         currentOperation = operation;
 
-        if (task != null) {
-            task.onConnIdOperationStart(operation);
-        } else {
-            reportNoTask(operation);
-        }
+        task.onConnIdOperationStart(operation);
 
         String object = "";
         if (uid != null) {
@@ -103,11 +100,7 @@ public class UcfExecutionContext {
             LOGGER.warn("Suspending operation other than current: suspending {}, recorded current {}, task {}",
                     operation, currentOperation, task);
         } else {
-            if (task != null) {
-                task.onConnIdOperationSuspend(operation);
-            } else {
-                reportNoTask(currentOperation);
-            }
+            task.onConnIdOperationSuspend(operation);
         }
         currentOperation = null;
         recordState("Returned from " + operation + " of " + getObjectClassName(objectClassDef) + " on " + getResourceName());
@@ -118,11 +111,7 @@ public class UcfExecutionContext {
         if (currentOperation != null) {
             LOGGER.warn("Unfinished operation: {} in {}", currentOperation, task);
         } else {
-            if (task != null) {
-                task.onConnIdOperationResume(operation);
-            } else {
-                reportNoTask(operation);
-            }
+            task.onConnIdOperationResume(operation);
         }
         currentOperation = operation;
         recordState("Continuing " + operation + " of " + getObjectClassName(operation.getObjectClassDef()) + " on " + getResourceName());
@@ -162,11 +151,7 @@ public class UcfExecutionContext {
                 finished + " " + operation + " of " + getObjectClassName(operation.getObjectClassDef()) + object +
                         " on " + getResourceName() + durationString;
         recordState(stateMessage);
-        if (task != null) {
-            task.onConnIdOperationEnd(operation);
-        } else {
-            reportNoTask(currentOperation);
-        }
+        task.onConnIdOperationEnd(operation);
         currentOperation = null;
     }
 
@@ -178,26 +163,23 @@ public class UcfExecutionContext {
         return resource.getOid();
     }
 
+    public @NotNull ResourceType getResource() {
+        return resource;
+    }
+
     private String getObjectClassName(ResourceObjectDefinition objectClassDef) {
         return objectClassDef != null ? objectClassDef.getTypeName().getLocalPart() : "(null)";
     }
 
-    private void reportNoTask(ConnIdOperation operation) {
-        LOGGER.warn("Couldn't report execution of ConnId operation {} because there is no task assigned.",
-                operation);
-    }
-
     private void recordState(String message) {
-        if (task != null) {
-            task.recordStateMessage(message);
-        }
+        task.recordStateMessage(message);
     }
 
     public boolean canRun() {
-        return !(task instanceof RunningTask) || ((RunningTask) task).canRun();
+        return !(task instanceof RunningTask runningTask) || runningTask.canRun();
     }
 
-    public Task getTask() {
+    public @NotNull Task getTask() {
         return task;
     }
 

@@ -37,7 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
  */
 @ManagedConnector
 @Experimental
-public abstract class AbstractManualConnectorInstance extends AbstractManagedConnectorInstance implements AsynchronousOperationQueryable {
+public abstract class AbstractManualConnectorInstance
+        extends AbstractManagedConnectorInstance
+        implements AsynchronousOperationQueryable {
 
     private static final String OPERATION_ADD = AbstractManualConnectorInstance.class.getName() + ".addObject";
     private static final String OPERATION_MODIFY = AbstractManualConnectorInstance.class.getName() + ".modifyObject";
@@ -62,9 +64,11 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public UcfAddReturnValue addObject(
-            PrismObject<? extends ShadowType> object,
-            UcfExecutionContext ctx, OperationResult parentResult) throws CommunicationException,
-            GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
+            @NotNull PrismObject<? extends ShadowType> object,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
+            ConfigurationException {
 
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
 
@@ -98,7 +102,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
-            UcfExecutionContext ctx, OperationResult parentResult)
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
             SchemaException, ObjectAlreadyExistsException, ConfigurationException {
 
@@ -140,7 +145,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     public UcfDeleteReturnValue deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             PrismObject<ShadowType> shadow,
-            UcfExecutionContext ctx,
+            @NotNull UcfExecutionContext ctx,
             @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException,
             GenericFrameworkException, SchemaException, ConfigurationException {
@@ -197,8 +202,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification.WithPrimary resourceObjectIdentification, ShadowItemsToReturn shadowItemsToReturn,
-            UcfExecutionContext ctx, OperationResult parentResult) {
+            @NotNull ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
         return null;
@@ -213,7 +220,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod errorReportingMethod,
-            @NotNull UcfExecutionContext ctx,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
             @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         // Read operations are not supported. We cannot really manually read the content of an off-line resource.
@@ -237,16 +244,21 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     }
 
     @Override
-    public NativeResourceSchema fetchResourceSchema(OperationResult parentResult) {
+    public NativeResourceSchema fetchResourceSchema(@NotNull OperationResult parentResult) {
         // Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
         InternalMonitor.recordConnectorOperation("schema");
         return null;
     }
 
     @Override
-    public UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            ShadowItemsToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
-            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
+    public UcfFetchChangesResult fetchChanges(
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @Nullable UcfSyncToken lastToken,
+            @Nullable ShadowItemsToReturn attrsToReturn,
+            @Nullable Integer maxChanges,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull UcfLiveSyncChangeListener changeHandler,
+            @NotNull OperationResult parentResult) {
         // not supported
         return null;
     }
