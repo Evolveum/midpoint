@@ -105,11 +105,6 @@ public interface JdbcRepositoryConfiguration {
     String getPerformanceStatisticsFile();
     int getPerformanceStatisticsLevel();
 
-    @Deprecated
-    default boolean isUsingH2() {
-        return false;
-    }
-
     default boolean isUsingOracle() {
         return isUsing(SupportedDatabase.ORACLE);
     }

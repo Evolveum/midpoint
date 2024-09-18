@@ -167,7 +167,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
         }
     }
 
-    // This needs to be "explicitly relative" (or absolute), unless -Dh2.implicitRelativePath=true
     private static final int DEFAULT_MIN_POOL_SIZE = 8;
     private static final int DEFAULT_MAX_POOL_SIZE = 20;
     private static final int DEFAULT_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD = 500;
@@ -210,13 +209,12 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
      */
 
     /**
-     * Database kind - either explicitly configured or derived from other options (driver name, hibernate dialect, embedded).
+     * Database kind - either explicitly configured or derived from other options (driver name, hibernate dialect).
      * May be null if couldn't be derived in any reasonable way.
      */
     private final Database database;
     private final SupportedDatabase databaseType; // the same as Database, but more general type
 
-    // embedded configuration
     private final boolean dropIfExists;
     //connection for hibernate
     private final String driverClassName;
@@ -282,7 +280,6 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
      *    1. database
      *    2. driverClassName
      *    3. hibernateDialect
-     *    4. embedded (if true, H2 is used)
      */
     public SqlRepositoryConfiguration(Configuration configuration) {
         Validate.notNull(configuration, "Repository configuration must not be null.");
@@ -457,18 +454,13 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
     }
 
     private void computeDefaultConcurrencyParameters() {
-        if (isUsingH2()) {
-            defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
-            defaultLockForUpdateViaHibernate = false;
-            defaultLockForUpdateViaSql = true;
-            defaultReadOnlyTransactionStatement = null; // h2 does not support read only transactions
-        } else if (isUsingOracle()) {
+        if (isUsingOracle()) {
             /*
              * Isolation of SERIALIZABLE causes false ORA-8177 (serialization) exceptions even for single-thread scenarios
              * since midPoint 3.8 and/or Oracle 12c (to be checked more precisely).
              *
              * READ_COMMITTED is currently a problem for PostgreSQL because of org closure conflicts.
-             * However, in case of Oracle (and SQL Server and H2) we explicitly lock the whole
+             * However, in case of Oracle (and SQL Server) we explicitly lock the whole
              * M_ORG_CLOSURE_TABLE during closure updates.
              * Therefore, we can use READ_COMMITTED isolation for Oracle.
              *

@@ -116,10 +116,6 @@ public abstract class SqlBaseService {
         return diag;
     }
 
-    public boolean isGenericNonH2() {
-        return true;
-    }
-
     private void readDetailsFromConnection(RepositoryDiag diag, final SqlRepositoryConfiguration config) {
         final List<LabeledString> details = diag.getAdditionalDetails();
 

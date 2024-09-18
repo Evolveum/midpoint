@@ -43,7 +43,7 @@ public class SystemFeaturesEnquirer {
                 enquiry.isCustomLoggingDefined(),
                 enquiry.areRealNotificationsEnabled(),
                 enquiry.isClusteringEnabled(),
-                enquiry.isGenericNonH2DatabaseUsed());
+                enquiry.isGenericDatabaseUsed());
     }
 
     private @Nullable SystemConfigurationType getSystemConfiguration(OperationResult result) {
@@ -131,8 +131,8 @@ public class SystemFeaturesEnquirer {
             return taskManager.isClustered();
         }
 
-        boolean isGenericNonH2DatabaseUsed() {
-            return repositoryService.isGenericNonH2();
+        boolean isGenericDatabaseUsed() {
+            return !repositoryService.isNative();
         }
     }
 }

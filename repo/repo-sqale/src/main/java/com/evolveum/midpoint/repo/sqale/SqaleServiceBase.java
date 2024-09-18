@@ -225,10 +225,6 @@ public class SqaleServiceBase {
         return diag;
     }
 
-    public boolean isGenericNonH2() {
-        return false; // This is the native implementation, not the generic one.
-    }
-
     private void addGlobalMetadataInfo(JdbcSession jdbcSession, List<LabeledString> details) {
         List<MGlobalMetadata> list = jdbcSession.newQuery()
                 .from(QGlobalMetadata.DEFAULT)

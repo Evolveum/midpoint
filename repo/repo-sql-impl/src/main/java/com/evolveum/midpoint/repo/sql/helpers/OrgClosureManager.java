@@ -170,7 +170,6 @@ public class OrgClosureManager {
         return new Context();
     }
 
-    // may cause implicit commit!!! (in H2)
     public void cleanUpAfterOperation(Context closureContext, EntityManager em) {
         if (closureContext == null) {
             return;
@@ -293,7 +292,7 @@ public class OrgClosureManager {
                 }
             }
         } finally {
-            cleanUpAfterOperation(context, em);     // commits in case of H2!
+            cleanUpAfterOperation(context, em);
             em.close();
         }
     }
@@ -562,7 +561,6 @@ public class OrgClosureManager {
                         "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
                                 "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
                 if (countUpdate > 0) {
-                    // Can/must be unified with PG after H2 > 1.4.200 if no other issues emerge.
                     if (isPostgreSQL()) {
                         addQuery += " where not exists (select 1 from " + CLOSURE_TABLE_NAME + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
                     } else {
@@ -646,7 +644,6 @@ public class OrgClosureManager {
 
     private void dropDeltaTableIfNecessary(EntityManager em, String deltaTempTableName) {
         // postgresql deletes the table automatically on commit
-        // in H2 we delete the table after whole closure operation (after commit)
         if (isSQLServer()) {
             // TODO drop temporary if using SQL Server
             Query dropQuery = em.createNativeQuery(
@@ -817,7 +814,7 @@ public class OrgClosureManager {
                     "SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
             q.getResultList();
         } else {
-            throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
+            throw new AssertionError("Neither Oracle nor SQL Server");
         }
         LOGGER.trace("...locked in {} ms", System.currentTimeMillis() - start);
 

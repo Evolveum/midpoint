@@ -47,10 +47,12 @@ to a file, not its content, is the actual value.
             <jdbcPassword>password</jdbcPassword>
             -->
 
-            <!-- Old Generic repository configured for embedded H2 for quick start. -->
+            <!-- Old Generic repository placeholders for quick start. -->
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
-            <baseDir>${midpoint.home}</baseDir>
-            <asServer>true</asServer>
+            <database></database>   <!-- sqlserver, postgresql or oracle -->
+            <jdbcUsername></jdbcUsername> <!-- username for the database -->
+            <jdbcPassword></jdbcPassword> <!-- password for the database -->
+            <jdbcUrl></jdbcUrl> <!-- jdbc url for the database -->
         </repository>
         <audit>
             <auditService>
