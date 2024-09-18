@@ -94,6 +94,11 @@ public class EffectiveMarkDto<O extends ObjectType> implements Serializable {
             LOGGER.error("Couldn't find policy statement for " + markType);
             return;
         }
+
+        if (wrapper == null) {
+            return;
+        }
+
         Optional<PrismReferenceValueWrapperImpl<ObjectReferenceType>> effectiveMark =
                 wrapper.getValues().stream().filter(value -> {
                     if (value == null || value.getRealValue().getOid() == null) {
@@ -129,6 +134,11 @@ public class EffectiveMarkDto<O extends ObjectType> implements Serializable {
                 LOGGER.error("Couldn't find effective mark for " + markBean);
                 return;
             }
+
+            if (container == null) {
+                return;
+            }
+
             Optional<PrismContainerValueWrapper<PolicyStatementType>> policyStatement =
                     container.getValues().stream().filter(value -> {
                         if (value == null || value.getRealValue() == null || value.getRealValue().getMarkRef() == null) {
