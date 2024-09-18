@@ -81,6 +81,9 @@ public class SearchableItemsDefinitions {
                 ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP),
                 ItemPath.create(ObjectType.F_EFFECTIVE_MARK_REF)
         ));
+        SEARCHABLE_OBJECTS.put(AssignmentHolderType.class, Arrays.asList(
+                ItemPath.create(AssignmentHolderType.F_ARCHETYPE_REF)
+        ));
         SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
                 ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF),
                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
