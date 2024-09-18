@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.data.provider.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
@@ -25,10 +26,12 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -91,19 +94,21 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
                     warn(getString("pageContentAccounts.message.noAccountSelected"));
                     return PrismContext.get().queryFor(MarkType.class).none().build();
                 }
-                List<String> selectedMarks = new ArrayList<>();
 
-                selectedMarks.addAll(objectModel.getObject().getValue().getRealValue().getEffectiveMarkRef().stream()
+                Set<String> selectedMarks = new HashSet<>();
+
+                O object = objectModel.getObject().getValue().getRealValue();
+                selectedMarks.addAll(object.getEffectiveMarkRef().stream()
                         .filter(ref -> ref != null && StringUtils.isNotEmpty(ref.getOid()))
                         .map(AbstractReferencable::getOid)
                         .toList());
 
-                selectedMarks.addAll(objectModel.getObject().getValue().getRealValue().getPolicyStatement().stream()
-                        .filter(policyStatementType -> policyStatementType.getMarkRef() != null
-                                && StringUtils.isNotEmpty(policyStatementType.getMarkRef().getOid())
-                                && !selectedMarks.contains(policyStatementType.getMarkRef().getOid()))
-                        .map(policyStatementType -> policyStatementType.getMarkRef().getOid())
-                        .toList());
+                selectedMarks.addAll(object.getPolicyStatement().stream()
+                                .filter(ps -> ps.getMarkRef() != null)
+                                .map(ps -> ps.getMarkRef())
+                                .filter(ref -> ref.getOid() != null)
+                                .map(AbstractReferencable::getOid)
+                                .toList());
 
                 if (selectedMarks.isEmpty()) {
                     LOGGER.trace("Selected object does not contain any mark.");
@@ -162,6 +167,11 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
         };
     }
 
+    @Override
+    protected IColumn<SelectableBean<MarkType>, String> createIconColumn() {
+        return null;
+    }
+
     private boolean addStatementPolicyMarkValue(PrismContainerValueWrapper<PolicyStatementType> value) {
         if (value == null || value.getRealValue() == null) {
             return false;
@@ -171,8 +181,7 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
             return true;
         }
 
-        return objectModel.getObject().getValue().getRealValue().getEffectiveMarkRef().stream()
-                .noneMatch(ref -> value.getRealValue().getMarkRef().getOid().equals(ref.getOid()));
+        return ValueStatus.ADDED == value.getStatus();
     }
 
     @Override

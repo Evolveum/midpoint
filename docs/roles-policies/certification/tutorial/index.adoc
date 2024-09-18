@@ -11,7 +11,7 @@
 Assuming you're logged as administrator, you should see the Certification menu items in the main menu:
 
 .Certification definitions table
-image::left-menu-cert-items.png[75%]
+image::left-menu-cert-items.png[width=85%]
 
 By default, there are no campaign definitions in the repository.
 In order to have some definition, you can either import one (e.g. https://github.com/Evolveum/midpoint-samples/blob/master/samples/certification/def-all-user-assignments.xml[All user assignments]) or go through creating certification definition UI (by following *Certification -> New campaign definition* menu item).
@@ -22,7 +22,7 @@ New campaign should be created, successful message should appear.
 To view the list of campaigns, click on the *"Show campaigns"* button (or select menu item) or navigate to *Certification -> Campaigns* page through the main menu.
 
 .Campaigns page
-image::campaigns-page.png[75%]
+image::campaigns-page.png[width=85%]
 
 The campaign is named "All user assignments 1", because there can be - and most probably, will be - more campaigns for a given campaign type.
 By default, they are named as <campaign definition> plus an increasing number.
@@ -34,7 +34,7 @@ The special task is created to process this action, you can follow its progress 
 Let's see the campaign details now by clicking *"Details"* link on the campaign tile panel.
 
 .Campaign details view
-image::campaign-details.png[75%]
+image::campaign-details.png[width=85%]
 
 Left-side summary panel provides basic information about the campaign.
 We can see that the campaign is now in review stage 1 state.
@@ -45,12 +45,12 @@ To view certification items which should be reviewed, click on the *"Certificati
 Active campaigns are shown in the view of tile panels. To view certification items, click *"Show items"* link.
 
 .Active campaigns view
-image::active-campaigns.png[75%]
+image::active-campaigns.png[width=85%]
 
 On the certification items page, it is possible to make decision on the certification items with the help of the table menu items.
 
 .Certification items view
-image::cert-items.png[75%]
+image::cert-items.png[width=85%]
 
 By default, the system has 2 available responses.
 They are:
@@ -73,13 +73,13 @@ Maybe it should be discarded.)
 After some decisions are made, it's possible to view the statistics of the responses and some other data on the campaign details view ("*Certification -> Campaigns*" and click on *"All user assignments 1"* campaign).
 
 .Campaign details view - Responses panel
-image::campaign-responses-panel.png[75%]
+image::campaign-responses-panel.png[width=85%]
 
 Also, you can view the progress of the reviewers and related tasks on the Statistics panel.
 //todo another name for Statistics panel? Overview panel?//
 
 .Campaign details view - Responses panel
-image::campaign-statistics-panel.png[75%]
+image::campaign-statistics-panel.png[width=85%]
 
 The stage can be closed either automatically (after defined time, in this case, 14 days), or manually by the owner, at any time.
 Let's click on *"Close stage"* button.
@@ -89,12 +89,12 @@ Now there is a possibility to start the remediation, if needed.
 After *"Start remediation"* button is clicked, the special task is created to process this action.
 
 .Starting the remediation
-image::remediation-started.png[75%]
+image::remediation-started.png[width=85%]
 
 Remediation process removes all assignments marked as "Revoke".
 After a few seconds, after refreshing the screen, you see that this campaign is over:
 
 .Closed campaign
-image::closed-campaign.png[75%]
+image::closed-campaign.png[width=85%]
 
 If needed, you can reiterate the campaign by clicking on the *"Reiterate campaign"* button.

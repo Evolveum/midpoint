@@ -6,8 +6,8 @@
  */
 
 import Sparkline from "sparklines";
-import {TempusDominus} from '@eonasdan/tempus-dominus';
-import {DateTime} from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
+import { TempusDominus } from '@eonasdan/tempus-dominus';
+import { DateTime } from '@eonasdan/tempus-dominus/dist/js/tempus-dominus.js';
 
 export default class MidPointTheme {
 
@@ -48,14 +48,14 @@ export default class MidPointTheme {
         });
 
         jQuery(function ($) {
-            $('.nav-sidebar li.nav-item[aria-haspopup="true"]').on("click", function (e) {
-                if ($(this).hasClass('menu-open')) {
-                    $(this).attr("aria-expanded", "false");
-                } else {
-                    $(this).attr("aria-expanded", "true");
-                }
-            });
-        });
+                    $('.nav-sidebar li.nav-item[aria-haspopup="true"]').on("click", function (e) {
+                        if ($(this).hasClass('menu-open')) {
+                            $(this).attr("aria-expanded", "false");
+                        } else {
+                            $(this).attr("aria-expanded", "true");
+                        }
+                    });
+                });
 
         !function ($) {
             $.fn.passwordFieldValidatorPopover = function (inputId, popover) {
@@ -156,8 +156,7 @@ export default class MidPointTheme {
                     }
                     $(this).tooltip({html: true, whiteList: wl, 'container': container});
                     $(this).tooltip("show");
-                }
-                ;
+                };
             }
         })(jQuery);
 
@@ -188,9 +187,9 @@ export default class MidPointTheme {
         jQuery(function ($) {
             $(document).on("keydown", ".showPasswordButton", function (e, t) {
                 if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
-                    e.key == "Enter" || e.keyCode == 13) {
+                        e.key == "Enter" || e.keyCode == 13) {
                     $(this).showPassword();
-                }
+                  }
             });
         });
 
@@ -212,39 +211,39 @@ export default class MidPointTheme {
         })(jQuery);
 
         jQuery(function ($) {
-            $(document).on("keydown", ".clickable-by-enter", function (e, t) {
-                if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
-                    e.key == "Enter" || e.keyCode == 13) {
-                    $(this).click();
-                }
-            });
-        });
+                    $(document).on("keydown", ".clickable-by-enter", function (e, t) {
+                        if (e.key == " " || e.code == "Space" || e.keyCode == 32 ||
+                                e.key == "Enter" || e.keyCode == 13) {
+                            $(this).click();
+                          }
+                    });
+                });
     }
 
-    initDateTimePicker(containerId, configuration) {
-        new TempusDominus(containerId, configuration);
-    }
+initDateTimePicker(containerId, configuration) {
+    new TempusDominus(containerId, configuration);
+}
 
-    createCurrentDateForDatePicker(containerId, configuration) {
-        const date = new Date();
-        return new DateTime(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
-    }
+createCurrentDateForDatePicker(containerId, configuration) {
+    const date = new Date();
+    return new DateTime(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+}
 
-    breakLongerTextInTableCell(cellId) {
-        $("#" + cellId).css("word-break", function (index, origValue) {
-            var textOfColumn = document.getElementById(cellId).innerText.trim();
-            if (textOfColumn != '' && textOfColumn != ' ') {
-                var numberOfChars = 15;
-                var regex = new RegExp(`[^\\s]{${numberOfChars}}`);
+breakLongerTextInTableCell(cellId) {
+    $("#" + cellId).css("word-break", function (index, origValue) {
+        var textOfColumn = document.getElementById(cellId).innerText.trim();
+        if (textOfColumn != '' && textOfColumn != ' ') {
+            var numberOfChars = 15;
+            var regex = new RegExp(`[^\\s]{${numberOfChars}}`);
 
-                // Check if there are 15 consecutive non-whitespace characters anywhere in the string
-                if (regex.test(textOfColumn)) {
-                    return "break-all";
-                }
+            // Check if there are 15 consecutive non-whitespace characters anywhere in the string
+            if (regex.test(textOfColumn)) {
+                return "break-all";
             }
-            return "inherit";
-        });
-    }
+        }
+        return "inherit";
+    });
+}
 
     // I'm not sure why sidebar has 15px padding -> and why I had to use 10px constant here [lazyman]
     fixContentHeight() {
@@ -623,10 +622,10 @@ export default class MidPointTheme {
 //    }
 
     /**
-     * Used for scaling tables, images and charts (Role Mining)
-     *
-     * @param containerId
-     */
+    * Used for scaling tables, images and charts (Role Mining)
+    *
+    * @param containerId
+    */
     initScaleResize(containerId) {
         let div = document.querySelector(containerId);
         let scale = 0.5;
@@ -659,40 +658,40 @@ export default class MidPointTheme {
         let isDragging = false
 
         function startDrag(e) {
-            e.preventDefault();
-            isMouseDown = true
-            startX = e.clientX;
-            startY = e.clientY;
-            startScrollLeft = div.scrollLeft;
-            startScrollTop = div.scrollTop;
-            div.addEventListener('mousemove', drag);
-        }
-
-        function drag(e) {
-            e.preventDefault();
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            const delta = Math.sqrt(dx * dx + dy * dy)
-            if (!isDragging && isMouseDown && delta > minDragDistance) {
-                // mouse-down-move at least `minDragDistance` pixels from the origin to assume dragging
-                isDragging = true
-                // prevents other gesture handlers to interact
-                component.style['pointer-events'] = 'none'
+                e.preventDefault();
+                isMouseDown = true
+                startX = e.clientX;
+                startY = e.clientY;
+                startScrollLeft = div.scrollLeft;
+                startScrollTop = div.scrollTop;
+                div.addEventListener('mousemove', drag);
             }
-            if (!isDragging) {
-                return
-            }
-            div.scrollLeft = startScrollLeft - dx;
-            div.scrollTop = startScrollTop - dy;
-        }
 
-        function stopDrag(e) {
-            isMouseDown = false
-            isDragging = false
-            e.preventDefault()
-            component.style['pointer-events'] = 'inherit'
-            div.removeEventListener('mousemove', drag);
-        }
+            function drag(e) {
+                e.preventDefault();
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const delta = Math.sqrt(dx * dx + dy * dy)
+                if (!isDragging && isMouseDown && delta > minDragDistance) {
+                  // mouse-down-move at least `minDragDistance` pixels from the origin to assume dragging
+                  isDragging = true
+                  // prevents other gesture handlers to interact
+                  component.style['pointer-events'] = 'none'
+                }
+                if (!isDragging) {
+                  return
+                }
+                div.scrollLeft = startScrollLeft - dx;
+                div.scrollTop = startScrollTop - dy;
+            }
+
+            function stopDrag(e) {
+                isMouseDown = false
+                isDragging = false
+                e.preventDefault()
+                component.style['pointer-events'] = 'inherit'
+                div.removeEventListener('mousemove', drag);
+            }
 
         function handleZoom(e) {
             e.preventDefault();
@@ -708,8 +707,8 @@ export default class MidPointTheme {
         function zoomIn(rectBefore, isChart) {
             console.log('Zooming in');
 
-            if (isChart && scale < 1.0) {
-                scale = 1.0;
+            if(isChart && scale < 1.0){
+                 scale = 1.0;
             }
             scale += 0.05;
 
@@ -736,22 +735,4 @@ export default class MidPointTheme {
         }
     }
 
-    /**
-     * This method provides convinient way to set default submit button for form.
-     * It allows to submit form by pressing Enter key in form inputs.
-     *
-     * See MidpointForm#setDefaultSubmit for more details.
-     *
-     * @param formId
-     * @param submitId
-     */
-    setDefaultSubmit(formId, submitId) {
-        console.info("Setting default submit '" + submitId + "' for form '" + formId + "'");
-
-        $("#" + formId).on('keypress', function (e) {
-            if (e.which == 13) {
-                $("#" + submitId).click();
-            }
-        });
-    }
 }

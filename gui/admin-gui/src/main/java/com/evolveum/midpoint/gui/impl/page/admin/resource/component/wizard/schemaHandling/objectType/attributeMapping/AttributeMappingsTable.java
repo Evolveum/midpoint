@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.MappingDirection;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.column.LifecycleStateColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.MappingUsedFor;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ItemWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.AttributeMappingValueWrapper;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -46,16 +49,15 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author lskublik
@@ -224,9 +226,9 @@ public abstract class AttributeMappingsTable<P extends Containerable, AP extends
                     ItemStatus.ADDED,
                     new WrapperContext(task, result));
 
-            ((ItemWrapperImpl)refItemWrapper).setDisplayName(
+            ((ItemWrapperImpl) refItemWrapper).setDisplayName(
                     getString(getMappingType().name() + "." + getItemNameOfRefAttribute()));
-            ((ItemWrapperImpl)refItemWrapper).setDisplayOrder(1);
+            ((ItemWrapperImpl) refItemWrapper).setDisplayOrder(1);
 
             if (value != null && value.getRealValue() != null && getAttributeRefAttributeValue(value) != null) {
                 refItemWrapper.getValue().setRealValue(getAttributeRefAttributeValue(value).clone());
@@ -257,6 +259,8 @@ public abstract class AttributeMappingsTable<P extends Containerable, AP extends
         IColumn<PrismContainerValueWrapper<MappingType>, String> iconColumns = createUsedIconColumn();
         Optional.ofNullable(iconColumns).ifPresent(column -> columns.add(column));
 
+        columns.add(createStrengthIconColumn());
+
         columns.add(new PrismPropertyWrapperColumn<MappingType, String>(
                 mappingTypeDef,
                 MappingType.F_NAME,
@@ -271,15 +275,38 @@ public abstract class AttributeMappingsTable<P extends Containerable, AP extends
 
         columns.addAll(createCustomColumns());
 
-
         columns.add(new LifecycleStateColumn<>(getContainerModel(), getPageBase()));
 
         return columns;
     }
 
-    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createUsedIconColumn(){
+    private IColumn<PrismContainerValueWrapper<MappingType>, String> createStrengthIconColumn() {
+        return new IconColumn<>(Model.of()) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<MappingType>>> cellItem, String componentId, IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                super.populateItem(cellItem, componentId, rowModel);
+                cellItem.add(AttributeAppender.append("class", "text-center"));
+            }
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
+                return GuiDisplayTypeUtil.getDisplayTypeForStrengthOfMapping(rowModel);
+            }
+
+            @Override
+            public String getCssClass() {
+                return "px-0";
+            }
+        };
+    }
+
+    protected IColumn<PrismContainerValueWrapper<MappingType>, String> createUsedIconColumn() {
         return null;
-    };
+    }
+
+    ;
+
     protected abstract Collection<? extends IColumn<PrismContainerValueWrapper<MappingType>, String>> createCustomColumns();
 
     protected final LoadableModel<PrismContainerDefinition<MappingType>> getMappingTypeDefinition() {
@@ -338,7 +365,7 @@ public abstract class AttributeMappingsTable<P extends Containerable, AP extends
     }
 
     private InlineMenuItemAction createChangeLifecycleColumnAction() {
-        return new InlineMenuItemAction(){
+        return new InlineMenuItemAction() {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 IModel<List<PrismContainerValueWrapper<MappingType>>> selected = () -> getSelectedItems();
