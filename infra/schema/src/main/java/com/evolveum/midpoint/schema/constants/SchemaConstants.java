@@ -525,7 +525,7 @@ public abstract class SchemaConstants {
     public static final String ICF_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
     public static final String ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME = "configurationProperties";
     public static final ItemName ICF_CONFIGURATION_PROPERTIES_NAME =
-            new ItemName(NS_ICF_CONFIGURATION, ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
+            ItemName.from(NS_ICF_CONFIGURATION, ICF_CONFIGURATION_PROPERTIES_LOCAL_NAME);
 
     /** The namespace for subtypes in ConnId schemas. For example, see "POLYSTRING_SUBTYPE" in the LDAP connector. */
     public static final String NS_ICF_SUBTYPES = ICF_FRAMEWORK_URI + "/subtypes";

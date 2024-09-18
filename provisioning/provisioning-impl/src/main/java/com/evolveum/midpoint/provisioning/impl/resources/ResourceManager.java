@@ -37,7 +37,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -251,8 +250,7 @@ public class ResourceManager {
         result.addParam(OperationResult.PARAM_NAME, connectorSpec.getConnectorName());
         result.addParam(OperationResult.PARAM_OID, connectorSpec.getConnectorOid());
 
-        ConnectorInstance connector =
-                connectorManager.getConfiguredConnectorInstance(connectorSpec, result);
+        var connector = connectorManager.getNonProductionConnectorInstance(connectorSpec, result);
         return DiscoveredConfiguration.of(
                 connector.discoverConfiguration(result));
     }
@@ -261,7 +259,7 @@ public class ResourceManager {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
         try {
             return connectorManager
-                    .getConnectorInstanceByConnectorOid(connOid, result)
+                    .getUnconfiguredConnectorInstance(connOid, result)
                     .getNativeCapabilities(result);
         } catch (GenericFrameworkException e) {
             // Not expected. Transform to system exception
@@ -269,11 +267,16 @@ public class ResourceManager {
         }
     }
 
+    /**
+     * Fetches the schema from the resource.
+     *
+     * The appropriate connector instance is not cached, as the configuration can differ from the "official" one.
+     */
     public @Nullable BareResourceSchema fetchSchema(@NotNull ResourceType resource, @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
             SchemaException {
         LOGGER.trace("Fetching resource schema for {}", resource);
-        var nativeSchema = schemaFetcher.fetchResourceSchema(resource, null, result);
+        var nativeSchema = schemaFetcher.fetchResourceSchema(resource, null, false, result);
         return nativeSchema != null ? ResourceSchemaFactory.nativeToBare(nativeSchema) : null;
     }
 
@@ -371,7 +374,8 @@ public class ResourceManager {
         ResourceType resource = getCompletedResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
         try {
-            ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
+            ConnectorInstance connectorInstance =
+                    connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
             ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource);
             UcfExecutionContext ucfCtx = new UcfExecutionContext(lightweightIdentifierGenerator, resource, task);
             ucfCtx.checkExecutionFullyPersistent();
@@ -398,7 +402,7 @@ public class ResourceManager {
         return statuses;
     }
 
-    public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstance(
+    public <T extends CapabilityType> @NotNull ConnectorInstance getConfiguredConnectorInstance(
             ResourceType resource,
             Class<T> capabilityClass,
             boolean forceFresh,

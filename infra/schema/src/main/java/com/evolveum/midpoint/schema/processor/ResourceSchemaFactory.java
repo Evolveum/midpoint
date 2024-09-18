@@ -213,7 +213,8 @@ public class ResourceSchemaFactory {
     }
 
     /** Parses the complete schema from the provided raw schema plus definitions in the resource. */
-    public static CompleteResourceSchema parseCompleteSchema(ResourceType resource, NativeResourceSchema nativeSchema)
+    @Contract("_, null -> null; _, !null -> !null")
+    public static CompleteResourceSchema parseCompleteSchema(@NotNull ResourceType resource, NativeResourceSchema nativeSchema)
             throws SchemaException, ConfigurationException {
         if (nativeSchema != null) {
             return ResourceSchemaParser.parseComplete(resource, nativeSchema);
