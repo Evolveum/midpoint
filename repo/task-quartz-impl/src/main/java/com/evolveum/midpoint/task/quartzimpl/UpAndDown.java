@@ -61,15 +61,6 @@ public class UpAndDown implements BeanFactoryAware {
     private BeanFactory beanFactory;
 
     /**
-     * How long to wait after TaskManager shutdown, if using JDBC Job Store.
-     * This gives the JDBC thread pool a chance to close, before embedded H2 database server
-     * would be closed by the SQL repo shutdown procedure.
-     * The fact that H2 database is embedded is determined by {@link TaskManagerConfiguration#isDatabaseIsEmbedded()},
-     * used in {@link #shutdown(OperationResult)} method.
-     */
-    private static final long WAIT_ON_SHUTDOWN = 2000;
-
-    /**
      * Initialization.
      *
      * TaskManager can work in two modes:
@@ -234,14 +225,6 @@ public class UpAndDown implements BeanFactoryAware {
         clusterManager.stopClusterManagerThread(0L, result);
         clusterManager.recordNodeShutdown(result);
 
-        if (configuration.isJdbcJobStore() && configuration.isDatabaseIsEmbedded()) {
-            LOGGER.trace("Waiting {} msecs to give Quartz thread pool a chance to shutdown.", WAIT_ON_SHUTDOWN);
-            try {
-                Thread.sleep(WAIT_ON_SHUTDOWN);
-            } catch (InterruptedException e) {
-                // safe to ignore
-            }
-        }
         LOGGER.info("Task Manager shutdown finished");
     }
 

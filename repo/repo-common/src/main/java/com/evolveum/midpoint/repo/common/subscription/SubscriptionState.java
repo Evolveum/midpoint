@@ -138,9 +138,9 @@ public class SubscriptionState implements DebugDumpable, Serializable {
         return !isActive() || isDemo();
     }
 
-    /** Is used generic repo (other than H2) and we detect */
+    /** Is used generic repo and we detect */
     public boolean isGenericRepoWithoutSubscription() {
-        return getSystemFeatures().isGenericNonH2DatabaseUsed()
+        return getSystemFeatures().isGenericDatabaseUsed()
                 && isProductionEnvironment() && !isActive();
     }
 

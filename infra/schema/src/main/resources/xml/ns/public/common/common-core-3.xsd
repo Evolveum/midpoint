@@ -17956,8 +17956,7 @@
                         <jaxb:typesafeEnumMember name="DEFAULT"/>
                         <xsd:documentation>
                             Uses the default method configured for the particular database.
-                            For H2 the default is to emulate iteration via paging,
-                            for other databases it is traditional sequential read.
+                            For databases it is traditional sequential read.
                         </xsd:documentation>
                     </xsd:appinfo>
                 </xsd:annotation>

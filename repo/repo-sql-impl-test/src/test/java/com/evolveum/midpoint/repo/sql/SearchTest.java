@@ -1884,7 +1884,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertThatOperationResult(opResult).isSuccess();
         // Previous test added two new users
         assertThat(result).hasSize(6);
-        // Various DB can use various order (default NULL ordering for H2 vs PG) so we just check it works
+        // Various DB can use various order (PG) so we just check it works
         // without actually checking the order (we do this properly in the Native repo test).
     }
 }

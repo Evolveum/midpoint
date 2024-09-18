@@ -29,7 +29,7 @@ public class SystemFeatures implements Serializable, DebugDumpable {
 
     private final boolean clusteringEnabled;
 
-    private final boolean genericNonH2DatabaseUsed;
+    private final boolean genericDatabaseUsed;
 
     SystemFeatures(
             boolean publicHttpsUrlPatternDefined,
@@ -37,13 +37,13 @@ public class SystemFeatures implements Serializable, DebugDumpable {
             boolean customLoggingDefined,
             boolean realNotificationsEnabled,
             boolean clusteringEnabled,
-            boolean genericNonH2DatabaseUsed) {
+            boolean genericDatabaseUsed) {
         this.publicHttpsUrlPatternDefined = publicHttpsUrlPatternDefined;
         this.remoteHostAddressHeaderDefined = remoteHostAddressHeaderDefined;
         this.customLoggingDefined = customLoggingDefined;
         this.realNotificationsEnabled = realNotificationsEnabled;
         this.clusteringEnabled = clusteringEnabled;
-        this.genericNonH2DatabaseUsed = genericNonH2DatabaseUsed;
+        this.genericDatabaseUsed = genericDatabaseUsed;
     }
 
     /** Fallback values to be used in the case of an error. */
@@ -77,9 +77,9 @@ public class SystemFeatures implements Serializable, DebugDumpable {
         return clusteringEnabled;
     }
 
-    /** Are we using the generic repo (other than H2)? */
-    public boolean isGenericNonH2DatabaseUsed() {
-        return genericNonH2DatabaseUsed;
+    /** Are we using the generic repo? */
+    public boolean isGenericDatabaseUsed() {
+        return genericDatabaseUsed;
     }
 
     @Override
@@ -90,7 +90,7 @@ public class SystemFeatures implements Serializable, DebugDumpable {
         DebugUtil.debugDumpWithLabelLn(sb, "customLoggingDefined", customLoggingDefined, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "realNotificationsEnabled", realNotificationsEnabled, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "clusteringEnabled", clusteringEnabled, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "genericNonH2DatabaseUsed", genericNonH2DatabaseUsed, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "genericDatabaseUsed", genericDatabaseUsed, indent + 1);
         return sb.toString();
     }
 
@@ -102,7 +102,7 @@ public class SystemFeatures implements Serializable, DebugDumpable {
                 ", customLoggingDefined=" + customLoggingDefined +
                 ", realNotificationsEnabled=" + realNotificationsEnabled +
                 ", clusteringEnabled=" + clusteringEnabled +
-                ", genericNonH2DatabaseUsed=" + genericNonH2DatabaseUsed +
+                ", genericDatabaseUsed=" + genericDatabaseUsed +
                 '}';
     }
 }

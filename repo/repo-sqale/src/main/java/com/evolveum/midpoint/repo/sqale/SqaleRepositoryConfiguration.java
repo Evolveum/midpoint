@@ -215,17 +215,6 @@ public class SqaleRepositoryConfiguration implements JdbcRepositoryConfiguration
     }
 
     @Override
-    public boolean isEmbedded() {
-        return false;
-    }
-
-    @Override
-    public String getDefaultEmbeddedJdbcUrlPrefix() {
-        throw new UnsupportedOperationException(
-                "This configuration (repository factory) does not support embedded database.");
-    }
-
-    @Override
     public boolean isUsing(SupportedDatabase db) {
         return DEFAULT_DATABASE == db;
     }

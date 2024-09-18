@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.Database;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -92,15 +91,6 @@ public class TestSqlRepositoryConfigurationFactory {
     private void updateConfigurationFromProperties(Configuration configuration, Properties properties) {
         updateConfigurationStringProperty(configuration, properties, PROPERTY_DATABASE);
 
-        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_EMBEDDED);
-        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_DROP_IF_EXISTS);
-        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_AS_SERVER);
-        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_TCP_SSL);
-
-        updateConfigurationIntegerProperty(configuration, properties, PROPERTY_PORT);
-
-        updateConfigurationStringProperty(configuration, properties, PROPERTY_BASE_DIR);
-        updateConfigurationStringProperty(configuration, properties, PROPERTY_FILE_NAME);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_DRIVER_CLASS_NAME);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_HIBERNATE_DIALECT);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_HIBERNATE_HBM2DDL);
@@ -132,21 +122,6 @@ public class TestSqlRepositoryConfigurationFactory {
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MAX_POOL_SIZE);
 
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_TEXT_INFO_COLUMN_SIZE);
-
-        // Dirty hack, in order to make DataSourceTest happy: if none of database, driver, dialect, embedded is
-        // present but data source is, let us assume we use H2.
-        //
-        // The reason is that when using datasource (and without the dialect set) we do not have the usual information
-        // we could use to derive the database. We do not want to default to H2, as it could cause problems in
-        // production. So we switch to H2 in such cases only in the test mode - i.e. here.
-
-        if (!configuration.containsKey(PROPERTY_DATABASE)
-                && !configuration.containsKey(PROPERTY_DRIVER_CLASS_NAME)
-                && !configuration.containsKey(PROPERTY_HIBERNATE_DIALECT)
-                && !configuration.containsKey(PROPERTY_EMBEDDED)
-                && configuration.containsKey(PROPERTY_DATASOURCE)) {
-            configuration.setProperty(PROPERTY_DATABASE, Database.H2.name());
-        }
     }
 
     private void updateConfigurationIntegerProperty(

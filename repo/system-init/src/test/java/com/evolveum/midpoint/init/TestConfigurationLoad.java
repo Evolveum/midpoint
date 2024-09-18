@@ -41,8 +41,7 @@ public class TestConfigurationLoad extends AbstractUnitTest {
             logger.info("  " + key + " = " + c.getString(key));
         }
 
-        assertTrue(c.getBoolean("asServer"));
-        assertEquals(c.getString("baseDir"), System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY));
+        assertEquals("", c.getString("database"));
     }
 
     /**
