@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabi
 /**
  * Fetches the schema from the "real" resource.
  *
- * (A helper class for completion and test operations.)
+ * (A helper class for completion and test operations, and some other uses.)
  */
 @Component
 public class SchemaFetcher {
@@ -41,32 +41,33 @@ public class SchemaFetcher {
     @Autowired private ResourceConnectorsManager resourceConnectorsManager;
 
     /**
-     * TODO
+     * Fetches the schema right by calling appropriate {@link ConnectorInstance} method.
      *
      * @param capabilityMap Known native capabilities of the connectors (keyed by connector local name).
-     * Used to select the schema-aware connector.
+     * Used to select the schema-aware connector. If not present, there are heuristics to help us (using configured ones,
+     * or just trying the main connector).
+     *
+     * @param productionMode If {@code false}, we won't cache the connector instance to avoid breaking the production
+     * environment.
      */
     @Nullable NativeResourceSchema fetchResourceSchema(
             @NotNull ResourceType resource,
             @Nullable NativeConnectorsCapabilities capabilityMap,
-            @NotNull OperationResult parentResult)
+            boolean productionMode,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException,
             SchemaException {
-        ConnectorSpec connectorSpec =
-                resourceConnectorsManager.selectConnector(resource, capabilityMap, SchemaCapabilityType.class);
+        var connectorSpec = resourceConnectorsManager.selectConnector(resource, capabilityMap, SchemaCapabilityType.class);
         if (connectorSpec == null) {
             LOGGER.debug("No connector has schema capability, cannot fetch resource schema");
             return null;
         }
         InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
-        ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, parentResult);
+        var connectorInstance =
+                connectorManager.getConfiguredAndInitializedConnectorInstance(
+                        connectorSpec, false, productionMode, result);
 
         LOGGER.debug("Trying to get schema from {}", connectorSpec);
-        var nativeResourceSchema = connectorInstance.fetchResourceSchema(parentResult);
-
-//        if (nativeResourceSchema != null && ResourceTypeUtil.isValidateSchema(resource)) {
-//            nativeResourceSchema.validate(); // FIXME
-//        }
-        return nativeResourceSchema;
+        return connectorInstance.fetchResourceSchema(result);
     }
 }

@@ -8,13 +8,13 @@ package com.evolveum.midpoint.web.component.input;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serial;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 import jakarta.activation.MimeType;
 import jakarta.activation.MimeTypeParseException;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -24,7 +24,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
@@ -41,18 +40,19 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  * @author katkav
  */
 public class UploadDownloadPanel extends InputPanel {
+
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(UploadDownloadPanel.class);
+
+    private static final String DEFAULT_CONTENT_TYPE = "text/plain";
 
     private static final String ID_BUTTON_DOWNLOAD = "download";
     private static final String ID_BUTTON_DELETE = "remove";
     private static final String ID_INPUT_FILE = "fileInput";
 
-    private static final String DOWNLOAD_CONTENT_TYPE = "text/plain";
-
-    private final String downloadFileName = null;
-    private boolean isReadOnly;
+    private final boolean isReadOnly;
 
     private List<String> allowedUploadContentTypes = new ArrayList<>();
 
@@ -80,21 +80,27 @@ public class UploadDownloadPanel extends InputPanel {
 
     private void initLayout() {
         final FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE) {
+
+            @Serial
             private static final long serialVersionUID = 1L;
 
             @Override
             public String[] getInputAsArray() {
                 List<String> input = new ArrayList<>();
                 try {
-                    input.add(new String(IOUtils.toByteArray(getStream())));
+                    input.add(new String(IOUtils.toByteArray(getInputStream())));
                 } catch (IOException e) {
                     LOGGER.error("Unable to define file content type: {}", e.getLocalizedMessage());
                 }
                 return input.toArray(new String[0]);
             }
         };
-        Form form = this.findParent(Form.class);
+
+        Form<?> form = this.findParent(Form.class);
+
         fileUpload.add(new AjaxFormSubmitBehavior(form, "change") {
+
+            @Serial
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -110,74 +116,64 @@ public class UploadDownloadPanel extends InputPanel {
             }
         });
         fileUpload.add(new VisibleBehaviour(() -> !isReadOnly));
-        fileUpload.add(new IValidator<>() {
+        fileUpload.add((IValidator<List<FileUpload>>) validatable -> {
 
-            @Override
-            public void validate(IValidatable<List<FileUpload>> validatable) {
-                List<FileUpload> list = validatable.getValue();
-                if (list == null) {
-                    return;
-                }
+            List<FileUpload> list = validatable.getValue();
+            if (list == null) {
+                return;
+            }
 
-                if (getAllowedUploadContentTypes().isEmpty()) {
-                    return;
-                }
+            if (getAllowedUploadContentTypes().isEmpty()) {
+                return;
+            }
 
-                String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
+            String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
 
-                try {
-                    List<MimeType> allowedTypes = getAllowedUploadContentTypes().stream()
-                            .map(s -> {
-                                try {
-                                    return new MimeType(s);
-                                } catch (MimeTypeParseException ex) {
-                                    return null;
-                                }
-                            })
-                            .filter(m -> m != null)
-                            .collect(Collectors.toList());
-
-                    for (FileUpload fu : list) {
-                        String contentType = fu.getContentType();
-                        MimeType mime = new MimeType(contentType);
-
-                        boolean matched = false;
-                        for (MimeType allowed : allowedTypes) {
-                            if (allowed.match(mime)) {
-                                matched = true;
-                                break;
+            try {
+                List<MimeType> allowedTypes = getAllowedUploadContentTypes().stream()
+                        .map(s -> {
+                            try {
+                                return new MimeType(s);
+                            } catch (MimeTypeParseException ex) {
+                                return null;
                             }
-                        }
+                        })
+                        .filter(m -> m != null)
+                        .toList();
 
-                        if (!matched) {
-                            String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
-                            validatable.error(new ValidationError(msg));
+                for (FileUpload fu : list) {
+                    String contentType = fu.getContentType();
+                    MimeType mime = new MimeType(contentType);
+
+                    boolean matched = false;
+                    for (MimeType allowed : allowedTypes) {
+                        if (allowed.match(mime)) {
+                            matched = true;
+                            break;
                         }
                     }
-                } catch (MimeTypeParseException ex) {
-                    String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage());
-                    validatable.error(new ValidationError(msg));
+
+                    if (!matched) {
+                        String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
+                        validatable.error(new ValidationError(msg));
+                    }
                 }
+            } catch (MimeTypeParseException ex) {
+                String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage());
+                validatable.error(new ValidationError(msg));
             }
         });
         fileUpload.setOutputMarkupId(true);
         add(fileUpload);
 
         final AjaxDownloadBehaviorFromStream downloadBehavior = new AjaxDownloadBehaviorFromStream() {
+
+            @Serial
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected InputStream initStream() {
-                InputStream is = getStream();
-                try {
-                    String newContentType = URLConnection.guessContentTypeFromStream(is);
-                    if (StringUtils.isNotEmpty(newContentType)) {
-                        setContentType(newContentType);
-                    }
-                } catch (IOException ex) {
-                    LOGGER.error("Unable to define download file content type: {}", ex.getLocalizedMessage());
-                }
-                return is;
+            protected InputStream getInputStream() {
+                return UploadDownloadPanel.this.getInputStream();
             }
         };
         downloadBehavior.setContentType(getDownloadContentType());
@@ -185,6 +181,8 @@ public class UploadDownloadPanel extends InputPanel {
         add(downloadBehavior);
 
         add(new AjaxSubmitButton(ID_BUTTON_DOWNLOAD) {
+
+            @Serial
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -194,6 +192,8 @@ public class UploadDownloadPanel extends InputPanel {
         });
 
         AjaxSubmitButton deleteButton = new AjaxSubmitButton(ID_BUTTON_DELETE) {
+
+            @Serial
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -208,17 +208,17 @@ public class UploadDownloadPanel extends InputPanel {
     }
 
     @Override
-    public FormComponent getBaseFormComponent() {
-        return (FormComponent) get(ID_INPUT_FILE);
+    public FormComponent<?> getBaseFormComponent() {
+        return getInputFile();
     }
 
     private FileUpload getFileUpload() {
-        FileUploadField file = (FileUploadField) get(ID_INPUT_FILE);
+        FileUploadField file = getInputFile();
         return file.getFileUpload();
     }
 
     public void uploadFilePerformed(AjaxRequestTarget target) {
-        Component input = get(ID_INPUT_FILE);
+        Component input = getInputFile();
         try {
             FileUpload uploadedFile = getFileUpload();
             updateValue(uploadedFile.getBytes());
@@ -231,7 +231,7 @@ public class UploadDownloadPanel extends InputPanel {
     }
 
     public void removeFilePerformed(AjaxRequestTarget target) {
-        Component input = get(ID_INPUT_FILE);
+        Component input = getInputFile();
         try {
             updateValue(null);
             LOGGER.trace("Remove file success.");
@@ -249,16 +249,29 @@ public class UploadDownloadPanel extends InputPanel {
     public void updateValue(byte[] file) {
     }
 
-    public InputStream getStream() {
+    public InputStream getInputStream() {
         return null;
     }
 
     public String getDownloadFileName() {
-        return downloadFileName;
+        return null;
     }
 
     public String getDownloadContentType() {
-        return DOWNLOAD_CONTENT_TYPE;
+        try (InputStream is = getInputStream()) {
+            if (is == null) {
+                return DEFAULT_CONTENT_TYPE;
+            }
+
+            String contentType = URLConnection.guessContentTypeFromStream(is);
+            if (StringUtils.isNotEmpty(contentType)) {
+                return contentType;
+            }
+        } catch (IOException ex) {
+            LOGGER.error("Unable to define download file content type: {}", ex.getLocalizedMessage());
+        }
+
+        return DEFAULT_CONTENT_TYPE;
     }
 
     private void downloadPerformed(AjaxDownloadBehaviorFromStream downloadBehavior,

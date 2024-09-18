@@ -67,7 +67,8 @@ class ConnIdToUcfObjectConversion {
     /** The definition provided by the caller. May be augmented (via auxiliary object classes) by the conversion process. */
     @NotNull private final ResourceObjectDefinition originalResourceObjectDefinition;
 
-    /** Used to access resource schema and the like. */
+    @NotNull private final CompleteResourceSchema resourceSchema;
+
     @NotNull private final ConnectorContext connectorContext;
 
     @NotNull private final ItemFactory itemFactory = PrismContext.get().itemFactory();
@@ -80,10 +81,12 @@ class ConnIdToUcfObjectConversion {
     ConnIdToUcfObjectConversion(
             @NotNull BaseConnectorObject connectorObject,
             @NotNull ResourceObjectDefinition originalResourceObjectDefinition,
-            @NotNull ConnectorContext connectorContext) {
+            @NotNull ConnectorContext connectorContext,
+            @NotNull CompleteResourceSchema resourceSchema) {
         this.connectorObjectFragment = connectorObject;
         this.originalResourceObjectDefinition = originalResourceObjectDefinition;
         this.connectorContext = connectorContext;
+        this.resourceSchema = resourceSchema;
     }
 
     void execute() throws SchemaException {
@@ -158,7 +161,7 @@ class ConnIdToUcfObjectConversion {
                 QName auxiliaryObjectClassQname =
                         connIdObjectClassNameToUcf((String) connIdAuxiliaryObjectClassName, isLegacySchema());
                 auxiliaryObjectClassDefinitions.add(
-                        getResourceSchema().findObjectClassDefinitionRequired(
+                        resourceSchema.findObjectClassDefinitionRequired(
                                 Objects.requireNonNull(auxiliaryObjectClassQname),
                                 () -> " (auxiliary object class in " + connectorObjectFragment + ")"));
             }
@@ -286,7 +289,8 @@ class ConnIdToUcfObjectConversion {
             }
         }
 
-        private <T> T getSingleConvertedSimpleValue(Attribute connIdAttribute, Class<T> type) throws SchemaException {
+        private <T> T getSingleConvertedSimpleValue(Attribute connIdAttribute, Class<T> type)
+                throws SchemaException {
             Object valueInConnId = ConnIdAttributeUtil.getSingleValue(connIdAttribute);
             Object valueInUcf = getRealValue((PrismPropertyValue<?>) convertAttributeValueFromConnId(valueInConnId));
             return MiscUtil.castSafely(valueInUcf, type, lazy(() -> " in attribute " + connIdAttribute.getName()));
@@ -363,7 +367,7 @@ class ConnIdToUcfObjectConversion {
             //noinspection rawtypes
             ShadowAttributeDefinition mpDefinition = resourceObjectDefinition.findShadowAttributeDefinitionRequired(
                     convertedAttrName,
-                    getResourceSchema().isCaseIgnoreAttributeNames(),
+                    resourceSchema.isCaseIgnoreAttributeNames(),
                     lazy(() -> "original ConnId name: '%s' in resource object identified by %s".formatted(
                             connIdAttrName, connectorObjectFragment.getIdentification())));
 
@@ -406,11 +410,11 @@ class ConnIdToUcfObjectConversion {
                         "Reference attribute values without object class information are currently not supported: "
                                 + targetObjectOrIdentification);
             }
-            var targetObjectDefinition = getResourceSchema().findDefinitionForObjectClassRequired(targetObjectClassName);
+            var targetObjectDefinition = resourceSchema.findDefinitionForObjectClassRequired(targetObjectClassName);
 
             var embeddedConversion =
                     new ConnIdToUcfObjectConversion(
-                            targetObjectOrIdentification, targetObjectDefinition, connectorContext);
+                            targetObjectOrIdentification, targetObjectDefinition, connectorContext, resourceSchema);
             embeddedConversion.execute();
             // If the conversion is not successful, the conversion of the particular reference attribute - as a whole - fails
             // (and the error is handled just as if any attribute conversion failed).
@@ -438,10 +442,6 @@ class ConnIdToUcfObjectConversion {
             var firstCause = failures.get(0).exception;
             return new SchemaException(message, firstCause);
         }
-    }
-
-    private @NotNull CompleteResourceSchema getResourceSchema() {
-        return connectorContext.getResourceSchemaRequired();
     }
 
     private boolean isLegacySchema() {

@@ -68,7 +68,7 @@ public class ConnIdUtil {
     private static final String DOT_NET_ARGUMENT_EXCEPTION = "System.ArgumentException";
 
     private static final String CONNECTIONS_EXCEPTION_CLASS_NAME = "CommunicationsException";
-    public static final String POLYSTRING_ORIG_KEY = "";
+    static final String POLYSTRING_ORIG_KEY = "";
 
     static Throwable processConnIdException(Throwable connIdException, ConnectorInstanceConnIdImpl conn,
             OperationResult icfResult) {
@@ -182,7 +182,7 @@ public class ConnIdUtil {
         //fix of MID-2645
         //exception brought by the connector is java.lang.RuntimeException with cause=CommunicationsException
         //this exception is to be analyzed here before the following if clause
-        if (connIdException.getCause() != null){
+        if (connIdException.getCause() != null) {
             String exCauseClassName = connIdException.getCause().getClass().getSimpleName();
             if (exCauseClassName.equals(CONNECTIONS_EXCEPTION_CLASS_NAME) ){
                 Exception newEx = new CommunicationException(createMessageFromAllExceptions("Connect error", connIdException));
@@ -203,10 +203,10 @@ public class ConnIdUtil {
         }
 
         Exception knownCause;
-        if (connIdException instanceof ConnectorException && !connIdException.getClass().equals(ConnectorException.class)) {
+        if (connIdException instanceof ConnectorException connectorException
+                && !connIdException.getClass().equals(ConnectorException.class)) {
             // we have non generic connector exception
-            knownCause = processConnectorException((ConnectorException) connIdException, connIdResult);
-//            LOGGER.error("LOOK FOR CONN ID EXCEPTION: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
+            knownCause = processConnectorException(connectorException, connIdResult);
             if (knownCause != null) {
                 return knownCause;
             }
@@ -534,7 +534,7 @@ public class ConnIdUtil {
         }
     }
 
-    public static ShadowSimpleAttributeDefinition<?> getUidDefinition(ResourceObjectDefinition def) {
+    static ShadowSimpleAttributeDefinition<?> getUidDefinition(ResourceObjectDefinition def) {
         Collection<? extends ShadowSimpleAttributeDefinition<?>> primaryIdentifiers = def.getPrimaryIdentifiers();
         if (primaryIdentifiers.size() > 1) {
             throw new UnsupportedOperationException("Multiple primary identifiers are not supported");
@@ -563,10 +563,9 @@ public class ConnIdUtil {
 
     @NotNull static Collection<ShadowSimpleAttribute<?>> convertToIdentifiers(
             Uid uid, ResourceObjectDefinition ocDef, ResourceSchema resourceSchema) throws SchemaException {
-        ResourceObjectDefinition concreteObjectDefinition =
-                getConcreteObjectClassDefinition(ocDef, resourceSchema);
+        ResourceObjectDefinition concreteObjectDefinition = getConcreteObjectClassDefinition(ocDef, resourceSchema);
         if (concreteObjectDefinition == null) {
-            throw new SchemaException("Concrete object definition for "+uid+" cannot be found");
+            throw new SchemaException("Concrete object definition for " + uid + " cannot be found");
         }
         ShadowSimpleAttributeDefinition<?> uidDefinition = getUidDefinition(concreteObjectDefinition);
         if (uidDefinition == null) {

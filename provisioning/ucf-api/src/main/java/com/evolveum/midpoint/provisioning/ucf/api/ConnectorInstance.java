@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -74,15 +73,22 @@ public interface ConnectorInstance {
      * The connector instance must be operational at all times, even during re-configuration.
      * Operations cannot be interrupted or refused due to missing configuration.
      *
-     * Returns the same instance (`this`) to allow changed calls.
+     * Returns the same instance (`this`) to allow chained calls.
      *
      * @param configuration new connector configuration (prism container value)
      */
     ConnectorInstance configure(
-            @NotNull PrismContainerValue<?> configuration,
+            @NotNull ConnectorConfiguration configuration,
             @NotNull ConnectorConfigurationOptions options,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+
+    /**
+     * Returns the current configuration (if the instance is configured), or {@code null} otherwise.
+     * The object returned must be equivalent to the one passed to the {@link #configure(ConnectorConfiguration,
+     * ConnectorConfigurationOptions, OperationResult)} method.
+     */
+    @Nullable ConnectorConfiguration getCurrentConfiguration();
 
     ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException;
 
@@ -108,15 +114,15 @@ public interface ConnectorInstance {
      *       But some connectors may need it (e.g. CSV connector working with CSV file without a header).
      */
     @NotNull ConnectorInstance initialize(
-            @Nullable CompleteResourceSchema lastKnownResourceSchema,
-            @Nullable CapabilityCollectionType lastKnownCapabilities,
-            OperationResult result)
+            @Nullable NativeResourceSchema lastKnownResourceSchema,
+            @Nullable CapabilityCollectionType lastKnownNativeCapabilities,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
      * Updates stored resource schema.
      */
-    void updateSchema(CompleteResourceSchema resourceSchema);
+    void updateSchema(NativeResourceSchema resourceSchema);
 
     /**
      * Retrieves native connector capabilities.
@@ -134,6 +140,22 @@ public interface ConnectorInstance {
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
+     * Returns capabilities natively supported by the connector.
+     * Works also on unconfigured and uninitialized connectors.
+     *
+     * Limitations:
+     *
+     * - ignores the configuration even if present;
+     * - does not take schema-derived capabilities (like activation, password, or paging) into account
+     *
+     * Can be seen as a simplified version of {@link #fetchCapabilities(OperationResult)}.
+     *
+     * @return Return supported operations for connector.
+     */
+    @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result)
+            throws CommunicationException, GenericFrameworkException, ConfigurationException;
+
+    /**
      * Retrieves the schema from the resource.
      *
      * The schema may be considered to be an XSD schema, but it is returned in a
@@ -142,13 +164,13 @@ public interface ConnectorInstance {
      *
      * It may return null. Such case means that the schema cannot be determined.
      *
-     * The method may return a schema that was fetched previously, e.g. if the fetch operation was executed
-     * during connector initialization.
+     * The method may return a schema that was fetched previously, e.g., if the fetch operation was executed
+     * during connector initialization or when fetching native capabilities.
      *
      * @return Up-to-date resource schema. Only raw information should be there, no refinements. May be immutable.
      * @throws CommunicationException error in communication to the resource - nothing was fetched.
      */
-    NativeResourceSchema fetchResourceSchema(OperationResult result)
+    NativeResourceSchema fetchResourceSchema(@NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException;
 
     /**
@@ -170,10 +192,10 @@ public interface ConnectorInstance {
      * @throws SchemaException error converting object from native (connector) format
      */
     UcfResourceObject fetchObject(
-            ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
-            ShadowItemsToReturn shadowItemsToReturn,
-            UcfExecutionContext ctx,
-            OperationResult result)
+            @NotNull ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult result)
         throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
         SecurityViolationException, ConfigurationException;
 
@@ -217,10 +239,10 @@ public interface ConnectorInstance {
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
             @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod errorReportingMethod,
-            @NotNull UcfExecutionContext ctx,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
-                    ObjectNotFoundException;
+            ObjectNotFoundException;
 
     /**
      * Counts objects on resource.
@@ -256,7 +278,9 @@ public interface ConnectorInstance {
      * @throws ObjectAlreadyExistsException object already exists on the resource
      */
     UcfAddReturnValue addObject(
-            PrismObject<? extends ShadowType> object, UcfExecutionContext ctx, OperationResult result)
+            @NotNull PrismObject<? extends ShadowType> object,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException;
 
@@ -288,8 +312,8 @@ public interface ConnectorInstance {
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
-            UcfExecutionContext ctx,
-            OperationResult result)
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ConfigurationException;
 
@@ -301,7 +325,7 @@ public interface ConnectorInstance {
     UcfDeleteReturnValue deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             @Nullable PrismObject<ShadowType> shadow,
-            @Nullable UcfExecutionContext ctx,
+            @NotNull UcfExecutionContext ctx,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException;
@@ -320,8 +344,8 @@ public interface ConnectorInstance {
      */
     default UcfSyncToken fetchCurrentToken(
             ResourceObjectDefinition objectDefinition,
-            UcfExecutionContext ctx,
-            OperationResult result)
+            @NotNull UcfExecutionContext ctx,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException {
         return null;
     }
@@ -329,9 +353,14 @@ public interface ConnectorInstance {
     /**
      * Token may be null. That means "from the beginning of history".
      */
-    UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            ShadowItemsToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
-            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult result)
+    UcfFetchChangesResult fetchChanges(
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @Nullable UcfSyncToken lastToken,
+            @Nullable ShadowItemsToReturn attrsToReturn,
+            @Nullable Integer maxChanges,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull UcfLiveSyncChangeListener changeHandler,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
 
@@ -394,14 +423,6 @@ public interface ConnectorInstance {
             @NotNull OperationResult result) throws SchemaException {
         throw new UnsupportedOperationException();
     }
-
-    /**
-     * Method create collection of capabilities which connector support.
-     *
-     * @return Return supported operations for connector.
-     */
-    @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result)
-            throws CommunicationException, GenericFrameworkException, ConfigurationException;
 
     /** Get description usable e.g. in exception messages. */
     default String getHumanReadableDescription() {

@@ -61,6 +61,7 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
     private static final TestObject<ObjectTemplateType> TEMPLATE_B2B =
             TestObject.file(TEST_DIR, "template-b2b.xml", "c0726932-4cd1-42b8-ace3-0fb08c6ac83d");
 
+    /** Used in {@link #testFetchSchema()} only. */
     private static final DummyTestResource RESOURCE_DUMMY_GENERATE_OBJECT_CLASSES = new DummyTestResource(
             TEST_DIR, "resource-dummy-generate-object-classes.xml", "2946f0b6-c39e-4ded-8128-e5b0914c7ae3",
             "generate-object-classes");
@@ -68,9 +69,6 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-
-        // TODO reenable
-        //initTestObjects(initTask, initResult, RESOURCE_DUMMY_GENERATE_OBJECT_CLASSES);
     }
 
     @Test
@@ -160,13 +158,16 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
     /**
      * Changing `generateObjectClass` information should have an immediate effect.
      * This method is here, as it uses aux method from model-api (the same that our GUI uses).
+     *
+     * MID-9779
      */
-    @Test(enabled = false)
+    @Test
     public void testFetchSchema() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
 
-        given("resource is initialized (in class init code); and 1 object class is present in the schema");
+        given("resource is initialized, and 1 object class is present in the schema");
+        RESOURCE_DUMMY_GENERATE_OBJECT_CLASSES.initAndTest(this, task, result);
         var resourceBefore = getObject(ResourceType.class, RESOURCE_DUMMY_GENERATE_OBJECT_CLASSES.oid);
         var schemaBefore = ResourceSchemaFactory.getCompleteSchemaRequired(resourceBefore);
         assertThat(schemaBefore.getObjectClassNames()).containsExactlyInAnyOrder(RI_ACCOUNT_OBJECT_CLASS);

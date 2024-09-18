@@ -13,7 +13,10 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,8 +44,13 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     private PrismSchema connectorConfigurationSchema;
     private final PrismContext prismContext = PrismContext.get();
 
+    /** Configuration before the connector schema is applied. */
+    private ConnectorConfiguration providedConfiguration;
+
+    /** Configuration with connector schema applied. */
     private PrismContainerValue<?> connectorConfiguration;
-    private CompleteResourceSchema resourceSchema = null;
+
+    private BareResourceSchema resourceSchema = null;
     private CapabilityCollectionType capabilities = null;
     private boolean configured = false;
 
@@ -61,6 +69,15 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
         this.connectorConfigurationSchema = connectorConfigurationSchema;
     }
 
+    private void setProvidedConfiguration(ConnectorConfiguration value) {
+        this.providedConfiguration = value;
+    }
+
+    @Override
+    public @Nullable ConnectorConfiguration getCurrentConfiguration() {
+        return providedConfiguration;
+    }
+
     public PrismContainerValue<?> getConnectorConfiguration() {
         return connectorConfiguration;
     }
@@ -73,11 +90,13 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
         return prismContext;
     }
 
-    public CompleteResourceSchema getResourceSchema() {
+    /** Beware! This is bare resource schema, i.e., without any refined definitions. Can be dangerous to use. */
+    @Deprecated
+    public BareResourceSchema getResourceSchema() {
         return resourceSchema;
     }
 
-    protected void setResourceSchema(CompleteResourceSchema resourceSchema) {
+    private void setResourceSchema(BareResourceSchema resourceSchema) {
         this.resourceSchema = resourceSchema;
     }
 
@@ -91,16 +110,16 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 
     @Override
     public @NotNull ConnectorInstance initialize(
-            @Nullable CompleteResourceSchema resourceSchema,
-            @Nullable CapabilityCollectionType capabilities,
-            OperationResult parentResult) {
+            @Nullable NativeResourceSchema lastKnownResourceSchema,
+            @Nullable CapabilityCollectionType lastKnownNativeCapabilities,
+            @NotNull OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
         result.addContext("connector", getConnectorObject().toString());
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, this.getClass());
         try {
-            updateSchema(resourceSchema);
-            setCapabilities(capabilities);
+            updateSchema(lastKnownResourceSchema);
+            setCapabilities(lastKnownNativeCapabilities);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -111,27 +130,33 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
     }
 
     @Override
-    public void updateSchema(CompleteResourceSchema resourceSchema) {
-        setResourceSchema(resourceSchema);
+    public void updateSchema(NativeResourceSchema resourceSchema) {
+        try {
+            setResourceSchema(
+                    ResourceSchemaFactory.nativeToBare(resourceSchema));
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e);
+        }
     }
 
     @Override
     public ConnectorInstance configure(
-            @NotNull PrismContainerValue<?> configuration,
+            @NotNull ConnectorConfiguration configuration,
             @NotNull ConnectorConfigurationOptions options,
             @NotNull OperationResult parentResult)
             throws SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
         try {
-            PrismContainerValue<?> mutableConfiguration;
-            if (configuration.isImmutable()) {
-                mutableConfiguration = configuration.clone();
-            } else {
-                mutableConfiguration = configuration;
-            }
+            setProvidedConfiguration(configuration.clone());
 
-            mutableConfiguration = mutableConfiguration.applyDefinition(getConfigurationContainerDefinition());
+            PrismContainerValue<?> mutableConfiguration;
+            if (configuration.configuration() != null) {
+                mutableConfiguration =
+                        configuration.configuration().clone().applyDefinition(getConfigurationContainerDefinition());
+            } else {
+                mutableConfiguration = null;
+            }
             setConnectorConfiguration(mutableConfiguration);
             applyConfigurationToConfigurationClass(mutableConfiguration);
 

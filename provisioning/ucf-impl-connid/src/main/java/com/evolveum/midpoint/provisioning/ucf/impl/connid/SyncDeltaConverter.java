@@ -18,6 +18,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.SyncDelta;
 import org.identityconnectors.framework.common.objects.SyncDeltaType;
@@ -43,18 +45,22 @@ class SyncDeltaConverter {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
 
-    private final ConnectorInstanceConnIdImpl connectorInstance;
-    private final ConnIdObjectConvertor connIdObjectConvertor;
-    private final ResourceObjectDefinition requestedObjectDefinition;
+    @NotNull private final ConnectorInstanceConnIdImpl connectorInstance;
+    @NotNull private final ConnIdObjectConvertor connIdObjectConvertor;
+    @Nullable private final ResourceObjectDefinition requestedObjectDefinition;
+    @NotNull private final ConnectorOperationContext operationContext;
 
-    SyncDeltaConverter(ConnectorInstanceConnIdImpl connectorInstance, ResourceObjectDefinition requestedObjectDefinition) {
+    SyncDeltaConverter(
+            @NotNull ConnectorInstanceConnIdImpl connectorInstance,
+            @Nullable ResourceObjectDefinition requestedObjectDefinition,
+            @NotNull ConnectorOperationContext operationContext) {
         this.connectorInstance = connectorInstance;
         this.connIdObjectConvertor = connectorInstance.connIdObjectConvertor;
         this.requestedObjectDefinition = requestedObjectDefinition;
+        this.operationContext = operationContext;
     }
 
-    @NotNull
-    UcfLiveSyncChange createChange(int localSequenceNumber, SyncDelta connIdDelta, OperationResult result) {
+    @NotNull UcfLiveSyncChange createChange(int localSequenceNumber, SyncDelta connIdDelta, OperationResult result) {
         // The following should not throw any exception. And if it does, we are lost anyway, because
         // we need this information to create even "errored" change object.
         // For non-nullability of these variables see the code of SyncDelta.
@@ -79,7 +85,7 @@ class SyncDeltaConverter {
 
                 identifiers.addAll(
                         ConnIdUtil.convertToIdentifiers(
-                                uid, actualObjectDefinition, connectorInstance.getResourceSchema()));
+                                uid, actualObjectDefinition, operationContext.getResourceSchemaRequired()));
                 objectDelta = PrismContext.get().deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
 
             } else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
@@ -92,6 +98,7 @@ class SyncDeltaConverter {
                                 connIdDelta.getObject(),
                                 actualObjectDefinition,
                                 UcfFetchErrorReportingMethod.UCF_OBJECT,
+                                operationContext,
                                 result);
 
                 LOGGER.trace("Conversion result: {}", resourceObject.getErrorState());
@@ -133,7 +140,7 @@ class SyncDeltaConverter {
         QName deltaObjectClassName = connIdObjectClassNameToUcf(deltaConnIdObjectClass, connectorInstance.isLegacySchema());
         ResourceObjectDefinition deltaObjectClass;
         if (deltaConnIdObjectClass != null) {
-            deltaObjectClass = connectorInstance.getResourceSchemaRequired().findDefinitionForObjectClass(deltaObjectClassName);
+            deltaObjectClass = operationContext.getResourceSchemaRequired().findDefinitionForObjectClass(deltaObjectClassName);
         } else {
             deltaObjectClass = null;
         }

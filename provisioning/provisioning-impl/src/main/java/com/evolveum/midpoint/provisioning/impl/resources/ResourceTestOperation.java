@@ -303,7 +303,7 @@ class ResourceTestOperation {
                 readStoredSchema(result);
             }
 
-            adjustAndCheckSchema(result);
+            checkSchemaAndUpdateConnectorInstances(result);
 
         } catch (Throwable t) {
             result.recordException(t);
@@ -318,7 +318,7 @@ class ResourceTestOperation {
     private void fetchSchema(OperationResult result) throws TestFailedException {
         try {
             nativeResourceSchema = beans.resourceManager.schemaFetcher.fetchResourceSchema(
-                    resource, nativeConnectorsCapabilities, result);
+                    resource, nativeConnectorsCapabilities, true, result);
         } catch (CommunicationException e) {
             onSchemaFetchProblem(e, "Communication error", DOWN, result);
         } catch (Throwable e) {
@@ -353,11 +353,11 @@ class ResourceTestOperation {
     }
 
     /** Currently we simply check the schema by parsing it. Later we can extend this to more elaborate checks. */
-    private void adjustAndCheckSchema(OperationResult result) throws TestFailedException {
+    private void checkSchemaAndUpdateConnectorInstances(OperationResult result) throws TestFailedException {
         assert !NativeResourceSchema.isNullOrEmpty(nativeResourceSchema);
         try {
-            var completeSchema = ResourceSchemaFactory.parseCompleteSchema(resource, nativeResourceSchema);
-            schemaHelper.updateSchemaToConnectors(resource, completeSchema, result);
+            ResourceSchemaFactory.parseCompleteSchema(resource, nativeResourceSchema);
+            schemaHelper.updateSchemaInConnectorInstances(resource, nativeResourceSchema, result);
         } catch (Exception e) {
             throw TestFailedException.record(
                     "Couldn't process resource schema refinements",
@@ -433,8 +433,7 @@ class ResourceTestOperation {
             OperationResult result = parentResult.createSubresult(TestResourceOpNames.CONNECTOR_INSTANTIATION.getOperation());
 
             try {
-                // TODO The original comment here was "Make sure we are getting non-configured instance."
-                //  How do we know that? We can get the instance from the cache. So, it may be configured. Or not?
+                // The returned entry is either configured one (from the cache) or unconfigured one (created anew on cache miss).
                 connectorCacheEntry = beans.connectorManager.getOrCreateConnectorInstanceCacheEntry(connectorSpec, result);
                 connector = connectorCacheEntry.getConnectorInstance();
             } catch (ObjectNotFoundException e) {
@@ -466,7 +465,7 @@ class ResourceTestOperation {
                     BROKEN, t, result);
         }
 
-        /** Configures and initializes the connector. */
+        /** Configures and initializes the connector. (The latter applies only in the full mode!) */
         private void initializeConnector(OperationResult parentResult) throws TestFailedException {
             OperationResult result = parentResult.createSubresult(TestResourceOpNames.CONNECTOR_INITIALIZATION.getOperation());
 
@@ -583,12 +582,12 @@ class ResourceTestOperation {
         }
 
         /**
-         * Connector instance is fully configured at this point. But the connector cache entry may not be set up
+         * Connector instance is fully configured and initialized at this point. But the connector cache entry may not be set up
          * properly and it is not yet placed into the cache. Therefore make sure the caching bit is completed.
          * Place the connector to cache even if it was configured at the beginning. The connector is reconfigured now.
          */
         private void cacheConfiguredConnector() {
-            beans.connectorManager.cacheConfiguredConnector(connectorCacheEntry, connectorSpec);
+            beans.connectorManager.cacheConfiguredAndInitializedConnectorInstance(connectorCacheEntry, connectorSpec);
         }
     }
 
