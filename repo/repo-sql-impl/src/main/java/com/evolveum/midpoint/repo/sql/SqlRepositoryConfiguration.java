@@ -305,7 +305,12 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
             }
             database = guessedDatabase;
         }
-        databaseType = database != null ? SupportedDatabase.valueOf(database.name()) : null;
+
+        if (database == null) {
+            throw new SystemException("Couldn't figure out database type from configuration. Please specify either 'database', 'driverClassName' or 'hibernateDialect'.");
+        }
+
+        databaseType = SupportedDatabase.valueOf(database.name());
 
         driverClassName = Objects.requireNonNullElse(configuredDriverClassName, getDefaultDriverClassName(dataSource, database));
         hibernateDialect = Objects.requireNonNullElse(configuredHibernateDialect, getDefaultHibernateDialect(database));
@@ -339,6 +344,9 @@ public class SqlRepositoryConfiguration implements JdbcRepositoryConfiguration {
                 .toLowerCase();
 
         jdbcUrl = configuration.getString(PROPERTY_JDBC_URL, null);
+        if (jdbcUrl == null) {
+            throw new SystemException("JDBC url is not defined.");
+        }
 
         computeDefaultConcurrencyParameters();
         transactionIsolation = TransactionIsolation.fromValue(
