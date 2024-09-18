@@ -28,24 +28,14 @@
                 <name>owner</name>
                 <path>ownerRef</path>
                 <display>
-                    <label>
-                        <orig>Owner</orig>
-                        <translation>
-                            <key>reportCertificationDefinitions.ownerColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Owner</label>
                 </display>
                 <previousColumn>name</previousColumn>
             </column>
             <column id="4">
                 <name>campaigns</name>
                 <display>
-                    <label>
-                        <orig>Campaigns</orig>
-                        <translation>
-                            <key>reportCertificationDefinitions.campaignsColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Campaigns</label>
                 </display>
                 <previousColumn>owner</previousColumn>
                 <export>
@@ -60,12 +50,7 @@
             <column id="5">
                 <name>openCampaigns</name>
                 <display>
-                    <label>
-                        <orig>Open campaigns</orig>
-                        <translation>
-                            <key>reportCertificationDefinitions.openCampaignsColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Open campaigns</label>
                 </display>
                 <previousColumn>campaigns</previousColumn>
                 <export>
@@ -86,12 +71,7 @@
                 <name>lastStarted</name>
                 <path>lastCampaignStartedTimestamp</path>
                 <display>
-                    <label>
-                        <orig>Last started</orig>
-                        <translation>
-                            <key>reportCertificationDefinitions.lastStartedColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Last started</label>
                 </display>
                 <previousColumn>openCampaigns</previousColumn>
             </column>
@@ -99,12 +79,7 @@
                 <name>lastClosed</name>
                 <path>lastCampaignClosedTimestamp</path>
                 <display>
-                    <label>
-                        <orig>Last closed</orig>
-                        <translation>
-                            <key>reportCertificationDefinitions.lastClosedColumn.label</key>
-                        </translation>
-                    </label>
+                    <label>Last closed</label>
                 </display>
                 <previousColumn>lastStarted</previousColumn>
             </column>

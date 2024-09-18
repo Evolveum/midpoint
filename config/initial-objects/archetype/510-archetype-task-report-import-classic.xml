@@ -11,12 +11,7 @@
     <name>Report import task</name>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Report import task</orig>
-                <translation>
-                    <key>ReportImportTask.label</key>
-                </translation>
-            </label>
+            <label>Report import task</label>
             <pluralLabel>
                 <orig>Report import tasks</orig>
                 <translation>

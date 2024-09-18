@@ -10,7 +10,7 @@
     <name>Protected</name>
     <assignment id="1">
         <identifier>archetype</identifier>
-        <targetRef oid="00000000-0000-0000-0000-000000000701" type="ArchetypeType"/>
+        <targetRef oid="00000000-0000-0000-0000-000000000705" type="ArchetypeType"/>
     </assignment>
 
     <objectOperationPolicy>
@@ -24,6 +24,17 @@
                 <enabled>false</enabled>
                 <severity>error</severity>
             </outbound>
+            <membership>
+                <inbound>
+                    <enabled>false</enabled>
+                    <severity>info</severity>
+                </inbound>
+                <outbound>
+                    <enabled>false</enabled>
+                    <severity>info</severity>
+                </outbound>
+                <tolerant>true</tolerant>
+            </membership>
         </synchronize>
         <!--  Provisioning level -->
         <add>

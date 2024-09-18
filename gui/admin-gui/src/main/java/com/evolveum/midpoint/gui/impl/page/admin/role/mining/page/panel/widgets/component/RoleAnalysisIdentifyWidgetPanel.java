@@ -129,15 +129,15 @@ public class RoleAnalysisIdentifyWidgetPanel extends BasePanel<List<IdentifyWidg
 
                         new ChartedHeaderDto<>(createDoughnutChartConfigFor(0, 0, "#dff2e3", "#28a745"),
                                 createStringResource("RoleAnalysisIdentifyWidgetPanel.recertified").getString(),
-                                String.valueOf(0), "98%"),
+                                String.valueOf(0), "0%"),
 
-                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(18, 3, "#dcf1f4", "#18a2b8"),
+                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(0, 0, "#dcf1f4", "#18a2b8"),
                                 createStringResource("RoleAnalysisIdentifyWidgetPanel.pending").getString(),
-                                String.valueOf(20), "98%"),
+                                String.valueOf(0), "0%"),
 
-                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(9, 2, "#e9eaec", "#6c757d"),
+                        new ChartedHeaderDto<>(createDoughnutChartConfigFor(0, 0, "#e9eaec", "#6c757d"),
                                 createStringResource("RoleAnalysisIdentifyWidgetPanel.idle").getString(),
-                                String.valueOf(12), "98%")
+                                String.valueOf(0), "0%")
 
                 );
             }

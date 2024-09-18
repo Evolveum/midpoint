@@ -302,9 +302,11 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             }
         });
 
-        items.add(createMarkInlineMenuAction());
+        items.add(modifyMarkInlineMenuAction());
 
-        items.add(createUnmarkInlineMenuAction());
+//        items.add(createMarkInlineMenuAction());
+//
+//        items.add(createUnmarkInlineMenuAction());
 
         return items;
     }

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisAttributeDefUtils.getObjectNameDef;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.updateFrequencyBased;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.createCompositedObjectIcon;
 
 import java.io.Serial;
 import java.util.List;
@@ -16,9 +17,9 @@ import java.util.List;
 import com.evolveum.midpoint.web.component.data.RoleAnalysisObjectDto;
 
 import com.google.common.collect.ListMultimap;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.common.mining.objects.detection.DetectionOption;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisChunkMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisOperationMode;
 import com.evolveum.midpoint.common.mining.utils.values.RoleAnalysisSortMode;
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
@@ -38,11 +38,12 @@ import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.OutlierPatternResolver;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.operation.SimpleHeatPattern;
-import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> extends RoleAnalysisMatrixColumn<A> {
 
@@ -53,7 +54,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
     }
 
     @Override
-    public void populateItem(Item<ICellPopulator<A>> cellItem, String componentId, IModel<A> rowModel) {
+    public void populateItem(@NotNull Item<ICellPopulator<A>> cellItem, String componentId, IModel<A> rowModel) {
         AjaxLinkTruncatePanelAction panel = createColumnDisplayPanel(
                 componentId,
                 Model.of(loadColumnHeaderModelObject(rowModel)),
@@ -83,7 +84,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
                     icon = "fa fa-compress";
                 }
                 return new CompositedIconBuilder().setBasicIcon(icon,
-                        LayeredIconCssStyle.IN_ROW_STYLE).build();
+                        IconCssStyle.IN_ROW_STYLE).build();
             }
 
             @Override
@@ -107,21 +108,23 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target) {
+            protected void onError(@NotNull AjaxRequestTarget target) {
                 target.add(((PageBase) getPage()).getFeedbackPanel());
             }
         };
         compressButton.titleAsLabel(true);
         compressButton.setOutputMarkupId(true);
-        compressButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
-        compressButton.add(AttributeAppender.append("style",
+        compressButton.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
+        compressButton.add(AttributeModifier.append("style",
                 "  writing-mode: vertical-lr;  -webkit-transform: rotate(90deg);"));
 
         return compressButton;
     }
 
-    private AjaxLinkTruncateDto loadColumnHeaderModelObject(IModel<A> rowModel) {
-        return new AjaxLinkTruncateDto(loadColumnHeaderModelObjectTitle(rowModel), createCompositedIcon(rowModel),
+    @Contract("_ -> new")
+    private @NotNull AjaxLinkTruncateDto loadColumnHeaderModelObject(IModel<A> rowModel) {
+        return new AjaxLinkTruncateDto(
+                loadColumnHeaderModelObjectTitle(rowModel), createCompositedObjectIcon(rowModel.getObject(), getModel()),
                 getOperationMode(rowModel), computeToolTip(rowModel)) {
             @Override
             public boolean isActionEnabled() {
@@ -144,7 +147,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
         return rowModel.getObject().getChunkName();
     }
 
-    private String computeToolTip(IModel<A> rowModel) {
+    private @Nullable String computeToolTip(IModel<A> rowModel) {
         String title = loadColumnHeaderModelObjectTitle(rowModel);
         if (isOutlierDetection()) {
             double confidence = rowModel.getObject().getFrequencyItem().getzScore();
@@ -181,35 +184,6 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
         return title;
     }
 
-    private CompositedIcon createCompositedIcon(IModel<A> rowModel) {
-        A object = rowModel.getObject();
-        List<String> roles = object.getRoles();
-
-        String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(RoleType.COMPLEX_TYPE);
-        CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
-                LayeredIconCssStyle.IN_ROW_STYLE);
-
-        String iconColor = object.getIconColor();
-        if (iconColor != null) {
-            compositedIconBuilder.appendColorHtmlValue(iconColor);
-        }
-
-        List<ObjectReferenceType> resolvedPattern = getModel().getObject().getResolvedPattern();
-        for (ObjectReferenceType ref : resolvedPattern) {
-            if (roles.contains(ref.getOid())) {
-                compositedIconBuilder.setBasicIcon(defaultBlackIcon + " " + GuiStyleConstants.GREEN_COLOR,
-                        LayeredIconCssStyle.IN_ROW_STYLE);
-                IconType icon = new IconType();
-                icon.setCssClass(GuiStyleConstants.CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED
-                        + " " + GuiStyleConstants.GREEN_COLOR);
-                compositedIconBuilder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-                break;
-            }
-        }
-
-        return compositedIconBuilder.build();
-    }
-
     @Override
     public String getCssClass() {
         return "role-mining-static-row-header";
@@ -222,7 +196,7 @@ public abstract class RoleAnalysisObjectColumn<A extends MiningBaseTypeChunk> ex
     protected abstract void resetTable(AjaxRequestTarget target);
 
     @Override
-    protected <T extends MiningBaseTypeChunk> List<String> getElements(T miningBaseTypeChunk) {
+    protected <T extends MiningBaseTypeChunk> List<String> getElements(@NotNull T miningBaseTypeChunk) {
         return miningBaseTypeChunk.getMembers();
     }
 }

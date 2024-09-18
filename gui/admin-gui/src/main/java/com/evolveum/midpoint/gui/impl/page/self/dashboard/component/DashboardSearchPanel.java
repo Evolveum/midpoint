@@ -68,7 +68,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
     }
 
     protected void initLayout() {
-        final Form<?> searchForm = new MidpointForm<>(ID_SEARCH_FORM);
+        final MidpointForm<?> searchForm = new MidpointForm<>(ID_SEARCH_FORM);
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 
@@ -136,7 +136,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
 
 //        searchButton.add(new Label("searchButtonLabel", (IModel<Object>) () -> searchTypes.get(selectedSearchType).getObject()));
         searchForm.add(searchButton);
-        searchForm.setDefaultButton(searchButton.getSearchButton());
+        searchForm.setDefaultSubmit(searchButton.getSearchButton());
 
 //        ListView<SearchType> li = new ListView<>(ID_SEARCH_TYPES, new ListModel<>(new ArrayList<>(searchTypes.keySet()))) {
 //
