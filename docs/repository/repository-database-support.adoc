@@ -98,9 +98,9 @@ We currently do not plan to support any newer database versions for these commer
 Quite the contrary, we plan to drop the support entirely, probably at some point after midPoint 4.8 LTS release.
 Users that require clear database support plans should choose PostgreSQL database instead.
 
-* Support for H2 is likely to remain for development and demonstration purposes, at least for the time being.
-However, once support for generic database repository is gone, support for H2 will be gone too.
-We need to find an alternative way how to support easy evaluation and demo deployments without H2.
+* H2 support was dropped in midPoint 4.9.
+Demo, proof of concept or evaluation deployments should use either docker compose with native PostgreSQL repository or generic repository together with Oracle/MS SQL Server.
+For more information see xref:/midpoint/install/containers/docker/[Docker Compose].
 
 The bottom line is, that *if you start a new midPoint deployment, the best choice is to go with PostgreSQL*.
 If you have existing midPoint deployment then you are probably OK to continue operation with current setup for a short while, but plan to migrate to PostgreSQL soon.
