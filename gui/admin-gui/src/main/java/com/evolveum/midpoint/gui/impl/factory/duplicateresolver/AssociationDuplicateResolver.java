@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.factory.duplicateresolver;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
