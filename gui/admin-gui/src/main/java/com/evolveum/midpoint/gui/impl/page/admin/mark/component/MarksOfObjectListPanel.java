@@ -162,6 +162,11 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
         };
     }
 
+    @Override
+    protected IColumn<SelectableBean<MarkType>, String> createIconColumn() {
+        return null;
+    }
+
     private boolean addStatementPolicyMarkValue(PrismContainerValueWrapper<PolicyStatementType> value) {
         if (value == null || value.getRealValue() == null) {
             return false;
@@ -171,8 +176,7 @@ public class MarksOfObjectListPanel<O extends ObjectType> extends MainObjectList
             return true;
         }
 
-        return objectModel.getObject().getValue().getRealValue().getEffectiveMarkRef().stream()
-                .noneMatch(ref -> value.getRealValue().getMarkRef().getOid().equals(ref.getOid()));
+        return ValueStatus.ADDED == value.getStatus();
     }
 
     @Override
