@@ -269,7 +269,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            public InputStream getStream() {
+            public InputStream getInputStream() {
                 byte[] evidenceFile = WorkItemTypeUtil.getEvidence(getModelObject());
                 return evidenceFile != null ? new ByteArrayInputStream(evidenceFile) : new ByteArrayInputStream(new byte[0]);
             }
