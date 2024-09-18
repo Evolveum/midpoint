@@ -842,7 +842,7 @@
                                 If shadow have multiple tags with provisioning policy applied, the strongest effect is applied.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.provisioningPolicy</a:displayName>
+                                <a:displayName>MarkType.objectOperationPolicy</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
