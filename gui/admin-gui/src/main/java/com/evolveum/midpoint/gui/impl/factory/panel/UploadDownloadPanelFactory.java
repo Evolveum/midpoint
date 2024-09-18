@@ -13,15 +13,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-
 import jakarta.annotation.PostConstruct;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.MimeTypeUtil;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
@@ -52,12 +52,29 @@ public class UploadDownloadPanelFactory<T> extends AbstractInputGuiComponentFact
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InputStream getStream() {
+            public InputStream getInputStream() {
                 T object = panelCtx.getRealValueModel().getObject();
-                if (object instanceof String) {
-                    return new ByteArrayInputStream(((String) object).getBytes());
+
+                if (object instanceof String str) {
+                    return new ByteArrayInputStream(str.getBytes());
+                } else if (object instanceof byte[] bytes) {
+                    return new ByteArrayInputStream(bytes);
                 }
-                return object != null ? new ByteArrayInputStream((byte[]) object) : new ByteArrayInputStream(new byte[0]);
+
+                return new ByteArrayInputStream(new byte[0]);
+            }
+
+            @Override
+            public String getDownloadFileName() {
+                ItemName name = panelCtx.getDefinitionName();
+                if (name != null) {
+                    String fileName = name.getLocalPart();
+                    String extension = MimeTypeUtil.getExtension(getDownloadContentType());
+
+                    return extension != null ? fileName + extension : fileName;
+                }
+
+                return super.getDownloadFileName();
             }
 
             @Override

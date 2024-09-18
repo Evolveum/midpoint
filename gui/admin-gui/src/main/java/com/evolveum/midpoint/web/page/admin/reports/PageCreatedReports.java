@@ -230,7 +230,7 @@ public class PageCreatedReports extends PageAdmin {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected InputStream initStream() {
+            protected InputStream getInputStream() {
                 return createReport();
             }
 
