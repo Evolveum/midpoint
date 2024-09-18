@@ -641,22 +641,4 @@ breakLongerTextInTableCell(cellId) {
         }
     }
 
-    /**
-     * This method provides convinient way to set default submit button for form.
-     * It allows to submit form by pressing Enter key in form inputs.
-     *
-     * See MidpointForm#setDefaultSubmit for more details.
-     *
-     * @param formId
-     * @param submitId
-     */
-    setDefaultSubmit(formId, submitId) {
-        console.info("Setting default submit '" + submitId + "' for form '" + formId + "'");
-
-        $("#" + formId).on('keypress', function (e) {
-            if (e.which == 13) {
-                $("#" + submitId).click();
-            }
-        });
-    }
 }
