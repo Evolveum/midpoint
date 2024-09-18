@@ -92,6 +92,10 @@ Tree node search is now same for all nodes.
 * Shadow table Partitioning in Native PostgreSQL Repository
 ** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
 
+* Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
+Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
+
+
 === Other Improvements
 
 TODO
@@ -101,7 +105,7 @@ See xref:/midpoint/reference/admin-gui/midpoint-jar-signature-status/[MidPoint J
 * We have added a new algorithm to detect which users are in the production-like environment. It would have the following impact, depending on your subscription status.
 - *active subscribers*: none
 - *subscribers who are in the renewal period*: none during the grace period of 90 days
-- *non-subscribers*: disabled cluster communication; if a non-H2 generic repository is used, the GUI would be disabled and the only option would be to set a subscription ID
+- *non-subscribers*: disabled cluster communication; if a generic repository is used, the GUI would be disabled and the only option would be to set a subscription ID
 - For more information, feel free to read link:https://evolveum.com/statement-midpoint-release-changes/[this blog post].
 
 * Duplication function of object or container showed in table.
@@ -126,8 +130,6 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Renamed "Bulk actions" to "Actions" in GUI. See bug:MID-9619[].
 * Added the ability to configure UI form of the authentication sequence module with a label, description and external link.
 More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/modules/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
-* Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
-Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
 
 === Releases Of Other Components
 
