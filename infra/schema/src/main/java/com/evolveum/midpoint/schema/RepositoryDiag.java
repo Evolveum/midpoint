@@ -32,11 +32,6 @@ public class RepositoryDiag implements Serializable {
      */
     private String implementationDescription;
 
-    /** True if the repository is H2-based (always `false` for the native repository). */
-    private boolean isH2;
-
-    private boolean isEmbedded;
-
     /**
      * Short description of a driver or a library used to access the repository.
      * It is usually a named of the JDBC driver (e.g. "org.postgresql.Driver") or
@@ -78,22 +73,6 @@ public class RepositoryDiag implements Serializable {
         this.implementationDescription = implementationDescription;
     }
 
-    public boolean isH2() {
-        return isH2;
-    }
-
-    public void setH2(boolean h2) {
-        isH2 = h2;
-    }
-
-    public boolean isEmbedded() {
-        return isEmbedded;
-    }
-
-    public void setEmbedded(boolean isEmbedded) {
-        this.isEmbedded = isEmbedded;
-    }
-
     public String getDriverShortName() {
         return driverShortName;
     }
@@ -131,20 +110,18 @@ public class RepositoryDiag implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         RepositoryDiag that = (RepositoryDiag) o;
-        return isEmbedded == that.isEmbedded && Objects.equals(implementationShortName, that.implementationShortName) && Objects.equals(implementationDescription, that.implementationDescription) && Objects.equals(driverShortName, that.driverShortName) && Objects.equals(driverVersion, that.driverVersion) && Objects.equals(repositoryUrl, that.repositoryUrl) && Objects.equals(additionalDetails, that.additionalDetails);
+        return Objects.equals(implementationShortName, that.implementationShortName) && Objects.equals(implementationDescription, that.implementationDescription) && Objects.equals(driverShortName, that.driverShortName) && Objects.equals(driverVersion, that.driverVersion) && Objects.equals(repositoryUrl, that.repositoryUrl) && Objects.equals(additionalDetails, that.additionalDetails);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(implementationShortName, implementationDescription, isEmbedded, driverShortName, driverVersion, repositoryUrl, additionalDetails);
+        return Objects.hash(implementationShortName, implementationDescription, driverShortName, driverVersion, repositoryUrl, additionalDetails);
     }
 
     @Override
     public String toString() {
-        return "RepositoryDiag(implementationShortName=" + implementationShortName + ", isEmbedded=" + isEmbedded
-                + ", driverShortName=" + driverShortName + ", driverVersion=" + driverVersion + ", repositoryUrl="
-                + repositoryUrl + ", additionalDetails=" + additionalDetails + ")";
+        return "RepositoryDiag(implementationShortName=" + implementationShortName + ", driverShortName=" + driverShortName
+                + ", driverVersion=" + driverVersion + ", repositoryUrl=" + repositoryUrl + ", additionalDetails="
+                + additionalDetails + ")";
     }
-
-
 }

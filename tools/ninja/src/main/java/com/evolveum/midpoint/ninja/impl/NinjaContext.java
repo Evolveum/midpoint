@@ -203,8 +203,6 @@ public class NinjaContext implements Closeable {
             return "sqlserver";
         } else if (postfix.startsWith("oracle")) {
             return "oracle";
-        } else if (postfix.startsWith("h2")) {
-            return "h2";
         }
 
         throw new IllegalStateException("Unknown database for url " + url);

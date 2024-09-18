@@ -14,9 +14,10 @@ You'll miss this README though.
 INITIAL CONFIGURATION FILE
 
 Initial configuration file, config.xml, is also placed here.
-It is automatically created if missing during start (H2 is used in that case).
-Example of config.xml for Native PG repository is provided in doc/config.
-You can copy it here, don't forget to rename it to config.xml.
+It is automatically created if missing during start, but has to be populated
+for midPoint to start correctly. Example of config.xml for Native PG repository
+is provided in doc/config. You can copy it here, don't forget to rename it to
+config.xml.
 
 OPTIONAL/ADDITIONAL LIBS
 
