@@ -105,7 +105,10 @@ public class MarksOfObjectListPopupPanel<O extends ObjectType> extends SimplePop
     }
 
     private void initLayout(){
-        add(new MarksOfObjectListPanel<O>(ID_PANEL, wrapper));
+        MarksOfObjectListPanel<O> panel = new MarksOfObjectListPanel<>(ID_PANEL, wrapper);
+        panel.setUseObjectCollectionInSearch(false);
+
+        add(panel);
     }
 
     @Override

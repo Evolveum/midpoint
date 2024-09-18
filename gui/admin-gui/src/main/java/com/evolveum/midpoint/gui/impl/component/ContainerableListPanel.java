@@ -245,6 +245,13 @@ public abstract class ContainerableListPanel<C extends Serializable, PO extends 
         return null;
     }
 
+    /**
+     * This is to avoid using the object collection in search defined in page as it's loaded automagically.
+     * E.g. on popup where we want to do complete different search - without {@link #useObjectCollectionInSearch}
+     * qual false, search builder will load collection from underlying page no matter what.
+     *
+     * @param useObjectCollectionInSearch
+     */
     public void setUseObjectCollectionInSearch(boolean useObjectCollectionInSearch) {
         this.useObjectCollectionInSearch = useObjectCollectionInSearch;
     }
