@@ -16,12 +16,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ShadowAssociationDefinition;
-import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
@@ -31,7 +27,6 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 @Component
@@ -49,20 +44,20 @@ public class SourceOfInboundForAssociationMappingPanelFactory extends SourceOrTa
     }
 
     @Override
-    protected Iterator<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
+    protected List<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
         PrismContainerValueWrapper<MappingType> mapping = itemWrapperModel.getObject().getParentContainerValue(InboundMappingType.class);
         if (mapping == null) {
-            return Collections.emptyIterator();
+            return Collections.emptyList();
         }
 
         ShadowAssociationDefinition assocDef = AssociationChildWrapperUtil.getShadowAssociationDefinition(itemWrapperModel.getObject().getParent(), pageBase);
         if(assocDef == null) {
-            return Collections.emptyIterator();
+            return Collections.emptyList();
         }
 
         List<String> toSelect = new ArrayList<>();
         if (!assocDef.isComplex()) {
-            return toSelect.iterator();
+            return toSelect;
         }
 
         assocDef.getAssociationDataObjectDefinition().getSimpleAttributeDefinitions()
@@ -77,10 +72,9 @@ public class SourceOfInboundForAssociationMappingPanelFactory extends SourceOrTa
                     .stream()
                     .filter(choice -> choice.contains(input))
                     .sorted()
-                    .toList()
-                    .iterator();
+                    .toList();
         }
-        return toSelect.stream().sorted().toList().iterator();
+        return toSelect.stream().sorted().toList();
     }
 
     @Override

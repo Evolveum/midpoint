@@ -64,9 +64,9 @@ public class ShadowsNormalizationUtil {
 
         Visitor visitor = f -> {
             try {
-                // TODO what about other kinds of filters?
-                if (f instanceof EqualFilter<?> equalFilter) {
-                    transformAttributesEqualsFilter(equalFilter, objectDef);
+                // Let's hope for the bestt
+                if (f instanceof PropertyValueFilter<?> equalFilter) {
+                    transformAttributesPropertyFilter(equalFilter, objectDef);
                 }
             } catch (SchemaException e) {
                 throw new SystemException(e);
@@ -84,7 +84,7 @@ public class ShadowsNormalizationUtil {
         return false;
     }
 
-    private static <T, N> void transformAttributesEqualsFilter(EqualFilter<T> eqFilter, @NotNull ResourceObjectDefinition objectDef)
+    private static <T, N> void transformAttributesPropertyFilter(PropertyValueFilter<T> eqFilter, @NotNull ResourceObjectDefinition objectDef)
             throws SchemaException {
         if (!eqFilter.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
             return;
@@ -104,7 +104,7 @@ public class ShadowsNormalizationUtil {
 
         // Brutal and ugly hack. We cannot easily replace the filter with a new one, so we simply replace its content.
         //noinspection unchecked
-        EqualFilter<N> castFilter = (EqualFilter<N>) eqFilter;
+        PropertyValueFilter<N> castFilter = (PropertyValueFilter<N>) eqFilter;
         castFilter.setDefinition(normAttrDef);
 
         List<N> adoptedRealValues = normAttrDef.adoptRealValues(origRealValues);
