@@ -329,7 +329,7 @@ public class ObjectOperationPolicyHelper {
                     throw unsupported(value2);
                 }
             } else {
-                throw unsupported(value1);
+                // there are no restriction levels for OperationPolicyConfigurationType (yet)
             }
             // Restrictions levels are the same, let's compare severities
             var severity1 = Objects.requireNonNullElse(value1.getSeverity(), ERROR);
