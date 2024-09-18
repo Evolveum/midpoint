@@ -99,6 +99,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.jetbrains.annotations.Nullable;
+
 @PanelType(name = "members")
 @PanelInstances(value = {
         @PanelInstance(identifier = "roleMembers",
@@ -723,14 +725,14 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
     }
 
-    protected void createUnassignMemberRowAction(List<InlineMenuItem> menu) {
+    protected <AH extends AssignmentHolderType> void createUnassignMemberRowAction(List<InlineMenuItem> menu) {
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
             InlineMenuItem menuItem = new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public InlineMenuItemAction initAction() {
-                    return new ColumnMenuAction<>() {
+                    return new ColumnMenuAction<SelectableBean<AH>>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -860,18 +862,75 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return spec;
     }
 
-    private void unassignMembersPerformed(IModel<?> rowModel, AjaxRequestTarget target) {
+    protected <AH extends AssignmentHolderType> void unassignMembersPerformed(IModel<SelectableBean<AH>> rowModel, AjaxRequestTarget target) {
+        unassignMembersPerformed(rowModel, null, target);
+    }
+
+    private <AH extends AssignmentHolderType> void unassignMembersPerformed(IModel<SelectableBean<AH>> rowModel, QName relation, AjaxRequestTarget target) {
         QueryScope scope = getQueryScope();
         StringResourceModel confirmModel;
 
-        if (rowModel != null || getMemberTable().getSelectedObjectsCount() > 0) {
+        if (rowModel != null || getSelectedObjectsCount() > 0) {
+            var singleObj = rowModel != null ? rowModel.getObject() : null;
+            if (singleObj == null) {
+                singleObj = getSelectedObjectsCount() == 1 ? (SelectableBean<AH>) getMemberTable().getSelectedObjects().get(0) : null;
+            }
+            final List<QName> membershipAvailableRelations = new ArrayList<>();
+            if (singleObj != null) {
+                //there can be a situation when there is only one membership relation (for the current panel) but
+                //in general the object can have more membership relations assigned (e.g. one membership within Members panel and
+                // another membership within Governance panel)
+                // in this case we need to specify the relation to be unassigned (ticket #9936)
+                membershipAvailableRelations.addAll(getMembershipAvailableRelations(singleObj.getValue()));
+                final List<QName> allMembershipRelations = new ArrayList<>(getAllMembershipRelations(singleObj.getValue()));
+                if (membershipAvailableRelations.size() == 1 && allMembershipRelations.size() > 1 && relation == null) {
+                    relation = membershipAvailableRelations.get(0);
+                }
+
+            }
+
+            String unassignActionTranslated =
+                    createStringResource("abstractRoleMemberPanel.message.confirmationMessageForSingleObject.unassign")
+                            .getString();
             confirmModel = rowModel != null
                     ? createStringResource("abstractRoleMemberPanel.message.confirmationMessageForSingleObject",
-                    "unassign", ((ObjectType) ((SelectableBean<?>) rowModel.getObject()).getValue()).getName())
+                    unassignActionTranslated, ((ObjectType) ((SelectableBean<?>) rowModel.getObject()).getValue()).getName())
                     : createStringResource("abstractRoleMemberPanel.unassignSelectedMembersConfirmationLabel",
-                    getMemberTable().getSelectedObjectsCount());
+                    getSelectedObjectsCount());
 
-            executeSimpleUnassignedOperation(rowModel, confirmModel, target);
+            if (membershipAvailableRelations.size() > 1) {
+                //if there are more than 1 membership's relation, we should give a possibility
+                //to the user to select which relation they want to unassign
+
+                ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
+                        getPageBase().getMainPopupBodyId(), confirmModel) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean isFocusTypeSelectorVisible() {
+                        return false;
+                    }
+
+                    @Override
+                    protected List<QName> getSupportedRelations() {
+                        return membershipAvailableRelations;
+                    }
+
+                    protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+                        unassignMembersPerformed(
+                                rowModel,
+                                type,
+                                scope,
+                                relations,
+                                target);
+                    }
+                };
+
+                getPageBase().showMainPopup(chooseTypePopupContent, target);
+
+            } else {
+                showConfirmDialog(rowModel, relation, confirmModel, target);
+            }
         } else {
             confirmModel = createStringResource("abstractRoleMemberPanel.unassignAllMembersConfirmationLabel");
 
@@ -965,46 +1024,50 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
     }
 
-    private void executeSimpleUnassignedOperation(IModel<?> rowModel, StringResourceModel confirmModel, AjaxRequestTarget target) {
-        ConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
-            @Override
-            protected IModel<String> getWarningMessageModel() {
-                if (isSubtreeScope() && rowModel == null) {
-                    return createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
-                } else if (isIndirect() && rowModel == null) {
-                    return createStringResource("abstractRoleMemberPanel.unassign.warning.indirect");
-                }
-                return null;
-            }
-
-            @Override
-            public boolean isConfigurationTaskVisible() {
-                return false;
-            }
-
-            @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                AssignmentHolderType object = getAssignmetHolderFromRow(rowModel);
-                if (object != null) {
-                    executeUnassign(object, target);
-
-                } else {
-
-                    MemberOperationsHelper.createAndSubmitUnassignMembersTask(
-                            AbstractRoleMemberPanel.this.getModelObject(),
-                            getQueryScope(),
-                            getSearchType(),
-                            getActionQuery(rowModel, getQueryScope(), getSearchBoxConfiguration().getSupportedRelations()),
-                            getSearchBoxConfiguration().getSupportedRelations(),
-                            target, getPageBase());
-                }
-            }
-        };
-        getPageBase().showMainPopup(dialog, target);
+    private int getSelectedObjectsCount() {
+        return getMemberTable().getSelectedObjectsCount();
     }
 
-    protected void executeUnassign(AssignmentHolderType object, AjaxRequestTarget target) {
-        List<AssignmentType> assignmentTypeList = getObjectAssignmentTypes(object);
+//    private void executeSimpleUnassignedOperation(IModel<?> rowModel, StringResourceModel confirmModel, AjaxRequestTarget target) {
+//        ConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
+//            @Override
+//            protected IModel<String> getWarningMessageModel() {
+//                if (isSubtreeScope() && rowModel == null) {
+//                    return createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
+//                } else if (isIndirect() && rowModel == null) {
+//                    return createStringResource("abstractRoleMemberPanel.unassign.warning.indirect");
+//                }
+//                return null;
+//            }
+//
+//            @Override
+//            public boolean isConfigurationTaskVisible() {
+//                return false;
+//            }
+//
+//            @Override
+//            public void yesPerformed(AjaxRequestTarget target) {
+//                AssignmentHolderType object = getAssignmetHolderFromRow(rowModel);
+//                if (object != null) {
+//                    executeUnassign(object, target);
+//
+//                } else {
+//
+//                    MemberOperationsHelper.createAndSubmitUnassignMembersTask(
+//                            AbstractRoleMemberPanel.this.getModelObject(),
+//                            getQueryScope(),
+//                            getSearchType(),
+//                            getActionQuery(rowModel, getQueryScope(), getSearchBoxConfiguration().getSupportedRelations()),
+//                            getSearchBoxConfiguration().getSupportedRelations(),
+//                            target, getPageBase());
+//                }
+//            }
+//        };
+//        getPageBase().showMainPopup(dialog, target);
+//    }
+
+    protected void executeUnassign(AssignmentHolderType object, QName relation, AjaxRequestTarget target) {
+        List<AssignmentType> assignmentTypeList = getObjectAssignmentTypes(object, relation);
         OperationResult result = new OperationResult(
                 assignmentTypeList.size() == 1 ? OPERATION_UNASSIGN_OBJECT : OPERATION_UNASSIGN_OBJECTS);
         for (AssignmentType assignmentType : assignmentTypeList) {
@@ -1037,9 +1100,13 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return memberRef.getOid();
     }
 
-    private List<AssignmentType> getObjectAssignmentTypes(AssignmentHolderType object) {
-        return object.getAssignment().stream().filter(
-                assignment -> assignment.getTargetRef().getOid().equals(getTargetOrganizationOid())).collect(Collectors.toList());
+    private List<AssignmentType> getObjectAssignmentTypes(AssignmentHolderType object, QName relation) {
+        return object.getAssignment().stream()
+                .filter(
+                        assignment -> assignment.getTargetRef() != null
+                                && assignment.getTargetRef().getOid().equals(getTargetOrganizationOid())
+                                && (relation == null || QNameUtil.match(relation, assignment.getTargetRef().getRelation())))
+                .collect(Collectors.toList());
     }
 
     private List<QName> getDefaultRelationsForActions() {
@@ -1558,6 +1625,71 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             if (filter.getIndirect() != null) {
                 return filter.getIndirect();
             }
+        }
+        return null;
+    }
+
+    private <AH extends AssignmentHolderType> List<QName> getMembershipAvailableRelations(AH value) {
+        return value.getRoleMembershipRef().stream()
+                .filter(this::isApplicableRoleMembershipRef)
+                .map(ObjectReferenceType::getRelation)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isApplicableRoleMembershipRef(ObjectReferenceType roleMembershipRef) {
+        List<QName> defaultRelations = getDefaultRelationsForActions();
+        return roleMembershipRef.getOid().equals(getModelObject().getOid())
+                && (defaultRelations.contains(roleMembershipRef.getRelation())
+                || defaultRelations.contains(PrismConstants.Q_ANY));
+    }
+
+    private <AH extends AssignmentHolderType> List<QName> getAllMembershipRelations(AH value) {
+        return value.getRoleMembershipRef().stream()
+                .filter(ref -> ref.getOid().equals(getModelObject().getOid()))
+                .map(ObjectReferenceType::getRelation)
+                .collect(Collectors.toList());
+    }
+
+    private void showConfirmDialog(
+            IModel<?> rowModel, QName relation, StringResourceModel confirmModel, AjaxRequestTarget target) {
+        ConfirmationPanel dialog = new ConfigureTaskConfirmationPanel(getPageBase().getMainPopupBodyId(), confirmModel) {
+
+            @Override
+            protected IModel<String> getWarningMessageModel() {
+                if (isSubtreeScope() && rowModel == null) {
+                    return createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
+                } else if (isIndirect() && rowModel == null) {
+                    return createStringResource("abstractRoleMemberPanel.unassign.warning.indirect");
+                }
+                return null;
+            }
+
+            @Override
+            public boolean isConfigurationTaskVisible() {
+                return false;
+            }
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                executeUnassignedOperationAfterConfirm(rowModel, relation, target);
+            }
+        };
+        getPageBase().showMainPopup(dialog, target);
+    }
+
+    protected void executeUnassignedOperationAfterConfirm(IModel<?> rowModel, QName relation, AjaxRequestTarget target) {
+        AssignmentHolderType object = getAssignmentHolderFromRow(rowModel);
+        if (object != null) {
+            executeUnassign(object, relation, target);
+
+        }
+    }
+
+    private AssignmentHolderType getAssignmentHolderFromRow(@Nullable IModel<?> rowModel) {
+        if (rowModel != null
+                && rowModel.getObject() instanceof SelectableBean<?>
+                && ((SelectableBean<?>)rowModel.getObject()).getValue() instanceof AssignmentHolderType) {
+            return (AssignmentHolderType)((SelectableBean<?>)rowModel.getObject()).getValue();
         }
         return null;
     }
