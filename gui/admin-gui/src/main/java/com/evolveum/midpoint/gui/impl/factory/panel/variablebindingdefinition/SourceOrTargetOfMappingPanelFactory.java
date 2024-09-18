@@ -136,7 +136,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
                 panelCtx.getComponentId(), valueModel, String.class, true) {
             @Override
             public Iterator<String> getIterator(String input) {
-                return getAvailableVariables(input, panelCtx.getItemWrapperModel(), panelCtx.getPageBase());
+                return getAvailableVariables(input, panelCtx.getItemWrapperModel(), panelCtx.getPageBase()).iterator();
             }
         };
         panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -147,11 +147,11 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
         return true;
     }
 
-    protected Iterator<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
+    protected List<String> getAvailableVariables(String input, IModel<PrismPropertyWrapper<VariableBindingDefinitionType>> itemWrapperModel, PageBase pageBase) {
         FocusDefinitionsMappingProvider provider = new FocusDefinitionsMappingProvider(itemWrapperModel);
         List<String> values = new ArrayList<>(provider.collectAvailableDefinitions(input));
         values.removeIf(path -> path.startsWith(FocusType.F_METADATA.getLocalPart() + "/"));
-        return values.iterator();
+        return values;
     }
 
     @Override
