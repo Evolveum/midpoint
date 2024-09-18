@@ -158,7 +158,7 @@ class ResourceExpansionOperation {
     /** Applies all known connector definitions to given resource object. */
     private void applyConnectorDefinitions(@NotNull ResourceType resource) throws SchemaException, ConfigurationException {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
-            PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
+            var configurationContainer = connectorSpec.getConnectorConfigurationContainer();
             if (configurationContainer == null) {
                 continue;
             }

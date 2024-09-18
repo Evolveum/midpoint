@@ -51,11 +51,12 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
- * Transforms AsyncUpdateMessageType objects to Change ones (via UcfChangeType intermediary).
+ * Transforms {@link AsyncUpdateMessageType} objects to {@link UcfAsyncUpdateChange} ones
+ * (via {@link UcfChangeType} intermediary).
  *
  * Also prepares appropriately authenticated security context. (In the future we might factor this out to a separate class.)
  */
-public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMessageListener {
+class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMessageListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(TransformationalAsyncUpdateMessageListener.class);
 
@@ -67,6 +68,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
     @NotNull private final UcfAsyncUpdateChangeListener changeListener;
     @Nullable private final Authentication authentication;
     @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
+    private CompleteResourceSchema resourceSchema;
 
     private final AtomicInteger messagesSeen = new AtomicInteger(0);
     private final AtomicInteger changesProduced = new AtomicInteger(0);
@@ -187,10 +189,10 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
      */
     private List<UcfChangeType> unwrapMessage(AsyncUpdateMessageType message) throws SchemaException {
         Object data;
-        if (message instanceof AnyDataAsyncUpdateMessageType) {
-            data = ((AnyDataAsyncUpdateMessageType) message).getData();
-        } else if (message instanceof Amqp091MessageType) {
-            String text = new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
+        if (message instanceof AnyDataAsyncUpdateMessageType anyDataAsyncUpdateMessageType) {
+            data = anyDataAsyncUpdateMessageType.getData();
+        } else if (message instanceof Amqp091MessageType amqp091MessageType) {
+            String text = new String(amqp091MessageType.getBody(), StandardCharsets.UTF_8);
             data = text.isEmpty() ? null :
                     getPrismContext().parserFor(text).xml().parseRealValue();
         } else {
@@ -200,11 +202,12 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         }
         if (data == null) {
             return Collections.emptyList();
-        } else if (data instanceof UcfChangeType) {
-            return Collections.singletonList((UcfChangeType) data);
+        } else if (data instanceof UcfChangeType ucfChange) {
+            return Collections.singletonList(ucfChange);
         } else {
-            throw new SchemaException("Cannot apply trivial message transformation: message does not contain "
-                    + "UcfChangeType object (it is " + data.getClass().getName() + " instead). Please specify transformExpression parameter");
+            throw new SchemaException(
+                    "Cannot apply trivial message transformation: message does not contain UcfChangeType object (it is " +
+                            data.getClass().getName() + " instead). Please specify transformExpression parameter");
         }
     }
 
@@ -287,9 +290,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
             attributesPcv = changeBean.getObject().getAttributes().asPrismContainerValue();
             mayContainNonIdentifiers = true;
         } else if (changeBean.getObjectDelta() != null && changeBean.getObjectDelta().getChangeType() == ChangeTypeType.ADD &&
-                changeBean.getObjectDelta().getObjectToAdd() instanceof ShadowType) {
+                changeBean.getObjectDelta().getObjectToAdd() instanceof ShadowType shadow) {
             //noinspection unchecked
-            attributesPcv = ((ShadowType) changeBean.getObjectDelta().getObjectToAdd()).getAttributes().asPrismContainerValue();
+            attributesPcv = shadow.getAttributes().asPrismContainerValue();
             mayContainNonIdentifiers = true;
         } else {
             throw new SchemaException("Change does not contain identifiers");
@@ -338,28 +341,28 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
         return connectorInstance.getPrismContext();
     }
 
-    private CompleteResourceSchema getResourceSchema(OperationResult result) throws SchemaException, ConfigurationException {
-        var schemaInConnector = connectorInstance.getResourceSchema();
-        if (schemaInConnector != null) {
-            return schemaInConnector;
+    private synchronized @NotNull CompleteResourceSchema getResourceSchema(OperationResult result)
+            throws SchemaException, ConfigurationException {
+        if (resourceSchema != null) {
+            return resourceSchema;
         }
-        LOGGER.warn("No schema defined in connector: {}, will try to fetch one", connectorInstance);
         String resourceOid = connectorInstance.getResourceOid();
         if (resourceOid == null) {
-            throw new SchemaException("No resource schema in connector instance and resource OID is not known either. Have you executed the Test Resource operation?");
+            throw new SchemaException("No resource OID. Have you executed the Test Resource operation?");
         }
         PrismObject<ResourceType> resource;
         try {
             resource = connectorInstance.getRepositoryService().getObject(ResourceType.class, resourceOid, null, result);
         } catch (ObjectNotFoundException e) {
-            throw new SystemException("Resource with OID " + resourceOid + " could not be found in " + connectorInstance + ": "
-                    + e.getMessage(), e);
+            throw new SystemException(
+                    "Resource with OID " + resourceOid + " could not be found in " + connectorInstance + ": " + e.getMessage(), e);
         }
-        var repoResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
-        if (repoResourceSchema != null) {
-            return repoResourceSchema;
+
+        resourceSchema = ResourceSchemaFactory.getCompleteSchema(resource);
+        if (resourceSchema != null) {
+            return resourceSchema;
         } else {
-            throw new SchemaException("No resource schema in connector instance nor in repository. Have you executed the Test Resource operation?");
+            throw new SchemaException("No resource schema in repository. Have you executed the Test Resource operation?");
         }
     }
 }

@@ -23,6 +23,8 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
     Task task;
     OperationResult result;
 
+    double defaultPercentageMembership = 60.0;
+
     public BirthrightCoverageModeConfiguration(
             RoleAnalysisService service,
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
@@ -36,9 +38,15 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
 
     @Override
     public void updateConfiguration() {
+        int maxPropertyCount = getMaxPropertyCount();
         RangeType propertyRange = new RangeType()
                 .min(2.0)
-                .max(Double.valueOf(getMaxPropertyCount()));
+                .max((double) maxPropertyCount);
+
+        int minOverlap = 0;
+        if (maxPropertyCount != 0) {
+            minOverlap = (int) Math.round(maxPropertyCount * defaultPercentageMembership / 100);
+        }
 
         updatePrimaryOptions(null,
                 false,
@@ -47,7 +55,7 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
                 null,
                 70.0,
                 5,
-                30,
+                minOverlap,
                 false);
 
         updateDetectionOptions(5,
@@ -58,8 +66,6 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
                         .max(100.0),
                 RoleAnalysisDetectionProcessType.FULL);
     }
-
-
 
     public @NotNull Integer getMaxPropertyCount() {
         Class<? extends ObjectType> propertiesClass = UserType.class;

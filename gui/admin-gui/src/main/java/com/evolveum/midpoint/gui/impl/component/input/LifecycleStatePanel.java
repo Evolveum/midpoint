@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.input;
 
-import com.evolveum.midpoint.gui.api.component.Badge;
 import com.evolveum.midpoint.gui.api.util.DisplayForLifecycleState;
 import com.evolveum.midpoint.gui.api.util.DisplayableChoiceRenderer;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
@@ -66,19 +65,19 @@ public class LifecycleStatePanel extends InputPanel {
         initLayout();
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
+//    @Override
+//    public void renderHead(IHeaderResponse response) {
+//        super.renderHead(response);
+//
+//        callScript(response);
+//    }
 
-        callScript(response);
-    }
-
-    private void callScript(IHeaderResponse response) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("MidPointTheme.initDropdownResize('").append(getMarkupId()).append("');");
-
-        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
-    }
+//    private void callScript(IHeaderResponse response) {
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("MidPointTheme.initDropdownResize('").append(getMarkupId()).append("');");
+//
+//        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+//    }
 
     private <T> void initLayout() {
         setOutputMarkupId(true);
@@ -174,10 +173,25 @@ public class LifecycleStatePanel extends InputPanel {
         input.setNullValid(false);
         input.setOutputMarkupId(true);
 
-        input.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+//        input.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//                callScript(target.getHeaderResponse());
+//                target.add(input);
+//            }
+//        });
+//
+//        input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
+//            @Override
+//            protected void onUpdate(AjaxRequestTarget target) {
+//                callScript(target.getHeaderResponse());
+//                target.add(input);
+//            }
+//        });
+
+        input.add(new EmptyOnChangeAjaxFormUpdatingBehavior(){
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                callScript(target.getHeaderResponse());
                 target.add(input);
             }
         });
@@ -185,7 +199,6 @@ public class LifecycleStatePanel extends InputPanel {
         input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                callScript(target.getHeaderResponse());
                 target.add(input);
             }
         });
@@ -199,7 +212,7 @@ public class LifecycleStatePanel extends InputPanel {
                 name = value.getValue();
             }
             DisplayForLifecycleState display = DisplayForLifecycleState.valueOfOrDefault(name);
-            return display.getCssClass() + " form-control form-control-sm resizing-select " + customCssClassForInputField();
+            return display.getCssClass() + " form-control form-control-sm resizing-select" + customCssClassForInputField();
         }));
 
         add(input);

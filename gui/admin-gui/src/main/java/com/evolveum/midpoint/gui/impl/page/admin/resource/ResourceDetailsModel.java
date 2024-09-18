@@ -203,10 +203,6 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         }
 
         return resourceSchema.getObjectTypeDefinitions(kind);
-//        return resourceSchema.getObjectTypeDefinitions(kind)
-//                .stream()
-//                .map(ResourceObjectDefinition::getDefinitionBean)
-//                .collect(Collectors.toList());
     }
 
     public QName getDefaultObjectClass() {

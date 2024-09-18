@@ -21,6 +21,7 @@ import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.model.api.BulkActionExecutionOptions;
 import com.evolveum.midpoint.model.impl.scripting.BulkActionsExecutor;
 import com.evolveum.midpoint.schema.config.ExecuteScriptConfigItem;
+import com.evolveum.midpoint.schema.processor.BareResourceSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.model.impl.simulation.ProcessedObjectImpl;
@@ -1546,14 +1547,14 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     @Override
-    public @Nullable ResourceSchema fetchSchema(
+    public @Nullable BareResourceSchema fetchSchema(
             @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult result) {
         Validate.notNull(resource, "Resource must not be null.");
         LOGGER.trace("Fetch schema by connector configuration from resource: {}", resource);
 
         enterModelMethodNoRepoCache();
         try {
-            @Nullable ResourceSchema schema = provisioning.fetchSchema(resource, result);
+            @Nullable BareResourceSchema schema = provisioning.fetchSchema(resource, result);
             LOGGER.debug(
                     "Finished fetch schema by connector configuration from resource: {}, result: {} ",
                     resource,

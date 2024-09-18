@@ -19,9 +19,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface CompleteResourceSchema extends ResourceSchema {
 
-    // TODO consider removing
-    @NotNull BasicResourceInformation getBasicResourceInformation();
-
     boolean isCaseIgnoreAttributeNames();
 
     CompleteResourceSchema forLayerImmutable(LayerType layer);

@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.processor.NativeResourceSchema;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +35,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.processor.CompleteResourceSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
@@ -134,8 +135,8 @@ class ResourceSchemaHelper {
         var connectorWithSchema = connectorManager.getConnectorWithSchema(sourceConnectorSpec, result);
         var configurationContainerDefinition = connectorWithSchema.getConfigurationContainerDefinition();
 
-        PrismContainer<ConnectorConfigurationType> targetConfigurationContainer =
-                targetConnectorSpec != null ? targetConnectorSpec.getConnectorConfiguration() : null;
+        var targetConfigurationContainer =
+                targetConnectorSpec != null ? targetConnectorSpec.getConnectorConfigurationContainer() : null;
         if (targetConfigurationContainer != null) {
             targetConfigurationContainer.applyDefinition(configurationContainerDefinition);
         }
@@ -172,7 +173,7 @@ class ResourceSchemaHelper {
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
-        PrismContainer<ConnectorConfigurationType> configurationContainer = connectorSpec.getConnectorConfiguration();
+        var configurationContainer = connectorSpec.getConnectorConfigurationContainer();
         if (configurationContainer != null) {
             evaluateExpressions(configurationContainer, resource, task, result);
         }
@@ -353,9 +354,9 @@ class ResourceSchemaHelper {
                 return;
             }
 
-            PrismContainer<ConnectorConfigurationType> connectorConfiguration = connectorSpec.getConnectorConfiguration();
-            if (connectorConfiguration != null) {
-                connectorConfiguration.applyDefinition(configurationContainerDef);
+            var connectorConfigurationContainer = connectorSpec.getConnectorConfigurationContainer();
+            if (connectorConfigurationContainer != null) {
+                connectorConfigurationContainer.applyDefinition(configurationContainerDef);
             }
 
             for (ItemDelta<?, ?> itemDelta : delta.getModifications()) {
@@ -496,12 +497,12 @@ class ResourceSchemaHelper {
     /**
      * TODO is this method correct?
      */
-    void updateSchemaToConnectors(ResourceType resource, CompleteResourceSchema resourceSchema, OperationResult result)
+    void updateSchemaInConnectorInstances(ResourceType resource, NativeResourceSchema nativeSchema, OperationResult result)
             throws ConfigurationException, SchemaException, CommunicationException, ObjectNotFoundException {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             connectorManager
                     .getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result)
-                    .updateSchema(resourceSchema);
+                    .updateSchema(nativeSchema);
         }
     }
 }

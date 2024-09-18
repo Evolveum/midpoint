@@ -117,7 +117,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
                 };
 
                 sessionLink.setOutputMarkupId(true);
-                sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
+                sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:100px"));
                 sessionLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
                 view.add(sessionLink);
 
@@ -134,7 +134,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
                     }
                 };
                 clusterLink.setOutputMarkupId(true);
-                clusterLink.add(AttributeModifier.append(STYLE_CSS, "max-width:150px"));
+                clusterLink.add(AttributeModifier.append(STYLE_CSS, "max-width:100px"));
                 clusterLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
                 view.add(clusterLink);
                 return view;

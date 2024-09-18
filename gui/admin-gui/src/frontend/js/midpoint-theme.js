@@ -610,16 +610,17 @@ export default class MidPointTheme {
         });
     }
 
-    /**
-     * used in SimulationModePanel.java
-     *
-     * @param compId
-     */
-    initDropdownResize(panelId) {
-        var panel = $('#' + panelId);
-        panel.find("option.width-tmp-option").html(panel.find("select.resizing-select option:selected").text());
-        panel.find("select.resizing-select").width(panel.find("select.width-tmp-select").width());
-    }
+//    /**
+//     * used in SimulationModePanel.java
+//     *
+//     * @param compId
+//     */
+//    initDropdownResize(panelId) {
+//        var panel = $('#' + panelId);
+//        console.log('initDropdownResize panel: ' + panel);
+//        panel.find("option.width-tmp-option").html(panel.find("select.resizing-select option:selected").text());
+//        panel.find("select.resizing-select").width(panel.find("select.width-tmp-select").width());
+//    }
 
     /**
      * Used for scaling tables, images and charts (Role Mining)
