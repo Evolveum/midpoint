@@ -39,6 +39,7 @@ public class PatternConfidenceCalculator implements Serializable {
     private void initializeItemCount() {
         AbstractAnalysisSessionOptionType sessionOptions = getSessionOptions();
         AnalysisAttributeSettingType analysisAttributeSetting = getAnalysisAttributeSetting(sessionOptions);
+        //TODO check (role attributes are missing)
         List<ItemPathType> analysisAttributeRule = getAnalysisAttributeRule(analysisAttributeSetting);
         itemCount = analysisAttributeRule == null ? 0 : analysisAttributeRule.size();
     }
@@ -55,6 +56,7 @@ public class PatternConfidenceCalculator implements Serializable {
         return sessionOptions.getUserAnalysisAttributeSetting();
     }
 
+    //TODO check (role attributes are missing)
     private List<ItemPathType> getAnalysisAttributeRule(
             @Nullable AnalysisAttributeSettingType analysisAttributeSetting) {
         if (analysisAttributeSetting == null) {
@@ -82,8 +84,10 @@ public class PatternConfidenceCalculator implements Serializable {
             totalDensity += calculateDensity(userAttributeAnalysisResult.getAttributeAnalysis());
             totalCount += userAttributeAnalysisResult.getAttributeAnalysis().size();
         }
+        //TODO check it. It is not clear how to calculate item confidence. In the item count missing role attributes.
+//        double itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
 
-        return itemsConfidence = (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / itemCount : 0.0;
+        return (totalCount > 0 && totalDensity > 0.0 && itemCount > 0) ? totalDensity / totalCount : 0.0;
     }
 
     private double calculateDensity(@NotNull List<RoleAnalysisAttributeAnalysis> attributeAnalysisList) {
