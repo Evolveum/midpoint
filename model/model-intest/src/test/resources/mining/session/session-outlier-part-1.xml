@@ -7,8 +7,9 @@
     <iteration>0</iteration>
     <iterationToken/>
     <analysisOption>
-        <processMode>user</processMode>
-        <analysisCategory>outliers</analysisCategory>
+            <analysisProcedureType>outlier_detection</analysisProcedureType>
+            <processMode>user</processMode>
+            <analysisCategory>advanced</analysisCategory>
     </analysisOption>
     <userModeOptions>
         <similarityThreshold>80.0</similarityThreshold>

@@ -7,6 +7,7 @@
     <iteration>0</iteration>
     <iterationToken/>
     <analysisOption>
+        <analysisProcedureType>role_mining</analysisProcedureType>
         <processMode>user</processMode>
         <analysisCategory>advanced</analysisCategory>
     </analysisOption>
