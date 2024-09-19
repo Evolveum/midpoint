@@ -149,4 +149,7 @@ public interface ShadowAssociationDefinition
 
     /** Use with care. Please do not modify the returned value. */
     @Nullable ShadowAssociationDefinitionType getModernAssociationDefinitionBean();
+
+    /** Use with care. Please do not modify the returned value. */
+    @Nullable ShadowAssociationTypeDefinitionType getModernAssociationTypeDefinitionBean();
 }
