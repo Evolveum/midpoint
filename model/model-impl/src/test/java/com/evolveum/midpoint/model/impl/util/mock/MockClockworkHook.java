@@ -70,7 +70,7 @@ public class MockClockworkHook implements ChangeHook, DebugDumpable {
     }
 
     @Override
-    public HookOperationMode invoke(@NotNull ModelContext context, @NotNull Task task, @NotNull OperationResult result) {
+    public @NotNull HookOperationMode invoke(@NotNull ModelContext context, @NotNull Task task, @NotNull OperationResult result) {
         assertTrue("Unexpected INITIAL state of the context in the hook", context.getState() != ModelState.INITIAL);
         // OK to rely on implementation here. This is an implementation test.
         if (!(context instanceof LensContext)) {

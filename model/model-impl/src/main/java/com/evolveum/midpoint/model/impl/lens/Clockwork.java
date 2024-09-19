@@ -162,14 +162,22 @@ public class Clockwork {
                     } else if (mode == HookOperationMode.ERROR) {
                         return mode;
                     }
+
+                    if (ModelExecuteOptions.isFirstClickOnly(context.getOptions())) {
+                        // Assuming that the first click was in the INITIAL state.
+                        LOGGER.trace("Initial state only processing requested, exiting the clockwork");
+                        return mode;
+                    }
                 }
-                // One last click in FINAL state
+
+                // One last click in FINAL state (unless limited to INITIAL only)
                 HookOperationMode mode = click(context, task, result);
                 if (mode == HookOperationMode.FOREGROUND) {
                     // We must check inside here - before watchers are unregistered
                     clockworkConflictResolver.detectFocusConflicts(context, conflictResolutionContext, result);
                 }
                 return mode;
+
             } catch (ConflictDetectedException e) {
                 LOGGER.debug("Clockwork conflict detected", e);
                 conflictResolutionContext.recordConflictException();
@@ -333,7 +341,7 @@ public class Clockwork {
         }
     }
 
-    public <F extends ObjectType> LensContext<F> previewChanges(LensContext<F> context, Collection<ProgressListener> listeners,
+    public <F extends ObjectType> LensContext<F> previewChangesLegacy(LensContext<F> context, Collection<ProgressListener> listeners,
             Task task, OperationResult result)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {

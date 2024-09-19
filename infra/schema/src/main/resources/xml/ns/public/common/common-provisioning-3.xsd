@@ -1336,20 +1336,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Path of the item to which this resource object should be mapped.
-                        If not specified, the resource object corresponds to the whole focus object.
-                        (A special case is when "assignmentSubtype" is present, then the default path is "assignment".)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="assignmentSubtype" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Subtype of the assignment to which this resource object is mapped (if applicable).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
