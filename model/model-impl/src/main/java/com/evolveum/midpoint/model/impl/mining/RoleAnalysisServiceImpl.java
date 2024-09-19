@@ -2189,7 +2189,7 @@ public class RoleAnalysisServiceImpl implements RoleAnalysisService {
         }
 
         RoleAnalysisAttributeAnalysisResult userAttributeAnalysisResult = clusterStatistics.getUserAttributeAnalysisResult();
-        if (userAttributeAnalysisResult != null && processModeType.equals(RoleAnalysisProcessModeType.USER)) {
+        if (userAttributeAnalysisResult != null) {
             attributeAnalysis.addAll(userAttributeAnalysisResult.getAttributeAnalysis());
         }
 
