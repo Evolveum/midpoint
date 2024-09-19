@@ -9,15 +9,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.getSessionOptionContainer;
 
 public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -28,25 +29,15 @@ public class ClusteringRoleAnalysisSessionOptionWizardPanel extends AbstractForm
 
     }
 
-
     @Override
     protected IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getContainerFormModel() {
-        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-        RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
-        RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
-        PrismContainerWrapperModel<RoleAnalysisSessionType, AbstractAnalysisSessionOptionType> containerWrapperModel;
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
-                    ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
-        } else {
-            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
-                    ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
-        }
-        containerWrapperModel.getObject().setExpanded(true);
-        return containerWrapperModel;
+        AssignmentHolderDetailsModel<RoleAnalysisSessionType> detailsModel = getDetailsModel();
+        return getSessionOptionContainer(detailsModel);
     }
 
-    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected boolean checkMandatory(@NotNull ItemWrapper itemWrapper) {
         ItemName itemName = itemWrapper.getItemName();
 
         if (itemName.equivalent(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)

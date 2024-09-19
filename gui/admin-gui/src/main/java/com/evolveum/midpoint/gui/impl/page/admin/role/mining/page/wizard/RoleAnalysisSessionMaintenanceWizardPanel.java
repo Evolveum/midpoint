@@ -8,9 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard;
 
 import java.io.Serial;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.util.exception.SystemException;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
@@ -25,7 +28,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
@@ -33,6 +35,8 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 public class RoleAnalysisSessionMaintenanceWizardPanel
         extends AbstractWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
@@ -43,7 +47,11 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     private static final String ID_DESCRIPTION_PROCESSING = "description-processing";
     private static final String ID_REBUILD_PROCESSING = "rebuild-processing";
     private static final String ID_DELETE_PROCESSING = "delete-processing";
-    private static final String DECOMISSIONED_MARK_OID = "00000000-0000-0000-0000-000000000801";
+
+    private static final String DEFAULT_BUTTON_CSS = "text-left btn btn-default ";
+    private static final String COLORED_BUTTON_CSS = "colored-form-primary ";
+
+    private static final String DECOMMISSIONED_MARK_OBJECT_ID = "00000000-0000-0000-0000-000000000801";
     boolean isRebuild = false;
     TaskType taskType;
     Model<Boolean> isActiveModel = Model.of(false);
@@ -57,11 +65,6 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-    }
-
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
     }
 
     private void initLayout() {
@@ -101,7 +104,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
                     }
                 };
                 iconWithLabel.setOutputMarkupId(true);
-                iconWithLabel.add(AttributeAppender.replace("class", "d-flex align-items-center gap-2 h5"));
+                iconWithLabel.add(AttributeModifier.replace(CLASS_CSS, "d-flex align-items-center gap-2 h5"));
                 return iconWithLabel;
             }
 
@@ -128,6 +131,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
         add(textField);
     }
 
+    @SuppressWarnings("unchecked")
     public TextField<Double> getRetentionField() {
         return (TextField<Double>) get(getPageBase().createComponentPath(ID_INPUT_RETENTION));
     }
@@ -142,13 +146,13 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
             }
         };
         iconWithLabel.setOutputMarkupId(true);
-        iconWithLabel.add(AttributeAppender.append("class", "d-flex align-items-center gap-2 h5"));
+        iconWithLabel.add(AttributeModifier.append(CLASS_CSS, "d-flex align-items-center gap-2 h5"));
         add(iconWithLabel);
 
         Label description = new Label(ID_DESCRIPTION_PROCESSING,
                 createStringResource("RoleAnalysisSessionMaintenanceWizardPanel.data.processing.help"));
         description.setOutputMarkupId(true);
-        description.add(AttributeAppender.append("class", "text-gray"));
+        description.add(AttributeModifier.append(CLASS_CSS, "text-gray"));
         add(description);
 
         initDeleteButton();
@@ -157,7 +161,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
 
     private void initRebuildButton() {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_REFRESH,
-                LayeredIconCssStyle.IN_ROW_STYLE);
+                IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton rebuildButton = new AjaxCompositedIconSubmitButton(ID_REBUILD_PROCESSING,
                 iconBuilder.build(),
                 createStringResource("RoleAnalysisSessionMaintenanceWizardPanel.rebuild.label")) {
@@ -166,8 +170,8 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
             @Override
             protected void onSubmit(@NotNull AjaxRequestTarget target) {
                 setRebuild(true);
-                this.add(AttributeAppender.replace("class", "text-left btn btn-default colored-form-primary"));
-                getDeleteButton().add(AttributeAppender.replace("class", "text-left btn btn-default"));
+                this.add(AttributeModifier.replace(CLASS_CSS, DEFAULT_BUTTON_CSS + COLORED_BUTTON_CSS));
+                getDeleteButton().add(AttributeModifier.replace(CLASS_CSS, DEFAULT_BUTTON_CSS));
                 target.add(getDeleteButton());
                 target.add(this);
             }
@@ -180,9 +184,9 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
         rebuildButton.titleAsLabel(true);
         rebuildButton.setOutputMarkupId(true);
 
-        rebuildButton.add(AttributeAppender.replace("class", "text-left btn btn-default"));
+        rebuildButton.add(AttributeModifier.replace(CLASS_CSS, DEFAULT_BUTTON_CSS));
         if (isRebuild()) {
-            rebuildButton.add(AttributeAppender.append("class", " colored-form-primary"));
+            rebuildButton.add(AttributeModifier.append(CLASS_CSS, COLORED_BUTTON_CSS));
         }
 
         add(rebuildButton);
@@ -190,7 +194,7 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
 
     private void initDeleteButton() {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_TRASH,
-                LayeredIconCssStyle.IN_ROW_STYLE);
+                IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton deleteButton = new AjaxCompositedIconSubmitButton(ID_DELETE_PROCESSING,
                 iconBuilder.build(),
                 createStringResource("RoleAnalysisSessionMaintenanceWizardPanel.delete.label")) {
@@ -199,8 +203,8 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
             @Override
             protected void onSubmit(@NotNull AjaxRequestTarget target) {
                 setRebuild(false);
-                this.add(AttributeAppender.replace("class", "text-left btn btn-default colored-form-primary"));
-                getRebuildButton().add(AttributeAppender.replace("class", "text-left btn btn-default"));
+                this.add(AttributeModifier.replace(CLASS_CSS, DEFAULT_BUTTON_CSS + COLORED_BUTTON_CSS));
+                getRebuildButton().add(AttributeModifier.replace(CLASS_CSS, DEFAULT_BUTTON_CSS));
                 target.add(getRebuildButton());
                 target.add(this);
             }
@@ -213,31 +217,37 @@ public class RoleAnalysisSessionMaintenanceWizardPanel
         deleteButton.titleAsLabel(true);
         deleteButton.setOutputMarkupId(true);
 
-        deleteButton.add(AttributeAppender.replace("class", "text-left btn btn-default"));
+        deleteButton.add(AttributeModifier.replace(CLASS_CSS, DEFAULT_BUTTON_CSS));
         if (!isRebuild()) {
-            deleteButton.add(AttributeAppender.append("class", " colored-form-primary"));
+            deleteButton.add(AttributeModifier.append(CLASS_CSS, COLORED_BUTTON_CSS));
         }
 
         add(deleteButton);
     }
 
-    public void onSubmitPerform() {
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        onSubmitMaintenancePerform();
+    }
+
+    //TODO nasty hack remove later
+    private void onSubmitMaintenancePerform() {
         Boolean isActive = isActiveModel.getObject();
-        if (isActive) {
+        if (isActive.equals(Boolean.TRUE)) {
             boolean rebuild = isRebuild();
 
             if (!rebuild) {
                 AssignmentHolderDetailsModel<RoleAnalysisSessionType> detailsModel = getDetailsModel();
-                ObjectReferenceType mark = new ObjectReferenceType().oid(DECOMISSIONED_MARK_OID)
+                ObjectReferenceType mark = new ObjectReferenceType().oid(DECOMMISSIONED_MARK_OBJECT_ID)
                         .type(MarkType.COMPLEX_TYPE)
                         .description("First run");
 
                 PrismObjectWrapper<RoleAnalysisSessionType> objectWrapper = detailsModel.getObjectWrapper();
                 try {
-                    PrismReferenceWrapper<Referencable> reference = objectWrapper.findReference(RoleAnalysisSessionType.F_EFFECTIVE_MARK_REF);
+                    PrismReferenceWrapper<Referencable> reference = objectWrapper.findReference(ObjectType.F_EFFECTIVE_MARK_REF);
                     reference.add(mark.asReferenceValue(), getPageBase());
                 } catch (SchemaException e) {
-                    throw new RuntimeException(e);
+                    throw new SystemException("Couldn't add reference to the object", e);
                 }
 
             }

@@ -14,16 +14,15 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractAnalysisSessionOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession.getSessionOptionContainer;
 
 public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
@@ -35,34 +34,13 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-    }
-
-    private void setNewValue(PrismContainerValueWrapper<AbstractAnalysisSessionOptionType> sessionType,
-            ItemName itemName, Object realValue) throws SchemaException {
-
-        sessionType.findProperty(itemName).getValue().setRealValue(realValue);
-
-    }
-
-    @Override
     protected IModel<? extends PrismContainerWrapper<AbstractAnalysisSessionOptionType>> getContainerFormModel() {
-        LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getDetailsModel().getObjectWrapperModel();
-        RoleAnalysisOptionType processModeObject = objectWrapperModel.getObject().getObject().asObjectable().getAnalysisOption();
-        RoleAnalysisProcessModeType processMode = processModeObject.getProcessMode();
-        PrismContainerWrapperModel<RoleAnalysisSessionType, AbstractAnalysisSessionOptionType> containerWrapperModel;
-        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
-                    ItemPath.create(RoleAnalysisSessionType.F_ROLE_MODE_OPTIONS));
-        } else {
-            containerWrapperModel = PrismContainerWrapperModel.fromContainerWrapper(getDetailsModel().getObjectWrapperModel(),
-                    ItemPath.create(RoleAnalysisSessionType.F_USER_MODE_OPTIONS));
-        }
-        containerWrapperModel.getObject().setExpanded(true);
-        return containerWrapperModel;
+        AssignmentHolderDetailsModel<RoleAnalysisSessionType> detailsModel = getDetailsModel();
+        return getSessionOptionContainer(detailsModel);
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
     protected boolean checkMandatory(@NotNull ItemWrapper itemWrapper) {
         ItemName itemName = itemWrapper.getItemName();
 
