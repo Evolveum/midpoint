@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.getRolesOidAssignment;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
+
 import static java.util.Collections.singleton;
 
 public class RoleAnalysisServiceUtils {
@@ -264,9 +265,9 @@ public class RoleAnalysisServiceUtils {
             modelService.executeChanges(deltas, null, task, result);
 
         } catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
-                 ExpressionEvaluationException |
-                 CommunicationException | ConfigurationException | PolicyViolationException |
-                 SecurityViolationException e) {
+                ExpressionEvaluationException |
+                CommunicationException | ConfigurationException | PolicyViolationException |
+                SecurityViolationException e) {
             logger.error("Couldn't update lifecycle state of object RoleType {}", roleObject, e);
         }
     }
@@ -313,6 +314,11 @@ public class RoleAnalysisServiceUtils {
 
             modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
                     .item(RoleAnalysisClusterType.F_DETECTED_PATTERN).replace(Collections.emptyList())
+                    .asItemDelta());
+
+            modifications.add(PrismContext.get().deltaFor(RoleAnalysisClusterType.class)
+                    .item(RoleAnalysisClusterType.F_CLUSTER_STATISTICS, AnalysisClusterStatisticType.F_DETECTED_REDUCTION_METRIC)
+                    .replace(0.0)
                     .asItemDelta());
 
             repositoryService.modifyObject(RoleAnalysisClusterType.class, cluster.getOid(), modifications, result);
@@ -405,7 +411,7 @@ public class RoleAnalysisServiceUtils {
         return assignmentPaths;
     }
 
-    protected static  <PV extends PrismValue> List<ProvenanceMetadataType> collectProvenanceMetadata(PV rowValue) {
+    protected static <PV extends PrismValue> List<ProvenanceMetadataType> collectProvenanceMetadata(PV rowValue) {
         List<ValueMetadataType> valueMetadataValues = collectValueMetadata(rowValue);
         return valueMetadataValues.stream()
                 .map(ValueMetadataType::getProvenance)
@@ -413,7 +419,7 @@ public class RoleAnalysisServiceUtils {
 
     }
 
-    protected static  <PV extends PrismValue> @NotNull List<ValueMetadataType> collectValueMetadata(@NotNull PV rowValue) {
+    protected static <PV extends PrismValue> @NotNull List<ValueMetadataType> collectValueMetadata(@NotNull PV rowValue) {
         PrismContainer<ValueMetadataType> valueMetadataContainer = rowValue.getValueMetadataAsContainer();
         return (List<ValueMetadataType>) valueMetadataContainer.getRealValues();
     }
