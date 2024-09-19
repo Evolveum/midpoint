@@ -7,6 +7,10 @@
 package com.evolveum.midpoint.model.intest.mining;
 
 import java.io.File;
+import java.util.List;
+
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -18,7 +22,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestObject;
 import com.evolveum.midpoint.test.TestTask;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Test class for role analysis processes including role mining, partial outlier detection,
@@ -51,32 +56,35 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/mining/");
 
+    public static final int FINAL_TASK_STAGE = 7;
+
     //RBAC generated data
     private static final File TEST_DIR_USERS_FILE = new File(TEST_DIR, "import/users.xml");
     private static final File TEST_DIR_ORGS_FILE = new File(TEST_DIR, "import/orgs.xml");
     private static final File TEST_DIR_ROLES_FILE = new File(TEST_DIR, "import/roles.xml");
     private static final File TEST_DIR_ARCHETYPES_FILE = new File(TEST_DIR, "import/archetypes.xml");
 
-    // Role mining org attribute rule
-    private static final TestObject<RoleAnalysisSessionType> SESSION_ROLE_MINING_1 = TestObject.file(
-            TEST_DIR, "session/session-role-mining-1.xml", "32e52e85-d871-4a24-8fa3-31f301bfc58e");
 
+    // Role mining org attribute rule
+    private static final String SESSION_ROLE_MINING_1_OID = "32e52e85-d871-4a24-8fa3-31f301bfc58e";
+    private static final TestObject<RoleAnalysisSessionType> SESSION_ROLE_MINING_1 = TestObject.file(
+            TEST_DIR, "session/session-role-mining-1.xml", SESSION_ROLE_MINING_1_OID);
     private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_1 =
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-1.xml",
                     "7db12c2a-d431-4587-aa8d-55d76e4401da");
 
     // Outlier org attribute rule (partial analysis - not outlier cluster excluded)
+    private static final String SESSION_OUTLIER_PART_1_OID = "6cd71dab-993a-4dea-aeb4-b8bdcad81ddc";
     private static final TestObject<RoleAnalysisSessionType> SESSION_OUTLIER_PART_1 = TestObject.file(
-            TEST_DIR, "session/session-outlier-part-1.xml", "6cd71dab-993a-4dea-aeb4-b8bdcad81ddc");
-
+            TEST_DIR, "session/session-outlier-part-1.xml", SESSION_OUTLIER_PART_1_OID);
     private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_PART_1 =
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-outlier-part-1.xml",
                     "89c856dc-13f8-43ac-99b2-4bf2654f94ca");
 
     // Outlier org attribute rule (full analysis - outlier cluster included)
+    private static final String SESSION_OUTLIER_FULL_1_OID = "0fc912c8-794a-4add-ad61-a7013d6abd4a";
     private static final TestObject<RoleAnalysisSessionType> SESSION_OUTLIER_FULL_1 = TestObject.file(
-            TEST_DIR, "session/session-outlier-full-1.xml", "0fc912c8-794a-4add-ad61-a7013d6abd4a");
-
+            TEST_DIR, "session/session-outlier-full-1.xml", SESSION_OUTLIER_FULL_1_OID);
     private static final TestTask TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_FULL_1 =
             new TestTask(TEST_DIR, "task/task-role-analysis-process-session-outlier-full-1.xml",
                     "55e836f6-4e43-485f-bdc3-a95858d3492f");
@@ -108,15 +116,29 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        String sessionId = SESSION_ROLE_MINING_1_OID;
 
         when("task is run");
         TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_1.init(this, task, result);
         TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_1.rerunTaskWithinTimeout(result, DEFAULT_TIMEOUT); // asserts success
 
-        then("task is OK");
+        then("task is OK and result is as expected");
         TASK_ROLE_ANALYSIS_PROCESS_SESSION_ROLE_MINING_1.assertAfter()
                 .display()
-                .assertProgress(7);
+                .assertProgress(FINAL_TASK_STAGE);
+
+        Integer expectedClusterCount = 18;
+        Integer expectedObjectsCount = 1063;
+        Double expectedMeanDensity = 89.36643749031973;
+
+        RoleAnalysisSessionType session = getSession(sessionId);
+        RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
+
+        assertEquals(expectedClusterCount, sessionStatistic.getClusterCount());
+        assertEquals(expectedObjectsCount, sessionStatistic.getProcessedObjectCount());
+        assertEquals(expectedMeanDensity, sessionStatistic.getMeanDensity());
+
+        assertObjects(RoleAnalysisClusterType.class, buildClustersQuery(sessionId), expectedClusterCount);
     }
 
     /**
@@ -131,15 +153,34 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        String sessionId = SESSION_OUTLIER_PART_1_OID;
 
         when("task is run");
         TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_PART_1.init(this, task, result);
         TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_PART_1.rerunTaskWithinTimeout(result, DEFAULT_TIMEOUT); // asserts success
 
-        then("task is OK");
+        then("task is OK and result is as expected");
         TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_PART_1.assertAfter()
                 .display()
-                .assertProgress(7);
+                .assertProgress(FINAL_TASK_STAGE);
+
+        Integer expectedClusterCount = 18;
+        Integer expectedObjectsCount = 1063;
+        Double expectedMeanDensity = 89.36643749031973;
+        Integer expectedInnerOutlierCount = 12;
+        Integer expectedOuterOutlierCount = 0;
+
+        RoleAnalysisSessionType session = getSession(sessionId);
+        RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
+
+        assertEquals(expectedClusterCount, sessionStatistic.getClusterCount());
+        assertEquals(expectedObjectsCount, sessionStatistic.getProcessedObjectCount());
+        assertEquals(expectedMeanDensity, sessionStatistic.getMeanDensity());
+
+        assertObjects(RoleAnalysisClusterType.class, buildClustersQuery(sessionId), expectedClusterCount);
+
+        assertEquals(expectedInnerOutlierCount, getOutlierCount(sessionId, OutlierClusterCategoryType.INNER_OUTLIER));
+        assertEquals(expectedOuterOutlierCount, getOutlierCount(sessionId, OutlierClusterCategoryType.OUTER_OUTLIER));
     }
 
     /**
@@ -154,15 +195,51 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        String sessionId = SESSION_OUTLIER_FULL_1_OID;
 
         when("task is run");
         TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_FULL_1.init(this, task, result);
         TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_FULL_1.rerunTaskWithinTimeout(result, DEFAULT_TIMEOUT); // asserts success
 
-        then("task is OK");
+        then("task is OK and result is as expected");
         TASK_ROLE_ANALYSIS_PROCESS_SESSION_OUTLIER_FULL_1.assertAfter()
                 .display()
-                .assertProgress(7);
+                .assertProgress(FINAL_TASK_STAGE);
+
+        Integer expectedClusterCount = 18;
+        Integer expectedObjectsCount = 1063;
+        Double expectedMeanDensity = 89.36643749031973;
+        Integer expectedInnerOutlierCount = 12;
+        Integer expectedOuterOutlierCount = 157;
+
+        RoleAnalysisSessionType session = getSession(sessionId);
+        RoleAnalysisSessionStatisticType sessionStatistic = session.getSessionStatistic();
+
+        assertEquals(expectedClusterCount, sessionStatistic.getClusterCount());
+        assertEquals(expectedObjectsCount, sessionStatistic.getProcessedObjectCount());
+        assertEquals(expectedMeanDensity, sessionStatistic.getMeanDensity());
+
+        assertObjects(RoleAnalysisClusterType.class, buildClustersQuery(sessionId), expectedClusterCount);
+
+        assertEquals(expectedInnerOutlierCount, getOutlierCount(sessionId, OutlierClusterCategoryType.INNER_OUTLIER));
+        assertEquals(expectedOuterOutlierCount, getOutlierCount(sessionId, OutlierClusterCategoryType.OUTER_OUTLIER));
+    }
+
+    private RoleAnalysisSessionType getSession(String sessionOid) throws Exception {
+        return getObject(RoleAnalysisSessionType.class, sessionOid).getValue().asObjectable();
+    }
+
+    private ObjectQuery buildClustersQuery(String sessionOid) {
+        return queryFor(RoleAnalysisClusterType.class)
+                .item(RoleAnalysisClusterType.F_ROLE_ANALYSIS_SESSION_REF)
+                .ref(sessionOid)
+                .build();
+    }
+
+    private Integer getOutlierCount(String sessionOid, OutlierClusterCategoryType category) {
+        Task task = createTask("get outliers");
+        List<RoleAnalysisOutlierType> outliers = roleAnalysisService.getSessionOutliers(sessionOid, category, task, task.getResult());
+        return outliers.size();
     }
 
 }
