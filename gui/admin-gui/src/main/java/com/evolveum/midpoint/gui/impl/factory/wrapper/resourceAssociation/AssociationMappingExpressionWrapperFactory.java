@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.factory.wrapper.resourceAssociation;
 
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -42,16 +44,17 @@ public abstract class AssociationMappingExpressionWrapperFactory<C extends Conta
             return false;
         }
 
-        if (!(ItemPath.create(
+        return ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_ASSOCIATION_TYPE,
                 ShadowAssociationTypeDefinitionType.F_SUBJECT,
                 ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
-                getItemNameForContainer()).equivalent(parent.getPath().namedSegmentsOnly()))) {
-            return false;
-        }
-
-        return true;
+                getItemNameForContainer()).equivalent(parent.getPath().namedSegmentsOnly())
+                || ItemPath.create(
+                SchemaConstantsGenerated.C_SHADOW_ASSOCIATION_TYPE_DEFINITION,
+                ShadowAssociationTypeDefinitionType.F_SUBJECT,
+                ShadowAssociationTypeSubjectDefinitionType.F_ASSOCIATION,
+                getItemNameForContainer()).equivalent(parent.getPath().namedSegmentsOnly());
     }
 
     public ItemName getExpressionPropertyItemName() {
