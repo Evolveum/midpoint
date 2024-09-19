@@ -14,8 +14,6 @@ xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home direc
 also known as `midpoint.home`.
 
 This directory will be created upon the very first start of midPoint.
-For historical and convenience reasons the default generated `config.xml` is preconfigured for
-the Generic repository using embedded H2 database.
 
 To enable new Native repository, the following steps are necessary:
 
@@ -32,7 +30,7 @@ If you use this example, don't forget to rename it to `config.xml` after droppin
 But let's elaborate a bit about the `config.xml` changes:
 
 * You can start with the generated `config.xml`.
-Open it, remove the configuration for H2 and uncomment the `repository` and `audit` configuration
+Open it, remove the configuration for generic repository implementation and uncomment the `repository` and `audit` configuration
 prepared in the comments.
 
 * Don't forget to change the audit factory class, again, the proper value is provided in the comments.
@@ -288,7 +286,7 @@ With this `config.xml` you can start midPoint as usual.
 ====
 The setup for the new repo is also available in the `config.xml` automatically generated
 when the midPoint starts for the first time - it's just commented out.
-Stop the midPoint, remove the created H2 database files, adjust the config file and start the midPoint again.
+Stop the midPoint, adjust the config file and start the midPoint again.
 However, using the provided `config-native.xml` from `doc/config` is probably easier, just rename it properly.
 
 Of course, you still need the installed and prepared PostgreSQL database!

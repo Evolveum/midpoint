@@ -93,7 +93,7 @@ public class RoleAnalysisAttributeResultChartPanel extends BasePanel<String> {
     }
 
     protected String getChartContainerStyle(){
-        return "height:25vh;";
+        return null;
     }
     public @NotNull List<RoleAnalysisSimpleModel> prepareRoleAnalysisData() {
         return new ArrayList<>();

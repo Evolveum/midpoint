@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsLocalBeans;
+import com.evolveum.midpoint.repo.common.ObjectMarkHelper;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeValue;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttributeDefinition;
@@ -35,7 +36,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -248,7 +248,7 @@ class ShadowDeltaComputerRelative {
 
     private @Nullable ItemDelta<?, ?> computeEffectiveMarkDelta(@NotNull ItemDelta<?, ?> policyStatementDelta)
             throws SchemaException {
-        return ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(repoShadow.getBean(), policyStatementDelta);
+        return ObjectMarkHelper.get().computeEffectiveMarkDelta(repoShadow.getBean(), policyStatementDelta);
     }
 
     /**

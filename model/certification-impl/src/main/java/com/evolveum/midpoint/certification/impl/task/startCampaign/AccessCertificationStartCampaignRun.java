@@ -52,7 +52,6 @@ public final class AccessCertificationStartCampaignRun
         setInstanceReady();
     }
 
-
     @Override
     public boolean processItem(@NotNull AssignmentHolderType item, @NotNull ItemProcessingRequest<AssignmentHolderType> request, RunningTask workerTask, OperationResult result) throws CommonException {
         Task task = getRunningTask();
@@ -88,26 +87,35 @@ public final class AccessCertificationStartCampaignRun
 
     @NotNull
     protected ObjectQuery prepareObjectQuery() throws SchemaException {
+
+        AccessCertificationObjectBasedScopeType objectBasedScope = getObjectBasedScope();
+        // TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
+        // It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.
+        final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
+        ObjectQuery query = PrismContext.get().queryFactory().createQuery();
+        if (searchFilter != null) {
+            query.setFilter(PrismContext.get().getQueryConverter().parseFilter(searchFilter, determineObjectType()));
+        }
+        return query;
+    }
+
+    private Class<AssignmentHolderType> determineObjectType() {
+        String campaignShortName = toShortString(getCampaign());
+        QName objectType = getObjectType(getObjectBasedScope(), campaignShortName);
+
+        //noinspection unchecked
+        return (Class<AssignmentHolderType>) PrismContext.get().getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectType);
+    }
+
+    private AccessCertificationObjectBasedScopeType getObjectBasedScope() {
         String campaignShortName = toShortString(getCampaign());
         AccessCertificationScopeType scope = getCampaign().getScopeDefinition();
         LOGGER.trace("Creating cases for scope {} in campaign {}", scope, campaignShortName);
         if (scope != null && !(scope instanceof AccessCertificationObjectBasedScopeType)) {
             throw new IllegalStateException("Unsupported access certification scope type: " + scope.getClass() + " for campaign " + campaignShortName);
         }
-        AccessCertificationObjectBasedScopeType objectBasedScope = (AccessCertificationObjectBasedScopeType) scope;
+        return (AccessCertificationObjectBasedScopeType) scope;
 
-        QName objectType = getObjectType(objectBasedScope, campaignShortName);
-        @SuppressWarnings({ "unchecked", "raw" })
-        Class<AssignmentHolderType> objectClass = (Class<AssignmentHolderType>) PrismContext.get().getSchemaRegistry().getCompileTimeClassForObjectTypeRequired(objectType);
-
-        // TODO derive search filter from certification handler (e.g. select only objects having assignments with the proper policySituation)
-        // It is only an optimization but potentially a very strong one. Workaround: enter query filter manually into scope definition.
-        final SearchFilterType searchFilter = objectBasedScope != null ? objectBasedScope.getSearchFilter() : null;
-        ObjectQuery query = PrismContext.get().queryFactory().createQuery();
-        if (searchFilter != null) {
-            query.setFilter(PrismContext.get().getQueryConverter().parseFilter(searchFilter, objectClass));
-        }
-        return query;
     }
 
     @NotNull
@@ -132,6 +140,6 @@ public final class AccessCertificationStartCampaignRun
 
     @Override
     protected Class<AssignmentHolderType> getType() {
-        return AssignmentHolderType.class;
+        return determineObjectType();
     }
 }

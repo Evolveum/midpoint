@@ -297,11 +297,6 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
-    public boolean isGenericNonH2() {
-        return repositoryService.isGenericNonH2();
-    }
-
-    @Override
     public @NotNull String getRepositoryType() {
         return repositoryService.getRepositoryType();
     }

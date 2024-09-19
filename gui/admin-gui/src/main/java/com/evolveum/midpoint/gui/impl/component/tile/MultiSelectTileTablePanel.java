@@ -97,7 +97,10 @@ public abstract class MultiSelectTileTablePanel<E extends Serializable, O extend
     }
 
     protected Component getSelectedItemPanel() {
-        return get(createComponentPath(ID_HEADER, ID_SELECTED_ITEMS_CONTAINER));
+        if (isTileViewVisible()) {
+            return get(createComponentPath(ID_TILE_VIEW, ID_HEADER, ID_SELECTED_ITEMS_CONTAINER));
+        }
+        return get(createComponentPath(ID_TABLE, ID_HEADER, ID_SELECTED_ITEMS_CONTAINER));
     }
 
     protected abstract void deselectItem(E entry);

@@ -49,31 +49,43 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
         initLayout();
     }
 
+    @Override
+    protected void onAfterRender() {
+        super.onAfterRender();
+        if (getModelObject() != null) {
+            getModelObject().setColumn(false);
+        }
+    }
+
     private void initLayout() {
         // TODO might fix MID-6125, not sure about this one, it's really hard to replicate
         // but prismContext is transient so it might be lost during the serialization/deserialization
         if (getModelObject() != null) {
             AbstractItemWrapperColumnPanel.this.getModelObject().revive(getPageBase().getPrismContext());
+            getModelObject().setColumn(true);
         }
+
         ListView<VW> listView = new ListView<>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(ListItem<VW> item) {
-                populate(item);
+                populate(ID_VALUE, item);
             }
         };
+
         listView.setReuseItems(true);
         listView.setOutputMarkupId(true);
 
         add(listView);
     }
 
-    protected void populate(ListItem<VW> item) {
+    protected void populate(String id, ListItem<VW> item) {
         if (item.getModelObject() != null && item.getModelObject().getParent() != null) {
             item.getModelObject().getParent().revive(getPageBase().getPrismContext());
         }
+
         switch (columnType) {
             case STRING:
                 Label label = new Label(ID_VALUE, () -> createLabel(item.getModelObject()));

@@ -213,6 +213,11 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
             protected void refreshTable(AjaxRequestTarget target) {
                 RoleAnalysisTable.this.refreshTable(target);
             }
+
+            @Override
+            protected void refreshTableRows(AjaxRequestTarget target) {
+                RoleAnalysisTable.this.refreshTableRows(target);
+            }
         });
 
         IColumn<A, String> column;
@@ -236,6 +241,11 @@ public class RoleAnalysisTable<B extends MiningBaseTypeChunk, A extends MiningBa
                 @Override
                 protected void refreshTable(AjaxRequestTarget target) {
                     RoleAnalysisTable.this.refreshTable(target);
+                }
+
+                @Override
+                protected void refreshTableRows(AjaxRequestTarget target) {
+                    RoleAnalysisTable.this.refreshTableRows(target);
                 }
 
                 @Override

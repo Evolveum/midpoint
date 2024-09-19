@@ -6,12 +6,24 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role;
 
+import java.io.Serial;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -31,7 +43,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.Applicati
 import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.BusinessRoleWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleApplicationDto;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.model.BusinessRoleDto;
-import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -49,6 +60,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 
 @PageDescriptor(
         urls = {
@@ -163,27 +178,10 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
     @Override
     protected void exitFromWizard() {
         if (existPatternDeltas()) {
-            navigateToClusterOperationPanel();
+            navigateToClusterOperationPanel((PageBase) getPage(), getPatternDeltas());
             return;
         }
         super.exitFromWizard();
-    }
-
-    private void navigateToClusterOperationPanel() {
-        if (!existPatternDeltas()) {
-            return;
-        }
-        PageParameters parameters = new PageParameters();
-        BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
-        PrismObject<RoleAnalysisClusterType> cluster = patternDeltas.getCluster();
-        if (cluster == null) {
-            return;
-        }
-        parameters.add(OnePageParameterEncoder.PARAMETER, cluster.getOid());
-        parameters.add("panelId", "clusterDetails");
-        Class<? extends PageBase> detailsPageClass = DetailsPageUtil
-                .getObjectDetailsPage(RoleAnalysisClusterType.class);
-        navigateToNext(detailsPageClass, parameters);
     }
 
     @Override
@@ -236,14 +234,10 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         return null;
     }
 
-    @Override
-    public void savePerformed(AjaxRequestTarget target) {
-        super.savePerformed(target);
-    }
-
+    //TODO this is part of role mining. Consider moving it to different place
     @Override
     protected void postProcessResultForWizard(
-            OperationResult result,
+            @NotNull OperationResult result,
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
             AjaxRequestTarget target) {
 
@@ -293,7 +287,8 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
 
             }
 
-            businessRoleMigrationPerform(result, executedDeltas, target);
+            PageBase pageBase = (PageBase) getPage();
+            businessRoleMigrationPerform(pageBase, getPatternDeltas(), executedDeltas, task, result, target);
         }
 
         result.computeStatus();
@@ -308,120 +303,85 @@ public class PageRole extends PageAbstractRole<RoleType, AbstractRoleDetailsMode
         getObjectDetailsModels().setPatternDeltas(patterns);
     }
 
-    protected ObjectQuery createInOidQuery(List<ObjectType> selectedObjectsList) {
+    protected ObjectQuery createInOidQuery(@NotNull List<ObjectType> selectedObjectsList) {
         List<String> oids = new ArrayList<>();
-        for (Object selectable : selectedObjectsList) {
-            oids.add(((ObjectType) selectable).getOid());
+        for (ObjectType selectable : selectedObjectsList) {
+            oids.add(selectable.getOid());
         }
 
         return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createInOid(oids));
     }
 
-    private void businessRoleMigrationPerform(
-            OperationResult result,
-            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
-
-        RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
-
-        Task task = createSimpleTask(OP_PERFORM_MIGRATION);
-
-        String roleOid = ObjectDeltaOperation.findAddDeltaOidRequired(executedDeltas, RoleType.class);
-
-        BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
-
-        PrismObject<RoleType> roleObject = roleAnalysisService
-                .getRoleTypeObject(roleOid, task, result);
-
-        if (roleObject != null) {
-            if (!patternDeltas.isCandidate()) {
-
-                List<BusinessRoleDto> businessRoleDtos = patternDeltas.getBusinessRoleDtos();
-
-                Set<ObjectReferenceType> candidateMembers = new HashSet<>();
-
-                for (BusinessRoleDto businessRoleDto : businessRoleDtos) {
-                    PrismObject<UserType> prismObjectUser = businessRoleDto.getPrismObjectUser();
-                    if (prismObjectUser != null) {
-                        candidateMembers.add(new ObjectReferenceType()
-                                .oid(prismObjectUser.getOid())
-                                .type(UserType.COMPLEX_TYPE).clone());
-                    }
-                }
-
-                RoleAnalysisCandidateRoleType candidateRole = new RoleAnalysisCandidateRoleType();
-                candidateRole.getCandidateMembers().addAll(candidateMembers);
-                candidateRole.setAnalysisMetric(0.0);
-                candidateRole.setCandidateRoleRef(new ObjectReferenceType()
-                        .oid(roleOid)
-                        .type(RoleType.COMPLEX_TYPE).clone());
-
-                roleAnalysisService.addCandidateRole(
-                        patternDeltas.getCluster().getOid(), candidateRole, task, result);
-                return;
-            }
-
-            roleAnalysisService.clusterObjectMigrationRecompute(
-                    patternDeltas.getCluster().getOid(), roleOid, task, result);
-
-            String taskOid = UUID.randomUUID().toString();
-
-            ActivityDefinitionType activity = null;
-            try {
-                activity = createActivity(patternDeltas.getBusinessRoleDtos(), roleOid);
-            } catch (SchemaException e) {
-                LOGGER.error("Couldn't create activity for role migration: " + roleOid);
-            }
-            if (activity != null) {
-                roleAnalysisService.executeMigrationTask(getModelInteractionService(),
-                        patternDeltas.getCluster(), activity, roleObject, taskOid, null, task, result);
-                if (result.isWarning()) {
-                    warn(result.getMessage());
-                    target.add(((PageBase) getPage()).getFeedbackPanel());
-                }
-            }
-
-        }
-    }
-
     private boolean existPatternDeltas() {
-        BusinessRoleApplicationDto patternDeltas = getPatternDeltas();
-        return patternDeltas != null && !patternDeltas.getBusinessRoleDtos().isEmpty();
+        return getPatternDeltas() != null && !getPatternDeltas().getBusinessRoleDtos().isEmpty();
     }
 
     private BusinessRoleApplicationDto getPatternDeltas() {
-        BusinessRoleApplicationDto patternDeltas = getObjectDetailsModels().getPatternDeltas();
-        return patternDeltas;
-    }
-
-    private ActivityDefinitionType createActivity(List<BusinessRoleDto> patternDeltas, String roleOid) throws SchemaException {
-
-        ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-        objectReferenceType.setType(RoleType.COMPLEX_TYPE);
-        objectReferenceType.setOid(roleOid);
-
-        RoleMembershipManagementWorkDefinitionType roleMembershipManagementWorkDefinitionType = new RoleMembershipManagementWorkDefinitionType();
-        roleMembershipManagementWorkDefinitionType.setRoleRef(objectReferenceType);
-
-        ObjectSetType members = new ObjectSetType();
-        for (BusinessRoleDto patternDelta : patternDeltas) {
-            if (!patternDelta.isInclude()) {
-                continue;
-            }
-
-            PrismObject<UserType> prismObjectUser = patternDelta.getPrismObjectUser();
-            ObjectReferenceType userRef = new ObjectReferenceType();
-            userRef.setOid(prismObjectUser.getOid());
-            userRef.setType(UserType.COMPLEX_TYPE);
-            members.getObjectRef().add(userRef);
-        }
-        roleMembershipManagementWorkDefinitionType.setMembers(members);
-
-        return new ActivityDefinitionType()
-                .work(new WorkDefinitionsType()
-                        .roleMembershipManagement(roleMembershipManagementWorkDefinitionType));
+        return getObjectDetailsModels().getPatternDeltas();
     }
 
     protected boolean isHistoryPage() {
         return false;
+    }
+
+    @Override
+    protected void addButtons(RepeatingView repeatingView) {
+        super.addButtons(repeatingView);
+        initMigrationButton(repeatingView);
+    }
+
+    private void initMigrationButton(@NotNull RepeatingView repeatingView) {
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_MIGRATION_ICON,
+                IconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
+                iconBuilder.build(),
+                ((PageBase) getPage()).createStringResource("RoleMining.button.title.execute.migration")) {
+            @Serial private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                PageBase pageBase = (PageBase) getPage();
+                ConfirmationPanel dialog = new DeleteConfirmationPanel(pageBase.getMainPopupBodyId(), createStringResource(
+                        "RoleMining.button.title.execute.migration.confirmation.message")){
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        performMigration(target, pageBase);
+                    }
+                };
+                pageBase.showMainPopup(dialog, target);
+            }
+
+            private void performMigration(AjaxRequestTarget target, @NotNull PageBase pageBase) {
+                Task task = pageBase.createSimpleTask(OP_PERFORM_MIGRATION);
+                OperationResult result = task.getResult();
+                RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
+                PrismObject<RoleType> prismObject = getPrismObject();
+                roleAnalysisService.executeRoleMigrationProcess(pageBase.getModelInteractionService(), prismObject, task, result);
+                result.computeStatus();
+                if (result.isWarning()) {
+                    warn(result.getMessage());
+                    target.add(((PageBase) getPage()).getFeedbackPanel());
+                } else {
+                    success(createStringResource("RoleMining.task.migration.execute.success").getString());
+                    target.add(((PageBase) getPage()).getFeedbackPanel());
+                }
+                refresh(target);
+            }
+
+            @Override
+            protected void onError(@NotNull AjaxRequestTarget target) {
+                target.add(((PageBase) getPage()).getFeedbackPanel());
+            }
+        };
+        migrationButton.titleAsLabel(true);
+        migrationButton.setOutputMarkupId(true);
+        migrationButton.add(AttributeModifier.append("class", "btn btn-default btn-sm"));
+        migrationButton.add(new VisibleBehaviour(() -> !isActiveRole()));
+        repeatingView.add(migrationButton);
+    }
+
+    private boolean isActiveRole() {
+        return getObjectDetailsModels().getObjectType().getLifecycleState() == null
+                || SchemaConstants.LIFECYCLE_ACTIVE.equals(getObjectDetailsModels().getObjectType().getLifecycleState());
     }
 }

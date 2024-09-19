@@ -8,7 +8,10 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaLookup;
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -47,15 +50,48 @@ public class ResourceSchemaRegistry implements SchemaLookup.Based {
         if (resourceOid == null) {
             return null;
         }
-        var resourceSchema = schemaMap.get(resourceOid);
-        if (resourceSchema == null) {
-            resourceSchema = tryToLoadSchema(resourceOid);
-        }
-
+        var resourceSchema = getResourceSchema(resourceOid);
         if (resourceSchema == null) {
             return null;
         }
         return resourceSchema.findDefinitionForShadow(shadow);
+    }
+
+    public @Nullable CompleteResourceSchema getResourceSchema(@NotNull String resourceOid) {
+        var cached = schemaMap.get(resourceOid);
+        if (cached != null) {
+            return cached;
+        }
+        return tryToLoadSchema(resourceOid);
+    }
+
+    public @Nullable ResourceObjectDefinition getDefinitionForQuery(ObjectQuery query) {
+        try {
+            var coordinates = ObjectQueryUtil.getOperationCoordinates(query);
+            coordinates.checkNotUnknown();
+            coordinates.checkNotResourceScoped();
+
+            var resourceSchema = getResourceSchema(coordinates.getResourceOid()) ;
+
+            if (resourceSchema != null) {
+                return ResourceSchemaUtil.findObjectDefinitionPrecisely(resourceSchema, coordinates.getKind(),
+                        coordinates.getIntent(), coordinates.getObjectClassName(), null);
+            }
+
+
+        } catch (Exception e) {
+            // Handle error
+        }
+
+        return null;
+    }
+
+    public ObjectQuery tryToNormalizeQuery(ObjectQuery query) {
+        var def = getDefinitionForQuery(query);
+        if (def != null) {
+            query = ShadowsNormalizationUtil.transformQueryValues(query, def);
+        }
+        return query;
     }
 
     private CompleteResourceSchema tryToLoadSchema(String resourceOid) {

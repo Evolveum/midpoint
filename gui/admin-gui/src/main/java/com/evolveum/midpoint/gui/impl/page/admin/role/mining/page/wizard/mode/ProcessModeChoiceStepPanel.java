@@ -9,11 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode;
 import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
 import static com.evolveum.midpoint.gui.api.GuiStyleConstants.CLASS_OBJECT_USER_ICON;
 
-import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
 
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -23,13 +22,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.util.visit.ClassVisitFilter;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -38,15 +35,15 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 
-@PanelType(name = "rm-process")
-@PanelInstance(identifier = "rm-process",
+@PanelType(name = "ra-process")
+@PanelInstance(identifier = "ra-process",
         applicableForType = RoleAnalysisSessionType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRoleAnalysisSession.wizard.step.choice", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessModeChoiceStepPanel.ProcessMode, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
-    public static final String PANEL_TYPE = "rm-process";
+    public static final String PANEL_TYPE = "ra-process";
 
     /**
      * @param id Panel ID
@@ -57,8 +54,8 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
     }
 
     @Override
-    protected void addDefaultTile(List<Tile<ProcessMode>> list) {
-
+    protected boolean addDefaultTile() {
+        return false;
     }
 
     @Override
@@ -67,7 +64,7 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
     }
 
     @Override
-    protected void onTileClickPerformed(ProcessMode value, AjaxRequestTarget target) {
+    protected void onTileClickPerformed(@NotNull ProcessMode value, AjaxRequestTarget target) {
         RoleAnalysisProcessModeType mode;
         if (value.equals(ProcessMode.ROLE)) {
             mode = RoleAnalysisProcessModeType.ROLE;
@@ -94,7 +91,7 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
                 Task task = getPageBase().createSimpleTask("prepare options");
                 OperationResult result = task.getResult();
                 RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-                AnalysisCategory.generateConfiguration(
+                AnalysisCategoryMode.generateConfiguration(
                         roleAnalysisService, analysisCategory, objectWrapperModel, task, result);
             } else {
                 throw new IllegalStateException("Unexpected null value (expected RoleAnalysisCategoryType != null): " + realValue);
@@ -129,16 +126,6 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-    }
-
-    @Override
-    protected @NotNull IModel<String> getBreadcrumbLabel() {
-        return getTextModel();
-    }
-
-    @Override
     protected void onBeforeRender() {
         visitParents(Form.class, (form, visit) -> {
             form.setMultiPart(true);
@@ -157,23 +144,23 @@ public class ProcessModeChoiceStepPanel extends EnumWizardChoicePanel<ProcessMod
     }
 
     @Override
-    protected IModel<String> getTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.text");
-    }
-
-    @Override
-    protected IModel<String> getSubTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.subText");
-    }
-
-    @Override
-    protected String getDescriptionForTile(ProcessMode type) {
+    protected String getDescriptionForTile(@NotNull ProcessMode type) {
         return createStringResource(type.getDescriptionKey()).getString();
     }
 
     @Override
-    protected boolean isExitButtonVisible() {
-        return true;
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
+        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.analysis.process.mode.title");
+    }
+
+    @Override
+    protected IModel<String> getTextModel() {
+        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.analysis.process.mode.text");
+    }
+
+    @Override
+    protected IModel<String> getSubTextModel() {
+        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.analysis.process.mode.subText");
     }
 
 }

@@ -263,7 +263,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     //region Unsupported operations
     @Override
-    public NativeResourceSchema fetchResourceSchema(OperationResult parentResult) {
+    public NativeResourceSchema fetchResourceSchema(@NotNull OperationResult parentResult) {
         // Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
         InternalMonitor.recordConnectorOperation("schema");
         return null;
@@ -271,19 +271,25 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
-            ShadowItemsToReturn shadowItemsToReturn,
-            UcfExecutionContext ctx, OperationResult parentResult) {
+            @NotNull ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         return null;
     }
 
     @Override
-    public SearchResultMetadata search(@NotNull ResourceObjectDefinition objectDefinition, ObjectQuery query,
-            @NotNull UcfObjectHandler handler, @Nullable ShadowItemsToReturn shadowItemsToReturn,
-            @Nullable PagedSearchCapabilityType pagedSearchConfiguration, @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
+    public SearchResultMetadata search(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            ObjectQuery query,
+            @NotNull UcfObjectHandler handler,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
+            @Nullable PagedSearchCapabilityType pagedSearchConfiguration,
+            @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod ucfErrorReportingMethod,
-            @NotNull UcfExecutionContext ctx, @NotNull OperationResult parentResult) {
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         return null;
     }
@@ -297,8 +303,9 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 
     @Override
     public UcfAddReturnValue addObject(
-            PrismObject<? extends ShadowType> object,
-            UcfExecutionContext ctx, OperationResult parentResult) {
+            @NotNull PrismObject<? extends ShadowType> object,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("addObject");
         return null;
     }
@@ -309,8 +316,8 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
-            UcfExecutionContext ctx,
-            OperationResult parentResult) {
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("modifyObject");
         return null;
     }
@@ -319,7 +326,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     public UcfDeleteReturnValue deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             PrismObject<ShadowType> shadow,
-            UcfExecutionContext ctx,
+            @NotNull UcfExecutionContext ctx,
             @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("deleteObject");
         return null;
@@ -333,9 +340,14 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     }
 
     @Override
-    public UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            ShadowItemsToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
-            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
+    public UcfFetchChangesResult fetchChanges(
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @Nullable UcfSyncToken lastToken,
+            @Nullable ShadowItemsToReturn attrsToReturn,
+            @Nullable Integer maxChanges,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull UcfLiveSyncChangeListener changeHandler,
+            @NotNull OperationResult parentResult) {
         return null;
     }
 
@@ -344,16 +356,5 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
     @Override
     public String toString() {
         return "AsyncUpdateConnectorInstance (" + getInstanceName() + ")";
-    }
-
-    @Override
-    protected void setResourceSchema(CompleteResourceSchema resourceSchema) {
-        super.setResourceSchema(resourceSchema);
-        // TODO eliminate these diagnostic messages when no longer needed (MID-5931)
-        if (resourceSchema == null) {
-            LOGGER.warn("Setting null resource schema for {}. This might or might not be OK, depending on circumstances", this);
-        } else {
-            LOGGER.info("Setting resource schema for {}", this);
-        }
     }
 }

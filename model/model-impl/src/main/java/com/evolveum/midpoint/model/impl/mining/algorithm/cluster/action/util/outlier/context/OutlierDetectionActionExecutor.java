@@ -36,7 +36,7 @@ public class OutlierDetectionActionExecutor {
             AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
             @NotNull OperationResult result) {
-        if (session != null && analysisOption.getAnalysisCategory().equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        if (session != null && analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
             Double min = detectionOption.getFrequencyRange().getMin();
             if (min == null) {

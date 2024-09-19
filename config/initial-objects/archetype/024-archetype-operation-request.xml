@@ -15,18 +15,8 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Operation request</orig>
-                <translation>
-                    <key>operationRequest.label</key>
-                </translation>
-            </label>
-            <pluralLabel>
-                <orig>Operation requests</orig>
-                <translation>
-                    <key>operationRequest.pluralLabel</key>
-                </translation>
-            </pluralLabel>
+            <label>Operation request</label>
+            <pluralLabel>Operation requests</pluralLabel>
             <icon>
                 <cssClass>fa fa-play-circle</cssClass>
             </icon>

@@ -3508,7 +3508,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(valueAfter.getRealValue()).isEqualTo(PolyString.fromOrig("JACK2"));
     }
 
-    @Test(enabled = false)
+    @Test
     public void test540ProtectedAttribute() throws CommonException {
         OperationResult result = createOperationResult();
 
@@ -3708,6 +3708,46 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(storageRetrieved2).isNotNull();
         assertThat(storageRetrieved2.getCreateTimestamp()).isEqualTo(createdOn);
         assertThat(storageRetrieved2.getModifyTimestamp()).isEqualTo(modifiedOn);
+    }
+
+    @Test
+    public void test620AddingEffectiveMarkRefWithMetadata()
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta adding effectiveMarkRef with value metadata for user 1");
+        var markOid = UUID.randomUUID();
+        var effectiveMarkRef1 = new ObjectReferenceType()
+                .oid(markOid.toString()).type(MarkType.COMPLEX_TYPE);
+        var metadataValue1 = new ValueMetadataType()
+                .provenance(new ProvenanceMetadataType()
+                        .markingRule(new MarkingRuleSpecificationType()
+                                .ruleId(123L)
+                                .transitional(true)));
+        effectiveMarkRef1.asReferenceValue().getValueMetadata().addMetadataValue(
+                metadataValue1.asPrismContainerValue());
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EFFECTIVE_MARK_REF)
+                .replace(effectiveMarkRef1)
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType userRetrieved = repositoryService
+                .getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        displayValue("user retrieved (XML)", prismContext.xmlSerializer().serialize(userRetrieved.asPrismObject()));
+        assertThat(userRetrieved.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        assertThat(userRetrieved.getEffectiveMarkRef()).hasSize(1);
+        var effectiveMarkRef1Retrieved = userRetrieved.getEffectiveMarkRef().get(0);
+        var metadataRetrieved = effectiveMarkRef1Retrieved.asReferenceValue().getValueMetadata();
+        assertThat(metadataRetrieved.getValues()).as("metadata values").hasSize(1);
     }
 
     // endregion

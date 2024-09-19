@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.mining.objects.analysis.RoleAnalysisAttribut
 
 import com.evolveum.midpoint.common.mining.objects.analysis.cache.AttributeAnalysisCache;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,8 +112,8 @@ public class RoleAnalysisAlgorithmUtils {
         }
 
         boolean executeDetection = true;
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+        if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             executeDetection = false;
         }
 
@@ -123,12 +124,78 @@ public class RoleAnalysisAlgorithmUtils {
 
         handler.enterNewStep("Prepare Outliers");
         handler.setOperationCountToProcess(dataPoints.size());
-        PrismObject<RoleAnalysisClusterType> outlierCluster;
         if (!dataPoints.isEmpty()) {
-            outlierCluster = prepareOutlierClusters(roleAnalysisService, dataPoints, complexType, attributeAnalysisCache,
-                    analysisOption, sessionTypeObjectCount, handler,
-                    task, result);
-            clusterTypeObjectWithStatistic.add(outlierCluster);
+            List<DataPoint> dataPointsOverallNoise = new ArrayList<>();
+            List<DataPoint> dataPointsAccessNoise = new ArrayList<>();
+            List<DataPoint> dataPointsRuleNoise = new ArrayList<>();
+            List<DataPoint> dataPointsMembersNoise = new ArrayList<>();
+            List<DataPoint> dataPointsAccessOrRuleNoise = new ArrayList<>();
+            List<DataPoint> unCategoryDataPoints = new ArrayList<>();
+
+            for (DataPoint dataPoint : dataPoints) {
+                OutlierNoiseCategoryType pointStatus = dataPoint.getPointStatus();
+                if (pointStatus == OutlierNoiseCategoryType.OVERAL_NOISE) {
+                    dataPointsOverallNoise.add(dataPoint);
+                } else if (pointStatus == OutlierNoiseCategoryType.ACCESS_NOISE) {
+                    dataPointsAccessNoise.add(dataPoint);
+                } else if (pointStatus == OutlierNoiseCategoryType.RULE_NOISE) {
+                    dataPointsRuleNoise.add(dataPoint);
+                } else if (pointStatus == OutlierNoiseCategoryType.MEMBERS_NOISE) {
+                    dataPointsMembersNoise.add(dataPoint);
+                } else if (pointStatus == OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE) {
+                    dataPointsAccessOrRuleNoise.add(dataPoint);
+                } else {
+                    unCategoryDataPoints.add(dataPoint);
+                }
+            }
+
+            if (!dataPointsOverallNoise.isEmpty()) {
+                PrismObject<RoleAnalysisClusterType> overallNoiseCluster = prepareOutlierClusters(roleAnalysisService,
+                        OutlierNoiseCategoryType.OVERAL_NOISE,
+                        dataPointsOverallNoise, complexType,
+                        attributeAnalysisCache, analysisOption, sessionTypeObjectCount, handler, task, result);
+                clusterTypeObjectWithStatistic.add(overallNoiseCluster);
+            }
+
+            if (!dataPointsAccessNoise.isEmpty()) {
+                PrismObject<RoleAnalysisClusterType> accessNoiseCluster = prepareOutlierClusters(roleAnalysisService,
+                        OutlierNoiseCategoryType.ACCESS_NOISE,
+                        dataPointsAccessNoise, complexType,
+                        attributeAnalysisCache, analysisOption, sessionTypeObjectCount, handler, task, result);
+                clusterTypeObjectWithStatistic.add(accessNoiseCluster);
+            }
+
+            if (!dataPointsRuleNoise.isEmpty()) {
+                PrismObject<RoleAnalysisClusterType> ruleNoiseCluster = prepareOutlierClusters(roleAnalysisService,
+                        OutlierNoiseCategoryType.RULE_NOISE,
+                        dataPointsRuleNoise, complexType,
+                        attributeAnalysisCache, analysisOption, sessionTypeObjectCount, handler, task, result);
+                clusterTypeObjectWithStatistic.add(ruleNoiseCluster);
+            }
+
+            if (!dataPointsMembersNoise.isEmpty()) {
+                PrismObject<RoleAnalysisClusterType> membersNoiseCluster = prepareOutlierClusters(roleAnalysisService,
+                        OutlierNoiseCategoryType.MEMBERS_NOISE,
+                        dataPointsMembersNoise, complexType,
+                        attributeAnalysisCache, analysisOption, sessionTypeObjectCount, handler, task, result);
+                clusterTypeObjectWithStatistic.add(membersNoiseCluster);
+            }
+
+            if (!dataPointsAccessOrRuleNoise.isEmpty()) {
+                PrismObject<RoleAnalysisClusterType> accessOrRuleNoiseCluster = prepareOutlierClusters(roleAnalysisService,
+                        OutlierNoiseCategoryType.ACCESS_OR_RULE_NOISE,
+                        dataPointsAccessOrRuleNoise, complexType,
+                        attributeAnalysisCache, analysisOption, sessionTypeObjectCount, handler, task, result);
+                clusterTypeObjectWithStatistic.add(accessOrRuleNoiseCluster);
+            }
+
+            if (!unCategoryDataPoints.isEmpty()) {
+                PrismObject<RoleAnalysisClusterType> unCategoryNoiseCluster = prepareOutlierClusters(roleAnalysisService,
+                        null,
+                        unCategoryDataPoints, complexType,
+                        attributeAnalysisCache, analysisOption, sessionTypeObjectCount, handler, task, result);
+                clusterTypeObjectWithStatistic.add(unCategoryNoiseCluster);
+            }
 
         }
 
@@ -322,6 +389,7 @@ public class RoleAnalysisAlgorithmUtils {
 
     private PrismObject<RoleAnalysisClusterType> prepareOutlierClusters(
             @NotNull RoleAnalysisService roleAnalysisService,
+            @Nullable OutlierNoiseCategoryType noiseCategory,
             @NotNull List<DataPoint> dataPoints,
             @NotNull QName complexType,
             @NotNull AttributeAnalysisCache attributeAnalysisCache,
@@ -369,7 +437,7 @@ public class RoleAnalysisAlgorithmUtils {
         int elementSize = elementsOid.size();
         double density = (sumPoints / (double) (elementSize * pointsSize)) * 100;
 
-        PolyStringType name = PolyStringType.fromOrig(sessionTypeObjectCount + "_outliers");
+        PolyStringType name = PolyStringType.fromOrig(resolveNameForClusterNoise(noiseCategory));
 
         ClusterStatistic clusterStatistic = new ClusterStatistic(name, processedObjectsRef, elementSize,
                 pointsSize, minVectorPoint, maxVectorPoint, meanPoints, density);
@@ -562,6 +630,22 @@ public class RoleAnalysisAlgorithmUtils {
             double reductionFactorConfidence = patternConfidenceCalculator.calculateReductionFactorConfidence();
             detectedPattern.setItemConfidence(itemConfidence);
             detectedPattern.setReductionConfidence(reductionFactorConfidence);
+        }
+    }
+
+    @Contract(pure = true)
+    private @NotNull String resolveNameForClusterNoise(@Nullable OutlierNoiseCategoryType noiseCategory) {
+        if (noiseCategory != null) {
+            return switch (noiseCategory) {
+                case ACCESS_NOISE -> "Access noise";
+                case RULE_NOISE -> "Rule noise";
+                case MEMBERS_NOISE -> "Members noise";
+                case ACCESS_OR_RULE_NOISE -> "Access or rule noise";
+                case OVERAL_NOISE -> "Overall noise";
+                default -> "Non-category noise";
+            };
+        }else {
+            return "Non-category noise";
         }
     }
 

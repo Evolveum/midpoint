@@ -75,6 +75,7 @@ class ConnIdObjectConvertor {
             @NotNull ConnectorObject co,
             @NotNull ResourceObjectDefinition objectDefinition,
             UcfFetchErrorReportingMethod ucfErrorReportingMethod,
+            @NotNull ConnectorOperationContext operationContext,
             OperationResult parentResult) throws SchemaException {
 
         // This is because of suspicion that this operation sometimes takes a long time.
@@ -87,7 +88,8 @@ class ConnIdObjectConvertor {
                 .build();
         try {
 
-            var conversion = new ConnIdToUcfObjectConversion(co, objectDefinition, connectorContext);
+            var conversion = new ConnIdToUcfObjectConversion(
+                    co, objectDefinition, operationContext.connectorContext(), operationContext.getResourceSchemaRequired());
             try {
                 conversion.execute();
                 return conversion.getUcfResourceObjectIfSuccess();

@@ -114,12 +114,12 @@ public class PageCorrelation extends PageAbstractAttributeVerification<Correlati
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageCorrelation.title");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PageCorrelation.title.description");
     }
 

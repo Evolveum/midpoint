@@ -77,7 +77,7 @@
     mvn clean install -DredirectTestOutputToFile=false -pl model/model-intest
 
     DB SPECIFIC/TESTING:
-    - Use profile "dbtest" to run additional tests intended for other than H2 databases.
+    - Use profile "dbtest" to run additional tests.
     These tests are integration tests named in additional suite XML called "testng-db-specific.xml".
     Tests from main "testng-integration.xml" are run too.
     - Use profile "sqale" to switch from old Generic repo tests (disables test execution for repo-sql-impl-test)
@@ -101,7 +101,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>3.3.2</version>
+        <version>3.3.3</version>
         <!-- This parent also declares dependencies listed here:
         https://docs.spring.io/spring-boot/docs/3.3.0/reference/html/dependency-versions.html#dependency-versions
         Or for current version of Spring Boot:
@@ -217,19 +217,7 @@
         <testng.version>7.8.0</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.10.0</xmlunit.version>
-        <!-- hibernate.version>5.5.3.Final</hibernate.version -->
-        <!--
-        Default Spring Boot 2.7.3 uses H2 2.1.x, which is a big step from our current.
-        Every upgrade after v193 up to 1.4.200 had issues for use, some are probably fixed like this NPE bug
-        https://github.com/h2database/h2database/issues/1808, but we don't know how many changes to expect.
-        Sometimes occurs on heavy concurrent test, e.g. on TestDummyParallelism, but also during app run.
-        This bug was introduced in 1.4.198, which was major version that also changed queries in OrgClosureManager.
-        Between 1.4.197 and 198 changes of OrgClosureManager and around MVCC must be made (see commit history).
-        With 1.4.200 TestObjectLifecycleApprovalGlobal fails consistently.
-        197 is the last version that does not require code changes, but self-corrupts DB sometimes (MID-6510).
-        193 was used for 4 years with few problems, so it's still here to stay.
-        -->
-        <h2.version>2.3.230</h2.version>
+
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
@@ -259,7 +247,7 @@
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.78</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
-        <keycloak.version>23.0.7</keycloak.version>
+        <keycloak.version>25.0.5</keycloak.version>
 
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,

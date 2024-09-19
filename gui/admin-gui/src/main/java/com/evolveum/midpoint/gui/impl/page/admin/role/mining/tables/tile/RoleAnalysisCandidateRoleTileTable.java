@@ -439,7 +439,12 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
             @Override
             public void populateItem(Item<ICellPopulator<RoleType>> item, String componentId,
                     IModel<RoleType> rowModel) {
-                item.add(new Label(componentId, resolveDateAndTime(rowModel.getObject().getMetadata().getCreateTimestamp())));
+                RoleType object = rowModel.getObject();
+                if (object == null || object.getMetadata() == null || object.getMetadata().getCreateTimestamp() == null) {
+                    item.add(new Label(componentId, ""));
+                } else {
+                    item.add(new Label(componentId, resolveDateAndTime(object.getMetadata().getCreateTimestamp())));
+                }
             }
 
         });
@@ -513,7 +518,7 @@ public class RoleAnalysisCandidateRoleTileTable extends BasePanel<String> {
                                 LOGGER.error("Couldn't create activity for role migration: " + role.getOid(), e);
                             }
                             if (activity != null) {
-                                roleAnalysisService.executeMigrationTask(getPageBase().getModelInteractionService(),
+                                roleAnalysisService.executeRoleAnalysisRoleMigrationTask(getPageBase().getModelInteractionService(),
                                         clusterPrism, activity, role.asPrismObject(), taskOid,
                                         null, task, result);
                                 if (result.isWarning()) {

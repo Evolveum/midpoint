@@ -496,6 +496,7 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
                         <a:experimental>true</a:experimental>
+                        <a:displayName>ObjectType.effectiveMarkRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
@@ -841,7 +842,7 @@
                                 If shadow have multiple tags with provisioning policy applied, the strongest effect is applied.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TagType.provisioningPolicy</a:displayName>
+                                <a:displayName>MarkType.objectOperationPolicy</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -3229,6 +3230,7 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
                         <a:experimental>true</a:experimental>
+                        <a:since>4.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -17954,8 +17956,7 @@
                         <jaxb:typesafeEnumMember name="DEFAULT"/>
                         <xsd:documentation>
                             Uses the default method configured for the particular database.
-                            For H2 the default is to emulate iteration via paging,
-                            for other databases it is traditional sequential read.
+                            For databases it is traditional sequential read.
                         </xsd:documentation>
                     </xsd:appinfo>
                 </xsd:annotation>

@@ -1,27 +1,14 @@
 package com.evolveum.midpoint.repo.common;
 
-import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.MARK_PROTECTED_OID;
 import static com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil.*;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationPolicyViolationSeverityType.ERROR;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType.APPLY;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyStatementTypeType.EXCLUDE;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.MiscUtil;
 
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.google.common.collect.Sets;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.jetbrains.annotations.NotNull;
@@ -30,26 +17,39 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.ObjectMarkHelper.ObjectMarksComputer;
+import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Manages {@code effectiveMarkRef} and {@code effectiveOperationPolicy} in objects (currently shadows).
+ * Deals with {@code effectiveOperationPolicy} in objects (currently shadows).
  *
  * [NOTE]
  * ====
- * *WATCH THE "COMPUTE" METHOD SIGNATURES!*
+ * *BEWARE OF THE EXECUTION MODES*
  *
- * Some methods compute the policy and effective mark refs just from the stored refs/statements; while others use
- * the actual {@link ObjectMarksComputer} to do the computations.
+ * Most methods take `mode` as a parameter, as both policy statements and default policy for shadow object type can be
+ * mode-dependent. The caller is responsible for providing the correct mode, especially regarding the existing (cached)
+ * effective policy in the provided object.
+ *
+ * Rule: The repository will contain mark refs computed only under the PRODUCTION mode.
+ * I.e., the development-mode statements will not be present there.
  * ====
+ *
+ * @see ObjectMarkHelper
  */
 @Component
 public class ObjectOperationPolicyHelper {
@@ -62,7 +62,7 @@ public class ObjectOperationPolicyHelper {
     private static ObjectOperationPolicyHelper instance = null;
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
-    @Autowired private PrismContext prismContext;
+    @Autowired private ObjectMarkHelper objectMarkHelper;
 
     private Impl behaviour;
 
@@ -85,27 +85,38 @@ public class ObjectOperationPolicyHelper {
      * Returns present effective policy, or computes it (from stored mark refs and statements) if not present.
      *
      * For shadows, it assumes the shadow has the up-to-date definition present (because of the default policy).
+     *
+     * Execution mode: It influences the policy statements and the default policy. If there is a pre-computed policy
+     * in the object, the caller is responsible to provide a mode that matches the one under which the pre-computed policy
+     * was computed.
      */
-    public @NotNull ObjectOperationPolicyType getEffectivePolicy(ObjectType object, OperationResult result)
+    public @NotNull ObjectOperationPolicyType getEffectivePolicy(
+            @NotNull ObjectType object, @NotNull TaskExecutionMode mode, @NotNull OperationResult result)
             throws ConfigurationException {
         var policy = object.getEffectiveOperationPolicy();
         if (policy != null) {
             return policy;
         }
-        return computeEffectivePolicy(object, result);
+        return computeEffectivePolicy(object, mode, result);
     }
 
     /**
      * Computes effective operation policy from stored mark refs and policy statements. Uses marks from the native repository.
      *
      * BEWARE: If we compute policy for a shadow, it must have the correct definition present!
+     *
+     * Execution mode: It influences the policy statements and the default policy. We assume that the stored mark refs were
+     * computed under the PRODUCTION mode, i.e., that no development-mode policy statements were taken into account.
      */
-    public @NotNull ObjectOperationPolicyType computeEffectivePolicy(ObjectType object, OperationResult parentResult)
+    public @NotNull ObjectOperationPolicyType computeEffectivePolicy(
+            @NotNull ObjectType object,
+            @NotNull TaskExecutionMode mode,
+            @NotNull OperationResult parentResult)
             throws ConfigurationException {
         var result = parentResult.createMinorSubresult(OP_COMPUTE_EFFECTIVE_POLICY);
         try {
-            var effectiveMarkRefs = behaviour.getEffectiveMarkRefsWithStatements(object);
-            var defaultPolicy = behaviour.getDefaultPolicyForObject(object, result);
+            var effectiveMarkRefs = objectMarkHelper.computeObjectMarksWithoutComputer(object, mode);
+            var defaultPolicy = behaviour.getDefaultPolicyForObject(object, mode, result);
             return behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, defaultPolicy, object, result);
         } catch (Throwable t) {
             result.recordException(t);
@@ -116,12 +127,13 @@ public class ObjectOperationPolicyHelper {
     }
 
     /**
-     * Computes effective marks and policy and updates the shadow; depending on the support in repo (see below).
+     * Computes effective marks and policies; depending on the support in repo (see below).
      *
      * For native repository:
      *
-     * 1. Computes effective marks (using policy statements, the computer, and the currently effective ones).
-     * 2. Computes effective policy based on these marks.
+     * 1. Computes effective marks (using policy statements, the computer, and the currently effective ones) - for both
+     * production and current (client-provided) mode.
+     * 2. Computes effective policy based on current-mode marks.
      * 3. Updates both in the shadow, plus the legacy protected object flag.
      *
      * For legacy repository:
@@ -129,18 +141,29 @@ public class ObjectOperationPolicyHelper {
      * 1. Just computes and updates the legacy protected object flag plus corresponding operation policy.
      *
      * BEWARE: If we compute policy for a shadow, it must have the correct definition present!
+     *
+     * Just computes. DOES NOT UPDATE THE OBJECT.
      */
     public EffectiveMarksAndPolicies computeEffectiveMarksAndPolicies(
             @NotNull ObjectType object,
             @NotNull ObjectMarksComputer objectMarksComputer,
+            @NotNull TaskExecutionMode mode,
             @NotNull OperationResult result) throws SchemaException, ConfigurationException {
 
-        var effectiveMarkRefs = behaviour.computeEffectiveMarks(object, objectMarksComputer, result);
-        var defaultPolicy = behaviour.getDefaultPolicyForObject(object, result);
-        var effectiveOperationPolicy = behaviour.computeEffectiveOperationPolicy(effectiveMarkRefs, defaultPolicy, object, result);
+        var productionModeEffectiveMarkRefs =
+                objectMarkHelper.computeObjectMarks(
+                        object, objectMarksComputer, TaskExecutionMode.PRODUCTION, result);
+        var currentModeEffectiveMarkRefs =
+                TaskExecutionMode.PRODUCTION.equals(mode) ?
+                        List.copyOf(productionModeEffectiveMarkRefs) :
+                        objectMarkHelper.computeObjectMarks(object, objectMarksComputer, mode, result);
+        var defaultPolicy = behaviour.getDefaultPolicyForObject(object, mode, result);
+        var effectiveOperationPolicy =
+                behaviour.computeEffectiveOperationPolicy(currentModeEffectiveMarkRefs, defaultPolicy, object, result);
 
         return new EffectiveMarksAndPolicies(
-                behaviour.supportsMarks() ? List.copyOf(effectiveMarkRefs) : List.of(),
+                behaviour.supportsMarks() ? List.copyOf(productionModeEffectiveMarkRefs) : List.of(),
+                behaviour.supportsMarks() ? List.copyOf(currentModeEffectiveMarkRefs) : List.of(),
                 effectiveOperationPolicy,
                 object instanceof ShadowType && isProtected(effectiveOperationPolicy));
     }
@@ -150,62 +173,22 @@ public class ObjectOperationPolicyHelper {
                 && isModifyDisabled(effectiveOperationPolicy)
                 && isDeleteDisabled(effectiveOperationPolicy)
                 && isSyncInboundDisabled(effectiveOperationPolicy)
-                && isSyncOutboundDisabled(effectiveOperationPolicy);
-    }
-
-    /**
-     * Computes effective mark delta for given object, given current and desired state.
-     */
-    public ItemDelta<?, ?> computeEffectiveMarkDelta(
-            @NotNull Collection<ObjectReferenceType> currentMarks,
-            @NotNull Collection<ObjectReferenceType> desiredMarks) throws SchemaException {
-        return behaviour.computeEffectiveMarkDelta(currentMarks, desiredMarks);
-    }
-
-    /**
-     * Converts policy statement delta into effective mark delta.
-     *
-     * APPROXIMATE ONLY; limitations are:
-     *
-     * 1. Assumes that all effective mark refs were added through policy statements (which is currently not true).
-     * 2. Assumes that there is no concurrently computed/executed effective mark refs delta.
-     * (Otherwise the computed delta may conflict with it.)
-     *
-     * TODO consider replacing this method
-     */
-    public @Nullable ItemDelta<?, ?> computeEffectiveMarkDelta(
-            @NotNull ObjectType object, @NotNull ItemDelta<?, ?> policyStatementDelta)
-            throws SchemaException {
-        return behaviour.computeEffectiveMarkDelta(object, policyStatementDelta);
-    }
-
-    public EvaluatedPolicyStatements computeEffectiveMarkDelta(
-            ObjectType object,
-            Map<PlusMinusZero, Collection<PolicyStatementType>> policyStatements) throws SchemaException {
-        return behaviour.computeEffectiveMarkDelta(policyStatements);
+                && isSyncOutboundDisabled(effectiveOperationPolicy)
+                && isMembershipSyncInboundDisabled(effectiveOperationPolicy)
+                && isMembershipSyncOutboundDisabled(effectiveOperationPolicy)
+                && Boolean.TRUE.equals(getToleranceOverride(effectiveOperationPolicy));
     }
 
     /** There is a full implementation for native repo, and limited one for generic repo (that does not support marks). */
     private abstract static class Impl {
 
-        /** Computes effective marks for given object, taking into account the current state and the provided computer. */
-        abstract Collection<ObjectReferenceType> computeEffectiveMarks(
-                @NotNull ObjectType object,
-                @NotNull ObjectMarksComputer objectMarksComputer,
-                @NotNull OperationResult result) throws SchemaException;
-
         /**
-         * Combines effective mark refs + policy statements for given object.
-         * No other computations.
+         * Converts marks into effective policy.
          *
-         * Returns detached collection.
-         */
-        Collection<ObjectReferenceType> getEffectiveMarkRefsWithStatements(@NotNull ObjectType object) {
-            return new ArrayList<>();
-        }
-
-        /**
-         * Converts marks into effective policy. The trivial implementation has no MarkType objects, so it's limited
+         * - Input: currently effective mark refs + default policy
+         * - Output: the policy (from the marks)
+         *
+         * The trivial implementation has no `MarkType` objects, so it's limited
          * to deal with "protected" mark in a legacy way (everything is forbidden).
          */
         abstract @NotNull ObjectOperationPolicyType computeEffectiveOperationPolicy(
@@ -216,33 +199,15 @@ public class ObjectOperationPolicyHelper {
 
         @Nullable ObjectOperationPolicyType getDefaultPolicyForObject(
                 @NotNull ObjectType object,
+                @NotNull TaskExecutionMode mode,
                 @NotNull OperationResult result) throws ConfigurationException {
             return null;
         }
 
-        /** Sets the effective marks references into the object bean. */
-        void setEffectiveMarks(ObjectType object, Collection<ObjectReferenceType> effectiveMarkRefs) {
-            // NOOP by default, since marks are not supported by the generic repository
-        }
-
-        /**
-         * Converts policy statement delta into effective mark delta.
-         *
-         * FIXME BEWARE! Imprecise! If a mark was added by a statement and assigned automatically at the same time, removing the
-         *  statement will remove the mark from `effectiveMarkRef`.
-         */
-        @Nullable ItemDelta<?, ?> computeEffectiveMarkDelta(ObjectType object, ItemDelta<?, ?> policyStatementDelta)
-                throws SchemaException {
-            return null;
-        }
-
-        EvaluatedPolicyStatements computeEffectiveMarkDelta(Map<PlusMinusZero, Collection<PolicyStatementType>> policyStatements) {
-            return null;
-        }
-
-        public ItemDelta<?, ?> computeEffectiveMarkDelta(
-                @NotNull Collection<ObjectReferenceType> currentMarks,
-                @NotNull Collection<ObjectReferenceType> desiredMarks) throws SchemaException {
+        @Nullable ObjectOperationPolicyType getDefaultPolicyForResourceObjectType(
+                @NotNull ResourceObjectDefinition objectDefinition,
+                @NotNull TaskExecutionMode mode,
+                @NotNull OperationResult result) throws ConfigurationException {
             return null;
         }
 
@@ -253,121 +218,6 @@ public class ObjectOperationPolicyHelper {
 
     private class MarkSupport extends Impl {
 
-        @Override
-        boolean supportsMarks() {
-            return true;
-        }
-
-        @Override
-        void setEffectiveMarks(ObjectType object, Collection<ObjectReferenceType> effectiveMarkRefs) {
-            object.getEffectiveMarkRef().clear();
-            object.getEffectiveMarkRef().addAll(effectiveMarkRefs);
-        }
-
-        @Override
-        Collection<ObjectReferenceType> getEffectiveMarkRefsWithStatements(@NotNull ObjectType object) {
-            return applyStatementsToMarkRefs(object.getEffectiveMarkRef(), object.getPolicyStatement());
-        }
-
-        /**
-         * Applies statements to mark references. The "proposed" refs may or may not have some statements already applied.
-         * Returns detached collection. The original collection is not touched.
-         */
-        private Collection<ObjectReferenceType> applyStatementsToMarkRefs(
-                List<ObjectReferenceType> proposedMarkRefs, List<PolicyStatementType> statements) {
-
-            // 1. Take proposed marks which were not excluded
-            List<ObjectReferenceType> effectiveMarkRefs =
-                    proposedMarkRefs.stream()
-                            .filter(m -> m.getOid() != null && !statementsContain(statements, m.getOid(), EXCLUDE))
-                            .collect(Collectors.toList());
-
-            // 2. Add marks which were explicitly applied (and are not already there)
-            for (var statement : statements) {
-                var statementMarkOid = getOid(statement.getMarkRef());
-                if (statement.getType() == APPLY && statementMarkOid != null) {
-                    addMarkIfNotPresent(effectiveMarkRefs, statementMarkOid);
-                }
-            }
-
-            return effectiveMarkRefs;
-        }
-
-        /**
-         * Computes or recomputes shadow marks for given shadow: We compute all computable marks
-         * either from policy statements, or by calling the computer.
-         *
-         * Nothing is updated in the shadow; only the new collection of effective marks is returned.
-         */
-        @NotNull Collection<ObjectReferenceType> computeEffectiveMarks(
-                @NotNull ObjectType object,
-                @NotNull ObjectMarksComputer objectMarksComputer,
-                @NotNull OperationResult result) throws SchemaException {
-
-            var computableMarksOids = Set.copyOf(objectMarksComputer.getComputableMarksOids());
-
-            var statements = object.getPolicyStatement();
-            var enforcedByStatements = getMarksOidsFromStatements(statements, APPLY);
-            var forbiddenByStatements = getMarksOidsFromStatements(statements, EXCLUDE);
-            var drivenByStatements = Sets.union(enforcedByStatements, forbiddenByStatements);
-            var conflictingInStatements = Sets.intersection(enforcedByStatements, forbiddenByStatements);
-
-            stateCheck(
-                    conflictingInStatements.isEmpty(),
-                    "Marks %s are both enforced and forbidden by policy statements in %s",
-                    conflictingInStatements, object);
-
-            // Note that some marks can be both computable and driven by statements
-            var allMarkOids = Sets.union(computableMarksOids, drivenByStatements);
-
-            // Now let's compute the effective marks. We start with the information in the object.
-            var effectiveMarkRefs = CloneUtil.cloneCollectionMembers(object.getEffectiveMarkRef());
-
-            // And we process presence of all marks individually
-            for (var markOid : allMarkOids) {
-                Boolean shouldBeThere;
-                if (enforcedByStatements.contains(markOid)) {
-                    shouldBeThere = true;
-                } else if (forbiddenByStatements.contains(markOid)) {
-                    shouldBeThere = false;
-                } else if (computableMarksOids.contains(markOid)) {
-                    shouldBeThere = objectMarksComputer.computeObjectMarkPresence(markOid, result);
-                } else {
-                    shouldBeThere = null;
-                }
-
-                if (Boolean.TRUE.equals(shouldBeThere)) {
-                    addMarkIfNotPresent(effectiveMarkRefs, markOid);
-                } else if (Boolean.FALSE.equals(shouldBeThere)) {
-                    removeMarkIfPresent(effectiveMarkRefs, markOid);
-                } else {
-                    // no decision, let's keep it untouched
-                }
-            }
-
-            return effectiveMarkRefs;
-        }
-
-        private static @NotNull Set<String> getMarksOidsFromStatements(
-                @NotNull Collection<PolicyStatementType> statements, @NotNull PolicyStatementTypeType type) {
-            return statements.stream()
-                    .filter(s -> s.getType() == type)
-                    .map(s -> getOid(s.getMarkRef()))
-                    .filter(java.util.Objects::nonNull)
-                    .collect(Collectors.toUnmodifiableSet());
-        }
-
-        private void addMarkIfNotPresent(@NotNull Collection<ObjectReferenceType> markRefs, @NotNull String markOid) {
-            if (!containsOid(markRefs, markOid)) {
-                markRefs.add(
-                        new ObjectReferenceType().oid(markOid).type(MarkType.COMPLEX_TYPE));
-            }
-        }
-
-        private void removeMarkIfPresent(@NotNull Collection<ObjectReferenceType> markRefs, @NotNull String markOid) {
-            markRefs.removeIf(ref -> markOid.equals(getOid(ref)));
-        }
-
         /** We derive policies from actual object marks. */
         @Override
         @NotNull ObjectOperationPolicyType computeEffectiveOperationPolicy(
@@ -376,7 +226,8 @@ public class ObjectOperationPolicyHelper {
                 @NotNull Object context,
                 @NotNull OperationResult result) {
             var ret = new ObjectOperationPolicyType();
-            Collection<MarkType> marks = resolveMarkRefs(effectiveMarkRefs, context, result);
+            var effectiveMarkOids = extractEffectiveMarkOids(effectiveMarkRefs);
+            var marks = resolveMarkOids(effectiveMarkOids, context, result);
 
             try {
                 computeEffectiveStatus(ret, PATH_ADD, marks, defaultPolicy);
@@ -454,7 +305,7 @@ public class ObjectOperationPolicyHelper {
         }
 
         private static @NotNull AssertionError unsupported(AbstractOperationPolicyConfigurationType value) {
-            return new AssertionError("Unsupported policy configuration type: " + value);
+            return new AssertionError("Unsupported policy configuration type: " + MiscUtil.getValueWithClass(value));
         }
 
         private boolean isMoreRestricted(
@@ -478,7 +329,7 @@ public class ObjectOperationPolicyHelper {
                     throw unsupported(value2);
                 }
             } else {
-                throw unsupported(value1);
+                // there are no restriction levels for OperationPolicyConfigurationType (yet)
             }
             // Restrictions levels are the same, let's compare severities
             var severity1 = Objects.requireNonNullElse(value1.getSeverity(), ERROR);
@@ -591,14 +442,10 @@ public class ObjectOperationPolicyHelper {
         }
 
         // TODO move MarkManager downwards (at least those part that can be moved) and provide this functionality there
-        private @NotNull Collection<MarkType> resolveMarkRefs(
-                @NotNull Collection<ObjectReferenceType> refsToResolve,
+        private @NotNull Collection<MarkType> resolveMarkOids(
+                @NotNull Set<String> oidsToResolve,
                 Object context,
                 @NotNull OperationResult result) {
-            var oidsToResolve = refsToResolve.stream()
-                    .map(ref -> ref.getOid())
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
             if (!cacheRepositoryService.supportsMarks() || oidsToResolve.isEmpty()) {
                 return List.of();
             }
@@ -615,7 +462,7 @@ public class ObjectOperationPolicyHelper {
                         .toList();
 
                 if (resolved.size() < oidsToResolve.size()) {
-                    // Look! Something is missing. Let's find out.
+                    // Look! Something is missing. Let's find out what it is.
                     var missing = new HashSet<>(oidsToResolve);
                     resolved.forEach(r -> missing.remove(r.getOid()));
                     LOGGER.warn("The following marks could not be resolved: {}; in {}", missing, context);
@@ -629,137 +476,53 @@ public class ObjectOperationPolicyHelper {
 
         @Override
         @Nullable ObjectOperationPolicyType getDefaultPolicyForObject(
-                @NotNull ObjectType object, @NotNull OperationResult result) throws ConfigurationException {
+                @NotNull ObjectType object, @NotNull TaskExecutionMode mode, @NotNull OperationResult result)
+                throws ConfigurationException {
             if (!(object instanceof ShadowType shadow)) {
                 return null;
             }
             // We assume only well-formed shadows (with the definition) here.
-            var objectDef = ShadowUtil.getResourceObjectDefinition(shadow);
-            var markRef = objectDef.getDefinitionBean().getDefaultOperationPolicyRef();
-            if (markRef == null) {
+            return getDefaultPolicyForResourceObjectType(
+                    ShadowUtil.getResourceObjectDefinition(shadow),
+                    mode, result);
+        }
+
+        @Override
+        @Nullable ObjectOperationPolicyType getDefaultPolicyForResourceObjectType(
+                @NotNull ResourceObjectDefinition objectDef,
+                @NotNull TaskExecutionMode mode,
+                @NotNull OperationResult result) throws ConfigurationException {
+            var markOid = objectDef.getDefaultOperationPolicyOid(mode);
+            if (markOid == null) {
                 return null;
             }
-            var marks = resolveMarkRefs(List.of(markRef), "determining default policy for " + object, result);
+            var marks = resolveMarkOids(Set.of(markOid), "determining default policy for " + objectDef, result);
             if (!marks.isEmpty()) {
                 return marks.iterator().next().getObjectOperationPolicy();
             } else {
-                var markOid = markRef.getOid(); // Hopefully not null
                 throw new ConfigurationException(
-                        "Mark %s for the default policy for %s (for %s) does not exist".formatted(
-                                markOid, objectDef, shadow),
+                        "Mark %s for the default policy for %s does not exist".formatted(markOid, objectDef),
                         new ObjectNotFoundException(MarkType.class, markOid));
             }
         }
 
         @Override
-        ItemDelta<?, ?> computeEffectiveMarkDelta(ObjectType objectBefore, ItemDelta<?, ?> policyStatementDelta)
-                throws SchemaException {
-            ObjectType objectAfter = objectBefore.clone();
-
-            var effectiveMarksBefore = objectBefore.getEffectiveMarkRef();
-            List<ObjectReferenceType> markRefsToDelete = new ArrayList<>();
-            List<ObjectReferenceType> markRefsToAdd = new ArrayList<>();
-
-            //noinspection unchecked
-            var statementsToDelete = (Collection<PolicyStatementType>) policyStatementDelta.getRealValuesToDelete();
-            for (var statementToDelete : emptyIfNull(statementsToDelete)) {
-                if (statementToDelete.getType() == APPLY && statementToDelete.getMarkRef() != null) {
-                    var referencedMarkOid = getOid(statementToDelete.getMarkRef());
-                    if (referencedMarkOid != null) {
-                        var markRefImpliedByStatement =
-                                findEffectiveMarkRefImpliedByStatement(effectiveMarksBefore, referencedMarkOid);
-                        if (markRefImpliedByStatement != null) {
-                            markRefsToDelete.add(markRefImpliedByStatement.clone());
-                        }
-                    }
-                }
-            }
-
-            policyStatementDelta.applyTo(objectAfter.asPrismObject());
-            var statementsAfter = objectAfter.getPolicyStatement();
-            for (var markAfter : applyStatementsToMarkRefs(effectiveMarksBefore, statementsAfter)) {
-                if (!containsRef(effectiveMarksBefore, markAfter)) {
-                    markRefsToAdd.add(markAfter.clone());
-                }
-            }
-
-            if (!markRefsToDelete.isEmpty() || !markRefsToAdd.isEmpty()) {
-                return PrismContext.get().deltaFor(ObjectType.class)
-                        .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                        .deleteRealValues(markRefsToDelete)
-                        .addRealValues(markRefsToAdd)
-                        .asItemDelta();
-            } else {
-                return null; // Nothing to add or remove.
-            }
-        }
-
-        @Override
-        public ItemDelta<?, ?> computeEffectiveMarkDelta(
-                @NotNull Collection<ObjectReferenceType> currentMarks,
-                @NotNull Collection<ObjectReferenceType> desiredMarks)
-                throws SchemaException {
-
-            var refsToDelete = difference(currentMarks, desiredMarks);
-            var refsToAdd = difference(desiredMarks, currentMarks);
-
-            if (!refsToDelete.isEmpty() || !refsToAdd.isEmpty()) {
-                return PrismContext.get().deltaFor(ObjectType.class)
-                        .item(ObjectType.F_EFFECTIVE_MARK_REF)
-                        .deleteRealValues(refsToDelete)
-                        .addRealValues(refsToAdd)
-                        .asItemDelta();
-            } else {
-                // Nothing to add or remove.
-                return null;
-            }
-        }
-
-        /** Returns "whole - part", looking only at OIDs. Ignores null OIDs. Returns detached collection. */
-        Collection<ObjectReferenceType> difference(
-                @NotNull Collection<ObjectReferenceType> whole, @NotNull Collection<ObjectReferenceType> part) {
-            var difference = new ArrayList<ObjectReferenceType>();
-            for (var refFromWhole : whole) {
-                if (refFromWhole.getOid() != null && !containsOid(part, refFromWhole.getOid())) {
-                    difference.add(refFromWhole.clone());
-                }
-            }
-            return difference;
-        }
-
-        private ObjectReferenceType findEffectiveMarkRefImpliedByStatement(List<ObjectReferenceType> effectiveMarks, String oid) {
-            for (ObjectReferenceType mark : effectiveMarks) {
-                if (oid.equals(mark.getOid()) && isImpliedByStatement(mark)) {
-                    return mark;
-                }
-            }
-            return null;
-        }
-
-        private boolean isImpliedByStatement(ObjectReferenceType mark) {
-            // This is the limitation: we assume that each effective mark was implied by a statement, which is not true.
+        boolean supportsMarks() {
             return true;
-        }
-
-        private boolean containsRef(Collection<ObjectReferenceType> refs, ObjectReferenceType ref) {
-            return containsOid(refs, ref.getOid());
         }
     }
 
-    private static class Legacy extends Impl {
+    /** Ignores invalid or informational (`org:related`) references. */
+    private static @NotNull Set<String> extractEffectiveMarkOids(@NotNull Collection<ObjectReferenceType> markRefs) {
+        var relationRegistry = SchemaService.get().relationRegistry();
+        return markRefs.stream()
+                .filter(ref -> relationRegistry.isMember(ref.getRelation()))
+                .map(ref -> ref.getOid())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
 
-        /** We have no state. We have no storage for marks. So all we are interested in is the Protected mark. */
-        @Override
-        Collection<ObjectReferenceType> computeEffectiveMarks(
-                @NotNull ObjectType object, @NotNull ObjectMarksComputer objectMarksComputer,
-                @NotNull OperationResult result) throws SchemaException {
-            if (objectMarksComputer.getComputableMarksOids().contains(MARK_PROTECTED_OID)
-                    && objectMarksComputer.computeObjectMarkPresence(MARK_PROTECTED_OID, result)) {
-                return List.of(new ObjectReferenceType().oid(MARK_PROTECTED_OID).type(MarkType.COMPLEX_TYPE));
-            } else {
-                return List.of();
-            }
-        }
+    private static class Legacy extends Impl {
 
         /** We are limited to simple "protected or not" decision. */
         @Override
@@ -768,11 +531,16 @@ public class ObjectOperationPolicyHelper {
                 @Nullable ObjectOperationPolicyType defaultPolicy,
                 @NotNull Object context,
                 @NotNull OperationResult result) {
-            if (containsOid(effectiveMarkRefs, MARK_PROTECTED_OID)) {
+            var effectiveOids = extractEffectiveMarkOids(effectiveMarkRefs);
+            if (effectiveOids.contains(MARK_PROTECTED_OID)) {
                 return new ObjectOperationPolicyType()
                         .synchronize(new SynchronizeOperationPolicyConfigurationType()
                                 .inbound(syncDisabled(OperationPolicyViolationSeverityType.INFO))
-                                .outbound(disabled(OperationPolicyViolationSeverityType.INFO)))
+                                .outbound(disabled(OperationPolicyViolationSeverityType.INFO))
+                                .membership(new SynchronizeMembershipOperationPolicyConfigurationType()
+                                        .inbound(disabled(OperationPolicyViolationSeverityType.INFO))
+                                        .outbound(disabled(OperationPolicyViolationSeverityType.INFO))
+                                        .tolerant(true)))
                         .add(disabled(ERROR))
                         .modify(disabled(ERROR))
                         .delete(disabled(ERROR));
@@ -796,36 +564,31 @@ public class ObjectOperationPolicyHelper {
         }
     }
 
-    private static boolean containsOid(@NotNull Collection<ObjectReferenceType> refs, @NotNull String oid) {
-        return refs.stream()
-                .anyMatch(ref -> oid.equals(ref.getOid()));
+    public @Nullable ObjectOperationPolicyType getDefaultPolicyForResourceObjectType(
+            @NotNull ResourceObjectDefinition objectDefinition,
+            @NotNull TaskExecutionMode mode,
+            @NotNull OperationResult result) throws ConfigurationException {
+        return behaviour.getDefaultPolicyForResourceObjectType(objectDefinition, mode, result);
     }
 
-    private boolean statementsContain(
-            @NotNull List<PolicyStatementType> statements,
-            @NotNull String markOid,
-            @NotNull PolicyStatementTypeType policyType) {
-        return statements.stream().anyMatch(
-                s -> s.getType() == policyType && markOid.equals(getOid(s.getMarkRef())));
-    }
-
-    public interface ObjectMarksComputer {
-
-        /** Computes recomputable object mark presence for given object. Does not deal with policy statements in any way. */
-        boolean computeObjectMarkPresence(String markOid, OperationResult result) throws SchemaException;
-
-        /** Returns OIDs of marks managed by this provider. */
-        @NotNull Collection<String> getComputableMarksOids();
-    }
-
+    /**
+     * Contains effective mark refs (both production-mode and current-mode), and computed effective operation policy
+     * (for the current mode).
+     *
+     * Note that mark ref collections are always empty for generic repository.
+     *
+     * The client must make sure that the current-mode information on mark refs will not get into the repo!
+     */
     public record EffectiveMarksAndPolicies(
-            @NotNull Collection<ObjectReferenceType> effectiveMarkRefs,
+            @NotNull Collection<ObjectReferenceType> productionModeEffectiveMarkRefs,
+            @NotNull Collection<ObjectReferenceType> currentModeEffectiveMarkRefs,
             @NotNull ObjectOperationPolicyType effectiveOperationPolicy,
             boolean isProtected) {
 
+        /** Applies current-mode effective marks and policies. BEWARE: make sure this information will not get into the repo! */
         public void applyTo(@NotNull ObjectType object) {
             object.getEffectiveMarkRef().clear();
-            object.getEffectiveMarkRef().addAll(effectiveMarkRefs);
+            object.getEffectiveMarkRef().addAll(currentModeEffectiveMarkRefs);
             object.setEffectiveOperationPolicy(effectiveOperationPolicy);
             if (object instanceof ShadowType shadow && isProtected) {
                 shadow.setProtectedObject(true);

@@ -10,6 +10,7 @@ package com.evolveum.midpoint.web.component.data.column;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.refreshCells;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.resolveCellTypeUserTable;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.applySquareTableCell;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.createCompositedObjectIcon;
 
 import java.util.*;
 
@@ -148,7 +149,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
         return cssLevel + " p-0";
     }
 
-    private AjaxLinkTruncateDto loadColumnHeaderModelObject() {
+    private @NotNull AjaxLinkTruncateDto loadColumnHeaderModelObject() {
         String defaultBlackIcon = IconAndStylesUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE);
         CompositedIconBuilder compositedIconBuilder = new CompositedIconBuilder().setBasicIcon(defaultBlackIcon,
                 LayeredIconCssStyle.IN_ROW_STYLE);
@@ -158,7 +159,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
             compositedIconBuilder.appendColorHtmlValue(iconColor);
         }
 
-        CompositedIcon compositedIcon = compositedIconBuilder.build();
+        CompositedIcon compositedIcon = createCompositedObjectIcon(baseMiningChunk, getModel());
 
         return new AjaxLinkTruncateDto(baseMiningChunk.getChunkName(), compositedIcon, baseMiningChunk.getStatus(),
                 AjaxLinkTruncatePanelAction.PanelMode.ROTATED) {
@@ -273,8 +274,7 @@ public abstract class RoleAnalysisIntersectionColumn<B extends MiningBaseTypeChu
                     rowChunk.setStatus(chunkStatus);
                     colChunk.setStatus(chunkStatus);
                 }
-
-                refreshTable(ajaxRequestTarget);
+                refreshTableRows(ajaxRequestTarget);
             }
         });
     }

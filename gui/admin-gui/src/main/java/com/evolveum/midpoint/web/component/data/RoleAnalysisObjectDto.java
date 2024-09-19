@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableCellFillResolver.refreshCells;
 
@@ -69,8 +70,8 @@ public class RoleAnalysisObjectDto implements Serializable {
         if (getParent != null) {
             RoleAnalysisSessionType session = getParent.asObjectable();
             RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-            RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-            if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
+            RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+            if (procedureType == RoleAnalysisProcedureType.OUTLIER_DETECTION) {
                 this.isOutlierDetection = true;
                 collectMarkedUsers(roleAnalysisService, task, result);
             }
@@ -113,7 +114,7 @@ public class RoleAnalysisObjectDto implements Serializable {
     private void collectMarkedUsers(RoleAnalysisService roleAnalysisService, Task task, OperationResult result) {
         markedUsers = new HashSet<>();
         List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(
-                cluster, task, result);
+                cluster, null, task, result);
         if (searchResultList != null && !searchResultList.isEmpty()) {
             for (RoleAnalysisOutlierType outlier : searchResultList) {
                 ObjectReferenceType targetObjectRef = outlier.getTargetObjectRef();
@@ -124,7 +125,7 @@ public class RoleAnalysisObjectDto implements Serializable {
         }
     }
 
-    private DisplayValueOption loadDispayValueOption(RoleAnalysisClusterType cluster, Integer parameterTableSetting) {
+    private @NotNull DisplayValueOption loadDispayValueOption(@NotNull RoleAnalysisClusterType cluster, Integer parameterTableSetting) {
 //        RoleAnalysisClusterType cluster = getModelObject().asObjectable();
         AnalysisClusterStatisticType clusterStatistics = cluster.getClusterStatistics();
 
@@ -209,7 +210,8 @@ public class RoleAnalysisObjectDto implements Serializable {
         return isOutlierDetection;
     }
 
-    public void recomputeChunks(List<DetectedPattern> selectedPatterns, PageBase pageBase) {
+    //TODO check for optimization
+    public void recomputeChunks(List<DetectedPattern> selectedPatterns, @NotNull PageBase pageBase) {
         Task task = pageBase.createSimpleTask("recompute chunks");
         OperationResult result = task.getResult();
         this.miningOperationChunk = pageBase.getRoleAnalysisService().prepareMiningStructure(

@@ -265,6 +265,52 @@ Example of URL: https://localhost/midpoint/auth/emergency .
 </sequence>
 ----
 
+[#_example_of_sequence_with_configured_login_form]
+.Example of the default GUI sequence with configured login form
+This configuration allows to configure label, description and external link for login form.
+
+[source,xml]
+----
+        <sequence id="3">
+            <identifier>admin-gui-default</identifier>
+            <displayName>Default gui sequence</displayName>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
+                <default>true</default>
+                <urlSuffix>gui-default</urlSuffix>
+            </channel>
+            <module>
+                <identifier>loginForm</identifier>
+                <order>1</order>
+                <necessity>sufficient</necessity>
+                <display>
+                    <label>
+                        <orig>Login to your account</orig>
+                        <translation>
+                            <key>PageLogin.loginToYourAccount</key>
+                        </translation>
+                    </label>
+                    <help>
+                        <orig>Please enter account details to start the session</orig>
+                        <translation>
+                            <key>PageLogin.enterAccountDetails</key>
+                        </translation>
+                    </help>
+                </display>
+                <action>
+                    <display>
+                        <label>
+                            <orig>Live demo documentation</orig>
+                        </label>
+                    </display>
+                    <target>
+                        <targetUrl>https://docs.evolveum.com</targetUrl>
+                    </target>
+                </action>
+            </module>
+        </sequence>
+----
+
 === Midpoint GUI authentication form
 In order to utilize the Midpoint GUI, it is necessary to configure an authentication sequence for the `loginForm` module.
 

@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.inline;
 
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.analyzeAndResolveOutlierObject;
-import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.resolveOutlierAnomalies;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +28,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.model.impl.mining.algorithm.cluster.action.util.outlier.OutliersDetectionUtil.*;
 
 //TODO clean/remove duplicates implement role mode
 
@@ -96,20 +95,16 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
         }
 
         long endTime = System.currentTimeMillis();
-        double totalProcessingTime = (double) (endTime - startTime) / 1000.0;
-        LOGGER.debug("ALL ANOMALY/CHUNK: TOTAL PROCESSING TIME: " + totalProcessingTime + " seconds");
+        double totalProcessingTime = (endTime - startTime) / 1000.0;
+        LOGGER.debug("ALL ANOMALY/CHUNK: TOTAL PROCESSING TIME: {} seconds", totalProcessingTime);
 
         startTime = System.currentTimeMillis();
         Set<String> keySet = userRoleMap.keySet();
 
         for (String memberOid : keySet) {
-            Collection<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(memberOid);
-            if (detectedAnomalyResults.isEmpty()) {
-                continue;
-            }
-
             PrismObject<UserType> userObject = roleAnalysisService.getUserTypeObject(memberOid, task, result);
-            if (userObject == null) {
+            Collection<DetectedAnomalyResult> detectedAnomalyResults = userRoleMap.get(memberOid);
+            if (userObject == null || detectedAnomalyResults.isEmpty()) {
                 continue;
             }
 
@@ -118,17 +113,19 @@ public class BasicOutlierDetectionStrategy implements OutlierDetectionStrategy {
                     .type(UserType.COMPLEX_TYPE);
 
             OutlierAnalyzeModel outlierAnalyzeModel = new OutlierAnalyzeModel(model, userObject, analyzedObjectRef);
-            analyzeAndResolveOutlierObject(roleAnalysisService,
+            RoleAnalysisOutlierPartitionType partition = analyzeAndResolveOutlierObject(roleAnalysisService,
                     analysisCache,
                     outlierAnalyzeModel,
                     detectedAnomalyResults,
                     task,
                     result);
+
+            updateOrImportOutlierObject(roleAnalysisService, session, memberOid, partition, analysisCache, task, result);
         }
 
         endTime = System.currentTimeMillis();
-        totalProcessingTime = (double) (endTime - startTime) / 1000.0;
-        LOGGER.debug("ALL USER CANDIDATE OUTLIER KEYSET: TOTAL PROCESSING TIME: " + totalProcessingTime + " seconds");
+        totalProcessingTime = (endTime - startTime) / 1000.0;
+        LOGGER.debug("ALL USER CANDIDATE OUTLIER KEYSET: TOTAL PROCESSING TIME: {} seconds", totalProcessingTime);
     }
 
 }

@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import javax.xml.namespace.QName;
@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  * Class that can parse ConnId capabilities and schema into midPoint format.
  *
  * May be used either for parsing both capabilities and schema (see
- * {@link #retrieveResourceCapabilitiesAndSchema(List, OperationResult)}) or for parsing
+ * {@link #retrieveResourceCapabilitiesAndSchema(Collection, OperationResult)}) or for parsing
  * capabilities only (see {@link #fetchAndParseConnIdCapabilities(OperationResult)}).
  *
  * Note that these structures are intertwined. Capabilities affect the schema, because they determine if the schema can be
@@ -74,7 +74,7 @@ class ConnIdCapabilitiesAndSchemaParser {
      * Schema is immutable after this method.
      */
     @NotNull NativeCapabilitiesAndSchema retrieveResourceCapabilitiesAndSchema(
-            @NotNull List<QName> objectClassesToParse, OperationResult result)
+            @NotNull Collection<QName> objectClassesToParse, OperationResult result)
             throws CommunicationException, ConfigurationException, GenericFrameworkException, SchemaException {
 
         LOGGER.debug("Retrieving and parsing schema and capabilities for {}", connectorHumanReadableName);
@@ -145,16 +145,16 @@ class ConnIdCapabilitiesAndSchemaParser {
     private void castAndThrowException(Throwable originalException, Throwable convertedException)
             throws CommunicationException, ConfigurationException, GenericFrameworkException {
 
-        if (convertedException instanceof CommunicationException) {
-            throw (CommunicationException) convertedException;
-        } else if (convertedException instanceof ConfigurationException) {
-            throw (ConfigurationException) convertedException;
-        } else if (convertedException instanceof GenericFrameworkException) {
-            throw (GenericFrameworkException) convertedException;
-        } else if (convertedException instanceof RuntimeException) {
-            throw (RuntimeException) convertedException;
-        } else if (convertedException instanceof Error) {
-            throw (Error) convertedException;
+        if (convertedException instanceof CommunicationException communicationException) {
+            throw communicationException;
+        } else if (convertedException instanceof ConfigurationException configurationException) {
+            throw configurationException;
+        } else if (convertedException instanceof GenericFrameworkException genericFrameworkException) {
+            throw genericFrameworkException;
+        } else if (convertedException instanceof RuntimeException runtimeException) {
+            throw runtimeException;
+        } else if (convertedException instanceof Error error) {
+            throw error;
         } else {
             throw new SystemException("Got unexpected exception: " + originalException.getClass().getName()
                     + ": " + originalException.getMessage(), originalException);
@@ -174,7 +174,7 @@ class ConnIdCapabilitiesAndSchemaParser {
             // TODO have context present
             Schema connIdSchema = connIdConnectorFacade.schema();
             if (connIdSchema == null) {
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Null schema returned");
+                result.recordNotApplicable("Null schema returned");
             } else {
                 result.recordSuccess();
             }
@@ -201,6 +201,7 @@ class ConnIdCapabilitiesAndSchemaParser {
 
     /**
      * Create capabilities from supported connector operations.
+     * These are not complete! Some information is to be derived from the schema.
      */
     private @NotNull CapabilityCollectionType parseConnIdCapabilities(
             @NotNull Set<Class<? extends APIOperation>> connIdSupportedOperations) {

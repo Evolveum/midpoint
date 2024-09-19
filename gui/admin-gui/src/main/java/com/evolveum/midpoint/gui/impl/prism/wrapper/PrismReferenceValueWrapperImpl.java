@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.util.ExecutedDeltaPostProcessor;
 import com.evolveum.midpoint.gui.impl.util.ReferenceExecutedDeltaProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -144,7 +146,7 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
     /**
      * Custom processing of new object for reference.
      */
-    protected void processBeforeCreatingPreconditionDelta(ObjectDetailsModels<? extends ObjectType> newObjectModel, ModelServiceLocator serviceLocator) {
+    protected <O extends ObjectType> void processBeforeCreatingPreconditionDelta(ObjectDetailsModels<O> newObjectModel, ModelServiceLocator serviceLocator) {
     }
 
     /**
@@ -182,13 +184,22 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
             public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
                 return Collections.singletonList(config);
             }
+
+            @Override
+            protected WrapperContext createWrapperContext(Task task, OperationResult result) {
+                return PrismReferenceValueWrapperImpl.this.createWrapperContextForNewObject(super.createWrapperContext(task, result));
+            }
         };
+    }
+
+    protected WrapperContext createWrapperContextForNewObject(WrapperContext wrapperContext) {
+        return wrapperContext;
     }
 
     /**
      * Create new object that will be added to reference value.
      */
-    protected <O extends ObjectType> PrismObject<? extends ObjectType> createNewPrismObject(OperationResult result) throws SchemaException {
+    protected <O extends ObjectType> PrismObject<O> createNewPrismObject(OperationResult result) throws SchemaException {
         PrismReferenceWrapper<T> parent = getParent();
         List<QName> types = parent.getTargetTypes();
         if (types.size() != 1) {

@@ -60,7 +60,7 @@ class SynchronizationContextCreator {
         ResourceType updatedResource = checkNotInMaintenance(change.getResource().asObjectable(), task, result);
 
         ResourceObjectProcessingContextImpl processingContext =
-                aResourceObjectProcessingContext(shadow, updatedResource, task, beans)
+                aResourceObjectProcessingContext(shadow, updatedResource, task)
                         .withResourceObjectDelta(change.getObjectDelta())
                         .withExplicitChannel(change.getSourceChannel())
                         .withSystemConfiguration(

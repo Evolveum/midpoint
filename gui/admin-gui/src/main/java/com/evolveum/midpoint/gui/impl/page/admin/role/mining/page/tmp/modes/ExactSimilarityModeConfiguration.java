@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -23,8 +22,6 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
     RoleAnalysisService service;
     Task task;
     OperationResult result;
-    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
-
     public ExactSimilarityModeConfiguration(
             RoleAnalysisService service,
             LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper,
@@ -34,7 +31,6 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
         this.service = service;
         this.task = task;
         this.result = result;
-        this.objectWrapper = objectWrapper;
     }
 
     @Override
@@ -60,21 +56,6 @@ public class ExactSimilarityModeConfiguration extends AbstractRoleAnalysisConfig
                         .min(10.0)
                         .max(100.0),
                 RoleAnalysisDetectionProcessType.FULL);
-    }
-
-    @Override
-    public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {
-        return super.getAnalysisSessionOption();
-    }
-
-    @Override
-    public RoleAnalysisDetectionOptionType getDetectionOption() {
-        return super.getDetectionOption();
-    }
-
-    @Override
-    public ItemVisibilityHandler getVisibilityHandler() {
-        return super.getVisibilityHandler();
     }
 
     public @NotNull Integer getMaxPropertyCount() {

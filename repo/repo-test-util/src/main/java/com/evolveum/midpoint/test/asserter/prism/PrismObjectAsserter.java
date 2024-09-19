@@ -21,12 +21,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ValueMetadataTypeUtil;
 import com.evolveum.midpoint.test.asserter.*;
 
@@ -593,29 +593,35 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
     }
 
     public PrismObjectAsserter<O,RA> assertEffectiveMark(String oid) {
-        assertThat(getObject().asObjectable().getEffectiveMarkRef().stream().map(r -> r.getOid()).collect(Collectors.toList()))
+        assertThat(getReallyEffectiveMarks())
                 .as("Effective marks")
                 .contains(oid);
         return this;
     }
 
     public PrismObjectAsserter<O,RA> assertEffectiveMarks(String... oids) {
-        assertThat(getObject().asObjectable().getEffectiveMarkRef().stream().map(r -> r.getOid()).collect(Collectors.toList()))
+        assertThat(getReallyEffectiveMarks())
                 .as("Effective marks")
                 .containsExactlyInAnyOrder(oids);
         return this;
     }
 
+    private @NotNull List<String> getReallyEffectiveMarks() {
+        return ObjectTypeUtil.getReallyEffectiveMarkRefStream(object.asObjectable())
+                .map(r -> r.getOid())
+                .toList();
+    }
+
     public PrismObjectAsserter<O,RA> assertNoEffectiveMark(String oid) {
-        assertThat(getObject().asObjectable().getEffectiveMarkRef().stream().map(r -> r.getOid()).collect(Collectors.toList()))
-                .as("Policy situations")
+        assertThat(getReallyEffectiveMarks())
+                .as("mark refs")
                 .doesNotContain(oid);
         return this;
     }
 
     public PrismObjectAsserter<O,RA> assertNoEffectiveMarks() {
-        assertThat(getObject().asObjectable().getEffectiveMarkRef())
-                .as("Policy situations")
+        assertThat(getReallyEffectiveMarks())
+                .as("mark refs")
                 .isEmpty();
         return this;
     }

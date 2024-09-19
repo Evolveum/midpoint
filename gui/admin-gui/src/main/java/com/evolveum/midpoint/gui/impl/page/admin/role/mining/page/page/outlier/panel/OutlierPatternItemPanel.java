@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.outlier.panel;
 
 import static com.evolveum.midpoint.common.mining.utils.ExtractPatternUtils.transformPatternWithAttributes;
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModel;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -35,12 +34,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
 import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.RoleAnalysisWidgetsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.RoleAnalysisDetectedPatternDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.simulation.DetailsTableItem;
-import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
-import com.evolveum.midpoint.task.api.Task;
 
 public class OutlierPatternItemPanel<T extends Serializable>
         extends BasePanel<ListGroupMenuItem<T>> {
@@ -90,20 +85,6 @@ public class OutlierPatternItemPanel<T extends Serializable>
     }
 
     private @NotNull Component buildOutlierDetailsPanel(@NotNull String id) {
-        RoleAnalysisService roleAnalysisService = getPageBase().getRoleAnalysisService();
-        Task task = getPageBase().createSimpleTask("loadOutlierDetails");
-
-        RoleAnalysisOutlierType outlier = getOutlierModel().getObject();
-        RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
-
-        //TODO!
-        OutlierObjectModel outlierObjectModel = generateUserOutlierResultModel(roleAnalysisService, outlier,
-                task, task.getResult(), partition, getPageBase());
-
-        if (outlierObjectModel == null) {
-            return new WebMarkupContainer(id);
-        }
-
         RoleAnalysisWidgetsPanel detailsPanel = loadOutlierDetailsPanel(id);
         detailsPanel.setOutputMarkupId(true);
         return detailsPanel;
@@ -113,6 +94,15 @@ public class OutlierPatternItemPanel<T extends Serializable>
     private RoleAnalysisWidgetsPanel loadOutlierDetailsPanel(@NotNull String id) {
         RoleAnalysisOutlierPartitionType partition = getPartitionModel().getObject();
         RoleAnalysisPatternAnalysis patternAnalysis = partition.getPartitionAnalysis().getPatternAnalysis();
+        if(patternAnalysis == null) {
+            return new RoleAnalysisWidgetsPanel(id, Model.ofList(List.of())) {
+                @Override
+                protected @NotNull Component getPanelComponent(String id1) {
+                    return new WebMarkupContainer(id1);
+                }
+            };
+        }
+
         RoleAnalysisDetectionPatternType topDetectedPattern = patternAnalysis.getTopDetectedPattern();
         DetectedPattern pattern = transformPatternWithAttributes(topDetectedPattern);
 

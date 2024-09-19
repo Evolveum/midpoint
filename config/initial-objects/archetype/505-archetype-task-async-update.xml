@@ -11,12 +11,7 @@
     <name>Asynchronous update task</name>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Asynchronous update task</orig>
-                <translation>
-                    <key>AsynchronousUpdateTask.label</key>
-                </translation>
-            </label>
+            <label>Asynchronous update task</label>
             <pluralLabel>
                 <orig>Asynchronous update tasks</orig>
                 <translation>

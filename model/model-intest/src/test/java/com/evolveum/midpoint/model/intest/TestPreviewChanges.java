@@ -48,15 +48,17 @@ import java.util.List;
 
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_ACTIVATED;
 import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROJECTION_RESOURCE_OBJECT_AFFECTED;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.isShadowCachingOnByDefault;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
 import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
+
 import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -75,6 +77,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     // LEMON dummy resource has a STRICT dependency on default dummy resource
     private static final DummyTestResource RESOURCE_DUMMY_LEMON = new DummyTestResource(TEST_DIR,
             "resource-dummy-lemon.xml", "10000000-0000-0000-0000-000000000504", "lemon",
+            DummyResourceContoller::extendSchemaPirate);
+
+    /** For various ad-hoc purposes. */
+    private static final DummyTestResource RESOURCE_DUMMY_MISC = new DummyTestResource(TEST_DIR,
+            "resource-dummy-misc.xml", "6b71a242-2306-4bbc-a46e-9444c2f74823", "misc",
             DummyResourceContoller::extendSchemaPirate);
 
     private static final TestObject<UserType> USER_ROGERS = TestObject.file(TEST_DIR, "user-rogers.xml", "c0c010c0-d34d-b33f-f00d-11d2d2d2d22d");
@@ -98,6 +105,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         CommonInitialObjects.addMarks(this, initTask, initResult);
 
         RESOURCE_DUMMY_LEMON.initAndTest(this, initTask, initResult);
+        RESOURCE_DUMMY_MISC.initAndTest(this, initTask, initResult);
 
         // Elaine is in inconsistent state. Account attributes do not match the mappings.
         // We do not want that here, as it would add noise to preview operations.
@@ -427,7 +435,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
                         .delta()
                             .objectToAdd()
                                 .asShadow()
-                                    .assertKind(ShadowKindType.ACCOUNT)
+                                    .assertKind(ACCOUNT)
                                     .assertIntent("default")
                                     .attributes()
                                         .assertValue(DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_QNAME, "Jack Sparrow");
@@ -2082,7 +2090,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
     private ModelProjectionContext findAccountContext(ModelContext<UserType> modelContext, String resourceOid) {
         Collection<? extends ModelProjectionContext> accountContexts = modelContext.findProjectionContexts(
-                new ProjectionContextFilter(resourceOid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT));
+                new ProjectionContextFilter(resourceOid, ACCOUNT, SchemaConstants.INTENT_DEFAULT));
         return MiscUtil.extractSingletonRequired(
                 accountContexts,
                 () -> new IllegalStateException("Multiple account/default contexts: " + accountContexts),
@@ -2178,9 +2186,60 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         AssertJUnit.assertEquals(ChangeType.ADD, scene.getChangeType());
 
         ObjectDelta<?> sourceDelta = scene.getSourceDelta();
-        PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_KIND), ShadowKindType.ACCOUNT);
+        PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_KIND), ACCOUNT);
         PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_INTENT), "default");
         PrismAsserts.assertReferenceAdd(sourceDelta, ShadowType.F_RESOURCE_REF, RESOURCE_SIMPLE.oid);
+    }
+
+    /**
+     * Having projection with both outbound and inbound mappings.
+     *
+     * When user LC state goes to `archived`, the "preview" and real execution behavior should be the same:
+     * account is deleted, but the inbounds are not evaluated, so the user remains unchanged.
+     *
+     * MID-9853.
+     *
+     * Currently disabled, as it fails now.
+     *
+     * - The real behavior is that when LC is `archived`, shadow gets deleted
+     * (wave 0). In wave 1, the rotten projection context is removed. Hence, no inbounds are processed on that already-deleted
+     * shadow.
+     *
+     * - The preview behavior is that the projection context is not rotten, and not removed in wave 1 (actually, that's a good
+     * thing; otherwise, we couldn't see the deletion deltas). But that means that inbounds are processed, removing user's
+     * `name`, which leads to a "No name in new object" exception.
+     */
+    @Test(enabled = false) // MID-9853
+    public void test760PreviewArchival() throws CommonException, IOException {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("user with assigned 'account/test'");
+        var userOid = addObject(
+                new UserType()
+                        .name(userName)
+                        .assignment(RESOURCE_DUMMY_MISC.assignmentWithConstructionOf(ACCOUNT, INTENT_DEFAULT)),
+                task, result);
+        assertUserBefore(userOid)
+                .assertLiveLinks(1);
+
+        when("user archival is previewed");
+        var modelContext = previewChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_LIFECYCLE_STATE)
+                        .replace(SchemaConstants.LIFECYCLE_ARCHIVED)
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("shadow deletion is there");
+        assertSuccess(result);
+        assertThat(modelContext.getProjectionContexts())
+                .as("projection contexts")
+                .singleElement()
+                .extracting(projCtx -> projCtx.getSynchronizationPolicyDecision())
+                .as("sync policy decision")
+                .isEqualTo(SynchronizationPolicyDecision.DELETE);
     }
 
     private static class Checkers {

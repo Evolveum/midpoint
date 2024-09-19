@@ -11,12 +11,7 @@
     <name>Collection report</name>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Collection report</orig>
-                <translation>
-                    <key>collectionReport.label</key>
-                </translation>
-            </label>
+            <label>Collection report</label>
             <pluralLabel>
                 <orig>Collection reports</orig>
                 <translation>
@@ -39,12 +34,7 @@
                     <identifier>engine</identifier>
                     <displayOrder>11</displayOrder>
                     <display>
-                        <label>
-                            <orig>Engine</orig>
-                            <translation>
-                                <key>engine.panel.label</key>
-                            </translation>
-                        </label>
+                        <label>Engine</label>
                         <cssClass>fa fa-microchip</cssClass>
                         <icon>
                             <cssClass>fa fa-microchip</cssClass>
@@ -53,12 +43,7 @@
                     <container id="7">
                         <identifier>engineContainer</identifier>
                         <display>
-                            <label>
-                                <orig>Engine</orig>
-                                <translation>
-                                    <key>engine.panel.label</key>
-                                </translation>
-                            </label>
+                            <label>Engine</label>
                         </display>
                         <item id="8">
                             <path>objectCollection/condition</path>
@@ -75,12 +60,7 @@
                     <identifier>collection</identifier>
                     <displayOrder>12</displayOrder>
                     <display>
-                        <label>
-                            <orig>Collection</orig>
-                            <translation>
-                                <key>collection.panel.label</key>
-                            </translation>
-                        </label>
+                        <label>Collection</label>
                         <cssClass>fa fa-filter</cssClass>
                         <icon>
                             <cssClass>fa fa-filter</cssClass>
@@ -97,12 +77,7 @@
                 <panel id="4">
                     <identifier>view</identifier>
                     <display>
-                        <label>
-                            <orig>View</orig>
-                            <translation>
-                                <key>view.panel.label</key>
-                            </translation>
-                        </label>
+                        <label>View</label>
                         <cssClass>fa fa-eye</cssClass>
                         <icon>
                             <cssClass>fa fa-eye</cssClass>
@@ -113,12 +88,7 @@
                 <panel id="5">
                     <identifier>parameters</identifier>
                     <display>
-                        <label>
-                            <orig>Parameter</orig>
-                            <translation>
-                                <key>parameter.panel.label</key>
-                            </translation>
-                        </label>
+                        <label>Parameter</label>
                         <cssClass>fa fa-th</cssClass>
                         <icon>
                             <cssClass>fa fa-th</cssClass>
@@ -129,12 +99,7 @@
                 <panel id="6">
                     <identifier>subreport</identifier>
                     <display>
-                        <label>
-                            <orig>Subreport</orig>
-                            <translation>
-                                <key>subreport.panel.label</key>
-                            </translation>
-                        </label>
+                        <label>Subreport</label>
                         <cssClass>fa fa-th</cssClass>
                         <icon>
                             <cssClass>fa fa-th</cssClass>

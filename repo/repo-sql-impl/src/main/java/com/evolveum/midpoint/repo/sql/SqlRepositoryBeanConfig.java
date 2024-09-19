@@ -78,17 +78,8 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
-    public SqlEmbeddedRepository sqlEmbeddedRepository(
-            SqlRepositoryConfiguration repositoryConfiguration) {
-        return new SqlEmbeddedRepository(repositoryConfiguration);
-    }
-
-    @Bean
     @ConditionalOnMissingBean
-    public DataSourceFactory dataSourceFactory(
-            // dependency in case we need to start H2 server
-            @SuppressWarnings("unused") SqlEmbeddedRepository sqlEmbeddedRepository,
-            SqlRepositoryConfiguration repositoryConfiguration) {
+    public DataSourceFactory dataSourceFactory(SqlRepositoryConfiguration repositoryConfiguration) {
         return new DataSourceFactory(repositoryConfiguration);
     }
 

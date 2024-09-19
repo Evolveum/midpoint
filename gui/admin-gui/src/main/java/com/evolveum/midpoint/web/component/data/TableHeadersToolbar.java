@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.sort.AjaxFallbackOrderByBorder;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackHeadersToolbar;
@@ -19,6 +18,8 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.util.string.Strings;
+
+import com.evolveum.midpoint.gui.impl.component.data.provider.BaseSortableDataProvider;
 
 /**
  * @author lazyman
@@ -43,7 +44,7 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
 
             @Override
             protected void onSortChanged() {
-                getTable().setCurrentPage(0);
+                TableHeadersToolbar.this.onSortChanged();
             }
 
             @Override
@@ -70,6 +71,10 @@ public class TableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar<String> {
                 }
             }
         };
+    }
+
+    protected void onSortChanged() {
+        getTable().setCurrentPage(0);
     }
 
     protected void refreshTable(AjaxRequestTarget target) {

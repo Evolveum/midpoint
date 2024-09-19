@@ -47,6 +47,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -285,10 +286,20 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
         }
 
         try {
-            PrismPropertyWrapper<String> kind = valueModel.getObject().findProperty(ConstructionType.F_INTENT);
-            kind.getValue().setRealValue(selectedTile.get().getValue().intent);
+            PrismPropertyWrapper<String> intent = valueModel.getObject().findProperty(ConstructionType.F_INTENT);
+            intent.getValue().setRealValue(selectedTile.get().getValue().intent);
         } catch (SchemaException e) {
-            LOGGER.error("Couldn't find kind property in construction value");
+            LOGGER.error("Couldn't find intent property in construction value");
+        }
+
+        try {
+            PrismContainerValueWrapper<AssignmentType> parent = valueModel.getObject().getParentContainerValue(AssignmentType.class);
+            if (parent != null) {
+                PrismPropertyWrapper<QName> intent = parent.findProperty(AssignmentType.F_FOCUS_TYPE);
+                intent.getValue().setRealValue(selectedTile.get().getValue().focusTypeName);
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find focus type property in inducement value");
         }
     }
 
@@ -325,10 +336,12 @@ public class ConstructionResourceObjectTypeStepPanel<AR extends AbstractRoleType
 
         private final ShadowKindType kind;
         private final String intent;
+        private final QName focusTypeName;
 
         private ResourceObjectTypeWrapper(ResourceObjectTypeDefinition oc) {
             this.kind = oc.getKind();
             this.intent = oc.getIntent();
+            this.focusTypeName = oc.getFocusTypeName();
         }
     }
 

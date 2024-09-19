@@ -74,6 +74,11 @@ public class PageTask extends PageAssignmentHolderDetails<TaskType, TaskDetailsM
         }
     }
 
+    public PageTask(PrismObject<TaskType> task, boolean showWizard) {
+        super(task);
+        this.runWizard = showWizard;
+    }
+
     @Override
     public Class<TaskType> getType() {
         return TaskType.class;

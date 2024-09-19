@@ -21,10 +21,11 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ExistingResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState;
+import com.evolveum.midpoint.provisioning.ucf.api.SchemaAwareUcfExecutionContext;
+import com.evolveum.midpoint.repo.common.ObjectMarkHelper.ObjectMarksComputer;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.ObjectMarksComputer;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationContext;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
-import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ShadowItemsToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfExecutionContext;
@@ -548,15 +548,16 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return task.getExecutionMode();
     }
 
-    public UcfExecutionContext getUcfExecutionContext() {
-        return new UcfExecutionContext(
+    public @NotNull SchemaAwareUcfExecutionContext getUcfExecutionContext() throws SchemaException, ConfigurationException {
+        return new SchemaAwareUcfExecutionContext(
                 contextFactory.getLightweightIdentifierGenerator(),
                 resource,
+                getResourceSchema(),
                 task);
     }
 
     public boolean canRun() {
-        return !(task instanceof RunningTask) || ((RunningTask) task).canRun();
+        return !(task instanceof RunningTask runningTask) || runningTask.canRun();
     }
 
     public @NotNull String getResourceOid() {
@@ -570,10 +571,6 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         }
     }
 
-    private @NotNull ResourceManager getResourceManager() {
-        return contextFactory.getResourceManager();
-    }
-
     /**
      * Returns association definitions, or an empty list if we do not have appropriate definition available.
      */
@@ -582,33 +579,12 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
                 resourceObjectDefinition.getReferenceAttributeDefinitions() : List.of();
     }
 
-    // TODO consider removal
-    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getVisibleAssociationDefinitions() {
-        return getAssociationDefinitions().stream()
-                .filter(def -> def.isVisible(this))
-                .toList();
-    }
-
-    // TODO consider removal
-    public @NotNull Collection<? extends ShadowReferenceAttributeDefinition> getVisibleSimulatedAssociationDefinitions() {
-        return getAssociationDefinitions().stream()
-                .filter(def -> def.isVisible(this))
-                .filter(def -> def.isSimulated())
-                .toList();
-    }
-
     public <T> @Nullable ShadowSimpleAttributeDefinition<T> findSimpleAttributeDefinition(QName name) throws SchemaException {
         return resourceObjectDefinition != null ? resourceObjectDefinition.findSimpleAttributeDefinition(name) : null;
     }
 
     public @NotNull ShadowAttributeDefinition<?, ?, ?, ?> findAttributeDefinitionRequired(QName name) throws SchemaException {
         return getObjectDefinitionRequired().findAttributeDefinitionRequired(name);
-    }
-
-    public <T> @NotNull ShadowSimpleAttributeDefinition<T> findAttributeDefinitionRequired(QName name, Supplier<String> contextSupplier)
-            throws SchemaException {
-        return getObjectDefinitionRequired()
-                .findSimpleAttributeDefinitionRequired(name, contextSupplier);
     }
 
     public @NotNull ShadowReferenceAttributeDefinition findAssociationDefinitionRequired(QName name) throws SchemaException {
@@ -868,10 +844,6 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         this.associationShadowRef = associationShadowRef;
     }
 
-    public @NotNull ResourceObjectIdentification.WithPrimary getIdentificationFromShadow(@NotNull ShadowType shadow) {
-        return ResourceObjectIdentification.fromCompleteShadow(getObjectDefinitionRequired(), shadow);
-    }
-
     public boolean isAvoidDuplicateValues() {
         return ResourceTypeUtil.isAvoidDuplicateValues(resource);
     }
@@ -906,7 +878,8 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
             ConfigurationException, ObjectNotFoundException {
         var computer = createShadowMarksComputer(shadow, shadowState, result);
         var marksAndPolicies =
-                ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(shadow.getBean(), computer, result);
+                ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
+                        shadow.getBean(), computer, getExecutionMode(), result);
         marksAndPolicies.applyTo(shadow.getBean());
         return marksAndPolicies;
     }
@@ -921,12 +894,13 @@ public class ProvisioningContext implements DebugDumpable, ExecutionModeProvider
         return ObjectOperationPolicyHelper.get().computeEffectiveMarksAndPolicies(
                 repoShadowWithState.getBean(),
                 createShadowMarksComputer(resourceObject, repoShadowWithState.state(), result),
+                getExecutionMode(),
                 result);
     }
 
     private ObjectMarksComputer createShadowMarksComputer(
             @NotNull AbstractShadow shadow,
-            @Nullable ShadowState shadowState,
+            @NotNull ShadowState shadowState,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {

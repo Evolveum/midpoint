@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
@@ -115,7 +116,9 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     }
 
     public CompleteResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException {
-        return ResourceSchemaFactory.getCompleteSchema(getObjectWrapperModel().getObject().getObjectOld().asObjectable());
+        @NotNull ResourceType resource = getObjectWrapperModel().getObject().getObjectOld().asObjectable().clone();
+        WebPrismUtil.cleanupEmptyContainers(resource.asPrismContainer());
+        return ResourceSchemaFactory.getCompleteSchema(resource);
     }
 
     @Override
@@ -200,10 +203,6 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         }
 
         return resourceSchema.getObjectTypeDefinitions(kind);
-//        return resourceSchema.getObjectTypeDefinitions(kind)
-//                .stream()
-//                .map(ResourceObjectDefinition::getDefinitionBean)
-//                .collect(Collectors.toList());
     }
 
     public QName getDefaultObjectClass() {

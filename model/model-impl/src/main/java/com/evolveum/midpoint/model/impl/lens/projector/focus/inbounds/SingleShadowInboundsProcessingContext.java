@@ -12,11 +12,14 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep.InboundsSource;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectInboundDefinition;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +49,9 @@ public interface SingleShadowInboundsProcessingContext<T extends Containerable>
         //noinspection unchecked
         return getPreFocus().asPrismContainerValue();
     }
+
+    /** For what (top-level!) object type we are processing the shadow, see {@link InboundsSource#typeIdentification}. */
+    @Nullable ResourceObjectTypeIdentification getTypeIdentification();
 
     /**
      * Relates to {@link ResourceObjectProcessingContext#getShadowLikeValue()}.

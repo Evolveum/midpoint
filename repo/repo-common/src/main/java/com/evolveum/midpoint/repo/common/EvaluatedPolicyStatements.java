@@ -29,7 +29,6 @@ public class EvaluatedPolicyStatements implements Serializable {
      */
     private final Collection<ObjectReferenceType> refsToExclude = new ArrayList<>();
 
-
     public void addMarkRefToAdd(ObjectReferenceType ref) {
         refsToAdd.add(ref);
         if (refsToDelete.stream().anyMatch(r -> r.getOid().equals(ref.getOid()))) {

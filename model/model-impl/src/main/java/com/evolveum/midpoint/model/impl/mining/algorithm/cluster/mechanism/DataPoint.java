@@ -9,8 +9,7 @@
 package com.evolveum.midpoint.model.impl.mining.algorithm.cluster.mechanism;
 
 import com.evolveum.midpoint.model.impl.mining.algorithm.cluster.object.ExtensionProperties;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierNoiseCategoryType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierNoiseCategoryType;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,7 +25,7 @@ public class DataPoint implements Clusterable, Serializable {
     Set<String> closeNeighbors = new HashSet<>();
     int membersCount;
     ExtensionProperties extensionProperties;
-    RoleAnalysisOutlierNoiseCategoryType pointStatus;
+    OutlierNoiseCategoryType pointStatus;
 
     /**
      * Constructs a DataPoint with the given members and properties.
@@ -80,7 +79,7 @@ public class DataPoint implements Clusterable, Serializable {
         return properties;
     }
 
-    public RoleAnalysisOutlierNoiseCategoryType getPointStatus() {
+    public OutlierNoiseCategoryType getPointStatus() {
         return pointStatus;
     }
 
@@ -91,7 +90,7 @@ public class DataPoint implements Clusterable, Serializable {
         return pointStatus.value();
     }
 
-    public void setPointStatus(RoleAnalysisOutlierNoiseCategoryType pointStatus) {
+    public void setPointStatus(OutlierNoiseCategoryType pointStatus) {
         this.pointStatus = pointStatus;
     }
 

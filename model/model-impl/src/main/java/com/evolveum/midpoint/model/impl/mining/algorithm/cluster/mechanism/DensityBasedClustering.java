@@ -6,7 +6,7 @@ import com.evolveum.midpoint.common.mining.objects.handler.RoleAnalysisProgressI
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOutlierNoiseCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OutlierNoiseCategoryType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -56,7 +56,7 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
      */
     public List<Cluster<T>> cluster(Collection<T> points, RoleAnalysisProgressIncrement handler) {
         List<Cluster<T>> clusters = new ArrayList<>();
-        Map<Clusterable, RoleAnalysisOutlierNoiseCategoryType> visited = new HashMap<>();
+        Map<Clusterable, OutlierNoiseCategoryType> visited = new HashMap<>();
 
         Set<ClusterExplanation> explanation = new HashSet<>();
 
@@ -67,11 +67,11 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
             handler.iterateActualStatus();
 
             if (visited.get(point) == null) {
-                PointStatusWrapper pStatusWrapper = new PointStatusWrapper(RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
+                PointStatusWrapper pStatusWrapper = new PointStatusWrapper(null);
 
                 List<T> neighbors = this.getNeighbors(point, points, explanation, this.eps, this.minPts, pStatusWrapper);
 
-                if(pStatusWrapper.pStatus == RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER){
+                if(pStatusWrapper.pStatus == OutlierNoiseCategoryType.SUITABLE){
                     Cluster<T> cluster = new Cluster<>();
                     Cluster<T> tCluster = this.expandCluster(cluster, point, neighbors, points, visited, explanation);
                     tCluster.setExplanations(explanation);
@@ -102,16 +102,16 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     }
 
     private Cluster<T> expandCluster(Cluster<T> cluster, T point, List<T> neighbors, Collection<T> points,
-            Map<Clusterable, RoleAnalysisOutlierNoiseCategoryType> visited, Set<ClusterExplanation> explanation) {
+            Map<Clusterable, OutlierNoiseCategoryType> visited, Set<ClusterExplanation> explanation) {
         cluster.addPoint(point);
-        visited.put(point, RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
+        visited.put(point, OutlierNoiseCategoryType.SUITABLE);
         List<T> seeds = new ArrayList<>(neighbors);
 
         for (int index = 0; index < seeds.size(); ++index) {
             T current = (T) ((List) seeds).get(index);
-            RoleAnalysisOutlierNoiseCategoryType pStatus = visited.get(current);
+            OutlierNoiseCategoryType pStatus = visited.get(current);
             if (pStatus == null) {
-                PointStatusWrapper pStatusWrapper = new PointStatusWrapper(RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
+                PointStatusWrapper pStatusWrapper = new PointStatusWrapper(null);
                 List<T> currentNeighbors = this.getNeighbors(current, points, explanation, this.eps, this.minPts, pStatusWrapper);
                 int currentNeighborsCount = getNeightborsSize(currentNeighbors);
                 if (currentNeighborsCount >= this.minPts) {
@@ -119,8 +119,8 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
                 }
             }
 
-            if (pStatus != RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER) {
-                visited.put(current, RoleAnalysisOutlierNoiseCategoryType.PART_OF_CLUSTER);
+            if (pStatus != OutlierNoiseCategoryType.SUITABLE) {
+                visited.put(current, OutlierNoiseCategoryType.SUITABLE);
                 cluster.addPoint(current);
             }
         }
@@ -148,10 +148,10 @@ public class DensityBasedClustering<T extends Clusterable> extends Clusterer<T> 
     }
 
 
-    class PointStatusWrapper {
-        public RoleAnalysisOutlierNoiseCategoryType pStatus;
+    static class PointStatusWrapper {
+        public OutlierNoiseCategoryType pStatus;
 
-        public PointStatusWrapper(RoleAnalysisOutlierNoiseCategoryType pStatus) {
+        public PointStatusWrapper(OutlierNoiseCategoryType pStatus) {
             this.pStatus = pStatus;
         }
     }

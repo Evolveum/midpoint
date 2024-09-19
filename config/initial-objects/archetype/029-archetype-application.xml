@@ -18,12 +18,7 @@
     </description>
     <archetypePolicy>
         <display>
-            <label>
-                <orig>Application</orig>
-                <translation>
-                    <key>Application.label</key>
-                </translation>
-            </label>
+            <label>Application</label>
             <pluralLabel>
                 <orig>Applications</orig>
                 <translation>
@@ -41,12 +36,7 @@
                     <identifier>projections</identifier>
                     <panelType>projections</panelType>
                     <display>
-                        <label>
-                            <orig>Inventory records</orig>
-                            <translation>
-                                <key>Application.panel.projections</key>
-                            </translation>
-                        </label>
+                        <label>Application.panel.projections</label>
                     </display>
                 </panel>
                 <panel id="4">
@@ -83,12 +73,7 @@
                 <panel id="9">
                     <identifier>governance</identifier>
                     <display>
-                        <label>
-                            <orig>Governance</orig>
-                            <translation>
-                                <key>GovernanceCardsPanel.label</key>
-                            </translation>
-                        </label>
+                        <label>GovernanceCardsPanel.label</label>
                         <icon>
                             <cssClass>fa fa-users</cssClass>
                         </icon>
@@ -99,12 +84,7 @@
                 <panel id="15">
                     <identifier>classifications</identifier>
                     <display>
-                        <label>
-                            <orig>Classifications</orig>
-                            <translation>
-                                <key>classifications.panel.label</key>
-                            </translation>
-                        </label>
+                        <label>Classifications</label>
                         <tooltip>Information classifications (labels)</tooltip>
                         <icon>
                             <cssClass>fa fa-tags</cssClass>
@@ -133,12 +113,7 @@
                     <identifier>resourceEntitlementsTopLevel</identifier>
                     <panelType>constructionInducements</panelType>
                     <display>
-                        <label>
-                            <orig>Construction inducements</orig>
-                            <translation>
-                                <key>Application.panel.constructionInducements</key>
-                            </translation>
-                        </label>
+                        <label>Application.panel.constructionInducements</label>
                     </display>
                     <displayOrder>115</displayOrder>
                 </panel>
@@ -146,12 +121,7 @@
                     <identifier>inducedEntitlementsTopLevel</identifier>
                     <panelType>inducedEntitlements</panelType>
                     <display>
-                        <label>
-                            <orig>Induced entitlements</orig>
-                            <translation>
-                                <key>AbstractRoleMainPanel.inducedEntitlements</key>
-                            </translation>
-                        </label>
+                        <label>AbstractRoleMainPanel.inducedEntitlements</label>
                     </display>
                     <displayOrder>116</displayOrder>
                 </panel>
@@ -159,12 +129,7 @@
                     <identifier>applicationRoles</identifier>
                     <panelType>inducedBy</panelType>
                     <display>
-                        <label>
-                            <orig>Application roles</orig>
-                            <translation>
-                                <key>Application.panel.inducedBy</key>
-                            </translation>
-                        </label>
+                        <label>Application.panel.inducedBy</label>
                     </display>
                     <listView>
                         <identifier>applicationRoles</identifier>

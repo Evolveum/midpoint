@@ -127,8 +127,17 @@ public class RoleAnalysisTableCellFillResolver {
         }
 
         ArrayList<String> element = new ArrayList<>(duplicatedElements);
-
-        boolean firstStage = new HashSet<>(rowModel.getProperties()).containsAll(colModel.getMembers());
+        List<String> properties = rowModel.getProperties();
+        List<String> members = colModel.getMembers();
+        boolean firstStage = true;
+        for (String member : members) {
+            if (!properties.contains(member)) {
+                firstStage = false;
+                break;
+            }
+        }
+//        This took multiple times (20ms vs 800ms)
+//        boolean firstStage = new HashSet<>(properties).containsAll(members);
         boolean isCandidate = firstStage && secondStage;
 
         RoleAnalysisOperationMode rowStatus = rowObjectStatus.getRoleAnalysisOperationMode();

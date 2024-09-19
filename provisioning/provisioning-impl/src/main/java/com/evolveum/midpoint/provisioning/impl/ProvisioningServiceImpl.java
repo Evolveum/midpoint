@@ -13,9 +13,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState.ShadowState;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
+import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.*;
 
 import jakarta.annotation.PostConstruct;
@@ -31,8 +32,6 @@ import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ResourceObjectClassifier;
 import com.evolveum.midpoint.provisioning.impl.shadows.classification.ShadowTagGenerator;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
@@ -689,7 +688,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         }
     }
 
-    public @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult result) {
+    public @Nullable BareResourceSchema fetchSchema(
+            @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult result) {
         LOGGER.trace("Fetching resource schema for {}", resource);
         try {
             return resourceManager.fetchSchema(resource.asObjectable(), result);
@@ -1190,5 +1190,20 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         } finally {
             result.close();
         }
+    }
+
+    @Override
+    public @Nullable ObjectOperationPolicyType getDefaultOperationPolicy(
+            @NotNull String resourceOid,
+            @NotNull ResourceObjectTypeIdentification typeIdentification,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        var resource = getObject(ResourceType.class, resourceOid, null, task, result);
+        var objectDef = ResourceSchemaFactory
+                .getCompleteSchemaRequired(resource)
+                .getObjectTypeDefinitionRequired(typeIdentification);
+        return ObjectOperationPolicyHelper.get().getDefaultPolicyForResourceObjectType(objectDef, task.getExecutionMode(), result);
     }
 }

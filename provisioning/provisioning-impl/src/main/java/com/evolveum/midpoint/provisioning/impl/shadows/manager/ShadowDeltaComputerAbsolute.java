@@ -17,6 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.provisioning.impl.RepoShadowModifications;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.RepoShadowWithState;
+import com.evolveum.midpoint.repo.common.ObjectMarkHelper;
 import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper.EffectiveMarksAndPolicies;
 
 import com.google.common.base.Preconditions;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.schema.util.RawRepoShadow;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsLocalBeans;
-import com.evolveum.midpoint.repo.common.ObjectOperationPolicyHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -171,9 +171,9 @@ class ShadowDeltaComputerAbsolute {
 
     private void updateEffectiveMarks() throws SchemaException {
         computedModifications.add(
-                ObjectOperationPolicyHelper.get().computeEffectiveMarkDelta(
+                ObjectMarkHelper.get().computeEffectiveMarkDelta(
                         repoShadow.getBean().getEffectiveMarkRef(),
-                        effectiveMarksAndPolicies.effectiveMarkRefs()));
+                        effectiveMarksAndPolicies.productionModeEffectiveMarkRefs()));
     }
 
     private void updateShadowName() throws SchemaException {

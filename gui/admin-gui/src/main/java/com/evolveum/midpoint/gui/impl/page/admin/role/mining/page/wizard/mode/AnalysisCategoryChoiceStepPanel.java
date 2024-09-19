@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.wizard.mode;
 
-import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -25,7 +24,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.tile.Tile;
 import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategory;
+import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AnalysisCategoryMode;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,31 +32,31 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 
-@PanelType(name = "rm-category")
-@PanelInstance(identifier = "rm-category",
+@PanelType(name = "ra-category")
+@PanelInstance(identifier = "ra-category",
         applicableForType = RoleAnalysisSessionType.class,
         applicableForOperation = OperationTypeType.WIZARD,
         display = @PanelDisplay(label = "PageRoleAnalysisSession.wizard.step.choice", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<AnalysisCategory, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
+public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<AnalysisCategoryMode, AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
-    public static final String PANEL_TYPE = "rm-category";
+    public static final String PANEL_TYPE = "ra-category";
 
-    LoadableModel<AnalysisCategory> analysisCategoryModel;
+    LoadableModel<AnalysisCategoryMode> analysisCategoryModel;
 
     public AnalysisCategoryChoiceStepPanel(String id, AssignmentHolderDetailsModel<RoleAnalysisSessionType> model) {
-        super(id, model, AnalysisCategory.class);
+        super(id, model, AnalysisCategoryMode.class);
         this.analysisCategoryModel = new LoadableModel<>(false) {
             @Override
-            protected AnalysisCategory load() {
+            protected AnalysisCategoryMode load() {
                 return null;
             }
         };
     }
 
     @Override
-    protected void addDefaultTile(List<Tile<AnalysisCategory>> list) {
-
+    protected boolean addDefaultTile() {
+        return false;
     }
 
     @Override
@@ -66,7 +65,7 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
     }
 
     @Override
-    protected void onTileClickPerformed(AnalysisCategory value, AjaxRequestTarget target) {
+    protected void onTileClickPerformed(AnalysisCategoryMode value, AjaxRequestTarget target) {
         analysisCategoryModel.setObject(value);
         LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapperModel = getAssignmentHolderDetailsModel()
                 .getObjectWrapperModel();
@@ -99,43 +98,27 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
     }
 
     @Override
-    protected String getDescriptionForTile(@NotNull AnalysisCategory type) {
-        return createStringResource(type.getDescriptionKey()).getString();
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-    }
-
-    @Override
-    protected @NotNull IModel<String> getBreadcrumbLabel() {
-        return getTextModel();
-    }
-
-    @Override
-    protected Component createTilePanel(String id, IModel<Tile<AnalysisCategory>> tileModel) {
+    protected Component createTilePanel(String id, @NotNull IModel<Tile<AnalysisCategoryMode>> tileModel) {
 
         RoleAnalysisSessionType session = getAssignmentHolderDetailsModel().getObjectType();
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisProcessModeType processMode = analysisOption.getProcessMode();
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
 
         boolean isVisible = true;
-        AnalysisCategory category = tileModel.getObject().getValue();
+        AnalysisCategoryMode category = tileModel.getObject().getValue();
 
-        //TEMPORARY DISABLE OUTLIER ANALYSIS UNTIL IT IS IMPLEMENTED TODO
-//        if (category.equals(AnalysisCategory.OUTLIER)) {
-//            isVisible = false;
-//        }
+        if (procedureType == RoleAnalysisProcedureType.ROLE_MINING) {
+            if (category == AnalysisCategoryMode.OUTLIERS_DEPARTMENT
+                    || category == AnalysisCategoryMode.OUTLIER_DETECTION_ADVANCED) {
+                isVisible = false;
+            }
+        } else {
+            if (category != AnalysisCategoryMode.OUTLIERS_DEPARTMENT
+                    && category != AnalysisCategoryMode.OUTLIER_DETECTION_ADVANCED) {
+                isVisible = false;
+            }
+        }
 
-//        if (processMode.equals(RoleAnalysisProcessModeType.ROLE)) {
-//            if (category.equals(AnalysisCategory.DEPARTMENT)) {
-//                isVisible = false;
-//            }
-//            if(category.equals(AnalysisCategory.OUTLIER)){
-//                isVisible = false;
-//            }
-//        }
         Component tilePanel = super.createTilePanel(id, tileModel);
         tilePanel.setVisible(isVisible);
         return tilePanel;
@@ -160,18 +143,23 @@ public class AnalysisCategoryChoiceStepPanel extends EnumWizardChoicePanel<Analy
     }
 
     @Override
+    protected String getDescriptionForTile(@NotNull AnalysisCategoryMode type) {
+        return createStringResource(type.getDescriptionKey()).getString();
+    }
+
+    @Override
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
+        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.analysis.category.title");
+    }
+
+    @Override
     protected IModel<String> getTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.text");
+        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.analysis.category.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.subText");
-    }
-
-    @Override
-    protected boolean isExitButtonVisible() {
-        return true;
+        return createStringResource("PageRoleAnalysisSession.wizard.step.choice.analysis.category.subText");
     }
 
 }

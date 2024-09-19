@@ -15,6 +15,10 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+
 import jakarta.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
@@ -76,7 +80,7 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
 
                 @Override
                 public void setObject(DisplayableValue<T> object) {
-                    panelCtx.getRealValueModel().setObject(object.getValue());
+                    panelCtx.getRealValueModel().setObject(object == null ? null : object.getValue());
                 }
             };
             return WebComponentUtil.createDropDownChoices(panelCtx.getComponentId(), convertModel, choices, true);

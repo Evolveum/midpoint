@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MarkTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectOperationPolicyTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -301,9 +302,11 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             }
         });
 
-        items.add(createMarkInlineMenuAction());
+        items.add(modifyMarkInlineMenuAction());
 
-        items.add(createUnmarkInlineMenuAction());
+//        items.add(createMarkInlineMenuAction());
+//
+//        items.add(createUnmarkInlineMenuAction());
 
         return items;
     }
@@ -333,6 +336,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
                         List<ObjectReferenceType> refs = shadow.getEffectiveMarkRef();
                         Object[] marks = refs.stream()
+                                .filter(MarkTypeUtil::isEffective) // TODO reconsider if really needed
                                 .map(ref -> WebModelServiceUtils.loadObject(ref, getPageBase()))
                                 .filter(mark -> mark != null)
                                 .map(mark -> WebComponentUtil.getDisplayNameOrName(mark))
@@ -681,7 +685,8 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     .build();
             try {
                 // Preliminary solution for MID-8601. Here we assume the shadow marks are visible by GUI.
-                var policy = getPageBase().getObjectOperationPolicyHelper().getEffectivePolicy(shadow, result);
+                var policy = getPageBase().getObjectOperationPolicyHelper()
+                        .getEffectivePolicy(shadow, task.getExecutionMode(), result);
                 var severity = ObjectOperationPolicyTypeUtil.getDeletionRestrictionSeverity(policy);
                 if (severity == null) { // i.e. permitted
                     ObjectDelta<ShadowType> deleteDelta =

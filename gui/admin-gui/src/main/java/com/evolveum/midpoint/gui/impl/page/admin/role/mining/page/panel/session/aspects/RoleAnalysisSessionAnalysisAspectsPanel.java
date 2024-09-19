@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.session.aspects;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisAspectsWebUtils.getSessionWidgetModelOutliers;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.RoleAnalysisAspectsWebUtils.getSessionWidgetModelPatterns;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationPanel.PARAM_DETECTED_PATER_ID;
@@ -17,9 +18,11 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -37,7 +40,6 @@ import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBarPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.MetricValuePanel;
@@ -82,6 +84,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
     private static final String ID_PATTERNS = "patterns";
     private static final String ID_PANEL_CONTAINER = "panel-container";
 
+    private static final String FLEX_SHRINK_GROW = "flex-shrink-1 flex-grow-1 p-0";
+
     int userOutlierCount = 0;
     int assignmentAnomalyCount = 0;
     int topConfidence = 0;
@@ -104,14 +108,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         OperationResult result = task.getResult();
 
         RoleAnalysisOptionType analysisOption = session.getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
+        RoleAnalysisProcedureType analysisCategory = analysisOption.getAnalysisProcedureType();
 
-        if (RoleAnalysisCategoryType.OUTLIERS.equals(analysisCategory)) {
-            initOutlierPart(roleAnalysisService, session, task, result, sessionStatistic, container);
-            initInfoOutlierPanel(container);
-        } else {
+        if (analysisCategory == null || analysisCategory.equals(RoleAnalysisProcedureType.ROLE_MINING)) {
             initRoleMiningPart(roleAnalysisService, session, task, result, sessionStatistic, container);
             initInfoPatternPanel(container);
+        } else {
+            initOutlierPart(roleAnalysisService, session, task, result, sessionStatistic, container);
+            initInfoOutlierPanel(container);
         }
 
     }
@@ -132,7 +136,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 String oid = objectDetailsModels.getObjectType().getOid();
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                parameters.add("panelId", "topDetectedPattern");
+                parameters.add(PANEL_ID, "topDetectedPattern");
 
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                         .getObjectDetailsPage(RoleAnalysisSessionType.class);
@@ -208,7 +212,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
                 @Override
                 protected String getIconBoxContainerCssStyle() {
-                    return "width:40px";
+                    return "width:50px;"; /* width:40px */
                 }
 
                 @Contract(pure = true)
@@ -229,10 +233,6 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     return "col-12 p-0";
                 }
 
-                @Override
-                protected String getInfoBoxClass() {
-                    return super.getInfoBoxClass();
-                }
             };
             statisticsPanel.setOutputMarkupId(true);
             panelContainer.add(statisticsPanel);
@@ -273,7 +273,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 PageParameters parameters = new PageParameters();
                 parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                 //TODO
-                parameters.add("panelId", "topOutlierPanel");
+                parameters.add(PANEL_ID, "allOutlierPanel");
 
                 Class<? extends PageBase> detailsPageClass = DetailsPageUtil
                         .getObjectDetailsPage(RoleAnalysisSessionType.class);
@@ -292,7 +292,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
             @Override
             protected String initDefaultCssClass() {
-                return "flex-shrink-1 flex-grow-1 p-0";
+                return FLEX_SHRINK_GROW;
             }
         };
         panel.setOutputMarkupId(true);
@@ -353,13 +353,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         }
 
         int totalAssignmentRoleToUser = roleAnalysisService.countUserOwnedRoleAssignment(result);
-        double totalSystemPercentageReduction = 0;
-        if (totalReduction != 0 && totalAssignmentRoleToUser != 0) {
-            totalSystemPercentageReduction = ((double) totalReduction / totalAssignmentRoleToUser) * 100;
-            BigDecimal bd = new BigDecimal(totalSystemPercentageReduction);
-            bd = bd.setScale(2, RoundingMode.HALF_UP);
-            totalSystemPercentageReduction = bd.doubleValue();
-        }
+        double totalSystemPercentageReduction = getTotalSystemPercentageReduction(totalReduction, totalAssignmentRoleToUser);
 
         int finalResolvedPatternCount = resolvedPatternCount;
         int finalCandidateRolesCount = candidateRolesCount;
@@ -372,16 +366,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
 
             @Override
-            protected String getContainerCssClass() {
-                return super.getContainerCssClass();
-            }
-
-            @Override
             protected @NotNull Component getPanelComponent(String id) {
-                String status = "New (Untouched)";
-                if (finalResolvedPatternCount > 0 || finalCandidateRolesCount > 0) {
-                    status = "In Progress";
-                }
+                String status = resolveOutlierStatus(finalResolvedPatternCount, finalCandidateRolesCount);
                 IconWithLabel iconWithLabel = new IconWithLabel(id, Model.of(status)) {
                     @Contract(pure = true)
                     @Override
@@ -400,8 +386,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     }
                 };
 
-                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
-                iconWithLabel.add(AttributeAppender.append("style", "background-color: #dcf1f4;"));
+                iconWithLabel.add(AttributeModifier.append(CLASS_CSS, "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
+                iconWithLabel.add(AttributeModifier.append(STYLE_CSS, "background-color: #dcf1f4;"));
                 return iconWithLabel;
             }
 
@@ -423,7 +409,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
                             @Override
                             protected String getLabelComponentCssClass() {
-                                return "text-muted";
+                                return TEXT_MUTED;
                             }
 
                             @Override
@@ -437,7 +423,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     @Override
                     protected @NotNull Component getValueComponent(String id) {
                         Label label = new Label(id, finalCandidateRolesCount);
-                        label.add(AttributeAppender.append("class", "text-muted"));
+                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                         return label;
                     }
                 };
@@ -458,7 +444,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
                             @Override
                             protected String getLabelComponentCssClass() {
-                                return "text-muted";
+                                return TEXT_MUTED;
                             }
 
                             @Override
@@ -473,7 +459,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     protected @NotNull Component getValueComponent(String id) {
                         Label label = new Label(id, finalResolvedPatternCount);
                         label.setOutputMarkupId(true);
-                        label.add(AttributeAppender.append("class", "text-muted"));
+                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                         return label;
                     }
 
@@ -484,20 +470,26 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
         statusHeader.setOutputMarkupId(true);
-        statusHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0")); /* col-6 pl-0 */
+        statusHeader.add(AttributeModifier.append(CLASS_CSS, FLEX_SHRINK_GROW)); /* col-6 pl-0 */
         cardBodyComponent.add(statusHeader);
 
         int clusterInliers = processedObjectCount - clusterOtliers;
 
         List<ProgressBar> progressBars = new ArrayList<>();
 
-        progressBars.add(new ProgressBar(clusterInliers * 100 / (double) processedObjectCount, ProgressBar.State.INFO));
-        progressBars.add(new ProgressBar(clusterOtliers * 100 / (double) processedObjectCount, ProgressBar.State.WARNINIG));
+        double clusterInliersValue = 0;
+        double clusterOtliersValue = 0;
+        if (processedObjectCount != 0) {
+            clusterInliersValue = clusterInliers * 100 / (double) processedObjectCount;
+            clusterOtliersValue = clusterOtliers * 100 / (double) processedObjectCount;
+        }
+
+        progressBars.add(new ProgressBar(clusterInliersValue, ProgressBar.State.INFO));
+        progressBars.add(new ProgressBar(clusterOtliersValue, ProgressBar.State.WARNINIG));
 
         int finalClusterOtliers = clusterOtliers;
 
         int finalTotalReduction = totalReduction;
-        double finalTotalSystemPercentageReduction = totalSystemPercentageReduction;
         RoleAnalysisOutlierDashboardPanel<?> distributionHeader = new RoleAnalysisOutlierDashboardPanel<>(cardBodyComponent.newChildId(),
                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.distribution")) {
             @Contract(pure = true)
@@ -527,14 +519,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                             }
                         });
                         components.setOutputMarkupId(true);
-                        components.add(AttributeAppender.append("class", "pt-3 pl-2 pr-2"));
+                        /*components.add(AttributeModifier.append(CLASS_CSS, "pt-3 pl-2 pr-2"));*/
                         return components;
                     }
 
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getContainerLegendCssClass() {
-                        return "d-flex flex-wrap justify-content-between p-2";
+                        return "d-flex flex-wrap justify-content-between pt-2 pb-0 px-0";
                     }
 
                     @Override
@@ -548,17 +540,20 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                         createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.inliers")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-info fa-2xs";
+                                        return "fa fa-circle text-info fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-info";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -567,8 +562,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, clusterInliers);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
                         };
@@ -583,17 +578,20 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                         createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.outliers")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-warning fa-2xs";
+                                        return "fa fa-circle text-warning fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-warning";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -602,8 +600,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalClusterOtliers);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
                         };
@@ -616,7 +614,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 };
 
                 panel.setOutputMarkupId(true);
-                panel.add(AttributeAppender.append("class", "col-12"));
+                panel.add(AttributeModifier.append(CLASS_CSS, "col-12"));
                 return panel;
             }
 
@@ -633,12 +631,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics.relation.reduced")) {
                             @Override
                             protected String getIconCssClass() {
-                                return "fa fa-exclamation-triangle text-muted";
+                                return "fa fa-exclamation-triangle " + TEXT_MUTED;
                             }
 
                             @Override
                             protected String getLabelComponentCssClass() {
-                                return "text-muted";
+                                return TEXT_MUTED;
                             }
 
                             @Override
@@ -653,7 +651,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     protected @NotNull Component getValueComponent(String id) {
                         Label label = new Label(id, finalTotalReduction);
                         label.setOutputMarkupId(true);
-                        label.add(AttributeAppender.append("class", "text-muted"));
+                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                         return label;
                     }
                 };
@@ -668,12 +666,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                 createStringResource("RoleAnalysisOutlierAnalysisAspectsPanel.widget.characteristics.relation.reduced.system")) {
                             @Override
                             protected String getIconCssClass() {
-                                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON + " text-muted";
+                                return GuiStyleConstants.CLASS_ROLE_ANALYSIS_SESSION_ICON + " " + TEXT_MUTED;
                             }
 
                             @Override
                             protected String getLabelComponentCssClass() {
-                                return "text-muted";
+                                return TEXT_MUTED;
                             }
 
                             @Override
@@ -686,9 +684,9 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     @Contract(pure = true)
                     @Override
                     protected @NotNull Component getValueComponent(String id) {
-                        Label label = new Label(id, finalTotalSystemPercentageReduction + "%");
+                        Label label = new Label(id, totalSystemPercentageReduction + "%");
                         label.setOutputMarkupId(true);
-                        label.add(AttributeAppender.append("class", "text-muted"));
+                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                         return label;
                     }
                 };
@@ -698,11 +696,30 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
 
-        distributionHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0"));
+        distributionHeader.add(AttributeModifier.append(CLASS_CSS, FLEX_SHRINK_GROW));
 
         distributionHeader.setOutputMarkupId(true);
         cardBodyComponent.add(distributionHeader);
         container.add(cardBodyComponent);
+    }
+
+    private static @NotNull String resolveOutlierStatus(int finalResolvedPatternCount, int finalCandidateRolesCount) {
+        String status = "New (Untouched)";
+        if (finalResolvedPatternCount > 0 || finalCandidateRolesCount > 0) {
+            status = "In Progress";
+        }
+        return status;
+    }
+
+    private static double getTotalSystemPercentageReduction(int totalReduction, int totalAssignmentRoleToUser) {
+        double totalSystemPercentageReduction = 0;
+        if (totalReduction != 0 && totalAssignmentRoleToUser != 0) {
+            totalSystemPercentageReduction = ((double) totalReduction / totalAssignmentRoleToUser) * 100;
+            BigDecimal bd = BigDecimal.valueOf(totalSystemPercentageReduction);
+            bd = bd.setScale(2, RoundingMode.HALF_UP);
+            totalSystemPercentageReduction = bd.doubleValue();
+        }
+        return totalSystemPercentageReduction;
     }
 
     protected void initOutlierPartNew(
@@ -725,11 +742,6 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
 
             @Override
-            protected String getContainerCssClass() {
-                return super.getContainerCssClass();
-            }
-
-            @Override
             protected @NotNull Component getPanelComponent(String id) {
                 IconWithLabel iconWithLabel = new IconWithLabel(id, Model.of("UNKNOWN (TBD)")) {
                     @Contract(pure = true)
@@ -749,8 +761,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     }
                 };
 
-                iconWithLabel.add(AttributeAppender.append("class", "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
-                iconWithLabel.add(AttributeAppender.append("style", "background-color: #dcf1f4;"));
+                iconWithLabel.add(AttributeModifier.append(CLASS_CSS, "badge p-3 my-auto justify-content-center flex-grow-1 flex-shrink-1"));
+                iconWithLabel.add(AttributeModifier.append(STYLE_CSS, "background-color: #dcf1f4;"));
                 return iconWithLabel;
             }
 
@@ -767,12 +779,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                 createStringResource("RoleAnalysis.aspect.overview.page.title.pending.recertifications")) {
                             @Override
                             protected String getIconCssClass() {
-                                return "fas fa-sync text-muted";
+                                return "fas fa-sync " + TEXT_MUTED;
                             }
 
                             @Override
                             protected String getLabelComponentCssClass() {
-                                return "text-muted";
+                                return TEXT_MUTED;
                             }
 
                             @Override
@@ -786,7 +798,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     @Override
                     protected @NotNull Component getValueComponent(String id) {
                         Label label = new Label(id, "0");
-                        label.add(AttributeAppender.append("class", "text-muted"));
+                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                         return label;
                     }
                 };
@@ -802,12 +814,12 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                 createStringResource("RoleAnalysis.aspect.overview.page.title.solved.recertifications")) {
                             @Override
                             protected String getIconCssClass() {
-                                return "fas fa-trophy text-muted";
+                                return "fas fa-trophy " + TEXT_MUTED;
                             }
 
                             @Override
                             protected String getLabelComponentCssClass() {
-                                return "text-muted";
+                                return TEXT_MUTED;
                             }
 
                             @Override
@@ -822,7 +834,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     protected @NotNull Component getValueComponent(String id) {
                         Label label = new Label(id, "0");
                         label.setOutputMarkupId(true);
-                        label.add(AttributeAppender.append("class", "text-muted"));
+                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                         return label;
                     }
 
@@ -833,7 +845,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
         statusHeader.setOutputMarkupId(true);
-        statusHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0")); /* col-6 pl-0 */
+        statusHeader.add(AttributeModifier.append(CLASS_CSS, FLEX_SHRINK_GROW)); /* col-6 pl-0 */
         cardBodyComponent.add(statusHeader);
 
         List<PrismObject<RoleAnalysisClusterType>> sessionClusters = roleAnalysisService.searchSessionClusters(
@@ -857,9 +869,17 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         int clusterInliers = processedObjectCount - clusterOtliers;
 
         List<ProgressBar> progressBars = new ArrayList<>();
+        double valueInliers = 0;
+        if (clusterInliers != 0 && processedObjectCount != 0) {
+            valueInliers = clusterInliers * 100 / (double) processedObjectCount;
+        }
 
-        progressBars.add(new ProgressBar(clusterInliers * 100 / (double) processedObjectCount, ProgressBar.State.INFO));
-        progressBars.add(new ProgressBar(clusterOtliers * 100 / (double) processedObjectCount, ProgressBar.State.WARNINIG));
+        double valueOutliers = 0;
+        if (clusterOtliers != 0 && processedObjectCount != 0) {
+            valueOutliers = clusterOtliers * 100 / (double) processedObjectCount;
+        }
+        progressBars.add(new ProgressBar(valueInliers, ProgressBar.State.INFO));
+        progressBars.add(new ProgressBar(valueOutliers, ProgressBar.State.WARNINIG));
 
         int finalClusterOtliers = clusterOtliers;
 
@@ -889,14 +909,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                             }
                         });
                         components.setOutputMarkupId(true);
-                        components.add(AttributeAppender.append("class", "pt-3 pl-2 pr-2"));
+                        /*components.add(AttributeModifier.append(CLASS_CSS, "pt-3 pl-2 pr-2"));*/
                         return components;
                     }
 
                     @Contract(pure = true)
                     @Override
                     protected @NotNull String getContainerLegendCssClass() {
-                        return "d-flex flex-wrap justify-content-between p-2";
+                        return "d-flex flex-wrap justify-content-between pt-2 pb-0 px-0";
                     }
 
                     @Override
@@ -910,17 +930,20 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                         createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.inliers")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return " fa fa-circle text-info fa-2xs";
+                                        return " fa fa-circle text-info fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-info";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -929,8 +952,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, clusterInliers);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
                         };
@@ -945,17 +968,20 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                                         createStringResource("RoleAnalysis.aspect.overview.page.title.cluster.outliers")) {
                                     @Override
                                     protected String getIconCssClass() {
-                                        return "fa fa-circle text-warning fa-2xs";
+                                        return "fa fa-circle text-warning fa-2xs align-middle";
                                     }
-
+                                    @Override
+                                    protected String getIconComponentCssStyle() {
+                                        return "font-size:8px;margin-bottom:2px;";
+                                    }
                                     @Override
                                     protected String getLabelComponentCssClass() {
-                                        return "text-warning";
+                                        return "txt-toned";
                                     }
 
                                     @Override
                                     protected String getComponentCssClass() {
-                                        return super.getComponentCssClass() + " gap-2";
+                                        return super.getComponentCssClass() + "mb-1 gap-2";
                                     }
                                 };
                             }
@@ -964,8 +990,8 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                             @Override
                             protected @NotNull Component getValueComponent(String id) {
                                 Label label = new Label(id, finalClusterOtliers);
-                                label.add(AttributeAppender.append("class", "d-flex pl-3 m-0"));
-                                label.add(AttributeAppender.append("style", "font-size:20px"));
+                                label.add(AttributeModifier.append(CLASS_CSS, "d-flex pl-3 m-0 lh-1 text-bold txt-toned"));
+                                label.add(AttributeModifier.append(STYLE_CSS, "font-size:18px"));
                                 return label;
                             }
                         };
@@ -978,7 +1004,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                 };
 
                 panel.setOutputMarkupId(true);
-                panel.add(AttributeAppender.append("class", "col-12"));
+                panel.add(AttributeModifier.append(CLASS_CSS, "col-12"));
                 return panel;
             }
 
@@ -1015,7 +1041,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     protected @NotNull Component getValueComponent(String id) {
                         Label label = new Label(id, anomaliesCount);
                         label.setOutputMarkupId(true);
-                        label.add(AttributeAppender.append("class", "text-muted"));
+                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                         return label;
                     }
                 };
@@ -1050,7 +1076,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     protected @NotNull Component getValueComponent(String id) {
                         Label label = new Label(id, userOutlierCount);
                         label.setOutputMarkupId(true);
-                        label.add(AttributeAppender.append("class", "text-muted"));
+                        label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                         return label;
                     }
                 };
@@ -1060,7 +1086,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             }
         };
 
-        distributionHeader.add(AttributeAppender.append("class", "flex-shrink-1 flex-grow-1 p-0"));
+        distributionHeader.add(AttributeModifier.append(CLASS_CSS, FLEX_SHRINK_GROW));
 
         distributionHeader.setOutputMarkupId(true);
         cardBodyComponent.add(distributionHeader);
@@ -1074,7 +1100,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
             RoleAnalysisSessionStatisticType sessionStatistic,
             WebMarkupContainer container) {
 
-        List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(session.getOid(), task, result);
+        List<RoleAnalysisOutlierType> topSessionOutliers = roleAnalysisService.getSessionOutliers(session.getOid(), null, task, result);
 
         if (topSessionOutliers != null && sessionStatistic != null && !topSessionOutliers.isEmpty()) {
             initOutlierPartNew(roleAnalysisService, session, task, result, sessionStatistic, container);
@@ -1116,7 +1142,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
     private @NotNull AjaxCompositedIconSubmitButton buildExplorePatternButton(DetectedPattern pattern) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+                GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton explorePatternButton = new AjaxCompositedIconSubmitButton(
                 ID_EXPLORE_PATTERN_BUTTON,
                 iconBuilder.build(),
@@ -1135,14 +1161,14 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         };
         explorePatternButton.titleAsLabel(true);
         explorePatternButton.setOutputMarkupId(true);
-        explorePatternButton.add(AttributeAppender.append("class", "ml-auto btn btn-default btn-sm"));
+        explorePatternButton.add(AttributeModifier.append(CLASS_CSS, "ml-auto btn btn-link btn-sm p-0"));
         explorePatternButton.setOutputMarkupId(true);
         return explorePatternButton;
     }
 
     private @NotNull AjaxCompositedIconSubmitButton buildExplorePatternOutlier(RoleAnalysisOutlierType outlier) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+                GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton explorePatternButton = new AjaxCompositedIconSubmitButton(
                 ID_EXPLORE_PATTERN_BUTTON,
                 iconBuilder.build(),
@@ -1170,7 +1196,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         };
         explorePatternButton.titleAsLabel(true);
         explorePatternButton.setOutputMarkupId(true);
-        explorePatternButton.add(AttributeAppender.append("class", "ml-auto btn btn-default btn-sm"));
+        explorePatternButton.add(AttributeModifier.append(CLASS_CSS, "ml-auto btn btn-link btn-sm p-0"));
         explorePatternButton.setOutputMarkupId(true);
         return explorePatternButton;
     }
@@ -1179,7 +1205,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
         PageParameters parameters = new PageParameters();
         String clusterOid = pattern.getClusterRef().getOid();
         parameters.add(OnePageParameterEncoder.PARAMETER, clusterOid);
-        parameters.add("panelId", "clusterDetails");
+        parameters.add(PANEL_ID, "clusterDetails");
         parameters.add(PARAM_DETECTED_PATER_ID, pattern.getId());
         StringValue fullTableSetting = getPageBase().getPageParameters().get(PARAM_TABLE_SETTING);
         if (fullTableSetting != null && fullTableSetting.toString() != null) {
@@ -1195,7 +1221,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
 
         WebMarkupContainer panelContainer = new WebMarkupContainer(ID_PANEL_CONTAINER);
         panelContainer.setOutputMarkupId(true);
-        panelContainer.add(AttributeAppender.replace("class", "card-body p-2 pt-3"));
+        panelContainer.add(AttributeModifier.replace(CLASS_CSS, "card-body p-2 pt-3"));
         container.add(panelContainer);
 
         if (topSessionOutlier == null) {
@@ -1262,7 +1288,7 @@ public class RoleAnalysisSessionAnalysisAspectsPanel extends AbstractObjectMainP
                     task, task.getResult());
         } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
                 SecurityViolationException | ExpressionEvaluationException e) {
-            throw new RuntimeException(e);
+            throw new SystemException("Couldn't count anomalies", e);
         }
         return assignmentAnomalyCount;
     }

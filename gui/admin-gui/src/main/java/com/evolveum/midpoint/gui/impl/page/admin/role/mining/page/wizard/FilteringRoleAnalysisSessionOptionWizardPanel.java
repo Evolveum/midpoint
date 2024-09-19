@@ -23,6 +23,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisOptionTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisProcessModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisSessionType;
 
+import org.jetbrains.annotations.NotNull;
+
 public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormWizardStepPanel<AssignmentHolderDetailsModel<RoleAnalysisSessionType>> {
 
     private static final String WORK_PANEL_TYPE = "rm-option-filtering";
@@ -61,11 +63,15 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
         return containerWrapperModel;
     }
 
-    protected boolean checkMandatory(ItemWrapper itemWrapper) {
+    protected boolean checkMandatory(@NotNull ItemWrapper itemWrapper) {
         ItemName itemName = itemWrapper.getItemName();
-        return itemName.equivalent(AbstractAnalysisSessionOptionType.F_QUERY)
-                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)
-                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
+
+        if (itemName.equivalent(AbstractAnalysisSessionOptionType.F_QUERY)
+                || itemName.equivalent(AbstractAnalysisSessionOptionType.F_IS_INDIRECT)) {
+            return false;
+        }
+
+        return itemName.equivalent(AbstractAnalysisSessionOptionType.F_PROPERTIES_RANGE);
     }
 
     @Override
@@ -77,7 +83,8 @@ public class FilteringRoleAnalysisSessionOptionWizardPanel extends AbstractFormW
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_SIMILARITY_THRESHOLD)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_CLUSTERING_ATTRIBUTE_SETTING)
                     || itemName.equals(AbstractAnalysisSessionOptionType.F_ANALYSIS_ATTRIBUTE_SETTING)
-                    || itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)) {
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_DETAILED_ANALYSIS)
+                    || itemName.equals(AbstractAnalysisSessionOptionType.F_MAX_DISTANCE)) {
                 return ItemVisibility.HIDDEN;
             }
 

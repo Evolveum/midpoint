@@ -12,7 +12,10 @@ import static com.evolveum.midpoint.common.mining.utils.RoleAnalysisUtils.*;
 
 import java.util.*;
 
+import com.evolveum.midpoint.common.mining.objects.statistic.UserAccessDistribution;
+
 import com.google.common.collect.ListMultimap;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +42,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 // (Create structure for caching these data, NOTE: use also clustering process there is multiple mapped structures that can be used)
 public class OutliersDetectionUtil {
 
+    private OutliersDetectionUtil() {
+    }
+
     public static void updateOrImportOutlierObject(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull RoleAnalysisSessionType session,
@@ -49,6 +55,9 @@ public class OutliersDetectionUtil {
             @NotNull OperationResult result) {
         RoleAnalysisDetectionOptionType detectionOption = session.getDefaultDetectionOption();
         Double sensitivity = detectionOption.getSensitivity();
+        if(sensitivity == null) {
+            sensitivity = 0.8;
+        }
         double requiredConfidence = roleAnalysisService.calculateOutlierConfidenceRequired(sensitivity);
 
         //TODO temporary solution // move outside from *
@@ -102,6 +111,15 @@ public class OutliersDetectionUtil {
 
         //TODO to *
 
+        importOrExtendOutlier(roleAnalysisService, userOid, partition, task, result);
+    }
+
+    public static void importOrExtendOutlier(
+            @NotNull RoleAnalysisService roleAnalysisService,
+            @NotNull String userOid,
+            @NotNull RoleAnalysisOutlierPartitionType partition,
+            @NotNull Task task,
+            @NotNull OperationResult result) {
         PrismObject<RoleAnalysisOutlierType> outlierObject = roleAnalysisService.searchOutlierObjectByUserOidClusters(
                 userOid, task, result);
 
@@ -152,7 +170,7 @@ public class OutliersDetectionUtil {
             @NotNull DetectedAnomalyResult prepareRoleOutlier,
             @NotNull AttributeAnalysisCache userAnalysisCache,
             @NotNull Task task,
-            OperationResult result) {
+            @NotNull OperationResult result) {
 
         DetectedAnomalyStatistics statistics = prepareRoleOutlier.getStatistics();
 
@@ -215,30 +233,15 @@ public class OutliersDetectionUtil {
         //TODO take from session detection option
         DetectionOption detectionOption = new DetectionOption(
                 10, 100, 2, 2);
-        long startTime = System.currentTimeMillis();
         List<SimpleHeatPattern> totalRelationOfPatternsForCell = new OutlierPatternResolver()
                 .performSingleAnomalyCellDetection(miningRoleTypeChunks, detectionOption,
                         Collections.singletonList(userOid), allowedProperties);
-        long endTime = System.currentTimeMillis();
-        if (allowedProperties == null) {
-            LOGGER.debug("PATTERN: User Pattern Detection time in ms: {}", (endTime - startTime));
-        } else {
-            LOGGER.debug("PATTERN: Anomaly Pattern Detection time in ms: {}", (endTime - startTime));
-        }
 
         //TODO simplify until not needed
         int patternCount = totalRelationOfPatternsForCell.size();
-        int totalRelations = 0;
-        int topPatternRelation = 0;
-        SimpleHeatPattern topPattern = null;
-        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
-            int relations = simpleHeatPattern.getTotalRelations();
-            totalRelations += relations;
-            if (relations > topPatternRelation) {
-                topPatternRelation = relations;
-                topPattern = simpleHeatPattern;
-            }
-        }
+        MutableInt totalRelations = new MutableInt(0);
+        MutableInt topPatternRelation = new MutableInt(0);
+        SimpleHeatPattern topPattern = resolveTopPattern(totalRelationOfPatternsForCell, totalRelations, topPatternRelation);
 
         if (topPattern != null) {
             Set<String> patternMembers = new HashSet<>();
@@ -266,6 +269,7 @@ public class OutliersDetectionUtil {
                         new ObjectReferenceType().oid(rolesRef).type(RoleType.COMPLEX_TYPE)
                 );
             }
+            mapPatternRefs(users, pattern, roles);
 
             pattern.setClusterMetric(detectedPattern.getMetric());
 
@@ -287,16 +291,39 @@ public class OutliersDetectionUtil {
         }
 
         int clusterRelations = calculateOveralClusterRelationsCount(miningRoleTypeChunks);
-        double topPatternCoverage = ((double) topPatternRelation / clusterRelations) * 100;
+
+        double topPatternCoverage = 0;
+        if (clusterRelations != 0) {
+            topPatternCoverage = ((double) topPatternRelation.getValue() / clusterRelations) * 100;
+        }
 
         patternInfo.setConfidence(topPatternCoverage);
         patternInfo.setDetectedPatternCount(patternCount);
-        patternInfo.setTopPatternRelation(topPatternRelation);
-        patternInfo.setTotalRelations(totalRelations);
+        patternInfo.setTopPatternRelation(topPatternRelation.getValue());
+        patternInfo.setTotalRelations(totalRelations.getValue());
         patternInfo.setClusterRelations(clusterRelations);
         return patternInfo;
     }
 
+    private static SimpleHeatPattern resolveTopPattern(
+            @NotNull List<SimpleHeatPattern> totalRelationOfPatternsForCell,
+            @NotNull MutableInt totalRelations,
+            @NotNull MutableInt topPatternRelation) {
+        int tmpTotalRelations = 0;
+        int tmpTopPatternRelation = 0;
+        SimpleHeatPattern topPattern = null;
+        for (SimpleHeatPattern simpleHeatPattern : totalRelationOfPatternsForCell) {
+            int relations = simpleHeatPattern.getTotalRelations();
+            tmpTotalRelations += relations;
+            if (relations > tmpTopPatternRelation) {
+                tmpTopPatternRelation = relations;
+                topPattern = simpleHeatPattern;
+            }
+        }
+        totalRelations.setValue(tmpTotalRelations);
+        topPatternRelation.setValue(tmpTopPatternRelation);
+        return topPattern;
+    }
     //TODO this is just for USER MODE! Implement Role (Experimental)
 
     /**
@@ -420,15 +447,13 @@ public class OutliersDetectionUtil {
         double minFrequency = 2;
         double maxFrequency = 2;
 
-        if (defaultDetectionOption != null) {
-            if (defaultDetectionOption.getFrequencyRange() != null) {
-                RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
-                if (frequencyRange.getMin() != null) {
-                    minFrequency = frequencyRange.getMin().intValue();
-                }
-                if (frequencyRange.getMax() != null) {
-                    maxFrequency = frequencyRange.getMax().intValue();
-                }
+        if (defaultDetectionOption != null && defaultDetectionOption.getFrequencyRange() != null) {
+            RangeType frequencyRange = defaultDetectionOption.getFrequencyRange();
+            if (frequencyRange.getMin() != null) {
+                minFrequency = frequencyRange.getMin().intValue();
+            }
+            if (frequencyRange.getMax() != null) {
+                maxFrequency = frequencyRange.getMax().intValue();
             }
         }
 
@@ -449,22 +474,14 @@ public class OutliersDetectionUtil {
             return;
         }
 
-        List<ObjectReferenceType> duplicatedRoleAssignment = roleAnalysisOutlierType.getDuplicatedRoleAssignment();
-        UserType userObject = userPrismObject.asObjectable();
-        List<String> rolesOidAssignment = getRolesOidAssignment(userObject);
-        for (String roleOid : rolesOidAssignment) {
-            PrismObject<RoleType> roleAssignment = roleAnalysisService.getRoleTypeObject(roleOid, task, result);
-            if (roleAssignment != null) {
-                List<String> rolesOidInducement = getRolesOidInducement(roleAssignment.asObjectable());
-                for (String roleOidInducement : rolesOidInducement) {
-                    if (rolesOidAssignment.contains(roleOidInducement)) {
-                        ObjectReferenceType ref = new ObjectReferenceType()
-                                .oid(roleOidInducement)
-                                .type(RoleType.COMPLEX_TYPE);
-                        duplicatedRoleAssignment.add(ref);
-                    }
-                }
-            }
+        UserAccessDistribution userAccessDistribution = roleAnalysisService.resolveUserAccessDistribution(
+                userPrismObject, task, result);
+
+        List<ObjectReferenceType> duplicates = userAccessDistribution.getDuplicates();
+
+        if(duplicates != null) {
+            List<ObjectReferenceType> duplicatedRoleAssignment = roleAnalysisOutlierType.getDuplicatedRoleAssignment();
+            duplicatedRoleAssignment.addAll(CloneUtil.cloneCollectionMembers(duplicates));
         }
     }
 
@@ -507,7 +524,7 @@ public class OutliersDetectionUtil {
         return partitionAnomaliesConfidence;
     }
 
-    public static void analyzeAndResolveOutlierObject(
+    public static RoleAnalysisOutlierPartitionType analyzeAndResolveOutlierObject(
             @NotNull RoleAnalysisService roleAnalysisService,
             @NotNull AttributeAnalysisCache analysisCache,
             @NotNull OutlierAnalyzeModel analysisModel,
@@ -535,8 +552,17 @@ public class OutliersDetectionUtil {
 
         RoleAnalysisPartitionAnalysisType partitionAnalysis = new RoleAnalysisPartitionAnalysisType();
 
-        partitionAnalysis.setOutlierNoiseCategory(analysisModel.getNoiseCategory());
-        partitionAnalysis.setOutlierCategory(analysisModel.getOutlierCategory());
+        OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+        if (outlierCategory == null) {
+            outlierCategory = new OutlierCategoryType();
+            outlierCategory.setOutlierNoiseCategory(analysisModel.getNoiseCategory());
+            outlierCategory.setOutlierClusterCategory(analysisModel.getOutlierCategory());
+            partitionAnalysis.setOutlierCategory(outlierCategory);
+        } else {
+            outlierCategory.setOutlierNoiseCategory(analysisModel.getNoiseCategory());
+            outlierCategory.setOutlierClusterCategory(analysisModel.getOutlierCategory());
+        }
+        outlierCategory.setOutlierSpecificCategory(OutlierSpecificCategoryType.ACCESS_NOISE);
 
         //Resolve similar objects analysis
         RoleAnalysisOutlierSimilarObjectsAnalysisResult similarObjectAnalysis = new RoleAnalysisOutlierSimilarObjectsAnalysisResult();
@@ -608,7 +634,7 @@ public class OutliersDetectionUtil {
 
         partitionType.setPartitionAnalysis(partitionAnalysis);
 
-        updateOrImportOutlierObject(roleAnalysisService, session, memberOid, partitionType, analysisCache, task, result);
+        return partitionType;
     }
 
     public static void resolveOutlierAnomalies(
@@ -659,6 +685,7 @@ public class OutliersDetectionUtil {
     }
 
     //TODO should we move other statistics computation to this method?
+
     /**
      * Partially prepares a DetectedAnomalyResult object based on the provided parameters.
      *
@@ -686,4 +713,24 @@ public class OutliersDetectionUtil {
         return anomalyResult;
     }
 
+    public static @NotNull RoleAnalysisOutlierPartitionType prepareTotalOutlierPartition(
+            @NotNull ObjectReferenceType clusterRef,
+            @NotNull ObjectReferenceType sessionRef,
+            double requiredConfidence) {
+        RoleAnalysisOutlierPartitionType partition = new RoleAnalysisOutlierPartitionType();
+        partition.setTargetClusterRef(clusterRef);
+        partition.setTargetSessionRef(sessionRef);
+        partition.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()));
+
+        RoleAnalysisPartitionAnalysisType partitionAnalysis = new RoleAnalysisPartitionAnalysisType();
+        OutlierCategoryType outlierCategory = new OutlierCategoryType();
+        outlierCategory.setOutlierNoiseCategory(OutlierNoiseCategoryType.MEMBERS_NOISE);
+        outlierCategory.setOutlierClusterCategory(OutlierClusterCategoryType.OUTER_OUTLIER);
+        outlierCategory.setOutlierSpecificCategory(OutlierSpecificCategoryType.UNIQUE_OBJECT);
+        partitionAnalysis.setOutlierCategory(outlierCategory);
+        partitionAnalysis.setAnomalyObjectsConfidence(0.0);
+        partitionAnalysis.setOverallConfidence(requiredConfidence);
+        partition.setPartitionAnalysis(partitionAnalysis);
+        return partition;
+    }
 }

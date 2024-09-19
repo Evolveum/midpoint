@@ -294,28 +294,14 @@
             </xsd:element>
 
             <!--TODO think about this -->
-            <xsd:element name="outlierCategory" type="tns:OutlierCategory" minOccurs="0">
+            <xsd:element name="outlierCategory" type="tns:OutlierCategoryType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Category classification of the anomaly.
+                        Category classification of the outlier object.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 
-            <!--TODO think about this -->
-            <xsd:element name="outlierNoiseCategory" type="tns:RoleAnalysisOutlierNoiseCategoryType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            Describe category of noise.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:since>4.9</a:since>
-                        <a:displayName>RoleAnalysisOutlierNoiseCategoryType.outlierNoiseCategory</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
 
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -323,7 +309,7 @@
     <xsd:element name="roleAnalysisPartitionAnalysisType" type="tns:RoleAnalysisPartitionAnalysisType"/>
 
 
-    <xsd:simpleType name="OutlierCategory">
+    <xsd:simpleType name="OutlierClusterCategoryType">
         <xsd:annotation>
             <xsd:documentation>
                 Represents the outlier status in role analysis.
@@ -356,7 +342,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:simpleType name="RoleAnalysisOutlierNoiseCategoryType">
+    <xsd:simpleType name="OutlierNoiseCategoryType">
         <xsd:annotation>
             <xsd:documentation>
                 Category classification.
@@ -368,13 +354,24 @@
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
 
-            <xsd:enumeration value="part_of_cluster">
+            <xsd:enumeration value="suitable">
                 <xsd:annotation>
                     <xsd:documentation>
                         There is detected cluster/group that meet business definition.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="PART_OF_CLUSTER"/>
+                        <jaxb:typesafeEnumMember name="SUITABLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+
+            <xsd:enumeration value="access_or_rule_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Not required members that meet access or rule definition (not both together).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCESS_OR_RULE_NOISE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -423,6 +420,39 @@
                 </xsd:annotation>
             </xsd:enumeration>
 
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="OutlierSpecificCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Represents the outlier status in role analysis.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="access_noise">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object that contains duplicate access right.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ACCESS_NOISE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unique_object">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object that is unique in the system.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNIQUE_OBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
@@ -1177,6 +1207,16 @@
                 </xsd:annotation>
             </xsd:element>
 
+            <xsd:element name="maxDistance" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Maximum distance between cluster members.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:element name="clusteringAttributeSetting" type="tns:ClusteringAttributeSettingType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1733,6 +1773,40 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:simpleType name="RoleAnalysisProcedureType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role analysis type.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="role_mining">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during role mining analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ROLE_MINING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="outlier_detection">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during outlier detection analysis.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OUTLIER_DETECTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:simpleType name="RoleAnalysisProcessModeType">
         <xsd:annotation>
             <xsd:documentation>
@@ -2286,6 +2360,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="analysisProcedureType" type="tns:RoleAnalysisProcedureType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            It determines the specific approach
+                            or methodology used during the analysis.
+
+                            Role mining analysis (ROLE_MINING):
+
+                            Outlier detection analysis (OUTLIER_DETECTION):
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>RoleAnalysisProcedureType.analysisProcedureType</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="processMode" type="tns:RoleAnalysisProcessModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2409,13 +2500,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="outliers">
+            <xsd:enumeration value="outliers_department">
                 <xsd:annotation>
                     <xsd:documentation>
                         This mapping should be used during outlier analysis.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OUTLIERS"/>
+                        <jaxb:typesafeEnumMember name="OUTLIERS_DEPARTMENT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -2431,5 +2522,62 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="OutlierCategoryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The container consists of statistical data about object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+
+            <xsd:element name="outlierClusterCategory" type="tns:OutlierClusterCategoryType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Category classification of the anomaly.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:displayName>OutlierClusterCategoryType.outlierNoiseCategory</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="outlierNoiseCategory" type="tns:OutlierNoiseCategoryType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Describe category of noise.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:displayName>OutlierNoiseCategoryType.outlierNoiseCategory</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+
+            <xsd:element name="outlierSpecificCategory" type="tns:OutlierSpecificCategoryType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Describe specific category of outlier object.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:displayName>OutlierSpecificCategoryType.outlierNoiseCategory</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="outlierCategoryType" type="tns:OutlierCategoryType"/>
 
 </xsd:schema>

@@ -94,6 +94,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
             @Override
             protected RoleAnalysisObjectDto load() {
+                //TODO optimize this (preparation of the object)
                 return new RoleAnalysisObjectDto(getObjectWrapperObject().asObjectable(), operationPanelModel.getObject().getSelectedPatterns(), getParameterTableSetting(), getPageBase());
 
             }
@@ -124,7 +125,7 @@ public class RoleAnalysisClusterOperationPanel extends AbstractObjectMainPanel<R
 
         Task task = getPageBase().createSimpleTask(OP_PREPARE_OBJECTS); //TODO task name?
         OperationResult result = task.getResult();
-        List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(cluster, task, result);
+        List<RoleAnalysisOutlierType> searchResultList = roleAnalysisService.findClusterOutliers(cluster, null, task, result);
         for (RoleAnalysisOutlierType outlier : searchResultList) {
             Set<String> roles = new HashSet<>();
             List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();

@@ -291,7 +291,10 @@ public class SearchBuilder<C extends Serializable> {
         BasicQueryWrapper basicSearchWrapper = createDefaultSearchBoxConfigurationWrapper(configuredSearchBox);
         basicSearchWrapper.setAllowToConfigureSearchItems(isAllowToConfigureSearchItems(configuredSearchBox));
 
-        if (isViewForDashboard) {
+        // isViewForDashboard == true && collectionView == null can happen when
+        // we're opening popup (different list of objects) and don't want to use collection ref
+        // from underyling page
+        if (isViewForDashboard && collectionView != null) {
             basicSearchWrapper.getItemsList().add(new ObjectCollectionSearchItemWrapper(collectionView));
         }
 
@@ -353,7 +356,7 @@ public class SearchBuilder<C extends Serializable> {
 
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
             searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(
-                    type, allSearchableItems, searchItem, additionalSearchContext, modelServiceLocator));
+                    type, allSearchableItems, searchItem, additionalSearchContext, collectionView, modelServiceLocator));
         }
 
         return searchConfigWrapper;

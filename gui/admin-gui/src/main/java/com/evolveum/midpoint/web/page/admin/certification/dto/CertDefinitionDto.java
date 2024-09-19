@@ -335,10 +335,13 @@ public class CertDefinitionDto implements Serializable {
             scopeTypeObj.setDescription(definitionScopeDto.getDescription());
             scopeTypeObj.setObjectType(definitionScopeDto.getObjectType() != null ? new QName(definitionScopeDto.getObjectType().name()) : null);
             SearchFilterType parsedSearchFilter = definitionScopeDto.getParsedSearchFilter(prismContext);
-            if (parsedSearchFilter != null) {
+            if (parsedSearchFilter != null && StringUtils.isNotEmpty(parsedSearchFilter.getText())) {
                 // check if everything is OK
                 try {
-                    prismContext.getQueryConverter().parseFilterPreliminarily(parsedSearchFilter.getFilterClauseXNode(), null);
+                    Class<?> scopeObjectType = WebComponentUtil.qnameToClass(scopeTypeObj.getObjectType());
+                    prismContext
+                            .createQueryParser(prismContext.getSchemaRegistry().staticNamespaceContext().allPrefixes())
+                            .parseFilter(scopeObjectType, parsedSearchFilter.getText());
                 } catch (SchemaException e) {
                     throw new SystemException("Couldn't parse search filter: " + e.getMessage(), e);
                 }

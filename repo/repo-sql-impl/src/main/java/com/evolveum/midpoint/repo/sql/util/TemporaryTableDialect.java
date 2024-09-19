@@ -72,8 +72,6 @@ public abstract class TemporaryTableDialect {
     public static @NotNull TemporaryTableDialect getTempTableDialect(
             @NotNull SupportedDatabase database) {
         switch (database) {
-            case H2:
-                return new H2TempTableDialect();
             case POSTGRESQL:
                 return new PostgreSQLTempTableDialect();
             case ORACLE:
@@ -84,27 +82,6 @@ public abstract class TemporaryTableDialect {
 
         throw new SystemException(
                 "Temporary tables are not supported for database type " + database);
-    }
-
-    private static class H2TempTableDialect extends TemporaryTableDialect {
-
-        @Override
-        public String getCreateTemporaryTableString() {
-            return "create cached local temporary table if not exists";
-        }
-
-        @Override
-        public String getCreateTemporaryTablePostfix() {
-            // actually 2 different options are specified here:
-            //        1) [on commit drop] - says to drop the table on transaction commit
-            //        2) [transactional] - says to not perform an implicit commit of any current transaction
-            return "on commit drop transactional";
-        }
-
-        @Override
-        public boolean dropTemporaryTableAfterUse() {
-            return false;
-        }
     }
 
     private static class PostgreSQLTempTableDialect extends TemporaryTableDialect {

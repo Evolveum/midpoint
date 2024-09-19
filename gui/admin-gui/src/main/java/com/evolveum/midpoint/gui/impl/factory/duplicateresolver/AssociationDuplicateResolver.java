@@ -6,11 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.duplicateresolver;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
-import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismContainerWrapperFactoryImpl;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.schemaHandling.associationType.basic.ResourceAssociationTypeBasicWizardPanel;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -22,13 +20,11 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationTypeDefinitionType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -54,7 +50,7 @@ public class AssociationDuplicateResolver extends ContainerDuplicateResolver<Sha
     }
 
     @Override
-    public ShadowAssociationTypeDefinitionType duplicateObject(ShadowAssociationTypeDefinitionType originalBean) {
+    public ShadowAssociationTypeDefinitionType duplicateObject(ShadowAssociationTypeDefinitionType originalBean, PageBase pageBase) {
         PrismContainerValue<ShadowAssociationTypeDefinitionType> originalObject = originalBean.asPrismContainerValue();
         PrismContainerValue<ShadowAssociationTypeDefinitionType> duplicate =
                 DuplicationProcessHelper.duplicateContainerValueDefault(originalObject);

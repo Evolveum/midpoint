@@ -436,7 +436,7 @@ public abstract class ProjectionContextKey
         }
 
         public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
-            return typeIdentification;
+            return Objects.requireNonNull(typeIdentification);
         }
     }
 

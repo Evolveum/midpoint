@@ -181,8 +181,9 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public UcfAddReturnValue addObject(
-            PrismObject<? extends ShadowType> object,
-            UcfExecutionContext ctx, OperationResult parentResult) {
+            @NotNull PrismObject<? extends ShadowType> object,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("addObject");
         OperationResult result = parentResult.createSubresult(OP_ADD_OBJECT);
@@ -204,8 +205,8 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options,
-            UcfExecutionContext ctx,
-            OperationResult parentResult) {
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("modifyObject");
         OperationResult result = parentResult.createSubresult(OP_MODIFY_OBJECT);
@@ -226,7 +227,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     public UcfDeleteReturnValue deleteObject(
             @NotNull ResourceObjectIdentification<?> identification,
             PrismObject<ShadowType> shadow,
-            UcfExecutionContext ctx,
+            @NotNull UcfExecutionContext ctx,
             @NotNull OperationResult parentResult) throws SchemaException {
         UcfExecutionContext.checkExecutionFullyPersistent(ctx);
         InternalMonitor.recordConnectorOperation("deleteObject");
@@ -362,7 +363,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public NativeResourceSchema fetchResourceSchema(OperationResult parentResult) {
+    public NativeResourceSchema fetchResourceSchema(@NotNull OperationResult parentResult) {
         // Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
         InternalMonitor.recordConnectorOperation("schema");
         return null;
@@ -370,9 +371,10 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
 
     @Override
     public UcfResourceObject fetchObject(
-            ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
-            ShadowItemsToReturn shadowItemsToReturn,
-            UcfExecutionContext ctx, OperationResult parentResult) {
+            @NotNull ResourceObjectIdentification.WithPrimary resourceObjectIdentification,
+            @Nullable ShadowItemsToReturn shadowItemsToReturn,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("fetchObject");
         return null;
     }
@@ -382,7 +384,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
             @NotNull UcfObjectHandler handler, @Nullable ShadowItemsToReturn shadowItemsToReturn,
             @Nullable PagedSearchCapabilityType pagedSearchConfiguration, @Nullable SearchHierarchyConstraints searchHierarchyConstraints,
             @Nullable UcfFetchErrorReportingMethod ucfErrorReportingMethod,
-            @NotNull UcfExecutionContext ctx, @NotNull OperationResult parentResult) {
+            @NotNull SchemaAwareUcfExecutionContext ctx, @NotNull OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("search");
         return null;
     }
@@ -402,9 +404,14 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public UcfFetchChangesResult fetchChanges(ResourceObjectDefinition objectDefinition, UcfSyncToken lastToken,
-            ShadowItemsToReturn attrsToReturn, Integer maxChanges, UcfExecutionContext ctx,
-            @NotNull UcfLiveSyncChangeListener changeHandler, OperationResult parentResult) {
+    public UcfFetchChangesResult fetchChanges(
+            @Nullable ResourceObjectDefinition objectDefinition,
+            @Nullable UcfSyncToken lastToken,
+            @Nullable ShadowItemsToReturn attrsToReturn,
+            @Nullable Integer maxChanges,
+            @NotNull SchemaAwareUcfExecutionContext ctx,
+            @NotNull UcfLiveSyncChangeListener changeHandler,
+            @NotNull OperationResult parentResult) {
         return null;
     }
 

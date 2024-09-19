@@ -516,14 +516,14 @@ Now we can run ninja as in non-container environment, e.g.:
 [source,bash]
 ----
 f41fde86786d:/opt/midpoint# ./bin/ninja.sh -V
-Processing variable (MAP) ... midpoint.repository.database .:. h2
+Processing variable (MAP) ... midpoint.repository.database .:. oracle
 Processing variable (MAP) ... midpoint.repository.missingSchemaAction .:. create
 Processing variable (MAP) ... midpoint.logging.alt.enabled .:. true
 Processing variable (MAP) ... midpoint.repository.initializationFailTimeout .:. 60000
 Processing variable (MAP) ... file.encoding .:. UTF8
-Processing variable (MAP) ... midpoint.repository.hibe nateHbm2ddl .:. none
+Processing variable (MAP) ... midpoint.repository.hibernateHbm2ddl .:. none
 Processing variable (MAP) ... midpoint.repository.upgradeableSchemaAction .:. stop
-Processing variable (MAP) ... midpoint.repository.jdbcUrl .:. jdbc:h2:tcp://localhost:5437/midpoint
+Processing variable (MAP) ... midpoint.repository.jdbcUrl .:. jdbc:oracle:thin:@localhost:1521/xe
 Version: 4.8-SNAPSHOT, rev. v4.8devel-1509-g8abd865, built by , 2023-09-27T07:05:44+0000
 ----
 

@@ -114,7 +114,8 @@ class ResourceSchemaParser {
     }
 
     /** Creates {@link CompleteResourceSchema} for the given resource. This is the main functionality of this parser. */
-    static CompleteResourceSchema parseComplete(@NotNull ResourceType resource, @NotNull NativeResourceSchema nativeSchema)
+    static @NotNull CompleteResourceSchema parseComplete(
+            @NotNull ResourceType resource, @NotNull NativeResourceSchema nativeSchema)
             throws SchemaException, ConfigurationException {
         var schemaHandlingBean = resource.getSchemaHandling();
         var schemaHandling =
@@ -201,6 +202,7 @@ class ResourceSchemaParser {
         // Finally, here come the associations.
         forAllObjects(o -> o.parseModernAssociations());
         forAllObjects(o -> o.parseLegacySimulatedAssociations());
+        checkDanglingAssociationTypeReferences();
 
         resourceSchema.freeze();
     }
@@ -378,6 +380,38 @@ class ResourceSchemaParser {
     private void forAllObjects(SpecificFeatureParser parser) throws ConfigurationException {
         for (var objectDef : resourceSchema.getResourceObjectDefinitions()) {
             parser.execute(new ResourceObjectDefinitionParser(objectDef));
+        }
+    }
+
+    /**
+     * Association types are parsed for each individual object type definition. So, if there's an invalid reference to
+     * either object type or the reference attribute, we should report it. (Otherwise, the association type would be
+     * silently skipped.)
+     */
+    private void checkDanglingAssociationTypeReferences() throws ConfigurationException {
+        for (var associationTypeCI : schemaHandling.getAssociationTypes()) {
+            checkParticipantObjectTypes(associationTypeCI.getSubject());
+            for (var objectCI : associationTypeCI.getObjects()) {
+                checkParticipantObjectTypes(objectCI);
+            }
+        }
+    }
+
+    private void checkParticipantObjectTypes(ShadowAssociationTypeParticipantDefinitionConfigItem<?> participant)
+            throws ConfigurationException {
+        var refAttrName = participant instanceof ShadowAssociationTypeSubjectDefinitionConfigItem ?
+                participant.getReferenceAttributeNameRequired() : participant.getReferenceAttributeNameOptional();
+        for (ResourceObjectTypeIdentification typeIdentification : participant.getTypeIdentifiers()) {
+            var typeDef = participant.configNonNull(
+                    resourceSchema.getObjectTypeDefinition(typeIdentification),
+                    "Association type participant references object type '%s' that does not exist; in %s",
+                    typeIdentification, DESC);
+            if (refAttrName != null) {
+                participant.configNonNull(
+                        typeDef.findReferenceAttributeDefinition(refAttrName),
+                        "Association type references attribute '%s' that does not exist in object type '%s'; in %s",
+                        refAttrName, typeIdentification, DESC);
+            }
         }
     }
 

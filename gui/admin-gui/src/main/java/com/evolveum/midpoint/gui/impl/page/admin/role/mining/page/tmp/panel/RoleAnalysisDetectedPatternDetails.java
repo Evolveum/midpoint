@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 import java.io.Serial;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -25,6 +24,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.model.Info
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleAnalysisAttributeAnalysisResult;
 
 import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPattern> {
 
@@ -49,7 +50,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
         WebMarkupContainer headerItemsContainer = new WebMarkupContainer(ID_HEADER_ITEMS_CONTAINER);
         headerItemsContainer.setOutputMarkupId(true);
         headerItemsContainer.add(new VisibleBehaviour(this::isWidgetsPanelVisible));
-        headerItemsContainer.add(AttributeModifier.replace("class", getCssClassForHeaderItemsContainer()));
+        headerItemsContainer.add(AttributeModifier.replace(CLASS_CSS, getCssClassForHeaderItemsContainer()));
         container.add(headerItemsContainer);
 
         RepeatingView headerItems = new RepeatingView(ID_HEADER_ITEMS);
@@ -60,7 +61,7 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
 
         WebMarkupContainer statisticsPanelContainer = new WebMarkupContainer(ID_STATISTICS_PANEL_CONTAINER);
         statisticsPanelContainer.setOutputMarkupId(true);
-        statisticsPanelContainer.add(AttributeModifier.replace("class", getCssClassForStatisticsPanelContainer()));
+        statisticsPanelContainer.add(AttributeModifier.replace(CLASS_CSS, getCssClassForStatisticsPanelContainer()));
         container.add(statisticsPanelContainer);
 
         initStatisticsPanel(statisticsPanelContainer);
@@ -98,17 +99,13 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 "Reduction factor");
 
         RoleAnalysisInfoBox reductionLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelReduction)) {
-            @Override
-            protected String getInfoBoxCssClass() {
-                return super.getInfoBoxCssClass();
-            }
 
             @Override
             public String getIconBoxContainerCssStyle() {
                 return RoleAnalysisDetectedPatternDetails.this.getIconBoxContainerCssStyle();
             }
         };
-        reductionLabel.add(AttributeModifier.replace("class", getInfoBoxClass()));
+        reductionLabel.add(AttributeModifier.replace(CLASS_CSS, getInfoBoxClass()));
         reductionLabel.setOutputMarkupId(true);
         headerItems.add(reductionLabel);
 
@@ -119,17 +116,13 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 "Confidence of the suggested role");
 
         RoleAnalysisInfoBox confidenceLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelConfidence)) {
-            @Override
-            protected String getInfoBoxCssClass() {
-                return super.getInfoBoxCssClass();
-            }
 
             @Override
             public String getIconBoxContainerCssStyle() {
                 return RoleAnalysisDetectedPatternDetails.this.getIconBoxContainerCssStyle();
             }
         };
-        confidenceLabel.add(AttributeModifier.replace("class", getInfoBoxClass()));
+        confidenceLabel.add(AttributeModifier.replace(CLASS_CSS, getInfoBoxClass()));
         confidenceLabel.setOutputMarkupId(true);
         headerItems.add(confidenceLabel);
 
@@ -140,17 +133,13 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 "Number of roles in the suggested role");
 
         RoleAnalysisInfoBox roleObjectCountLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelRoles)) {
-            @Override
-            protected String getInfoBoxCssClass() {
-                return super.getInfoBoxCssClass();
-            }
 
             @Override
             public String getIconBoxContainerCssStyle() {
                 return RoleAnalysisDetectedPatternDetails.this.getIconBoxContainerCssStyle();
             }
         };
-        roleObjectCountLabel.add(AttributeModifier.replace("class", getInfoBoxClass()));
+        roleObjectCountLabel.add(AttributeModifier.replace(CLASS_CSS, getInfoBoxClass()));
         roleObjectCountLabel.setOutputMarkupId(true);
         headerItems.add(roleObjectCountLabel);
 
@@ -161,17 +150,13 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                 "Number of users in the suggested role");
 
         RoleAnalysisInfoBox userObjectCountLabel = new RoleAnalysisInfoBox(headerItems.newChildId(), Model.of(infoBoxModelUsers)) {
-            @Override
-            protected String getInfoBoxCssClass() {
-                return super.getInfoBoxCssClass();
-            }
 
             @Override
             public String getIconBoxContainerCssStyle() {
                 return RoleAnalysisDetectedPatternDetails.this.getIconBoxContainerCssStyle();
             }
         };
-        userObjectCountLabel.add(AttributeModifier.replace("class", getInfoBoxClass()));
+        userObjectCountLabel.add(AttributeModifier.replace(CLASS_CSS, getInfoBoxClass()));
         userObjectCountLabel.setOutputMarkupId(true);
         headerItems.add(userObjectCountLabel);
     }
@@ -204,13 +189,9 @@ public class RoleAnalysisDetectedPatternDetails extends BasePanel<DetectedPatter
                     return RoleAnalysisDetectedPatternDetails.this.isCardTitleVisible();
                 }
 
-                @Override
-                protected @NotNull String getChartContainerStyle() {
-                    return "height:30vh;";
-                }
             };
             roleAnalysisAttributePanel.setOutputMarkupId(true);
-            roleAnalysisAttributePanel.add(AttributeModifier.replace("class", getCssClassForStatisticsPanel()));
+            roleAnalysisAttributePanel.add(AttributeModifier.replace(CLASS_CSS, getCssClassForStatisticsPanel()));
             container.add(roleAnalysisAttributePanel);
         } else {
             Label label = new Label(ID_STATISTICS_PANEL, "No data available");

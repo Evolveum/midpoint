@@ -155,13 +155,15 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                         ItemPath.create(
                                 ResourceType.F_SCHEMA_HANDLING,
                                 SchemaHandlingType.F_OBJECT_TYPE,
-                                ResourceObjectTypeDefinitionType.F_DEFAULT_OPERATION_POLICY_REF)).resolve()
+                                ResourceObjectTypeDefinitionType.F_DEFAULT_OPERATION_POLICY,
+                                DefaultOperationPolicyConfigurationType.F_POLICY_REF)).resolve()
                 .item(
                         ItemPath.create(
                                 ResourceType.F_SCHEMA_HANDLING,
                                 SchemaHandlingType.F_OBJECT_TYPE,
                                 ResourceObjectTypeDefinitionType.F_MARKING,
                                 ShadowMarkingConfigurationType.F_MARK_REF)).resolve();
+
 
         if (useNoFetchOption()) {
             builder.noFetch();
@@ -219,15 +221,15 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showCapabilitiesWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue, CapabilitiesWizardPanel.class);
+        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CONFIGURED_CAPABILITIES), CapabilitiesWizardPanel.class);
     }
 
     public void showCredentialsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue, CredentialsWizardPanel.class);
+        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_CREDENTIALS), CredentialsWizardPanel.class);
     }
 
     public void showActivationsWizard(AjaxRequestTarget target, ItemPath pathToValue) {
-        showContainerWizardForObjectType(target, pathToValue, ActivationsWizardPanel.class);
+        showContainerWizardForObjectType(target, pathToValue.append(ResourceObjectTypeDefinitionType.F_ACTIVATION), ActivationsWizardPanel.class);
     }
 
     public void showPoliciesWizard(AjaxRequestTarget target, ItemPath pathToValue) {

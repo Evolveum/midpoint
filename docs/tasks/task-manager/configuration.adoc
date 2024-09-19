@@ -35,7 +35,7 @@ An example of more complex, and clustered, configuration:
 <taskManager>
   <threads>10</threads>
   <clustered>true</clustered>
-  <jdbcUrl>jdbc:h2:tcp://localhost/~/midpoint-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE</jdbcUrl>
+  <jdbcUrl>jdbc:sqlserver://localhost:1433;database=midpoint-quartz</jdbcUrl>
 </taskManager>
 ----
 
@@ -135,12 +135,6 @@ Normally you do not have to change this parameter.
 |
 
 |===
-
-*A note for H2 users:* For this database Quartz requires slightly different mode of access, in comparison to SQL repository: Quartz needs to have `MVCC` parameter set to TRUE, while SQL repository uses `LOCK_MODE=1` instead.
-These settings cannot be used on one database, so when using H2 database and JDBC Quartz job store, one has to use two separate database instances - one for SQL repository and the second one for Task Manager (i.e. Quartz scheduler).
-When using default URL for H2 for SQL repository, midPoint will fill-in reasonable default for task manager as well.
-However, if you provide your own H2 database URL for the repository, do not forget to provide custom H2 URL for task manager as well, providing MVCC=TRUE.
-But overall, we recommend H2 only for demo and testing deployments, so usually there is no need to use JDBC job store with H2 altogether.
 
 == Less frequently used configuration items
 

@@ -1511,12 +1511,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="enableCertItemsCollectionView" minOccurs="0" type="xsd:boolean" default="false">
+            <xsd:element name="allowCertificationItemsMenus" minOccurs="0" type="xsd:boolean" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Defines if the certification items collection view can be reached directly from the main menu.
-                        If not defined (or set to false), the certification items collection view can be reached only
-                        from the active campaigns panel.
+                        Defines if the certification items menu items should be added to the left menu so that
+                        "Certification items" and "My certification items" pages can be reached directly from the main menu.
+                        If not defined (or set to false), the certification items pages can be reached only from the active
+                        campaigns panel.
+                        This configuration option was added to support old behavior where the certification items pages had their
+                        own menu items. The default value is false. By default, the user sees "Active campaigns" and
+                        "My active campaigns" menu items going through which certification items page can be reached.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1532,10 +1536,12 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="defaultView" type="xsd:string" minOccurs="0">
+            <xsd:element name="defaultView" type="tns:GuiObjectListViewType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Identifier of the collection view that should be used as a default view for the certification items.
+                        <p>
+                            Specifies a default view for a presentation of the certification items collection.
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.9</a:since>

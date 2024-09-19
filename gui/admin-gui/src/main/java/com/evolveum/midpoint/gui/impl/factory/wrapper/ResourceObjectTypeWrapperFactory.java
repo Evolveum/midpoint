@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.duplication.ContainerableDuplicateResolver;
 import com.evolveum.midpoint.gui.impl.duplication.DuplicationProcessHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -39,7 +41,7 @@ public class ResourceObjectTypeWrapperFactory extends PrismContainerWrapperFacto
     }
 
     @Override
-    public ResourceObjectTypeDefinitionType duplicateObject(ResourceObjectTypeDefinitionType originalBean) {
+    public ResourceObjectTypeDefinitionType duplicateObject(ResourceObjectTypeDefinitionType originalBean, PageBase pageBase) {
         PrismContainerValue<ResourceObjectTypeDefinitionType> originalObject = originalBean.asPrismContainerValue();
         PrismContainerValue<ResourceObjectTypeDefinitionType> duplicate =
                 DuplicationProcessHelper.duplicateContainerValueDefault(originalObject);
@@ -61,6 +63,11 @@ public class ResourceObjectTypeWrapperFactory extends PrismContainerWrapperFacto
                 ._default(null)
                 .description(copyOf +
                         (originalBean.getDescription() == null ? "" : (System.lineSeparator() + originalBean.getDescription())));
+
+        WebModelServiceUtils.resolveReferenceName(duplicatedBean.getSecurityPolicyRef(), pageBase);
+        if (duplicatedBean.getFocus() != null) {
+            WebModelServiceUtils.resolveReferenceName(duplicatedBean.getFocus().getArchetypeRef(), pageBase);
+        }
         return duplicatedBean;
     }
 

@@ -41,7 +41,7 @@ import java.util.Set;
  */
 public interface ConnectorFactory {
 
-    String OPERATION_LIST_CONNECTORS = ConnectorFactory.class.getName()+".listConnectors";
+    String OPERATION_LIST_CONNECTORS = ConnectorFactory.class.getName() + ".listConnectors";
 
     /**
      * Generates a {@link ConnectorSchema} for the connector configuration (mainly holding connector-specific properties).
@@ -61,7 +61,8 @@ public interface ConnectorFactory {
      * @throws ObjectNotFoundException if the specified connector was not found
      * @throws SchemaException if there's any schema issue
      */
-    @NotNull ConnectorInstance createConnectorInstance(ConnectorType connectorBean, String instanceName, String desc)
+    @NotNull ConnectorInstance createConnectorInstance(
+            @NotNull ConnectorType connectorBean, String instanceName, String desc)
             throws ObjectNotFoundException, SchemaException;
 
     /**

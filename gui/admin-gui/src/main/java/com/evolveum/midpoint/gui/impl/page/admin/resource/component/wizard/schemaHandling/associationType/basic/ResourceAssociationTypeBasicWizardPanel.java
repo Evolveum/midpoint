@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.util.AssociationChildWrapperUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
@@ -142,7 +142,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
             int index = 1;
             while (AssociationChildWrapperUtil.existAssociationConfiguration(
                     refQName.getLocalPart(),
-                    getValueModel().getObject().getParent())) {
+                    (PrismContainer<ShadowAssociationTypeDefinitionType>) getValueModel().getObject().getParent().getItem())) {
 
                 refQName = new QName(refQName.getNamespaceURI(), origLocalPart + index, refQName.getPrefix());
                 index++;
@@ -213,7 +213,7 @@ public class ResourceAssociationTypeBasicWizardPanel extends AbstractWizardPanel
 
             @Override
             public VisibleEnableBehaviour getBackBehaviour() {
-                return new VisibleBehaviour(() -> showChoicePanel);
+                return new VisibleBehaviour(() -> showChoicePanel && !isPanelForDuplicate);
             }
         });
 

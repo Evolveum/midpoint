@@ -10,7 +10,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.modes;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.context.AbstractRoleAnalysisConfiguration;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -23,7 +22,8 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
     RoleAnalysisService service;
     Task task;
     OperationResult result;
-    LoadableModel<PrismObjectWrapper<RoleAnalysisSessionType>> objectWrapper;
+
+    double defaultPercentageMembership = 60.0;
 
     public BirthrightCoverageModeConfiguration(
             RoleAnalysisService service,
@@ -34,14 +34,19 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
         this.service = service;
         this.task = task;
         this.result = result;
-        this.objectWrapper = objectWrapper;
     }
 
     @Override
     public void updateConfiguration() {
+        int maxPropertyCount = getMaxPropertyCount();
         RangeType propertyRange = new RangeType()
                 .min(2.0)
-                .max(Double.valueOf(getMaxPropertyCount()));
+                .max((double) maxPropertyCount);
+
+        int minOverlap = 0;
+        if (maxPropertyCount != 0) {
+            minOverlap = (int) Math.round(maxPropertyCount * defaultPercentageMembership / 100);
+        }
 
         updatePrimaryOptions(null,
                 false,
@@ -50,7 +55,7 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
                 null,
                 70.0,
                 5,
-                30,
+                minOverlap,
                 false);
 
         updateDetectionOptions(5,
@@ -60,21 +65,6 @@ public class BirthrightCoverageModeConfiguration extends AbstractRoleAnalysisCon
                         .min(30.0)
                         .max(100.0),
                 RoleAnalysisDetectionProcessType.FULL);
-    }
-
-    @Override
-    public AbstractAnalysisSessionOptionType getAnalysisSessionOption() {
-        return super.getAnalysisSessionOption();
-    }
-
-    @Override
-    public RoleAnalysisDetectionOptionType getDetectionOption() {
-        return super.getDetectionOption();
-    }
-
-    @Override
-    public ItemVisibilityHandler getVisibilityHandler() {
-        return super.getVisibilityHandler();
     }
 
     public @NotNull Integer getMaxPropertyCount() {

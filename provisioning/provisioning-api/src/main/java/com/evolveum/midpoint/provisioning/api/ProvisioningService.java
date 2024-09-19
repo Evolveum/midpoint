@@ -1020,12 +1020,12 @@ public interface ProvisioningService {
             @NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
 
     /**
-     * The operation try fetch schema by connector configuration from resource object.
+     * The operation fetches the resource schema using the connector configuration from provided resource object.
      *
      * @param resource resource with connector configuration
      * @return Resource schema fetched by connector
      */
-    @Nullable ResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
+    @Nullable BareResourceSchema fetchSchema(@NotNull PrismObject<ResourceType> resource, @NotNull OperationResult parentResult);
 
     /**
      * Discovers local or remote connectors.
@@ -1248,4 +1248,11 @@ public interface ProvisioningService {
     @Experimental
     @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException;
+
+    /** Returns the default operation policy for given object type (if specified). */
+    @Nullable ObjectOperationPolicyType getDefaultOperationPolicy(
+            @NotNull String resourceOid,
+            @NotNull ResourceObjectTypeIdentification typeIdentification,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 }

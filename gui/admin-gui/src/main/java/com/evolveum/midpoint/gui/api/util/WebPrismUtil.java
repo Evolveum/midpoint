@@ -275,11 +275,19 @@ public class WebPrismUtil {
             }
         }
 
+        cleanupValueMetadata(value);
+
         if (!isUseAsEmptyValue(value) && (value.getItems() == null || value.getItems().isEmpty())) {
             return null;
         }
 
         return value;
+    }
+
+    public static void cleanupValueMetadata(PrismValue value) {
+        if (value.hasValueMetadata()) {
+            cleanupEmptyValues(value.getValueMetadata());
+        }
     }
 
     private static <T> void cleanupEmptyValues(Item item) {
@@ -307,7 +315,10 @@ public class WebPrismUtil {
                 }
                 if (pVal.isEmpty() || pVal.getRealValue() == null) {
                     iterator.remove();
+                    continue;
                 }
+
+                cleanupValueMetadata(pVal);
             }
         }
 
@@ -323,7 +334,10 @@ public class WebPrismUtil {
                 PrismReferenceValue rVal = iterator.next();
                 if (rVal == null || rVal.isEmpty()) {
                     iterator.remove();
+                    continue;
                 }
+
+                cleanupValueMetadata(rVal);
             }
         }
     }

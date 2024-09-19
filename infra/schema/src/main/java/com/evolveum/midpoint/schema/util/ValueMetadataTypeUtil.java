@@ -158,7 +158,7 @@ public class ValueMetadataTypeUtil {
                         .provenance(provenance.clone()));
     }
 
-    private static @Nullable ValueMetadataType findMatchingValue(ValueMetadata valueMetadata, ProvenanceMetadataType provenance) {
+    public static @Nullable ValueMetadataType findMatchingValue(ValueMetadata valueMetadata, ProvenanceMetadataType provenance) {
         return MiscUtil.extractSingleton(
                 valueMetadata.getRealValues(ValueMetadataType.class).stream()
                         .filter(v -> v.getProvenance() != null && v.getProvenance().equals(provenance))
@@ -278,8 +278,12 @@ public class ValueMetadataTypeUtil {
                 .collect(Collectors.toSet());
     }
 
-    public static @NotNull Collection<ValueMetadataType> getMetadataBeans(AssignmentType assignment) {
-        return assignment.asPrismContainerValue().getValueMetadata().getRealValues(ValueMetadataType.class);
+    public static @NotNull Collection<ValueMetadataType> getMetadataBeans(Containerable containerable) {
+        return containerable.asPrismContainerValue().getValueMetadata().getRealValues(ValueMetadataType.class);
+    }
+
+    public static @NotNull Collection<ValueMetadataType> getMetadataBeans(Referencable referencable) {
+        return referencable.asReferenceValue().getValueMetadata().getRealValues(ValueMetadataType.class);
     }
 
     public static long getSingleValueMetadataId(@NotNull ObjectType object) {

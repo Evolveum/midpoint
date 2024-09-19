@@ -88,9 +88,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public static final String ICFS_UID_DISPLAY_NAME = "ConnId UID";
     public static final int ICFS_UID_DISPLAY_ORDER = 100;
 
-    public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
-    public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT =
-            new QName(SchemaConstants.NS_ICF_CONFIGURATION, "connectorPoolConfiguration");
+    static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
+    public static final ItemName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT =
+            ItemName.from(SchemaConstants.NS_ICF_CONFIGURATION, "connectorPoolConfiguration");
     public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE =
             new QName(SchemaConstants.NS_ICF_CONFIGURATION, "ConnectorPoolConfigurationType");
     protected static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS = "minEvictableIdleTimeMillis";
@@ -100,23 +100,21 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT = "maxWait";
     public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE_TIME_MILLIS = "maxIdleTimeMillis";
 
-    public static final String CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME = "producerBufferSize";
-    public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-            CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME);
+    public static final ItemName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT =
+            ItemName.from(SchemaConstants.NS_ICF_CONFIGURATION, "producerBufferSize");
     public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INT;
 
-    public static final String CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME = "legacySchema";
-    public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-            CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME);
+    static final ItemName CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT =
+            ItemName.from(SchemaConstants.NS_ICF_CONFIGURATION, "legacySchema");
     public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE = DOMUtil.XSD_BOOLEAN;
 
     public static final String CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME = "timeouts";
-    public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
+    public static final ItemName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = ItemName.from(SchemaConstants.NS_ICF_CONFIGURATION,
             CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
     public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION, "TimeoutsType");
 
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME = "resultsHandlerConfiguration";
-    public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
+    public static final ItemName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT = ItemName.from(SchemaConstants.NS_ICF_CONFIGURATION,
             CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME);
     public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
             "ResultsHandlerConfigurationType");
@@ -206,7 +204,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      */
     @Override
     public @NotNull ConnectorInstance createConnectorInstance(
-            ConnectorType connectorBean, String instanceName, String instanceDescription)
+            @NotNull ConnectorType connectorBean, String instanceName, String instanceDescription)
             throws ObjectNotFoundException, SchemaException {
 
         ConnectorInfo cinfo = getConnectorInfo(connectorBean);
@@ -216,11 +214,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             LOGGER.debug("Connector key: {}, host: {}", getConnectorKey(connectorBean),
                     ObjectTypeUtil.toShortString(connectorBean));
             LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorBean));
-            if (connectorBean.getConnectorHostRef() != null) {
-                if (connectorBean.getConnectorHostRef().asReferenceValue().getObject() == null) {
-                    LOGGER.trace("Connector host ref: {}", connectorBean.getConnectorHostRef());
+            var connectorHostRef = connectorBean.getConnectorHostRef();
+            if (connectorHostRef != null) {
+                var connectorHost = connectorHostRef.asReferenceValue().getObject();
+                if (connectorHost == null) {
+                    LOGGER.trace("Connector host ref: {}", connectorHostRef);
                 } else {
-                    LOGGER.trace("Connector host object:\n{}", connectorBean.getConnectorHostRef().asReferenceValue().getObject().debugDump(1));
+                    LOGGER.trace("Connector host object:\n{}", connectorHost.debugDump(1));
                 }
             }
             // TODO Is this really ObjectNotFoundException?
@@ -241,11 +241,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
             connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorBean);
         }
 
-        ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorBean, connectorSchema);
-        connectorImpl.setDescription(instanceDescription);
-        connectorImpl.setInstanceName(instanceName);
-
-        return connectorImpl;
+        return new ConnectorInstanceConnIdImpl(
+                cinfo, connectorBean, connectorSchema, instanceName, instanceDescription);
     }
 
     /**
@@ -277,12 +274,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         } catch (Throwable icfException) {
             Throwable ex = processConnIdException(icfException, "list connectors", result);
             result.recordFatalError(ex.getMessage(), ex);
-            if (ex instanceof CommunicationException) {
-                throw (CommunicationException) ex;
-            } else if (ex instanceof RuntimeException) {
-                throw (RuntimeException) ex;
-            } else if (ex instanceof Error) {
-                throw (Error) ex;
+            if (ex instanceof CommunicationException communicationException) {
+                throw communicationException;
+            } else if (ex instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            } else if (ex instanceof Error error) {
+                throw error;
             } else {
                 throw new SystemException("Unexpected ICF exception: " + ex.getMessage(), ex);
             }
@@ -745,7 +742,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     /**
-     * Get connector information.
+     * Gets ConnId {@link ConnectorInfo} for given midPoint {@link ConnectorType} object.
+     *
+     * Deals with both local and remove (connector host based) ConnId connectors.
      */
     private ConnectorInfo getConnectorInfo(ConnectorType connectorBean) throws ObjectNotFoundException {
         if (!SchemaConstants.ICF_FRAMEWORK_URI.equals(connectorBean.getFramework())) {
@@ -768,7 +767,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     private ConnectorKey getConnectorKey(ConnectorType connectorType) {
-        return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
+        return new ConnectorKey(
+                connectorType.getConnectorBundle(),
+                connectorType.getConnectorVersion(),
                 connectorType.getConnectorType());
     }
 

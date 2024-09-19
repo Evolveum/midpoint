@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.aspects;
 
-import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel.generateUserOutlierResultModelMain;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.panel.OutlierPartitionPanel.PARAM_ANOMALY_OID;
 
 import com.evolveum.midpoint.gui.api.component.progressbar.ProgressBar;
@@ -37,8 +36,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierItemResultPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.outlier.OutlierObjectModel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel.IconWithLabel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.tables.outlier.panel.*;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
@@ -83,24 +80,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         container.setOutputMarkupId(true);
         add(container);
-
-        OutlierObjectModel outlierObjectModel;
-
-        PageBase pageBase = getPageBase();
-        RoleAnalysisService roleAnalysisService = pageBase.getRoleAnalysisService();
-        Task task = pageBase.createSimpleTask("loadOutlierDetails");
-        RoleAnalysisOutlierType outlierObject = getObjectDetailsModels().getObjectType();
-
-        outlierObjectModel = generateUserOutlierResultModelMain(roleAnalysisService, outlierObject, task, task.getResult(), getPageBase());
-
-        if (outlierObjectModel == null) {
-            Label label = new Label(ID_HEADER_ITEMS, "No outlier model found");
-            container.add(label);
-            return;
-        }
-
-//        RepeatingView cardBodyComponent = prepareHeadersOld(outlierObjectModel);
-//        container.add(cardBodyComponent);
 
         initDashboard(container);
 
@@ -185,44 +164,6 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         partitionPanel.setOutputMarkupId(true);
         container.add(partitionPanel);
 
-    }
-
-    @NotNull
-    private static RepeatingView prepareHeadersOld(OutlierObjectModel outlierObjectModel) {
-        RepeatingView cardBodyComponent = new RepeatingView(ID_HEADER_ITEMS);
-
-        outlierObjectModel.getOutlierItemModels()
-                .forEach(outlierItemModel
-                        -> {
-
-                    OutlierItemResultPanel components = new OutlierItemResultPanel(cardBodyComponent.newChildId(), outlierItemModel) {
-
-                        @Contract(pure = true)
-                        @Override
-                        protected @NotNull String getItemBoxCssStyle() {
-                            return "height:150px;";
-                        }
-
-                        @Contract(pure = true)
-                        @Override
-                        protected @NotNull String getItemBocCssClass() {
-                            return "small-box bg-white p-1";
-                        }
-
-                        @Contract(pure = true)
-                        @Override
-                        protected @NotNull String getLinkCssClass() {
-                            return "";
-                        }
-
-                        @Override
-                        protected String getInitialCssClass() {
-                            return "col-3";
-                        }
-                    };
-                    cardBodyComponent.add(components);
-                });
-        return cardBodyComponent;
     }
 
     protected void initDashboard(WebMarkupContainer container) {
@@ -354,10 +295,10 @@ public class RoleAnalysisOutlierAnalysisAspectsPanel extends AbstractObjectMainP
         List<RoleAnalysisOutlierPartitionType> outlierPartitions = outlier.getOutlierPartitions();
         int partitionCount = outlierPartitions.size();
         Set<String> anomalySet = new HashSet<>();
-        Set<RoleAnalysisOutlierNoiseCategoryType> outlierNoiseCategorySet = new HashSet<>();
+        Set<OutlierNoiseCategoryType> outlierNoiseCategorySet = new HashSet<>();
         for (RoleAnalysisOutlierPartitionType outlierPartition : outlierPartitions) {
             RoleAnalysisPartitionAnalysisType partitionAnalysis = outlierPartition.getPartitionAnalysis();
-            RoleAnalysisOutlierNoiseCategoryType outlierNoiseCategory = partitionAnalysis.getOutlierNoiseCategory();
+            OutlierNoiseCategoryType outlierNoiseCategory = partitionAnalysis.getOutlierCategory().getOutlierNoiseCategory();
             outlierNoiseCategorySet.add(outlierNoiseCategory);
             List<DetectedAnomalyResult> detectedAnomalyResult = outlierPartition.getDetectedAnomalyResult();
             for (DetectedAnomalyResult anomalyResult : detectedAnomalyResult) {

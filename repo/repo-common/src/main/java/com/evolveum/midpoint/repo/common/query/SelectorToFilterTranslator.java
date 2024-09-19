@@ -83,6 +83,7 @@ public class SelectorToFilterTranslator {
                 filterEvaluator,
                 ProcessingTracer.loggerBased(logger),
                 beans.repositoryService,
+                beans.repositoryService.isNative(),
                 null,
                 null,
                 null,

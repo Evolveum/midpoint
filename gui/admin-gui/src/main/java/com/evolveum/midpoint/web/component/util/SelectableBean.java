@@ -49,4 +49,5 @@ public interface SelectableBean<T extends Serializable> extends SelectableRow<T>
      */
     void setCustomData(Object data);
 
+    void setDetachCustomData(boolean detachCustomData);
 }

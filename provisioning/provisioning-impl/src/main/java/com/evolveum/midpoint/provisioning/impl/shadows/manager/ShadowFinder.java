@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil.transformQueryValues;
+import static com.evolveum.midpoint.schema.processor.ShadowsNormalizationUtil.transformQueryValues;
 import static com.evolveum.midpoint.schema.GetOperationOptions.updateToDistinct;
 import static com.evolveum.midpoint.schema.GetOperationOptions.zeroStalenessOptions;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.RepoShadow;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectShadow;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ShadowSimpleAttribute;
@@ -252,9 +251,7 @@ public class ShadowFinder {
         RawRepoShadow rawRepoShadow =
                 RawRepoShadow.selectLiveShadow(shadows, "when looking by attributes: " + attributes);
         if (rawRepoShadow != null) {
-            var repoShadow = ctx.adoptRawRepoShadow(rawRepoShadow);
-            checkConsistency(repoShadow);
-            return repoShadow;
+            return ctx.adoptRawRepoShadow(rawRepoShadow);
         } else {
             return null;
         }
@@ -312,10 +309,6 @@ public class ShadowFinder {
 
         // TODO: check for errors
         return searchRepoShadows(query, null, result);
-    }
-
-    private void checkConsistency(RepoShadow shadow) {
-        ProvisioningUtil.checkShadowActivationConsistency(shadow);
     }
 
     private @NotNull ObjectQuery createQueryByPrimaryId(

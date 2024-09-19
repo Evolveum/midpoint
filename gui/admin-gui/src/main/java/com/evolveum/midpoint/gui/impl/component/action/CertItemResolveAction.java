@@ -37,6 +37,8 @@ public class CertItemResolveAction extends AbstractCertItemDecisionAction {
     private static final String DOT_CLASS = CertItemResolveAction.class.getName() + ".";
     private static final String OPERATION_RECORD_ACTION = DOT_CLASS + "recordCertItemAction";
 
+    List<AccessCertificationResponseType> configuredResponses;
+
     public CertItemResolveAction() {
         super();
     }
@@ -47,22 +49,28 @@ public class CertItemResolveAction extends AbstractCertItemDecisionAction {
 
     //todo should be unified with parent in future
     @Override
-    protected void showActionConfigurationPanel(ContainerPanelConfigurationType panelConfig,
-            List<AccessCertificationWorkItemType> workItems, PageBase pageBase, AjaxRequestTarget target) {
-        ResolveItemPanel resolveItemPanel = new ResolveItemPanel(pageBase.getMainPopupBodyId(), Model.of(panelConfig)) {
+    protected void showActionConfigurationPanel(ContainerPanelConfigurationType panelConfig, List<AccessCertificationWorkItemType> objectsToProcess,
+            PageBase pageBase, AjaxRequestTarget target) {
+        ContainerPanelConfigurationType panel = new ContainerPanelConfigurationType();
+        panel.setType(AccessCertificationWorkItemType.COMPLEX_TYPE);
+        ResolveItemPanel resolveItemPanel = new ResolveItemPanel(pageBase.getMainPopupBodyId(), Model.of(panel)) {
             @Serial private static final long serialVersionUID = 1L;
 
             @Override
             protected void confirmPerformedWithDeltas(AjaxRequestTarget target, Collection<ItemDelta<?, ?>> deltas) {
-                confirmActionPerformed(target, workItems, deltas, pageBase);
+                confirmActionPerformed(target, objectsToProcess, deltas, pageBase);
             }
 
             @Override
             protected List<AccessCertificationResponseType> getResponses() {
-                return CertItemResolveAction.this.getResponses(workItems, pageBase);
+                return CertItemResolveAction.this.getResponses(objectsToProcess, pageBase);
             }
         };
         pageBase.showMainPopup(resolveItemPanel, target);
+    }
+
+    protected boolean isConfigurationPanelVisible() {
+        return true;
     }
 
     private List<AccessCertificationResponseType> getResponses(List<AccessCertificationWorkItemType> certItems, PageBase pageBase) {
@@ -96,5 +104,9 @@ public class CertItemResolveAction extends AbstractCertItemDecisionAction {
     protected boolean isVisibleForRow(AccessCertificationWorkItemType certItem) {
         String itemResponse = certItem != null && certItem.getOutput() != null ? certItem.getOutput().getOutcome() : null;
         return certItem == null || itemResponse == null;
+    }
+
+    public void setConfiguredResponses(List<AccessCertificationResponseType> configuredResponses) {
+        this.configuredResponses = configuredResponses;
     }
 }

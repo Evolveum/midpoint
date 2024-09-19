@@ -14,6 +14,13 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaRegistry;
+
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +49,7 @@ public class NinjaContext implements Closeable {
     private static final String AUDIT_SERVICE_BEAN = "auditService";
 
     private static final String CTX_NINJA = "classpath*:ctx-ninja.xml";
+    private static final String RESOURCE_SCHEMA_REGISTRY_BEAN = "resourceSchemaRegistry";
 
     public final PrintStream out;
 
@@ -66,6 +74,7 @@ public class NinjaContext implements Closeable {
     private SchemaService schemaService;
 
     private final Map<String, String> systemPropertiesBackup = new HashMap<>();
+    private ResourceSchemaRegistry resourceSchemaRegistry;
 
     public NinjaContext(
             @NotNull PrintStream out,
@@ -194,8 +203,6 @@ public class NinjaContext implements Closeable {
             return "sqlserver";
         } else if (postfix.startsWith("oracle")) {
             return "oracle";
-        } else if (postfix.startsWith("h2")) {
-            return "h2";
         }
 
         throw new IllegalStateException("Unknown database for url " + url);
@@ -239,6 +246,26 @@ public class NinjaContext implements Closeable {
 
         repository = getApplicationContext().getBean(REPOSITORY_SERVICE_BEAN, RepositoryService.class);
         return repository;
+    }
+
+    public synchronized ResourceSchemaRegistry getResourceSchemaRegistry() {
+        if (resourceSchemaRegistry != null) {
+            return resourceSchemaRegistry;
+        }
+
+        resourceSchemaRegistry = getApplicationContext().getBean(RESOURCE_SCHEMA_REGISTRY_BEAN, ResourceSchemaRegistry.class);
+        resourceSchemaRegistry.registerResourceObjectLoader( oid -> {
+            try {
+                var result = new OperationResult("loading object");
+                return getRepository().getObject(ResourceType.class, oid, null, result);
+            } catch (Exception e) {
+                // Fail silently.
+            }
+            return null;
+                }
+        );
+
+        return resourceSchemaRegistry;
     }
 
     public AuditService getAuditService() {

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.*;
 import com.evolveum.midpoint.gui.impl.component.data.column.*;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.inducement.InducedEntitlementsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.certification.PageMyCertItems;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.CampaignActionButton;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.gui.impl.util.IconAndStylesUtil;
@@ -1066,8 +1066,8 @@ public class ColumnUtils {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationCampaignType>> rowModel) {
                 PageParameters parameters = new PageParameters();
-                parameters.set(PageCertDecisions.CAMPAIGN_OID_PARAMETER, rowModel.getObject().getValue().getOid());
-                pageBase.navigateToNext(PageCertDecisions.class, parameters);
+                parameters.set(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getValue().getOid());
+                pageBase.navigateToNext(PageMyCertItems.class, parameters);
             }
         };
         columns.add(column);
@@ -1836,74 +1836,147 @@ public class ColumnUtils {
 
     public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducedAssociationsColumns(
             IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
+        return createAssignmentConstructionColumns(containerModel, true, true, false, page);
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducementConstructionColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
+        return createAssignmentConstructionColumns(containerModel, false, true, true, page);
+    }
+
+    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
+        return createAssignmentConstructionColumns(containerModel, false, false, false, page);
+    }
+
+    private static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, boolean showColumnForValue, boolean showAssociation,
+            boolean showApplyFor, PageBase page) {
 
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(
-                new PrismPropertyWrapperColumn<AssignmentType, String>(
-                        containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), AbstractItemWrapperColumn.ColumnType.STRING, page));
-
-        columns.add(
-                new PrismPropertyWrapperColumn<AssignmentType, String>(
-                        containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), AbstractItemWrapperColumn.ColumnType.STRING, page));
-
-        columns.add(
-                new PrismContainerWrapperColumn<>(
-                        containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), page));
-
-        columns.add(new AbstractColumn<>(createStringResource("InducedEntitlements.value")) {
+        columns.add(new AbstractColumn<>(createStringResource("SchemaHandlingType.objectType")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(
-                    org.apache.wicket.markup.repeater.Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                    Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
                     String componentId,
-                    final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                    IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
 
-                ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
-                List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
-                                expressionType,
-                                page.getPrismContext()),
-                        OPERATION_LOAD_SHADOW_OBJECT, page);
+                IModel<String> objectTypeModel = () -> {
+                    PrismContainerValueWrapper<AssignmentType> wrapper = rowModel.getObject();
 
-                MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<>(componentId,
-                        Model.ofList(shadowsList), Collections.singletonList(ShadowType.class), false) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected ObjectFilter getCustomFilter() {
-                        ConstructionType construction = rowModel.getObject().getRealValue().getConstruction();
-                        return ProvisioningObjectsUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE_OBJECT,
-                                page);
+                    AssignmentType inducement = unwrapRowRealValue(wrapper);
+                    if (inducement != null && inducement.getConstruction() != null) {
+                        return AssignmentsUtil.getObjectTypeFromConstruction(inducement.getConstruction(), page);
                     }
-
-                    @Override
-                    protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
-                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
-                            ExpressionType expression = ProvisioningObjectsUtil.getAssociationExpression(rowModel.getObject(), getPageBase());
-                            ExpressionUtil.removeShadowRefEvaluatorValue(expression, shadow.getOid(), getPageBase().getPrismContext());
-                        }
-                    }
-
-                    @Override
-                    protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
-                        ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
-                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
-                            ExpressionType expression = getExpressionFromRowModel(rowModel, true);
-                            ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid());
-                        }
-                    }
-
-                    @Override
-                    protected void selectPerformed(AjaxRequestTarget target, List<ShadowType> chosenValues) {
-                        addPerformed(target, chosenValues);
-                    }
-
+                    return "";
                 };
-                valuesPanel.setOutputMarkupId(true);
-                item.add(valuesPanel);
+
+                item.add(new Label(componentId, objectTypeModel));
             }
         });
+
+        if (showAssociation) {
+            columns.add(
+                    new PrismContainerWrapperColumn<>(
+                            containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), page));
+        }
+
+        if (showColumnForValue) {
+            columns.add(new AbstractColumn<>(createStringResource("InducedEntitlements.value")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void populateItem(
+                        org.apache.wicket.markup.repeater.Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                        String componentId,
+                        final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+
+                    ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
+                    List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
+                                    expressionType,
+                                    page.getPrismContext()),
+                            OPERATION_LOAD_SHADOW_OBJECT, page);
+
+                    MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<>(componentId,
+                            Model.ofList(shadowsList), Collections.singletonList(ShadowType.class), false) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        protected ObjectFilter getCustomFilter() {
+                            ConstructionType construction = rowModel.getObject().getRealValue().getConstruction();
+                            return ProvisioningObjectsUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE_OBJECT,
+                                    page);
+                        }
+
+                        @Override
+                        protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
+                            if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
+                                ExpressionType expression = ProvisioningObjectsUtil.getAssociationExpression(rowModel.getObject(), getPageBase());
+                                ExpressionUtil.removeShadowRefEvaluatorValue(expression, shadow.getOid(), getPageBase().getPrismContext());
+                            }
+                        }
+
+                        @Override
+                        protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
+                            ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
+                            if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
+                                ExpressionType expression = getExpressionFromRowModel(rowModel, true);
+                                ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid());
+                            }
+                        }
+
+                        @Override
+                        protected void selectPerformed(AjaxRequestTarget target, List<ShadowType> chosenValues) {
+                            addPerformed(target, chosenValues);
+                        }
+
+                    };
+                    valuesPanel.setOutputMarkupId(true);
+                    item.add(valuesPanel);
+                }
+            });
+        }
+
+        if (showApplyFor) {
+            columns.add(new AbstractColumn<>(createStringResource("AssignmentConstruction.inducementFor")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void populateItem(
+                        Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item,
+                        String componentId,
+                        IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+
+                    IModel<String> objectTypeModel = () -> {
+                        PrismContainerValueWrapper<AssignmentType> wrapper = rowModel.getObject();
+
+                        AssignmentType inducement = unwrapRowRealValue(wrapper);
+                        if (inducement != null) {
+                            QName focus = inducement.getFocusType() != null ? inducement.getFocusType() : ObjectType.COMPLEX_TYPE;
+                            Integer order = inducement.getOrder();
+                            String translatedFocus = focus.getLocalPart();
+                            if (ObjectTypes.getObjectTypeFromTypeQNameIfKnown(focus) != null) {
+                                translatedFocus = WebComponentUtil.translateMessage(
+                                        ObjectTypeUtil.createTypeDisplayInformation(focus, true));
+                            }
+                            if (order != null) {
+                                return translatedFocus + " "
+                                        + LocalizationUtil.translate(
+                                                "AssignmentConstruction.inducementFor.suffix",
+                                                new Object[]{order});
+                            }
+                            return translatedFocus;
+                        }
+                        return "";
+                    };
+
+                    item.add(new Label(componentId, objectTypeModel));
+                }
+            });
+        }
 
         return columns;
     }

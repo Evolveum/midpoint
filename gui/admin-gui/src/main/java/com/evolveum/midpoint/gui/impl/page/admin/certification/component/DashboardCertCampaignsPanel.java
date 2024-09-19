@@ -18,8 +18,8 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.wicket.chartjs.DoughnutChartConfiguration;
 
@@ -105,7 +105,7 @@ public class DashboardCertCampaignsPanel extends ObjectListPanel<AccessCertifica
                         (SelectableBeanObjectDataProvider) getDataProvider();
                 if (provider != null && provider.getAvailableData().size() == 1) {
                     PageParameters parameters = new PageParameters();
-                    parameters.add(PageCertDecisions.CAMPAIGN_OID_PARAMETER, provider.getAvailableData().get(0).getValue().getOid());
+                    parameters.add(OnePageParameterEncoder.PARAMETER, provider.getAvailableData().get(0).getValue().getOid());
                     return parameters;
                 }
                 return null;

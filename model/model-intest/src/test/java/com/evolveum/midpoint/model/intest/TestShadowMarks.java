@@ -1,22 +1,24 @@
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAGED;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_PROTECTED;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.MARK_UNMANAGED;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT;
 
 import java.io.File;
+import java.util.List;
 
-import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.model.common.MarkManager;
 
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.schema.util.ShadowBuilder;
+
+import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -26,10 +28,15 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestObject;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
@@ -61,6 +68,8 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
 
     private static final String TYPE_TESTER = "tester";
     private static final String INTENT_TESTER = "tester";
+    private static final String TYPE_DEVELOPER = "developer";
+    private static final String INTENT_DEVELOPER = "developer";
 
     private String markNoSyncOid;
 
@@ -229,7 +238,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    void test300ImportUserWithBrokenMapping() throws Exception {
+    public void test300ImportUserWithBrokenMapping() throws Exception {
         var result = createOperationResult();
         DummyAccount account1 = RESOURCE_SHADOW_MARKS.controller.addAccount("broken");
         account1.addAttributeValue(ATTR_GIVEN_NAME, "Karl");
@@ -262,7 +271,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
      * We check that the mappings work as expected.
      */
     @Test
-    void test400TestShadowUnmanagedToManaged() throws Exception {
+    public void test400TestShadowUnmanagedToManaged() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var userName = getTestNameShort();
@@ -283,6 +292,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         then("the user is there, account is Unmanaged");
         var userAsserter = assertUserByUsername(userName, "after initial import")
                 .display()
+                .displayXml()
                 .withObjectResolver(createSimpleModelObjectResolver())
                 .assertGivenName("John")
                 .assertFamilyName("Tester")
@@ -291,6 +301,8 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
                 .singleLink()
                 .resolveTarget()
                 .display()
+                .displayXml()
+                .asShadow()
                 .assertIntent(INTENT_TESTER)
                 .assertEffectiveMarks(MARK_UNMANAGED.oid);
         var userOid = userAsserter.getOid();
@@ -371,7 +383,7 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
      * Otherwise, the account would get immediately re-created.
      */
     @Test
-    void test410TestUnmanagedShadowDeletion() throws Exception {
+    public void test410TestUnmanagedShadowDeletion() throws Exception {
         var task = getTestTask();
         var result = task.getResult();
         var userName = getTestNameShort();
@@ -428,5 +440,222 @@ public class TestShadowMarks extends AbstractEmptyModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_SHADOW_MARKS.name, userName);
         assertUserAfter(userOid)
                 .assertLinks(0, 1);
+    }
+
+    /**
+     * Default operation policy for `account/developer` is `unmanaged`.
+     * When we try to create such an account (by assigning the construction), the creation should not be attempted.
+     *
+     * Executed via "real" user addition operation.
+     *
+     * MID-9979
+     */
+    @Test
+    public void test420AssignUnmanagedAccount() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        when("a user with account/developer is created (default policy is 'unmanaged')");
+        var userOid = traced(() -> addObject(
+                new UserType()
+                        .name(userName)
+                        .assignment(RESOURCE_SHADOW_MARKS.assignmentWithConstructionOf(ACCOUNT, INTENT_DEVELOPER)),
+                task, result));
+
+        then("everything is OK, no account is created");
+        assertSuccess(result);
+        assertUserAfter(userOid)
+                .assertLinks(0, 0);
+    }
+
+    /**
+     * As {@link #test420AssignUnmanagedAccount()} but using preview changes instead.
+     *
+     * MID-9979
+     */
+    @Test
+    public void test425AssignUnmanagedAccountPreviewChanges() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a user");
+        var userOid = addObject(
+                new UserType()
+                        .name(userName),
+                task, result);
+
+        when("a preview of assigning account/developer is executed (default policy is 'unmanaged')");
+        var lensContext = previewChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(RESOURCE_SHADOW_MARKS.assignmentWithConstructionOf(ACCOUNT, INTENT_DEVELOPER))
+                        .asObjectDelta(userOid),
+                null, task, result);
+
+        then("everything is OK, and there are no projection contexts");
+        assertSuccess(result);
+        displayDumpable("lens context", lensContext);
+        assertThat(lensContext.getProjectionContexts())
+                .as("projection contexts")
+                .isEmpty();
+    }
+
+    /**
+     * Tests lifecycle-aware default operation policy for `account/developer` (MID-9972):
+     * for production, it is `unmanaged`, while we are experimenting with `managed` for the development mode.
+     */
+    @Test
+    public void test500TestLifecycleAwareDefaultOperationPolicy() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = getTestNameShort();
+
+        given("a new developer account is created on the resource");
+        RESOURCE_SHADOW_MARKS.controller.addAccount(userName)
+                .addAttributeValue(ATTR_GIVEN_NAME, "John")
+                .addAttributeValue(ATTR_FAMILY_NAME, "Developer")
+                .addAttributeValue(ATTR_TYPE, TYPE_DEVELOPER);
+
+        when("the account is imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue(userName)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .executeOnForeground(result);
+
+        then("the user is there");
+        var userAsserter = assertUserByUsername(userName, "after initial import")
+                .display()
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .assertGivenName("John")
+                .assertFamilyName("Developer");
+        var shadowAsserter = userAsserter
+                .singleLink()
+                .resolveTarget()
+                .display()
+                .assertIntent(INTENT_DEVELOPER);
+        var userOid = userAsserter.getOid();
+        var shadowOid = shadowAsserter.getOid();
+
+        then("the shadow has 'unmanaged' policy (as a default)");
+        var shadow = provisioningService.getShadow(shadowOid, null, task, result);
+        assertThat(shadow.getEffectiveOperationPolicyRequired().getSynchronize().getOutbound().isEnabled())
+                .as("outbound sync policy for %s", shadow)
+                .isEqualTo(false);
+
+        when("a user change is simulated in the development mode");
+        ObjectDelta<UserType> givenNameDelta = deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).replace(PolyString.fromOrig("Johnny"))
+                .asObjectDelta(userOid);
+        givenNameDelta.freeze();
+
+        var simResult1 =
+                executeDeltasInDevelopmentSimulationMode(
+                        List.of(givenNameDelta),
+                        defaultSimulationDefinition(),
+                        task, result);
+
+        then("there should be a givenName change in the account");
+        assertProcessedObjects(simResult1, "in development mode")
+                .by().objectType(ShadowType.class).find(po ->
+                        po.delta(d ->
+                                d.assertModification(
+                                        ShadowType.F_ATTRIBUTES.append(ATTR_GIVEN_NAME),
+                                        "Johnny")));
+
+        when("a user change is simulated in the production mode");
+        var simResult2 =
+                executeInProductionSimulationMode(
+                        List.of(givenNameDelta),
+                        defaultSimulationDefinition(),
+                        task, result);
+
+        then("the account should not be going to be changed");
+        assertProcessedObjects(simResult2, "in production mode")
+                .by().objectType(ShadowType.class).find(po ->
+                        po.assertState(ObjectProcessingStateType.UNMODIFIED));
+    }
+
+    /**
+     * Tests lifecycle-aware policy statements (loosely related to MID-9972):
+     * an account is protected, but we simulate the removal of this mark.
+     */
+    @Test
+    public void test510TestDevelopmentModePolicyStatement() throws Exception {
+        var task = getTestTask();
+        var result = task.getResult();
+        var userName = "_" + getTestNameShort();
+
+        given("a new protected developer account is created on the resource");
+        RESOURCE_SHADOW_MARKS.controller.addAccount(userName)
+                .addAttributeValue(ATTR_GIVEN_NAME, "Protected")
+                .addAttributeValue(ATTR_FAMILY_NAME, "Developer")
+                .addAttributeValue(ATTR_TYPE, TYPE_DEVELOPER);
+
+        when("the account is tried to be imported");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue(userName)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .executeOnForeground(result);
+
+        then("the user is NOT there, but the shadow is");
+        assertNoUserByUsername(userName);
+        var shadowAfterImport = findShadowRequest()
+                .withResource(RESOURCE_SHADOW_MARKS.getObjectable())
+                .withTypeIdentification(ResourceObjectTypeIdentification.of(ACCOUNT, INTENT_DEVELOPER))
+                .withNameValue(userName)
+                .findRequired(task, result);
+        assertShadow(shadowAfterImport.getPrismObject(), "after import")
+                .display()
+                .assertProtected()
+                .getObjectable();
+
+        when("the shadow is marked as unmanaged, not protected, but only in the development mode");
+        markShadow(
+                shadowAfterImport.getOid(),
+                PolicyStatementTypeType.APPLY,
+                MARK_UNMANAGED.oid,
+                SchemaConstants.LIFECYCLE_PROPOSED,
+                task,
+                result);
+        markShadow(
+                shadowAfterImport.getOid(),
+                PolicyStatementTypeType.EXCLUDE,
+                MARK_PROTECTED.oid,
+                SchemaConstants.LIFECYCLE_PROPOSED,
+                task,
+                result);
+
+        then("the shadow is still protected (in production mode - persistent effects)");
+        importAccountsRequest()
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue(userName)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .executeOnForeground(result);
+        assertNoUserByUsername(userName);
+
+        and("the shadow is still protected (in production mode - simulated effects)");
+        var simResult1 = importAccountsRequest()
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue(userName)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .simulatedProduction()
+                .executeOnForegroundSimulated(null, task, result);
+        assertProcessedObjects(simResult1, "in production mode")
+                .assertSize(0); // ignored because it's protected
+
+        and("the shadow is no longer protected (in development mode - simulated effects)");
+        var simResult2 = importAccountsRequest()
+                .withResourceOid(RESOURCE_SHADOW_MARKS.oid)
+                .withNameValue(userName)
+                .withWholeObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .simulatedDevelopment()
+                .executeOnForegroundSimulated(null, task, result);
+        assertProcessedObjects(simResult2, "in development mode")
+                .by().objectType(UserType.class).find(po -> po.assertState(ObjectProcessingStateType.ADDED))
+                .by().objectType(ShadowType.class).find(po -> po.assertState(ObjectProcessingStateType.UNMODIFIED));
     }
 }

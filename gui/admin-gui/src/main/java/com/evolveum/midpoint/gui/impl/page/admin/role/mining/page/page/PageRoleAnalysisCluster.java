@@ -9,14 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page;
 import java.io.Serial;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.component.InlineOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterOperationButtonPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.panel.cluster.RoleAnalysisClusterSummaryPanel;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -35,10 +36,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.component.AssignmentHolderOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.util.DetailsPageUtil;
 import com.evolveum.midpoint.model.api.mining.RoleAnalysisService;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -48,6 +47,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
 
 //TODO correct authorizations
 @PageDescriptor(
@@ -77,14 +78,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
     @Override
     protected String getMainPanelCssStyle() {
         //TODO it make trouble on overview pages (borders are not visible)
-        return "align-items: stretch; overflow: hidden";
-    }
-
-    @Override
-    protected AssignmentHolderOperationalButtonsPanel<RoleAnalysisClusterType> createButtonsPanel(
-            String id,
-            LoadableModel<PrismObjectWrapper<RoleAnalysisClusterType>> wrapperModel) {
-        return super.createButtonsPanel(id, wrapperModel);
+        return "align-items:stretch;overflow:visible;min-width:0;";
     }
 
     @Override
@@ -114,13 +108,13 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         }
 
         RoleAnalysisOptionType analysisOption = session.asObjectable().getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+        if (procedureType == null || procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             return;
         }
 
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_OBJECT_TASK_ICON, LayeredIconCssStyle.IN_ROW_STYLE);
+                GuiStyleConstants.CLASS_OBJECT_TASK_ICON, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton detection = new AjaxCompositedIconSubmitButton(
                 repeatingView.newChildId(),
                 iconBuilder.build(),
@@ -139,7 +133,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         };
         detection.titleAsLabel(true);
         detection.setOutputMarkupId(true);
-        detection.add(AttributeAppender.append("class", "btn btn-primary btn-sm"));
+        detection.add(AttributeModifier.append(CLASS_CSS, "btn btn-primary "));
         repeatingView.add(detection);
 
         Form<?> form = detection.findParent(Form.class);
@@ -216,19 +210,14 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         }
 
         RoleAnalysisOptionType analysisOption = session.asObjectable().getAnalysisOption();
-        RoleAnalysisCategoryType analysisCategory = analysisOption.getAnalysisCategory();
-        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
+        RoleAnalysisProcedureType procedureType = analysisOption.getAnalysisProcedureType();
+        if (procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
             roleAnalysisService.deleteClusterOutlierOrPartition(cluster, task, result);
         }
     }
 
     public PageRoleAnalysisCluster() {
         super();
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
     }
 
     @Override
@@ -260,6 +249,8 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
                 .getObject()
                 .asObjectable();
 
+        RoleAnalysisClusterCategory category = cluster.getCategory();
+
         RoleAnalysisService roleAnalysisService = getRoleAnalysisService();
         PageBase pageBase = (PageBase) getPage();
         Task task = pageBase.createSimpleTask("Resolving cluster option type");
@@ -267,34 +258,72 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         RoleAnalysisOptionType roleAnalysisOptionType = roleAnalysisService
                 .resolveClusterOptionType(cluster.asPrismObject(), task, task.getResult());
 
-        RoleAnalysisCategoryType analysisCategory = roleAnalysisOptionType.getAnalysisCategory();
-        if (analysisCategory == null) {
+        RoleAnalysisProcedureType procedureType = roleAnalysisOptionType.getAnalysisProcedureType();
+        if (procedureType == null) {
             return super.getPanelConfigurations();
         }
 
         List<ContainerPanelConfigurationType> object = panelConfigurations.getObject();
         for (ContainerPanelConfigurationType containerPanelConfigurationType : object) {
             if (containerPanelConfigurationType.getIdentifier().equals("actions")) {
-                List<ContainerPanelConfigurationType> panel = containerPanelConfigurationType.getPanel();
-                for (ContainerPanelConfigurationType panelType : panel) {
-                    if (panelType.getIdentifier().equals("outlierPanel")) {
-                        if (!analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                            panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                        }
-                    } else if (!panelType.getIdentifier().equals("outlierPanel")) {
-                        if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                            panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                        }
-                    }
-                }
-            } else if (containerPanelConfigurationType.getIdentifier().equals("detectedPattern")) {
-                if (analysisCategory.equals(RoleAnalysisCategoryType.OUTLIERS)) {
-                    containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
-                }
+                resolveActionPanel(containerPanelConfigurationType, category, roleAnalysisOptionType);
+            } else if (containerPanelConfigurationType.getIdentifier().equals("detectedPattern")
+                    && procedureType.equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+                containerPanelConfigurationType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
             }
+
         }
 
         return panelConfigurations;
+    }
+
+    private static void resolveActionPanel(
+            @NotNull ContainerPanelConfigurationType containerPanelConfigurationType,
+            @NotNull RoleAnalysisClusterCategory category,
+            @NotNull RoleAnalysisOptionType analysisOption) {
+        List<ContainerPanelConfigurationType> panel = containerPanelConfigurationType.getPanel();
+        for (ContainerPanelConfigurationType panelType : panel) {
+            String identifier = panelType.getIdentifier();
+            if (category == RoleAnalysisClusterCategory.OUTLIERS) {
+                resolveOutlierClusterActionPanel(analysisOption, panelType, identifier);
+            } else {
+                resolveBasicClusterPanel(analysisOption, panelType, identifier);
+            }
+        }
+    }
+
+    private static void resolveBasicClusterPanel(
+            @NotNull RoleAnalysisOptionType analysisOption,
+            @NotNull ContainerPanelConfigurationType panelType,
+            @NotNull String identifier) {
+        if (identifier.equals("outlierPanel")) {
+            if (!analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+                panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            }
+        } else if (identifier.equals("uniqueOutlierPanel") || identifier.equals("accessNoiseOutlierPanel")) {
+            panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+        } else {
+            if (analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+                panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            }
+        }
+    }
+
+    private static void resolveOutlierClusterActionPanel(
+            @NotNull RoleAnalysisOptionType analysisOption,
+            @NotNull ContainerPanelConfigurationType panelType,
+            @NotNull String identifier) {
+        if (identifier.equals("outlierPanel")
+                || identifier.equals("uniqueOutlierPanel")
+                || identifier.equals("accessNoiseOutlierPanel")) {
+            if (!analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+                panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            }
+        } else {
+            if (analysisOption.getAnalysisProcedureType().equals(RoleAnalysisProcedureType.OUTLIER_DETECTION)) {
+                panelType.setVisibility(UserInterfaceElementVisibilityType.HIDDEN);
+            }
+        }
     }
 
     @Override
@@ -346,7 +375,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
 
     private void initEditConfigurationButton(@NotNull RepeatingView repeatingView) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
-                LayeredIconCssStyle.IN_ROW_STYLE);
+                IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton editConfigurationButton = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(),
                 iconBuilder.build(),
                 ((PageBase) getPage()).createStringResource("PageRoleAnalysisCluster.button.configure")) {
@@ -372,7 +401,7 @@ public class PageRoleAnalysisCluster extends PageAssignmentHolderDetails<RoleAna
         };
         editConfigurationButton.titleAsLabel(true);
         editConfigurationButton.setOutputMarkupId(true);
-        editConfigurationButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        editConfigurationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default "));
         repeatingView.add(editConfigurationButton);
     }
 

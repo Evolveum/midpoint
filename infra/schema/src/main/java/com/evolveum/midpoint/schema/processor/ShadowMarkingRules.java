@@ -31,6 +31,8 @@ import com.evolveum.midpoint.schema.config.AbstractResourceObjectDefinitionConfi
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Rules that drive automatic shadow marking.
  *
@@ -94,7 +96,7 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
                             sourcePattern.getObjectDefinition(),
                             evaluator.evaluate(sourcePattern.getFilter(), result)));
         }
-        return new MarkingRule(sourceRule.getApplicationTime(), transformedPatterns);
+        return sourceRule.transformPatterns(transformedPatterns);
     }
 
     @Override
@@ -109,6 +111,9 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
     /** Rule for a single shadow mark. */
     public static class MarkingRule implements Serializable, DebugDumpable {
 
+        /** PCV ID of the defining bean, if applicable. */
+        @Nullable private final Long ruleId;
+
         /** When is this rule applied? */
         @NotNull private final ShadowMarkApplicationTimeType applicationTime;
 
@@ -116,7 +121,10 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
         @NotNull private final Collection<ResourceObjectPattern> patterns;
 
         private MarkingRule(
-                @NotNull ShadowMarkApplicationTimeType applicationTime, @NotNull Collection<ResourceObjectPattern> patterns) {
+                @Nullable Long ruleId,
+                @NotNull ShadowMarkApplicationTimeType applicationTime,
+                @NotNull Collection<ResourceObjectPattern> patterns) {
+            this.ruleId = ruleId;
             this.applicationTime = applicationTime;
             this.patterns = List.copyOf(patterns);
         }
@@ -141,9 +149,22 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
             return false;
         }
 
+        MarkingRule transformPatterns(ArrayList<ResourceObjectPattern> transformedPatterns) {
+            return new MarkingRule(ruleId, applicationTime, transformedPatterns);
+        }
+
+        public boolean isTransitional() {
+            return applicationTime != ShadowMarkApplicationTimeType.ALWAYS;
+        }
+
+        public @Nullable Long getRuleId() {
+            return ruleId;
+        }
+
         @Override
         public String debugDump(int indent) {
             var sb = DebugUtil.createTitleStringBuilderLn(MarkingRule.class, indent);
+            DebugUtil.debugDumpWithLabelLn(sb, "ID", ruleId, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "Application time", applicationTime, indent + 1);
             DebugUtil.debugDumpWithLabel(sb, "Patterns", patterns, indent + 1);
             return sb.toString();
@@ -181,26 +202,29 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
                 parsedRulesMap.put(
                         markOid,
                         parseMarkingRule(
+                                markingDefBean.getId(),
                                 requireNonNullElse(markingDefBean.getApplicationTime(), ShadowMarkApplicationTimeType.ALWAYS),
                                 markingDefBean.getPattern()));
             }
 
-            var legacyProtectedPatternBean = definitionCI.value().getProtected();
-            if (!legacyProtectedPatternBean.isEmpty()) {
+            var legacyProtectedPatternsBeans = definitionCI.value().getProtected();
+            if (!legacyProtectedPatternsBeans.isEmpty()) {
                 definitionCI.configCheck(
                         !parsedRulesMap.containsKey(MARK_PROTECTED_OID),
                         "Protected objects cannot be specified in both legacy and modern way in %s", DESC);
                 parsedRulesMap.put(
                         MARK_PROTECTED_OID,
                         parseMarkingRule(
+                                null,
                                 ShadowMarkApplicationTimeType.ALWAYS,
-                                legacyProtectedPatternBean));
+                                legacyProtectedPatternsBeans));
             }
 
             return parsedRulesMap;
         }
 
         private MarkingRule parseMarkingRule(
+                @Nullable Long ruleId,
                 @NotNull ShadowMarkApplicationTimeType applicationTime,
                 @NotNull Collection<ResourceObjectPatternType> patternBeans) throws ConfigurationException {
             var prismObjectDef = definition.getPrismObjectDefinition();
@@ -208,7 +232,7 @@ public class ShadowMarkingRules implements Serializable, DebugDumpable {
             for (var patternBean : patternBeans) {
                 patterns.add(convertToPattern(patternBean, prismObjectDef));
             }
-            return new MarkingRule(applicationTime, patterns);
+            return new MarkingRule(ruleId, applicationTime, patterns);
         }
 
         private ResourceObjectPattern convertToPattern(

@@ -10,6 +10,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -175,6 +177,10 @@ public class ExtensionProcessor {
             // XMLGregorianCalendar stores only millis, but we cut it to 3 fraction digits
             // to make the behavior explicit and consistent.
             return ExtUtils.extensionDateTime((XMLGregorianCalendar) realValue);
+        }
+
+        if (realValue instanceof ProtectedDataType<?> data) {
+            return JsonbUtils.protectedDataToMap(data);
         }
 
         throw new IllegalArgumentException(

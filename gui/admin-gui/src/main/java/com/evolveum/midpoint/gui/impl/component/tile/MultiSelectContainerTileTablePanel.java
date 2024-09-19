@@ -39,10 +39,6 @@ public abstract class MultiSelectContainerTileTablePanel<E extends Serializable,
         this.model = model;
     }
 
-    protected Component getSelectedItemPanel() {
-        return get(createComponentPath(ID_HEADER, ID_SELECTED_ITEMS_CONTAINER));
-    }
-
     @Override
     protected MultivalueContainerListDataProvider<C> createProvider() {
         return new MultivalueContainerListDataProvider<>(

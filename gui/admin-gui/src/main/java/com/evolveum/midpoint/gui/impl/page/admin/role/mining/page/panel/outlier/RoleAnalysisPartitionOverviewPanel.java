@@ -122,7 +122,7 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
             protected @NotNull String replaceWidgetCssClass() {
                 String css = super.replaceWidgetCssClass();
                 String thisCss = RoleAnalysisPartitionOverviewPanel.this.replaceWidgetCssClass();
-                if(thisCss != null) {
+                if (thisCss != null) {
                     return thisCss;
                 }
 
@@ -211,6 +211,10 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
 
                     @Override
                     public Component createDescriptionComponent(String id) {
+                        if (patternAnalysis == null) {
+                            return new Label(id, 0);
+                        }
+
                         String localizedKey = "RoleAnalysisOutlierType.widget.patterns.description.single";
                         if (patternAnalysis.getDetectedPatternCount() > 1) {
                             localizedKey = "RoleAnalysisOutlierType.widget.patterns.description.multiple";
@@ -220,7 +224,10 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
 
                     @Override
                     public Component createValueComponent(String id) {
-                        Double confidence = patternAnalysis.getConfidence();
+                        Double confidence = 0.0;
+                        if (patternAnalysis != null) {
+                            confidence = patternAnalysis.getConfidence();
+                        }
                         String title = createStringResource("RoleAnalysisOutlierType.widget.patterns.confidence")
                                 .getString();
                         return getDensityProgressPanel(id, confidence, title);
@@ -233,8 +240,12 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
 
                     @Override
                     public Component createFooterComponent(String id) {
+                        int detectedPatternCount = 0;
+                        if (patternAnalysis != null) {
+                            detectedPatternCount = patternAnalysis.getDetectedPatternCount();
+                        }
                         return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.patterns.footer",
-                                patternAnalysis.getDetectedPatternCount()));
+                                detectedPatternCount));
                     }
                 },
                 new WidgetItemModel(createStringResource(""),
@@ -248,14 +259,22 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                     @Override
                     public Component createDescriptionComponent(String id) {
                         String localizedKey = "RoleAnalysisOutlierType.widget.similarity.description.single";
-                        double confidence = partitionAnalysis.getOutlierAssignmentFrequencyConfidence();
+                        double confidence = 0.0;
+                        double threshold = 0.0;
+                        if (partitionAnalysis.getSimilarObjectAnalysis() != null) {
+                            confidence = partitionAnalysis.getOutlierAssignmentFrequencyConfidence();
+                            threshold = partitionAnalysis.getSimilarObjectAnalysis().getSimilarObjectsThreshold();
+                        }
                         return new Label(id, createStringResource(localizedKey,
-                                partitionAnalysis.getSimilarObjectAnalysis().getSimilarObjectsThreshold(), confidence));
+                                threshold, confidence));
                     }
 
                     @Override
                     public Component createValueComponent(String id) {
-                        double confidence = partitionAnalysis.getSimilarObjectAnalysis().getSimilarObjectsDensity();
+                        double confidence = 0.0;
+                        if (partitionAnalysis.getSimilarObjectAnalysis() != null) {
+                            confidence = partitionAnalysis.getSimilarObjectAnalysis().getSimilarObjectsDensity();
+                        }
                         String title = createStringResource("RoleAnalysisOutlierType.widget.similarity.confidence")
                                 .getString();
                         return getDensityProgressPanel(id, confidence, title);
@@ -268,8 +287,12 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
 
                     @Override
                     public Component createFooterComponent(String id) {
+                        int similarObjectsCount = 0;
+                        if (partitionAnalysis.getSimilarObjectAnalysis() != null) {
+                            similarObjectsCount = partitionAnalysis.getSimilarObjectAnalysis().getSimilarObjectsCount();
+                        }
                         return new Label(id, createStringResource("RoleAnalysisOutlierType.widget.similarity.footer",
-                                partitionAnalysis.getSimilarObjectAnalysis().getSimilarObjectsCount()));
+                                similarObjectsCount));
                     }
                 },
                 new WidgetItemModel(createStringResource(""),
@@ -288,7 +311,10 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
 
                     @Override
                     public Component createValueComponent(String id) {
-                        double confidence = partitionAnalysis.getSimilarObjectsConfidence();
+                        double confidence = 0.0;
+                        if (partitionAnalysis.getSimilarObjectsConfidence() != null) {
+                            confidence = partitionAnalysis.getSimilarObjectsConfidence();
+                        }
                         String title = createStringResource("RoleAnalysisOutlierType.widget.attribute.confidence")
                                 .getString();
                         return getDensityProgressPanel(id, confidence, title);
@@ -306,15 +332,17 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
                         int threshold = 80;
 
                         AttributeAnalysis attributeAnalysis1 = partitionAnalysis.getAttributeAnalysis();
-                        RoleAnalysisAttributeAnalysisResult userClusterCompare = attributeAnalysis1.getUserClusterCompare();
-                        if (userClusterCompare != null && userClusterCompare.getAttributeAnalysis() != null) {
-                            List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userClusterCompare.getAttributeAnalysis();
+                        if (attributeAnalysis1 != null) {
+                            RoleAnalysisAttributeAnalysisResult userClusterCompare = attributeAnalysis1.getUserClusterCompare();
+                            if (userClusterCompare != null && userClusterCompare.getAttributeAnalysis() != null) {
+                                List<RoleAnalysisAttributeAnalysis> attributeAnalysis = userClusterCompare.getAttributeAnalysis();
 
-                            for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
-                                Double density = attribute.getDensity();
-                                if (density != null) {
-                                    if (density >= threshold) {
-                                        attributeAboveThreshold++;
+                                for (RoleAnalysisAttributeAnalysis attribute : attributeAnalysis) {
+                                    Double density = attribute.getDensity();
+                                    if (density != null) {
+                                        if (density >= threshold) {
+                                            attributeAboveThreshold++;
+                                        }
                                     }
                                 }
                             }
@@ -340,7 +368,12 @@ public class RoleAnalysisPartitionOverviewPanel extends BasePanel<RoleAnalysisOu
 
                     @Override
                     public Component createValueComponent(String id) {
-                        String category = partitionAnalysis.getOutlierNoiseCategory().value();
+                        String category = "unknown";
+                        OutlierCategoryType outlierCategory = partitionAnalysis.getOutlierCategory();
+                        if (outlierCategory != null && outlierCategory.getOutlierNoiseCategory() != null) {
+                            category = outlierCategory.getOutlierNoiseCategory().value();
+                        }
+
                         Label label = new Label(id, category);
                         label.setOutputMarkupId(true);
                         return label;

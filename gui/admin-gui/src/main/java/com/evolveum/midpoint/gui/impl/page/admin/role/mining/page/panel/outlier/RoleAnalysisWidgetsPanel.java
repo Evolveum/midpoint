@@ -10,8 +10,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -19,6 +19,9 @@ import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 
 public class RoleAnalysisWidgetsPanel extends BasePanel<List<WidgetItemModel>> {
 
@@ -69,25 +72,25 @@ public class RoleAnalysisWidgetsPanel extends BasePanel<List<WidgetItemModel>> {
             protected void populateItem(@NotNull ListItem<WidgetItemModel> item) {
                 WidgetItemModel data = item.getModelObject();
                 Component titleComponent = data.createTitleComponent(ID_TITLE);
-                titleComponent.add(AttributeAppender.replace("class", data.replaceTitleCssClass()));
+                titleComponent.add(AttributeModifier.replace(CLASS_CSS, data.replaceTitleCssClass()));
                 item.add(titleComponent);
 
                 Component descriptionComponent = data.createDescriptionComponent(ID_DESCRIPTION);
-                descriptionComponent.add(AttributeAppender.replace("class", data.replaceDescriptionCssClass()));
+                descriptionComponent.add(AttributeModifier.replace( CLASS_CSS, data.replaceDescriptionCssClass()));
                 item.add(descriptionComponent);
                 Component valueComponent = data.createValueComponent(ID_VALUE);
-                valueComponent.add(AttributeAppender.replace("class", data.replaceValueCssClass()));
-                valueComponent.add(AttributeAppender.replace("style", data.replaceValueCssStyle()));
+                valueComponent.add(AttributeModifier.replace(CLASS_CSS, data.replaceValueCssClass()));
+                valueComponent.add(AttributeModifier.replace(STYLE_CSS, data.replaceValueCssStyle()));
                 item.add(valueComponent);
 
                 Component footerComponent = data.createFooterComponent(ID_FOOTER);
-                footerComponent.add(AttributeAppender.replace("class", data.replaceFooterCssClass()));
+                footerComponent.add(AttributeModifier.replace(CLASS_CSS, data.replaceFooterCssClass()));
                 item.add(footerComponent);
 
                 if (data.isVisible() != null) {
                     item.add(data.isVisible());
                 }
-                item.add(AttributeAppender.replace("class", replaceWidgetCssClass()));
+                item.add(AttributeModifier.replace(CLASS_CSS, replaceWidgetCssClass()));
             }
         };
         details.setOutputMarkupId(true);

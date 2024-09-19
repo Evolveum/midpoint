@@ -19,7 +19,6 @@ import com.evolveum.midpoint.test.TestTask;
 /**
  * Uses reconciliation with individual sub-activities run in separate subtasks.
  *
- * Shouldn't be run under H2 because of too much contention.
  * Also, it takes a little longer than standard test because of the overhead.
  *
  * NOTE: The utility of this test is questionable, as the synchronization story test is about the correctness

@@ -82,7 +82,7 @@ public class IdentifyWidgetItem implements Serializable {
         Label labelAction = new Label(id);
         labelAction.setOutputMarkupId(true);
         labelAction.add(new VisibleBehaviour(() -> getScore() != null));
-        labelAction.add(AttributeAppender.append("class", " fa fa-angle-right"));
+        labelAction.add(AttributeAppender.append("class", "fa fa-angle-right"));
         labelAction.add(new AjaxEventBehavior("click") {
             @Override
             protected void onEvent(AjaxRequestTarget target) {

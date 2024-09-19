@@ -90,7 +90,8 @@ import java.util.List;
                 "adminGuiConfiguration/objectCollectionViews",
                 "adminGuiConfiguration/objectDetails",
                 "adminGuiConfiguration/configurableUserDashboard",
-                "adminGuiConfiguration/accessRequest"
+                "adminGuiConfiguration/accessRequest",
+                "adminGuiConfiguration/homePage"
         }
 )
 @PanelInstance(
@@ -103,6 +104,18 @@ import java.util.List;
         ),
         containerPath = "adminGuiConfiguration/accessRequest",
         type = "AccessRequestType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "homePagePanel",
+        applicableForType = AdminGuiConfigurationType.class,
+        display = @PanelDisplay(
+                label = "AdminGuiConfigurationType.homePage",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 70
+        ),
+        containerPath = "adminGuiConfiguration/homePage",
+        type = "HomePageType",
         expanded = true
 )
 @PanelInstance(
@@ -202,6 +215,18 @@ import java.util.List;
         ),
         containerPath = "eventMark",
         type = "EventMarkInformationType",
+        expanded = true
+)
+@PanelInstance(
+        identifier = "objectOperationPolicyPanel",
+        applicableForType = MarkType.class,
+        display = @PanelDisplay(
+                label = "MarkType.objectOperationPolicy",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        ),
+        containerPath = "objectOperationPolicy",
+        type = "ObjectOperationPolicyType",
         expanded = true
 )
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {

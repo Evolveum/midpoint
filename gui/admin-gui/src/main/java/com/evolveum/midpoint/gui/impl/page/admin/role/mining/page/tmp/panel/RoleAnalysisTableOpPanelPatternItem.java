@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.tmp.panel;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.CLASS_CSS;
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.STYLE_CSS;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
 import java.io.Serial;
@@ -15,7 +17,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -59,12 +60,12 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
 
     private void initLayout() {
 
-        add(AttributeAppender.replace("class", "d-flex align-items-center rounded"));
+        add(AttributeModifier.replace(CLASS_CSS, "d-flex align-items-center rounded"));
         add(new Behavior() {
             @Override
             public void onConfigure(Component component) {
                 super.onConfigure(component);
-                add(AttributeAppender.replace("style", new LoadableDetachableModel<String>() {
+                add(AttributeModifier.replace(STYLE_CSS, new LoadableDetachableModel<String>() {
                     @Override
                     protected String load() {
                         if (getBackgroundColorStyle() == null) {
@@ -89,8 +90,8 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
 
         WebMarkupContainer iconPanel = new WebMarkupContainer(ID_ICON_PANEL);
         iconPanel.setOutputMarkupId(true);
-        iconPanel.add(AttributeAppender.append("class", appendIconPanelCssClass()));
-        iconPanel.add(AttributeAppender.append("style", appendIconPanelStyle()));
+        iconPanel.add(AttributeModifier.append(CLASS_CSS, appendIconPanelCssClass()));
+        iconPanel.add(AttributeModifier.append(STYLE_CSS, appendIconPanelStyle()));
         container.add(iconPanel);
 
         Component icon = generateIconComponent(ID_ICON);
@@ -101,7 +102,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
             public void onConfigure(Component component) {
                 super.onConfigure(component);
 //                icon.add(AttributeAppender.replace("class", replaceIconCssClass()));
-                icon.add(AttributeAppender.replace("style", replaceIconCssStyle()));
+                icon.add(AttributeModifier.replace(STYLE_CSS, replaceIconCssStyle()));
             }
         });
 
@@ -137,7 +138,8 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
         if (identifier == null || identifier.isEmpty()) {
             identifier = "N/A";
         }
-
+        identifier = identifier.replace("(outlier)", "");
+        identifier = identifier.trim();
         if (identifier.length() > 2) {
             identifier = String.valueOf(identifier.charAt(0)) + identifier.charAt(identifier.length() - 1);
         }
@@ -276,7 +278,7 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
 
     protected void appendText(String text, String additionalCssClass) {
         Label label = new Label(descriptionText.newChildId(), text);
-        label.add(AttributeModifier.append("class", additionalCssClass));
+        label.add(AttributeModifier.append(CLASS_CSS, additionalCssClass));
         label.setOutputMarkupId(true);
         descriptionText.add(label);
     }
@@ -287,14 +289,14 @@ public class RoleAnalysisTableOpPanelPatternItem extends BasePanel<DetectedPatte
 
     protected void appendIcon(String iconCssClass, String iconStyle) {
         Label label = new Label(descriptionText.newChildId(), "");
-        label.add(AttributeModifier.append("class", "align-self-center "));
-        label.add(AttributeModifier.append("class", iconCssClass));
-        label.add(AttributeModifier.replace("style", iconStyle));
+        label.add(AttributeModifier.append(CLASS_CSS, "align-self-center "));
+        label.add(AttributeModifier.append(CLASS_CSS, iconCssClass));
+        label.add(AttributeModifier.replace(STYLE_CSS, iconStyle));
         descriptionText.add(label);
     }
 
     protected void performOnClick(AjaxRequestTarget ajaxRequestTarget) {
-
+        //override
     }
 
     public LoadableDetachableModel<String> getBackgroundColorStyle() {

@@ -88,10 +88,13 @@ Tree node search is now same for all nodes.
 
 * Spring Boot/hibernate upgrade
 ** Spring Boot was upgraded to 3.3.2 and Hibernate ORM to 6.5
-** H2 database was upgraded to 2.3.230. This version is not binary compatible with previous version, so export/import of whole repository would be necessary during upgrade.
 
 * Shadow table Partitioning in Native PostgreSQL Repository
 ** Midpoint automatically partition shadow tables based on resource and object class of shadow. Partitioning is enabled by default on new deployments and needs to be excplictly enabled on existing deployments. See xref:/midpoint/reference/repository/native-postgresql/shadow-partitioning/[Repository -> Native -> Shadow Partitioning] for details.
+
+* Support for H2 database was removed. Clean midPoint will fail to start with embedded H2 database.
+Preferred option to start simple midPoint instance is via docker compose. For more information see xref:/midpoint/install/containers/docker[here].
+
 
 === Other Improvements
 
@@ -102,7 +105,7 @@ See xref:/midpoint/reference/admin-gui/midpoint-jar-signature-status/[MidPoint J
 * We have added a new algorithm to detect which users are in the production-like environment. It would have the following impact, depending on your subscription status.
 - *active subscribers*: none
 - *subscribers who are in the renewal period*: none during the grace period of 90 days
-- *non-subscribers*: disabled cluster communication; if a non-H2 generic repository is used, the GUI would be disabled and the only option would be to set a subscription ID
+- *non-subscribers*: disabled cluster communication; if a generic repository is used, the GUI would be disabled and the only option would be to set a subscription ID
 - For more information, feel free to read link:https://evolveum.com/statement-midpoint-release-changes/[this blog post].
 
 * Duplication function of object or container showed in table.
@@ -125,6 +128,8 @@ More details can be found in the xrefv:/midpoint/reference/master/misc/notificat
 * Add a confirmation dialogue after changing the resource lifecycle state. See bug:MID-9315[].
 * Added the ability to modify selected object classes for resources via the Resource Schema panel. See bug:MID-8476[].
 * Renamed "Bulk actions" to "Actions" in GUI. See bug:MID-9619[].
+* Added the ability to configure UI form of the authentication sequence module with a label, description and external link.
+More information can be found in the xref:/midpoint/reference/security/authentication/flexible-authentication/modules/sequence/#authenticationsequencemoduletype[Authentication Sequence Module].
 
 === Releases Of Other Components
 
@@ -271,14 +276,6 @@ PostgreSQL 16 is recommended.
 xref:/midpoint/reference/repository/generic/[Generic repository implementation] is based on object-relational
 mapping abstraction (Hibernate), supporting several database engines with the same code.
 Following database engines are supported with this implementation:
-
-* H2 (embedded).
-Supported only in embedded mode.
-Not supported for production deployments.
-Only the version specifically bundled with midPoint is supported. +
-H2 is intended only for development, demo and similar use cases.
-It is *not* supported for any production use.
-Also, upgrade of deployments based on H2 database are not supported.
 
 * Oracle 21c
 * Microsoft SQL Server 2019

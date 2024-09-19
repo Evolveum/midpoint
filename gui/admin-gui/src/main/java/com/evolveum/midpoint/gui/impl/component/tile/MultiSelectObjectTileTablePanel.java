@@ -38,11 +38,6 @@ public abstract class MultiSelectObjectTileTablePanel<E extends Serializable, O 
         super(id, viewToggle, tableId);
     }
 
-
-    protected Component getSelectedItemPanel() {
-        return get(createComponentPath(ID_HEADER, ID_SELECTED_ITEMS_CONTAINER));
-    }
-
     @Override
     public SelectableBeanObjectDataProvider<O> getProvider() {
         return (SelectableBeanObjectDataProvider<O>) super.getProvider();

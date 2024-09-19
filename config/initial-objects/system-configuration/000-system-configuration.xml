@@ -429,53 +429,12 @@
                     </target>
                 </action>
             </widget>
-            <widget id="268">
-                <identifier>myCertificationItems</identifier>
-                <display>
-                    <label>
-                        <orig>Certification items</orig>
-                        <norm>certification items</norm>
-                        <translation>
-                            <key>PageCertItems.title</key>
-                        </translation>
-                    </label>
-                    <icon>
-                        <cssClass>fa fa-certificate</cssClass>
-                    </icon>
-                </display>
-                <displayOrder>50</displayOrder>
-                <panelType>myCertificationItems</panelType>
-                <previewSize>5</previewSize>
-                <action>
-                    <identifier>viewAll</identifier>
-                    <display>
-                        <label>
-                            <orig>View all</orig>
-                            <norm>view all</norm>
-                            <translation>
-                                <key>PageSelfDashboard.button.viewAll</key>
-                            </translation>
-                        </label>
-                        <icon>
-                            <cssClass>fa fa-search</cssClass>
-                        </icon>
-                    </display>
-                    <target>
-                        <targetUrl>/admin/certification/myActiveCampaigns</targetUrl>
-                    </target>
-                </action>
-            </widget>
         </homePage>
         <objectCollectionViews>
             <objectCollectionView id="40">
                 <identifier>my-cases</identifier>
                 <display>
-                    <label>
-                        <orig>My cases</orig>
-                        <translation>
-                            <key>MyCases.title</key>
-                        </translation>
-                    </label>
+                    <label>My cases</label>
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>My cases</orig>
@@ -498,12 +457,7 @@
             <objectCollectionView id="41">
                 <identifier>manual-case-view</identifier>
                 <display>
-                    <label>
-                        <orig>Manual cases</orig>   <!-- "Manual provisioning cases" is too long for the menu -->
-                        <translation>
-                            <key>ManualCases.label</key>
-                        </translation>
-                    </label>
+                    <label>Manual cases</label> <!-- "Manual provisioning cases" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>All manual cases</orig>
@@ -524,12 +478,7 @@
             <objectCollectionView id="42">
                 <identifier>operation-request-case-view</identifier>
                 <display>
-                    <label>
-                        <orig>Requests</orig>   <!-- "Operation requests" is too long for the menu -->
-                        <translation>
-                            <key>Requests.label</key>
-                        </translation>
-                    </label>
+                    <label>Requests</label> <!-- "Operation requests" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>All requests</orig>
@@ -550,12 +499,7 @@
             <objectCollectionView id="43">
                 <identifier>approval-case-view</identifier>
                 <display>
-                    <label>
-                        <orig>Approvals</orig>  <!-- "Approval cases" is too long for the menu -->
-                        <translation>
-                            <key>Approvals.label</key>
-                        </translation>
-                    </label>
+                    <label>Approvals</label> <!-- "Approval cases" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>All approvals</orig>
@@ -576,12 +520,7 @@
             <objectCollectionView id="44">
                 <identifier>correlation-case-view</identifier>
                 <display>
-                    <label>
-                        <orig>Correlations</orig>  <!-- "Correlation cases" is too long for the menu -->
-                        <translation>
-                            <key>Correlations.label</key>
-                        </translation>
-                    </label>
+                    <label>Correlations</label> <!-- "Correlation cases" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
                     <pluralLabel>
                         <orig>All correlations</orig>
@@ -649,12 +588,7 @@
             <objectCollectionView id="51">
                 <identifier>report-tasks-view</identifier>
                 <display>
-                    <label>
-                        <orig>Report task</orig>
-                        <translation>
-                            <key>ReportTask.label</key>
-                        </translation>
-                    </label>
+                    <label>Report task</label>
                     <pluralLabel>
                         <orig>Report tasks</orig>
                         <norm>report tasks</norm>
@@ -830,29 +764,11 @@
             </objectCollectionView>
             <objectCollectionView id="69">
                 <identifier>certification-tasks-view</identifier>
-                <display>
-                    <label>
-                        <orig>Certification-related task</orig>
-                        <translation>
-                            <key>CertificationRelatedTask.label</key>
-                        </translation>
-                    </label>
-                    <pluralLabel>
-                        <orig>Certification-related tasks</orig>
-                        <norm>certificationrelated tasks</norm>
-                        <translation>
-                            <key>CertificationRelatedTasks.title</key>
-                        </translation>
-                    </pluralLabel>
-                    <icon>
-                        <cssClass>fa fa-certificate</cssClass>
-                        <color>green</color>
-                    </icon>
-                </display>
                 <refreshInterval>30</refreshInterval>
+                <applicableForOperation>modify</applicableForOperation>
                 <type>TaskType</type>
                 <collection>
-                    <collectionRef oid="00000000-0000-0000-0002-000000000008" relation="org:default" type="c:ObjectCollectionType"/>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000520" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
             <objectCollectionView id="70">
@@ -895,7 +811,7 @@
             </objectCollectionView>
             <objectCollectionView id="75">
                 <identifier>application-role</identifier>
-                <applicableForOperation>add</applicableForOperation>
+                <displayOrder>180</displayOrder>
                 <type>RoleType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType"/>
@@ -903,7 +819,7 @@
             </objectCollectionView>
             <objectCollectionView id="76">
                 <identifier>business-role</identifier>
-                <applicableForOperation>add</applicableForOperation>
+                <displayOrder>190</displayOrder>
                 <type>RoleType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType"/>
@@ -912,12 +828,7 @@
             <objectCollectionView id="77">
                 <identifier>application</identifier>
                 <display>
-                    <label>
-                        <orig>Applications</orig>
-                        <translation>
-                            <key>Application.panel.applications</key>
-                        </translation>
-                    </label>
+                    <label>Application.panel.applications</label>
                 </display>
                 <type>ServiceType</type>
                 <collection>
@@ -969,12 +880,7 @@
                                 </q:text>
                             </filter>
                             <display>
-                                <label>
-                                    <orig>Users with account</orig>
-                                    <translation>
-                                        <key>searchItem.usersWithAccount.label</key>
-                                    </translation>
-                                </label>
+                                <label>Users with account</label>
                             </display>
                             <parameter>
                                 <name>resourceParameter</name>
@@ -996,12 +902,7 @@
                                 </q:text>
                             </filter>
                             <display>
-                                <label>
-                                    <orig>Users without account</orig>
-                                    <translation>
-                                        <key>searchItem.usersWithoutAccount.label</key>
-                                    </translation>
-                                </label>
+                                <label>Users without account</label>
                             </display>
                             <parameter>
                                 <name>resourceParameter</name>
@@ -1038,69 +939,11 @@
                     </collectionRef>
                 </collection>
             </objectCollectionView>
-            <objectCollectionView id="98"> <!-- TODO: change id as needed -->
-                <identifier>application-roles-view</identifier>
-                <display>
-                    <label>
-                        <orig>Application roles</orig>
-                        <translation>
-                            <key>applicationRole.pluralLabel</key>
-                        </translation>
-                    </label>
-                    <singularLabel>
-                        <orig>Application role</orig>
-                        <translation>
-                            <key>applicationRole.label</key>
-                        </translation>
-                    </singularLabel>
-                    <tooltip>Application roles</tooltip>
-                </display>
-                <displayOrder>180</displayOrder>
-                <type>RoleType</type>
-                <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType">
-                    </collectionRef>
-                </collection>
-            </objectCollectionView>
-            <objectCollectionView id="99"> <!-- TODO: change id as needed -->
-                <identifier>business-roles-view</identifier>
-                <display>
-                    <label>
-                        <orig>Business roles</orig>
-                        <translation>
-                            <key>businessRole.pluralLabel</key>
-                        </translation>
-                    </label>
-                    <singularLabel>
-                        <orig>Business role</orig>
-                        <translation>
-                            <key>businessRole.label</key>
-                        </translation>
-                    </singularLabel>
-                    <tooltip>Business roles</tooltip>
-                </display>
-                <displayOrder>190</displayOrder>
-                <type>RoleType</type>
-                <collection>
-                    <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType">
-                    </collectionRef>
-                </collection>
-            </objectCollectionView>
             <objectCollectionView id="100"> <!-- TODO: change id as needed -->
                 <identifier>classification-view</identifier>
                 <display>
-                    <label>
-                        <orig>Classifications</orig>
-                        <translation>
-                            <key>classifications.pluralLabel</key>
-                        </translation>
-                    </label>
-                    <singularLabel>
-                        <orig>Classification</orig>
-                        <translation>
-                            <key>classification.label</key>
-                        </translation>
-                    </singularLabel>
+                    <label>Classifications</label>
+                    <singularLabel>Classification</singularLabel>
                     <tooltip>Information classifications (labels)</tooltip>
                 </display>
                 <displayOrder>200</displayOrder>
@@ -1113,18 +956,8 @@
             <objectCollectionView id="101"> <!-- TODO: change id as needed -->
                 <identifier>clearance-view</identifier>
                 <display>
-                    <label>
-                        <orig>Clearances</orig>
-                        <translation>
-                            <key>clearance.pluralLabel</key>
-                        </translation>
-                    </label>
-                    <singularLabel>
-                        <orig>Clearance</orig>
-                        <translation>
-                            <key>clearance.label</key>
-                        </translation>
-                    </singularLabel>
+                    <label>Clearances</label>
+                    <singularLabel>Clearance</singularLabel>
                     <tooltip>Security clearances</tooltip>
                 </display>
                 <displayOrder>210</displayOrder>
@@ -1179,12 +1012,6 @@
                         <identifier>advanced-options</identifier>
                         <displayOrder>150</displayOrder>
                         <display>
-                            <label>
-                                <orig>Advanced options</orig>
-                                <translation>
-                                    <key>TaskType.advancedOptions</key>
-                                </translation>
-                            </label>
                             <label>Advanced options</label>
                         </display>
                         <item id="88">
@@ -1216,12 +1043,7 @@
                         <identifier>operational-attributes</identifier>
                         <displayOrder>900</displayOrder>
                         <display>
-                            <label>
-                                <orig>Operational attributes (state)</orig>
-                                <translation>
-                                    <key>operationalAttributes.state.container.label</key>
-                                </translation>
-                            </label>
+                            <label>Operational attributes (state)</label>
                         </display>
                         <item id="94">
                             <c:path>executionState</c:path>
@@ -1292,12 +1114,7 @@
                         <visibility>hidden</visibility>
                         <identifier>operation-attributes-progress</identifier>
                         <display>
-                            <label>
-                                <orig>Operational attributes (progress)</orig>
-                                <translation>
-                                    <key>operationalAttributes.progress.container.label</key>
-                                </translation>
-                            </label>
+                            <label>Operational attributes (progress)</label>
                         </display>
                         <item id="115">
                             <c:path>progress</c:path>
@@ -1316,12 +1133,7 @@
                 <panel id="118">
                     <identifier>applications</identifier>
                     <display>
-                        <label>
-                            <orig>Applications</orig>
-                            <translation>
-                                <key>Application.panel.applications</key>
-                            </translation>
-                        </label>
+                        <label>Application.panel.applications</label>
                     </display>
                     <applicableForOperation>modify</applicableForOperation>
                     <panelType>roleMemberships</panelType>
@@ -1343,12 +1155,7 @@
                 <panel id="123">
                     <identifier>clearances</identifier>
                     <display>
-                        <label>
-                            <orig>Clearances</orig>
-                            <translation>
-                                <key>clearance.pluralLabel</key>
-                            </translation>
-                        </label>
+                        <label>Clearances</label>
                         <icon>
                             <cssClass>fa fa-award</cssClass>
                         </icon>
@@ -1405,6 +1212,10 @@
                         </item>
                         <item id="137">
                             <path>schemaHandling/objectType/default</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item id="268">
+                            <path>schemaHandling/objectType/lifecycleState</path>
                             <visibility>visible</visibility>
                         </item>
                     </container>

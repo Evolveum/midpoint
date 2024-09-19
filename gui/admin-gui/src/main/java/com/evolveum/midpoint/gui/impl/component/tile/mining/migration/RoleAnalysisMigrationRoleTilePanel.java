@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.tile.mining.migration;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.RoleAnalysisWebUtils.*;
 import static com.evolveum.midpoint.gui.impl.page.admin.role.mining.utils.table.RoleAnalysisTableTools.confidenceBasedTwoColor;
 import static com.evolveum.midpoint.gui.impl.util.DetailsPageUtil.dispatchToObjectDetailsPage;
 
@@ -14,10 +15,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
@@ -32,7 +34,6 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.components.ProgressBarSecondStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisCluster;
 import com.evolveum.midpoint.gui.impl.page.admin.role.mining.page.page.PageRoleAnalysisSession;
@@ -98,7 +99,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
             protected @NotNull Component getTitleComponent(String id) {
                 Label label = new Label(id, createStringResource("RoleAnalysis.title.panel.location"));
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "text-muted"));
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
                 return label;
             }
 
@@ -116,8 +117,8 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
                 };
 
                 sessionLink.setOutputMarkupId(true);
-                sessionLink.add(AttributeAppender.append("style", "max-width:150px"));
-                sessionLink.add(AttributeAppender.append("class", "text-truncate"));
+                sessionLink.add(AttributeModifier.append(STYLE_CSS, "max-width:100px"));
+                sessionLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
                 view.add(sessionLink);
 
                 Label separator = new Label(view.newChildId(), "/");
@@ -133,8 +134,8 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
                     }
                 };
                 clusterLink.setOutputMarkupId(true);
-                clusterLink.add(AttributeAppender.append("style", "max-width:150px"));
-                clusterLink.add(AttributeAppender.append("class", "text-truncate"));
+                clusterLink.add(AttributeModifier.append(STYLE_CSS, "max-width:100px"));
+                clusterLink.add(AttributeModifier.append(CLASS_CSS, TEXT_TRUNCATE));
                 view.add(clusterLink);
                 return view;
             }
@@ -181,7 +182,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
             }
         };
         progressBar.setOutputMarkupId(true);
-        progressBar.add(AttributeModifier.replace("title", () -> "Attribute confidence: " + finalProgress + "%"));
+        progressBar.add(AttributeModifier.replace(TITLE_CSS, () -> "Attribute confidence: " + finalProgress + "%"));
         progressBar.add(new TooltipBehavior());
         add(progressBar);
     }
@@ -192,8 +193,8 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
             protected @NotNull Component getTitleComponent(String id) {
                 Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.induced.roles"));
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "text-muted"));
-                label.add(AttributeAppender.append("style", "font-size: 16px"));
+                label.add(AttributeModifier.append(CLASS_CSS, "text-muted"));
+                label.add(AttributeModifier.append(STYLE_CSS, "font-size: 16px"));
                 return label;
             }
 
@@ -204,7 +205,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
                 };
 
                 inducementPanel.setOutputMarkupId(true);
-                inducementPanel.add(AttributeAppender.replace("title", () -> "Induced roles count: " + inducementsCount));
+                inducementPanel.add(AttributeModifier.replace(TITLE_CSS, () -> "Induced roles count: " + inducementsCount));
                 inducementPanel.add(new TooltipBehavior());
                 return inducementPanel;
             }
@@ -219,8 +220,8 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
             protected @NotNull Component getTitleComponent(String id) {
                 Label label = new Label(id, createStringResource("RoleAnalysis.tile.panel.user.members"));
                 label.setOutputMarkupId(true);
-                label.add(AttributeAppender.append("class", "text-muted"));
-                label.add(AttributeAppender.append("style", "font-size: 16px"));
+                label.add(AttributeModifier.append(CLASS_CSS, TEXT_MUTED));
+                label.add(AttributeModifier.append(STYLE_CSS, "font-size: 16px"));
 
                 return label;
             }
@@ -232,7 +233,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
                 };
 
                 memberPanel.setOutputMarkupId(true);
-                memberPanel.add(AttributeAppender.replace("title", () -> "User members count: " + membersCount));
+                memberPanel.add(AttributeModifier.replace(TITLE_CSS, () -> "User members count: " + membersCount));
                 memberPanel.add(new TooltipBehavior());
                 return memberPanel;
             }
@@ -251,15 +252,15 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
             }
         };
         objectTitle.setOutputMarkupId(true);
-        objectTitle.add(AttributeAppender.replace("style", "font-size:18px"));
-        objectTitle.add(AttributeAppender.replace("title", () -> getModelObject().getName()));
+        objectTitle.add(AttributeModifier.replace(STYLE_CSS, "font-size:18px"));
+        objectTitle.add(AttributeModifier.replace(TITLE_CSS, () -> getModelObject().getName()));
         objectTitle.add(new TooltipBehavior());
         add(objectTitle);
     }
 
     private void initDefaultStyle() {
         setOutputMarkupId(true);
-        add(AttributeAppender.append("class",
+        add(AttributeModifier.append(CLASS_CSS,
                 "bg-white d-flex flex-column align-items-center elevation-1 rounded w-100 h-100 p-0"));
     }
 
@@ -279,7 +280,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
 
         };
         barMenu.setOutputMarkupId(true);
-        barMenu.add(AttributeModifier.replace("title",
+        barMenu.add(AttributeModifier.replace(TITLE_CSS,
                 createStringResource("RoleAnalysis.menu.moreOptions")));
         barMenu.add(new TooltipBehavior());
         add(barMenu);
@@ -301,15 +302,15 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
         String status = modelObject.getStatus();
 
         Label statusBar = new Label(ID_STATUS_BAR, Model.of(status));
-        statusBar.add(AttributeAppender.append("class", "badge badge-pill badge-info"));
-        statusBar.add(AttributeAppender.append("style", "width: 80px"));
+        statusBar.add(AttributeModifier.append(CLASS_CSS, "badge badge-pill badge-info"));
+        statusBar.add(AttributeModifier.append(STYLE_CSS, "width: 80px"));
         statusBar.setOutputMarkupId(true);
         add(statusBar);
     }
 
     private void buildExploreButton() {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(
-                GuiStyleConstants.CLASS_ICON_SEARCH, LayeredIconCssStyle.IN_ROW_STYLE);
+                GuiStyleConstants.CLASS_ICON_SEARCH, IconCssStyle.IN_ROW_STYLE);
         AjaxCompositedIconSubmitButton migrationButton = new AjaxCompositedIconSubmitButton(
                 RoleAnalysisMigrationRoleTilePanel.ID_MIGRATION_BUTTON,
                 iconBuilder.build(),
@@ -328,7 +329,7 @@ public class RoleAnalysisMigrationRoleTilePanel<T extends Serializable> extends 
         };
         migrationButton.titleAsLabel(true);
         migrationButton.setOutputMarkupId(true);
-        migrationButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+        migrationButton.add(AttributeModifier.append(CLASS_CSS, "btn btn-default btn-sm"));
         migrationButton.setOutputMarkupId(true);
         add(migrationButton);
     }

@@ -202,12 +202,12 @@ public class PageIdentityRecovery extends AbstractPageLogin {
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PageIdentityRecovery.foundIdentities");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource(getTitleDescriptionKey());
     }
 

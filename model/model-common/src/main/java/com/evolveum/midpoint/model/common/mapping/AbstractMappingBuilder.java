@@ -125,6 +125,11 @@ public abstract class AbstractMappingBuilder<
         return typedThis();
     }
 
+    // a bit of hacking, consider removing
+    public String getMappingName() {
+        return mappingConfigItem.getName();
+    }
+
     public RT mappingKind(MappingKindType val) {
         mappingKind = val;
         return typedThis();
@@ -370,6 +375,7 @@ public abstract class AbstractMappingBuilder<
         return MappingImpl.isApplicableToChannel(mappingConfigItem.value(), channel);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isApplicableToExecutionMode(TaskExecutionMode executionMode) {
         return SimulationUtil.isVisible(mappingConfigItem.value(), executionMode);
     }

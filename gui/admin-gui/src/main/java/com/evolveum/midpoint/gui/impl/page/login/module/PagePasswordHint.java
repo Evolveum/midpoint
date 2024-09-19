@@ -84,12 +84,12 @@ public class PagePasswordHint extends PageAbstractAuthenticationModule<ModuleAut
     }
 
     @Override
-    protected IModel<String> getLoginPanelTitleModel() {
+    protected IModel<String> getDefaultLoginPanelTitleModel() {
         return createStringResource("PagePasswordHint.panelTitle");
     }
 
     @Override
-    protected IModel<String> getLoginPanelDescriptionModel() {
+    protected IModel<String> getDefaultLoginPanelDescriptionModel() {
         return createStringResource("PagePasswordHint.description");
     }
 

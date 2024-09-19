@@ -203,9 +203,13 @@ public final class DetailsPageUtil {
             return true;
         }
     }
-
     // shows the actual object that is passed via parameter (not its state in repository)
     public static void dispatchToObjectDetailsPage(PrismObject obj, boolean isNewObject, Component component) {
+        dispatchToObjectDetailsPage(obj, isNewObject, false, component);
+    }
+
+    // shows the actual object that is passed via parameter (not its state in repository)
+    public static void dispatchToObjectDetailsPage(PrismObject obj, boolean isNewObject, boolean showWizard, Component component) {
         Class<?> newObjectPageClass = isNewObject ? getNewlyCreatedObjectPage(obj.getCompileTimeClass()) : getObjectDetailsPage(obj.getCompileTimeClass());
         if (newObjectPageClass == null) {
             throw new IllegalArgumentException("Cannot determine details page for " + obj.getCompileTimeClass());
@@ -215,8 +219,13 @@ public final class DetailsPageUtil {
         try {
             PageBase page;
             if (isNewDesignEnabled()) {
-                constructor = newObjectPageClass.getConstructor(PrismObject.class);
-                page = (PageBase) constructor.newInstance(obj);
+                if (showWizard) {
+                    constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
+                    page = (PageBase) constructor.newInstance(obj, showWizard);
+                } else {
+                    constructor = newObjectPageClass.getConstructor(PrismObject.class);
+                    page = (PageBase) constructor.newInstance(obj);
+                }
             } else {
                 constructor = newObjectPageClass.getConstructor(PrismObject.class, boolean.class);
                 page = (PageBase) constructor.newInstance(obj, isNewObject);
@@ -318,7 +327,9 @@ public final class DetailsPageUtil {
             if (collectionIdentifier != null) {
                 params.set(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, collectionIdentifier);
             }
-            pageBase.navigateToNext(webPageClass, params);
+            if (pageBase != null) {
+                pageBase.navigateToNext(webPageClass, params);
+            }
 
         } catch (Throwable e) {
             LOGGER.trace("Problem with redirecting to page: {}, reason: {}", webPageClass, e.getMessage(), e);

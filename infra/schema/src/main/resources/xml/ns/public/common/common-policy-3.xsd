@@ -3157,38 +3157,46 @@
     </xsd:simpleType>
 
     <xsd:complexType name="PolicyStatementType">
-      <xsd:annotation>
-          <xsd:documentation>
-              Statement specifying explicit include (marking) of object or exclude from specified policy.
-          </xsd:documentation>
-          <xsd:appinfo>
-              <a:container/>
-          </xsd:appinfo>
-      </xsd:annotation>
-      <xsd:sequence>
-         <xsd:element name="markRef" type="tns:ObjectReferenceType" minOccurs="0">
-            <xsd:annotation>
-                <xsd:documentation>
-                   Object mark representing policy, which is APPLIED or EXCLUDED
-                </xsd:documentation>
-                <xsd:appinfo>
-                    <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
-                    <a:displayName>PolicyStatementType.markRef</a:displayName>
-                </xsd:appinfo>
-            </xsd:annotation>
-         </xsd:element>
-         <xsd:element name="type" type="tns:PolicyStatementTypeType">
-            <xsd:annotation>
-                <xsd:documentation>
-                   Type of policy statement.
-                   apply: mark is applied to object explicitly.
-                   exclude: mark is not applied to object even if it matches policy specific for mark.
-                </xsd:documentation>
-            </xsd:annotation>
-         </xsd:element>
-
-         <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
-      </xsd:sequence>
+        <xsd:annotation>
+            <xsd:documentation>
+                Statement specifying explicit include (marking) of object or exclude from specified policy.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="markRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object mark representing policy, which is APPLIED or EXCLUDED
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:MarkType</a:objectReferenceTargetType>
+                        <a:displayName>PolicyStatementType.markRef</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="type" type="tns:PolicyStatementTypeType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Type of policy statement.
+                        apply: mark is applied to object explicitly.
+                        exclude: mark is not applied to object even if it matches policy specific for mark.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.lifecycleState</a:displayName>
+                        <a:since>4.9</a:since>
+                        <a:valueEnumerationRef oid="00000000-0000-0000-0000-000000000230" type="tns:LookupTableType"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
 </xsd:schema>
