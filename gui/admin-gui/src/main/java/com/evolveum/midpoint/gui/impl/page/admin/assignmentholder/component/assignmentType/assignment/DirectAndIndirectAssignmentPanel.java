@@ -260,7 +260,10 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
     private ModelExecuteOptions createPreviewAssignmentsOptions() {
         ModelExecuteOptions options = getPageBase()
                 .executeOptions()
-                .evaluateAllAssignmentRelationsOnRecompute();
+                .evaluateAllAssignmentRelationsOnRecompute()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement()
+                .operationStartPreAuthorized();
         options.getOrCreatePartialProcessing().outbound(PartialProcessingTypeType.SKIP);
         return options;
     }
@@ -275,8 +278,8 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
         Set<AssignmentValueWrapper> assignmentValueWrapperSet = new LinkedHashSet<>();
 
         ObjectDelta<AH> delta = getObjectDelta(result);
-        ModelContext<AH> modelContext = getPageBase().getModelInteractionService().previewChangesLegacy(
-                Collections.singleton(delta), createPreviewAssignmentsOptions(), task, List.of(), result);
+        ModelContext<AH> modelContext = getPageBase().getModelInteractionService().previewChanges(
+                Collections.singleton(delta), createPreviewAssignmentsOptions(), task, result);
         Collection<? extends EvaluatedAssignment> evaluatedAssignments = modelContext.getNonNegativeEvaluatedAssignments();
 
         for (EvaluatedAssignment evaluatedAssignment : evaluatedAssignments) {

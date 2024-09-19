@@ -1131,8 +1131,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         // WHEN
         when();
-        ModelContext<UserType> modelContext =
-                modelInteractionService.previewChangesLegacy(List.of(delta), null, task, List.of(), result);
+        var options = ModelExecuteOptions.create().firstClickOnly(); // to avoid assignments evaluation in later stages
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
         // THEN
         then();

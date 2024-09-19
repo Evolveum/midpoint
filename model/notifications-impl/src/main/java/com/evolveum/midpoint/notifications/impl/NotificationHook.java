@@ -62,7 +62,7 @@ public class NotificationHook implements ChangeHook {
     }
 
     @Override
-    public <O extends ObjectType> HookOperationMode invoke(
+    public <O extends ObjectType> @NotNull HookOperationMode invoke(
             @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OP_INVOKE);
         try {
@@ -91,10 +91,10 @@ public class NotificationHook implements ChangeHook {
 
             return HookOperationMode.FOREGROUND;
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

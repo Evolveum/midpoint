@@ -107,8 +107,13 @@ public interface ModelInteractionService {
      * on the generated values.
      *
      * This method uses the simulations feature that is more precise than the original (pre-4.9) implementation.
-     * Some of the differences are described in {@link #previewChangesLegacy(Collection, ModelExecuteOptions, Task, Collection,
-     * OperationResult)} method.
+     *
+     * Some of the differences may not be wanted, though. Please consider using
+     *
+     * - {@link ModelExecuteOptions#firstClickOnly()} to avoid iteration through projection/simulated-execution cycles,
+     * influencing the evaluated assignments' structures
+     * - {@link ModelExecuteOptions#previewPolicyRulesEnforcement()} to return policy enforcement results in the form
+     * of informational messages, instead of throwing {@link PolicyViolationException}s
      */
     default <F extends ObjectType> ModelContext<F> previewChanges(
             Collection<ObjectDelta<? extends ObjectType>> deltas,
@@ -133,12 +138,7 @@ public interface ModelInteractionService {
     /**
      * The legacy implementation that uses specialized code for previewing changes.
      *
-     * It is useful e.g. when we are interested in the information about evaluated assignments.
-     * (Evaluated assignments are a bit distorted when using the simulation-based approach, as the new assignments
-     * go from plus set to zero set in later clockwork waves there. The legacy approach keeps them in the plus set.)
-     *
-     * Also, enforcement policy rules are not really executed here, i.e. no {@link PolicyViolationException}s are thrown.
-     * A special information is provided in the model context instead.
+     * TODO Remove before 4.9 release.
      */
     <F extends ObjectType> ModelContext<F> previewChangesLegacy(
             Collection<ObjectDelta<? extends ObjectType>> deltas,

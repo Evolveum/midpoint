@@ -1608,14 +1608,15 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 .addRealValues(roleAssignments(newRoleOids))
                 .asObjectDelta(user.getOid());
 
-        ModelExecuteOptions options = ModelExecuteOptions.create()
+        var options = ModelExecuteOptions.create()
+                .firstClickOnly()
                 .partialProcessing(new PartialProcessingOptionsType()
                         .inbound(SKIP)
                         .projection(SKIP))
-                .ignoreAssignmentPruning();
+                .ignoreAssignmentPruning()
+                .previewPolicyRulesEnforcement();
 
-        ModelContext<UserType> ctx =
-                modelInteractionService.previewChangesLegacy(List.of(delta), options, task, List.of(), result);
+        ModelContext<UserType> ctx = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
         then("the exclusion triggers are there");
         var triggers = ctx.getEvaluatedAssignmentTriple().union().stream()
@@ -1713,8 +1714,10 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         // WHEN
         when();
-        ModelContext<ObjectType> modelContext =
-                modelInteractionService.previewChangesLegacy(List.of(delta), null, task, List.of(), result);
+        var options = ModelExecuteOptions.create()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement();
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
         // THEN
         then();

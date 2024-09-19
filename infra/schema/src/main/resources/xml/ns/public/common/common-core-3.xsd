@@ -18204,6 +18204,26 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="firstClickOnly" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If true, only the first clockwork click (presumably, in the INITIAL state) is executed.
+
+                        This is to provide the behavior similar to previewChanges() in the modern, simulation-based,
+                        implementation present in 4.9+. (Although the legacy functionality tried to project other waves
+                        as well, this flag provides the best aligned behavior to appropriate use cases: computing
+                        indirect assignments, and evaluating policy rules for the access request.)
+
+                        To be used for simulations (or preview changes) only!
+
+                        Experimental. Only for midPoint internal use.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="focusConflictResolution" type="tns:ConflictResolutionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -18231,6 +18251,23 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.7</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="previewPolicyRulesEnforcement" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If true, "enforcement" action in policy rules is previewed only, not enforced.
+                        This is to provide legacy previewChanges() behavior in the modern, simulation-based, implementation
+                        present in 4.9+.
+
+                        To be used for simulations (or preview changes) only!
+
+                        Experimental. Only for midPoint internal use.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.9</a:since>
                         <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>

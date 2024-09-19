@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.test.TestObject;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -180,8 +181,8 @@ public class TestRbac extends AbstractRbacTest {
                 "Jack Sparrow is the best pirate Caribbean has ever seen");
     }
 
-    protected ModelExecuteOptions getDefaultOptions() {
-        return null;
+    protected @NotNull ModelExecuteOptions getDefaultOptions() {
+        return ModelExecuteOptions.create();
     }
 
     /**
@@ -547,8 +548,11 @@ public class TestRbac extends AbstractRbacTest {
         ObjectDelta<UserType> delta = user.createModifyDelta();
 
         // WHEN
-        ModelContext<ObjectType> modelContext =
-                modelInteractionService.previewChangesLegacy(List.of(delta), getDefaultOptions(), task, List.of(), result);
+        // The following options provide the pre-4.9-like behavior of previewChanges()
+        var options = getDefaultOptions()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement();
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
         // THEN
         result.computeStatus();
@@ -2793,8 +2797,12 @@ public class TestRbac extends AbstractRbacTest {
 
         // WHEN
         when();
-        ModelContext<ObjectType> context =
-                modelInteractionService.previewChangesLegacy(List.of(delta), null, task, List.of(), result);
+        // The following options provide the pre-4.9-like behavior of previewChanges()
+        // (for unknown reason we don't use default options here)
+        var options = ModelExecuteOptions.create()
+                .firstClickOnly()
+                .previewPolicyRulesEnforcement();
+        ModelContext<ObjectType> context = modelInteractionService.previewChanges(List.of(delta), options, task, result);
 
         // THEN
         then();
