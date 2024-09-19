@@ -413,33 +413,6 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return options != null ? options.tracingProfile : null;
     }
 
-    public SimulationOptionsType getSimulationOptions() {
-        return content.getSimulation();
-    }
-
-    public static boolean isAdvanceSequenceSafe(@Nullable ModelExecuteOptions options) {
-        if (options == null) {
-            return false;
-        }
-        SimulationOptionsType simulationOptions = options.getSimulationOptions();
-        return simulationOptions != null
-                && simulationOptions.getSequence() == SimulationOptionType.SAFE;
-    }
-
-    public static boolean isCreateOnDemandSafe(@Nullable ModelExecuteOptions options) {
-        if (options == null) {
-            return false;
-        }
-        SimulationOptionsType simulationOptions = options.getSimulationOptions();
-        return simulationOptions != null
-                && simulationOptions.getCreateOnDemand() == SimulationOptionType.SAFE;
-    }
-
-    public ModelExecuteOptions simulationOptions(SimulationOptionsType options) {
-        content.setSimulation(options);
-        return this;
-    }
-
     @SuppressWarnings("WeakerAccess")
     public ModelExecuteOptions ignoreAssignmentPruning(Boolean value) {
         content.setIgnoreAssignmentPruning(value);

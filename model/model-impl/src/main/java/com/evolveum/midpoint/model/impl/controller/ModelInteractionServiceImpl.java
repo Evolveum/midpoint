@@ -160,47 +160,59 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private TaskManager taskManager;
     @Autowired private SimulationResultManager simulationResultManager;
     @Autowired private ProvisioningService provisioningService;
+    @Autowired private ClockworkHookHelper clockworkHookHelper;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
 
+    /** The "modern" implementation that uses the simulations feature. */
     @Override
-    public <F extends ObjectType> ModelContext<F> previewChanges(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return previewChanges(deltas, options, task, Collections.emptyList(), parentResult);
+    public @NotNull <F extends ObjectType> ModelContext<F> previewChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options,
+            Task task,
+            Collection<ProgressListener> listeners,
+            OperationResult result)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+        var originalExecutionMode = switchModeToSimulationIfNeeded(task);
+        try {
+
+            // We extract the model context using special progress listener
+            var collectingProgressListener = new ProgressListener.Collecting();
+
+            var newListeners = ProgressListener.add(listeners, collectingProgressListener);
+            modelService.executeChanges(deltas, options, task, newListeners, result);
+
+            //noinspection unchecked
+            var lastContext = (LensContext<F>) collectingProgressListener.getFinalContext();
+
+            // Provides information from the hooks (e.g., approvals) to the model context, just like legacy previewChanges did.
+            clockworkHookHelper.invokePreview(lastContext, task, result);
+
+            // Hides sensitive information from non-root users.
+            schemaTransformer.applySecurityToLensContext(lastContext, task, result);
+
+            return lastContext;
+
+        } finally {
+            task.setExecutionMode(originalExecutionMode);
+        }
     }
 
     @Override
-    public <F extends ObjectType> ModelContext<F> previewChanges(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task,
-            Collection<ProgressListener> listeners, OperationResult parentResult)
-            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        TaskExecutionMode executionMode = task.getExecutionMode();
-        if (executionMode.isFullyPersistent()) {
-            LOGGER.debug("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
-                    task.getName());
-
-            task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
-        }
+    public <F extends ObjectType> ModelContext<F> previewChangesLegacy(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options,
+            Task task,
+            Collection<ProgressListener> listeners,
+            OperationResult parentResult)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         if (ModelExecuteOptions.isRaw(options)) {
             throw new UnsupportedOperationException("previewChanges is not supported in raw mode");
-        }
-
-        if (options == null) {
-            options = ModelExecuteOptions.create();
-        }
-
-        if (options.getSimulationOptions() == null) {
-            SimulationOptionsType simulation = new SimulationOptionsType();
-
-            SimulationOptionType option = task.isExecutionFullyPersistent() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
-            simulation.setCreateOnDemand(option);
-            simulation.setSequence(option);
-
-            options.simulationOptions(simulation);
         }
 
         LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDumpLazily(deltas));
@@ -209,6 +221,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
         LensContext<F> context = null;
 
+        var originalExecutionMode = switchModeToSimulationIfNeeded(task);
         try {
             RepositoryCache.enterLocalCaches(cacheConfigurationManager);
             // used cloned deltas instead of origin deltas, because some of the
@@ -222,10 +235,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
             RepositoryCache.exitLocalCaches();
 
-            task.setExecutionMode(executionMode);
+            task.setExecutionMode(originalExecutionMode);
         }
 
         return context;
+    }
+
+    private static @NotNull TaskExecutionMode switchModeToSimulationIfNeeded(Task task) {
+        TaskExecutionMode executionMode = task.getExecutionMode();
+        if (executionMode.isFullyPersistent()) {
+            LOGGER.debug("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
+                    task.getName());
+
+            task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
+        }
+        return executionMode;
     }
 
     @NotNull

@@ -338,7 +338,7 @@ public class Clockwork {
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
-            context.setPreview(true);
+            context.setLegacyPreview();
 
             LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
             context.setProgressListeners(listeners);

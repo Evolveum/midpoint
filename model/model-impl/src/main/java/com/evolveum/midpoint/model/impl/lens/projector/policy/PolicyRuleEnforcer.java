@@ -76,8 +76,8 @@ class PolicyRuleEnforcer<O extends ObjectType> {
         computeEnforcementForAssignmentRules();
         // TODO projection rules
 
-        if (context.isPreview()) {
-            enforceInPreviewMode();
+        if (context.isLegacyPreview()) {
+            enforceInPreviewMode(); // TODO what about new preview implemented using simulations?
         } else {
             enforceInRegularMode();
         }

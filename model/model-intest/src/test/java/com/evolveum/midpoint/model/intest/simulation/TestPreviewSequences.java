@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.intest.simulation;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -75,12 +75,7 @@ public class TestPreviewSequences extends AbstractConfiguredModelIntegrationTest
         PrismObject<UserType> orgChild = USER_CHAD.get().clone();
         ObjectDelta<UserType> delta = orgChild.createAddDelta();
 
-        ModelExecuteOptions options = ModelExecuteOptions.create();
-        SimulationOptionsType simulation = new SimulationOptionsType();
-        simulation.setSequence(SimulationOptionType.SAFE);
-        options.simulationOptions(simulation);
-
-        ModelContext<UserType> context = modelInteractionService.previewChanges(Collections.singletonList(delta), options, task, result);
+        ModelContext<UserType> context = modelInteractionService.previewChanges(List.of(delta), null, task, result);
 
         then();
 
