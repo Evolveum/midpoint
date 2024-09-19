@@ -128,15 +128,6 @@ class AssociationTargetSearchExpressionEvaluator
                 return ShadowUtil.isNotDead(object.asObjectable());
             }
 
-            /**
-             * Create on demand used in AssociationTargetSearch would fail
-             * @return false
-             */
-            @Override
-            protected boolean isCreateOnDemandSafe() {
-                return false;
-            }
-
             @Override
             protected CacheInfo getCacheInfo() {
                 return new CacheInfo(

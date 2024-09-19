@@ -88,8 +88,8 @@ public class WfHook implements ChangeHook {
         result.addParam("task", task.toString());
         result.addArbitraryObjectAsContext("model state", context.getState());
         try {
-            if (context.isPreview() || context.isSimulation()) {
-                result.recordNotApplicable("preview/simulation mode");
+            if (context.isSimulation()) {
+                result.recordNotApplicable("simulation (or legacy preview) mode");
                 return HookOperationMode.FOREGROUND;
             }
 

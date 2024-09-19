@@ -383,7 +383,7 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
                 .projectionContexts()
                 .single()
                 .assertNoPrimaryDelta()
-                .secondaryDelta()
+                .summarySecondaryDelta()
                 .display()
                 .assertModify()
                 .container(ShadowType.F_ASSOCIATIONS.append(ASSOCIATION_GROUP_QNAME))

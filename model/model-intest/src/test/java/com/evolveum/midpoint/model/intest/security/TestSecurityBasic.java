@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.CaseService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.*;
@@ -1080,7 +1079,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
                 .assertName(USER_JACK_USERNAME)
                 .asUser()
                 .assertNoFullName()
-                .assertGivenName(USER_JACK_GIVEN_NAME)
+                .assertGivenName("Jackie") // simulations-based approach is closer to real execution than legacy one
                 .assertNoFamilyName()
                 .end()
                 .end()
@@ -1103,7 +1102,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
                 .end()
                 .end()
                 .end()
-                .secondaryDelta()
+                .summarySecondaryDelta()
                 // Secondary delta should be there. Because we are changing something.
                 // But the user does not have authorization to read fullname.
                 // Therefore the delta should be empty.
@@ -1131,7 +1130,7 @@ public class TestSecurityBasic extends AbstractInitializedSecurityTest {
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED)
                 .end()
                 .assertNoPrimaryDelta()
-                .secondaryDelta()
+                .summarySecondaryDelta()
                 .assertModify()
                 // Read of shadow attributes not allowed
                 .assertModifications(0);

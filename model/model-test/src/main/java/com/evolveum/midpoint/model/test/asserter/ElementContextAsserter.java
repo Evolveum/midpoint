@@ -76,9 +76,9 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
         return this;
     }
 
-    public ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C, O, RA>> secondaryDelta() {
+    public ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C, O, RA>> summarySecondaryDelta() {
         ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C, O, RA>> deltaAsserter = new ObjectDeltaAsserter<>(
-                elementContext.getSecondaryDelta(), this, "secondary delta in " + desc());
+                elementContext.getSummarySecondaryDelta(), this, "summary secondary delta in " + desc());
         copySetupTo(deltaAsserter);
         return deltaAsserter;
     }

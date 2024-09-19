@@ -147,12 +147,8 @@ This information can be used to set up proper file system permission, e.g. in ca
 
 == MidPoint Repository (Database)
 
-MidPoint comes with an embedded database engine (H2) that is perfectly suitable for testing and demo installations.
-This database will be used by midPoint after the installation.
-Therefore there is no need to set up a separate database if installing midPoint for the first time.
-The database files will be stored in xref:/midpoint/reference/deployment/midpoint-home-directory/[midPoint home directory].
-
-The database can later be changed to a full-scale database engine.
+MidPoint comes with two implementations for repository native PostgreSQL and deprecated generic that supports multiple databases (Oracle, SQL Server, PostgreSQL).
+Repository configuration is done in `${midpoint.home}/config.xml` directory or via `-D` JVM options.
 The xref:/midpoint/reference/repository/configuration/[Repository Configuration] page provides the instructions.
 
 == Java Memory Setting and Other Options

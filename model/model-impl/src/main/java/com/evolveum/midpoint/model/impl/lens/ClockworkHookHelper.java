@@ -168,7 +168,7 @@ public class ClockworkHookHelper {
         LOGGER.trace("Finished evaluation of {}", shortDesc);
     }
 
-    <F extends ObjectType> void invokePreview(LensContext<F> context, Task task, OperationResult result) {
+    public <F extends ObjectType> void invokePreview(LensContext<F> context, Task task, OperationResult result) {
         if (hookRegistry != null) {
             for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
                 hook.invokePreview(context, task, result);

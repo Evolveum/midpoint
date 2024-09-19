@@ -1614,7 +1614,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                         .projection(SKIP))
                 .ignoreAssignmentPruning();
 
-        ModelContext<UserType> ctx = modelInteractionService.previewChanges(List.of(delta), options, task, result);
+        ModelContext<UserType> ctx =
+                modelInteractionService.previewChangesLegacy(List.of(delta), options, task, List.of(), result);
 
         then("the exclusion triggers are there");
         var triggers = ctx.getEvaluatedAssignmentTriple().union().stream()
@@ -1712,7 +1713,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         // WHEN
         when();
-        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        ModelContext<ObjectType> modelContext =
+                modelInteractionService.previewChangesLegacy(List.of(delta), null, task, List.of(), result);
 
         // THEN
         then();

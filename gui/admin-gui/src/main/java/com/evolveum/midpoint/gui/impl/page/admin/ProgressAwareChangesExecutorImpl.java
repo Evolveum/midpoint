@@ -175,7 +175,7 @@ public class ProgressAwareChangesExecutorImpl implements ObjectChangeExecutor {
 
             if (previewOnly) {
                 ModelInteractionService service = application.getModelInteractionService();
-                ModelContext previewResult = service.previewChanges(deltas, options, task, result);
+                var previewResult = service.previewChanges(deltas, options, task, result);
                 reporter.setPreviewResult(previewResult);
             } else {
                 ModelService service = application.getModel();

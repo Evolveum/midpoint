@@ -535,7 +535,7 @@ public class RequestAccess implements Serializable {
 
             MidPointApplication mp = MidPointApplication.get();
             ModelContext<UserType> ctx = mp.getModelInteractionService()
-                    .previewChanges(MiscUtil.createCollection(delta), options, task, result);
+                    .previewChangesLegacy(MiscUtil.createCollection(delta), options, task, List.of(), result);
 
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedTriple = ctx.getEvaluatedAssignmentTriple();
 
