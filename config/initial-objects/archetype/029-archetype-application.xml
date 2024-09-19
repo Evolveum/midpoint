@@ -117,14 +117,6 @@
                     </display>
                     <displayOrder>115</displayOrder>
                 </panel>
-                <panel id="12">
-                    <identifier>inducedEntitlementsTopLevel</identifier>
-                    <panelType>inducedEntitlements</panelType>
-                    <display>
-                        <label>AbstractRoleMainPanel.inducedEntitlements</label>
-                    </display>
-                    <displayOrder>116</displayOrder>
-                </panel>
                 <panel id="13">
                     <identifier>applicationRoles</identifier>
                     <panelType>inducedBy</panelType>

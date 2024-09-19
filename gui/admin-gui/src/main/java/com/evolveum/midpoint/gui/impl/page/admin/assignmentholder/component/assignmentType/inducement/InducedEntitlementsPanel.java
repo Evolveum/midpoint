@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Evolveum and contributors
+ * Copyright (C) 2010-2024 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -38,10 +38,6 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "inducedEntitlements")
-@PanelInstance(identifier = "inducedEntitlements",
-        applicableForType = AbstractRoleType.class,
-        childOf = AbstractRoleInducementPanel.class,
-        display = @PanelDisplay(label = "AbstractRoleMainPanel.inducedEntitlements", order = 70))
 public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends AbstractInducementPanel<AR> {
 
     private static final Trace LOGGER = TraceManager.getTrace(InducedEntitlementsPanel.class);
@@ -79,7 +75,7 @@ public class InducedEntitlementsPanel<AR extends AbstractRoleType> extends Abstr
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        return ColumnUtils.createInducedAssociationsColumns(getContainerModel(), getPageBase());
+        return ColumnUtils.createInducementConstructionColumns(getContainerModel(), getPageBase());
     }
 
     @Override

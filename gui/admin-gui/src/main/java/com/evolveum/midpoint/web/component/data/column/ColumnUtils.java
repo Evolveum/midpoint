@@ -1834,24 +1834,18 @@ public class ColumnUtils {
         return name;
     }
 
-    public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducedAssociationsColumns(
-            IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
-        return createAssignmentConstructionColumns(containerModel, true, true, false, page);
-    }
-
     public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createInducementConstructionColumns(
             IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
-        return createAssignmentConstructionColumns(containerModel, false, true, true, page);
+        return createAssignmentConstructionColumns(containerModel, true, page);
     }
 
     public static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
             IModel<PrismContainerWrapper<AssignmentType>> containerModel, PageBase page) {
-        return createAssignmentConstructionColumns(containerModel, false, false, false, page);
+        return createAssignmentConstructionColumns(containerModel, false, page);
     }
 
     private static List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createAssignmentConstructionColumns(
-            IModel<PrismContainerWrapper<AssignmentType>> containerModel, boolean showColumnForValue, boolean showAssociation,
-            boolean showApplyFor, PageBase page) {
+            IModel<PrismContainerWrapper<AssignmentType>> containerModel, boolean showAdvancedColumns, PageBase page) {
 
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -1878,13 +1872,11 @@ public class ColumnUtils {
             }
         });
 
-        if (showAssociation) {
+        if (showAdvancedColumns) {
             columns.add(
                     new PrismContainerWrapperColumn<>(
                             containerModel, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), page));
-        }
 
-        if (showColumnForValue) {
             columns.add(new AbstractColumn<>(createStringResource("InducedEntitlements.value")) {
                 private static final long serialVersionUID = 1L;
 
@@ -1938,9 +1930,7 @@ public class ColumnUtils {
                     item.add(valuesPanel);
                 }
             });
-        }
 
-        if (showApplyFor) {
             columns.add(new AbstractColumn<>(createStringResource("AssignmentConstruction.inducementFor")) {
                 private static final long serialVersionUID = 1L;
 
