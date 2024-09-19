@@ -24,6 +24,8 @@ import com.evolveum.midpoint.schema.simulation.ExecutionModeProvider;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Definition of a {@link ShadowAssociation}, e.g., `ri:group`.
  *
@@ -144,4 +146,7 @@ public interface ShadowAssociationDefinition
     }
 
     boolean isTolerant();
+
+    /** Use with care. Please do not modify the returned value. */
+    @Nullable ShadowAssociationDefinitionType getModernAssociationDefinitionBean();
 }
