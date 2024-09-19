@@ -12,10 +12,10 @@
 :page-toc: top
 
 [NOTE]
-This page discusses deprecated repository implementation that was replaced with xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL reposit].
+This page discusses deprecated repository implementation that was replaced with xref:/midpoint/reference/repository/native-postgresql/[Native PostgreSQL repository].
 
 SQL repository implements both repository and audit API.
-It facilitates Hibernate 6.5 as persistence framework, and for connection pooling link:https://brettwooldridge.github.io/HikariCP/[HikariCP] (previously c3p0).
+It facilitates Hibernate 6.5 as persistence framework, and for connection pooling link:https://brettwooldridge.github.io/HikariCP/[HikariCP].
 
 Audit records are stored synchronously and implementation currently shares connection pool with main repository.
 There are few planned improvements for audit, see bug:MID-4745[].
@@ -23,18 +23,20 @@ There are few planned improvements for audit, see bug:MID-4745[].
 == Configuration
 
 Repository component configuration is placed in main `config.xml` file in `midpoint.home` folder.
-Basic configuration is quite simple.
-It will use embedded H2 database which will be placed in `midpoint.home` folder.
 
+.Example of configuration for SQL repository
 [source,xml]
 ----
 <configuration>
-  <midpoint>
-  <repository>
-     <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
-     <baseDir>${midpoint.home}</baseDir>
-  </repository>
-  </midpoint>
+    <midpoint>
+        <repository>
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+            <database>sqlserver</database>
+            <jdbcUsername>midpoint</jdbcUsername>
+            <jdbcPassword>password</jdbcPassword>
+            <jdbcUrl>jdbc:sqlserver://localhost:1433;database=midpoint</jdbcUrl>
+        </repository>
+    </midpoint>
 </configuration>
 ----
 

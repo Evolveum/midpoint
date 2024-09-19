@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.ninja.action.mining.generator.context;
 
-import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.addExtensionValue;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.ImportAction.importUserAndResolveAuxRoles;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacGeneratorUtils.*;
 import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacObjectCategoryProcessor.*;
@@ -15,9 +14,6 @@ import static com.evolveum.midpoint.ninja.action.mining.generator.context.RbacOb
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.jetbrains.annotations.NotNull;
 

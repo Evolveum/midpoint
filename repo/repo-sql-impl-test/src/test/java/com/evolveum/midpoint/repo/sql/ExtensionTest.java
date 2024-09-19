@@ -147,8 +147,6 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
     private boolean checkCounts() {
         return false;
-        // Hibernate 6 generates one queries less
-        //return isUsingH2();
     }
 
     private void assertCounts(int queries, int executions) {

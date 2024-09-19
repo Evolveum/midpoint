@@ -47,6 +47,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -352,7 +353,8 @@ public class ConstructionResourceObjectTypeMembershipStepPanel<AR extends Abstra
                             .resourceRef(resource.getOid(), ResourceType.COMPLEX_TYPE)
                             .kind(selectedTile.get().getValue().kind)
                             .intent(selectedTile.get().getValue().intent))
-                    .order(2);
+                    .order(2)
+                    .focusType(selectedTile.get().getValue().focusTypeName);
 
             PrismValueWrapper<AssignmentType> newWrapper =
                     WebPrismUtil.createNewValueWrapper(assignmentContainer, newAssignment, getPageBase());
@@ -368,10 +370,12 @@ public class ConstructionResourceObjectTypeMembershipStepPanel<AR extends Abstra
 
         private final ShadowKindType kind;
         private final String intent;
+        private final QName focusTypeName;
 
         private ResourceObjectTypeWrapper(ResourceObjectTypeDefinition oc) {
             this.kind = oc.getKind();
             this.intent = oc.getIntent();
+            this.focusTypeName = oc.getFocusTypeName();
         }
     }
 

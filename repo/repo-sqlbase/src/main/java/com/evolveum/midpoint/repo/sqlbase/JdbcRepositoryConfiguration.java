@@ -58,7 +58,7 @@ public interface JdbcRepositoryConfiguration {
     }
 
     String getJdbcUsername();
-    boolean isEmbedded();
+
     String getJdbcPassword();
 
     TransactionIsolation getTransactionIsolation();
@@ -101,14 +101,9 @@ public interface JdbcRepositoryConfiguration {
      * Also see {@link #PROPERTY_FULL_OBJECT_FORMAT}.
      */
     String getFullObjectFormat();
-    String getDefaultEmbeddedJdbcUrlPrefix();
 
     String getPerformanceStatisticsFile();
     int getPerformanceStatisticsLevel();
-
-    default boolean isUsingH2() {
-        return isUsing(SupportedDatabase.H2);
-    }
 
     default boolean isUsingOracle() {
         return isUsing(SupportedDatabase.ORACLE);

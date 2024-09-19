@@ -189,8 +189,8 @@ wget https://raw.githubusercontent.com/Evolveum/midpoint/support-4.4/repo/repo-s
 /opt/mssql-tools/bin/sqlcmd -I -b -S localhost -U midtest -P password -d midtest -i sqlserver-4.4-all.sql -i sqlserver.sql
 ----
 
-To run a test class with the new SQL Server, the following set of JVM args overrides the default
-H2 repo configuration (don't use newlines for the command line):
+To run a test class with the new SQL Server, the following set of JVM args overrides the default repository
+configuration (don't use newlines for the command line):
 
 ----
 -Dmidpoint.repository.jdbcUrl=jdbc:sqlserver://192.168.56.201:1433;database=midtest;trustServerCertificate=true

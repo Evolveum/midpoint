@@ -101,10 +101,10 @@ When the first DB change appears after previous database schema (example, new co
 
 * Add new entry to the table above (e.g. *4.3*).
 
-* Rename upgrade scripts in *config/sql*, e.g. to *h2-upgrade-4.2-4.3.sql* - [.underline]#for each database type#, their old content can be removed when doing so.
+* Rename upgrade scripts in *config/sql*, e.g. to *sqlserver-upgrade-4.2-4.3.sql* - [.underline]#for each database type#, their old content can be removed when doing so.
 Leave the line updating *m_global_metadata* key *databaseSchemaVersion*, preferably keep it at the end of the file all the time (update version information now or later, there will be specific step for it below).
 
-* Rename **-all.sql* scripts to new version (e.g. to *h2-4.3-all.sql*), again [.underline]#for each database type#.
+* Rename **-all.sql* scripts to new version (e.g. to *sqlserver-4.3-all.sql*), again [.underline]#for each database type#.
 
 * Fix all *'4.2'* (old versions including single-quotes) occurrences inside config/sql to *'4.3'* (new version) - this is one update in update scritps and one insert in initial (*all*) scripts.
 

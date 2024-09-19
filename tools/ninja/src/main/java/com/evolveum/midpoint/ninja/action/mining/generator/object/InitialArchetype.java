@@ -9,6 +9,8 @@ package com.evolveum.midpoint.ninja.action.mining.generator.object;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import javax.xml.namespace.QName;
+
 /**
  * This interface represents an archetype generator used for initial archetype object generation.
  * <p>
@@ -19,6 +21,7 @@ public interface InitialArchetype {
     String getOidValue();
     String getColor();
     String getIconCss();
+    QName getHolderType();
 
     default ArchetypeType generateArchetype() {
         ArchetypeType archetype = new ArchetypeType();
@@ -40,7 +43,7 @@ public interface InitialArchetype {
         AssignmentType assignment = new AssignmentType();
         assignment.setIdentifier("holderType");
         AssignmentRelationType relation = new AssignmentRelationType();
-        relation.holderType(FocusType.COMPLEX_TYPE);
+        relation.holderType(getHolderType());
         assignment.assignmentRelation(relation);
         archetype.getAssignment().add(assignment);
         return archetype;

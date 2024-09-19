@@ -475,11 +475,6 @@ public class MockFactory {
             }
 
             @Override
-            public boolean isGenericNonH2() {
-                return false;
-            }
-
-            @Override
             public @NotNull String getRepositoryType() {
                 return "mock";
             }

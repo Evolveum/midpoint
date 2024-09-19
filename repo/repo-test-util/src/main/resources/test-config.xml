@@ -12,8 +12,6 @@
         </global>
         <repository>
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
-            <port>5438</port>
-            <asServer>true</asServer>
             <dropIfExists>true</dropIfExists>
             <!-- this is here for custom column creation in audit, audit uses default repo conf -->
             <createMissingCustomColumns>true</createMissingCustomColumns>

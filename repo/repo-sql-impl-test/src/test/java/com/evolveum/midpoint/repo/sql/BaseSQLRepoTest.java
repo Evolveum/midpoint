@@ -160,10 +160,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
                 .addReportCallback(SqlRepoTestUtil.reportCallbackQueryList(queryListener));
     }
 
-    protected boolean isUsingH2() {
-        return baseHelper.getConfiguration().isUsingH2();
-    }
-
     public void initSystem() throws Exception {
     }
 

@@ -514,8 +514,6 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
 
     @Test
     public void test100AddOperationExecution() throws Exception {
-        skipTestIf(repositoryConfiguration.getDatabaseType() == SupportedDatabase.H2, "because of H2 database");
-
         int THREADS = 8;
         long DURATION = 30_000L;
 
@@ -566,7 +564,6 @@ public class RepoConcurrencyTest extends AbstractRepoCommonTest {
         //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.access$100(JdbcResourceLocalTransactionCoordinatorImpl.java:38)
         //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.commit(JdbcResourceLocalTransactionCoordinatorImpl.java:231)
         //    at org.hibernate.engine.transaction.internal.TransactionImpl.commit(TransactionImpl.java:68)
-        skipTestIf(repositoryConfiguration.getDatabaseType() == SupportedDatabase.H2, "because of H2 database");
 
         int THREADS = 8;
         long DURATION = 30_000L;

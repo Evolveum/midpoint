@@ -14,8 +14,7 @@ Now, this is rather a drastic measure - let's modify the existing user instead.
 First we need to export it.
 
 [NOTE]
-If you want to use Ninja for midPoint running with H2 database (which is sensible only for testing), the application must be stopped first.
-Other databases have dedicated servers and Ninja can be used while midPoint is running.
+Ninja can be used while midPoint is running.
 
 .Exporting administrator user by OID
 [source,bash]

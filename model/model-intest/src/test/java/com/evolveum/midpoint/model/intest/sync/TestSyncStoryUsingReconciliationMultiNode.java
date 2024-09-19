@@ -19,7 +19,6 @@ import static com.evolveum.midpoint.model.intest.sync.AbstractSynchronizationSto
 /**
  * Uses multiple worker tasks.
  *
- * Shouldn't be run under H2 because of too much contention.
  * Also, it takes a little longer than standard reconciliation test because of the overhead.
  *
  * NOTE: The utility of this test is questionable, as the synchronization story test is about the correctness
