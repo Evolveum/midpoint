@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.LocalizationUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -62,7 +63,7 @@ public class MappingNameValidator implements IValidator<String> {
 
         PrismObjectWrapper<ObjectType> objectWrapper = item.findObjectWrapper();
 
-        int numberOfSameRef = getSameMappingNames(objectWrapper.getValue(), value);
+        int numberOfSameRef = WebPrismUtil.getNumberOfSameMappingNames(objectWrapper.getValue(), value);
 
         boolean containsSameValue = false;
 
@@ -82,35 +83,9 @@ public class MappingNameValidator implements IValidator<String> {
 
     }
 
-    protected final int getSameMappingNames(PrismContainerValueWrapper containerValue, String value) {
-        int numberOfSameRef = 0;
-
-        if (AbstractMappingType.class.isAssignableFrom(containerValue.getDefinition().getTypeClass())) {
-            try {
-                PrismPropertyWrapper<String> nameProperty = containerValue.findProperty(AbstractMappingType.F_NAME);
-                String name = nameProperty.getValue().getRealValue();
-
-                if (StringUtils.equals(value, name)) {
-                    numberOfSameRef++;
-                }
-            } catch (SchemaException e) {
-                LOGGER.error("Couldn't find name attribute in objectType " + containerValue, e);
-            }
-        }
-
-        List<PrismContainerWrapper> containers = containerValue.getContainers();
-        for (PrismContainerWrapper container : containers) {
-            for (PrismContainerValueWrapper childContainerValue : (List<PrismContainerValueWrapper>) container.getValues()) {
-                numberOfSameRef = numberOfSameRef + getSameMappingNames(childContainerValue, value);
-            }
-        }
-
-        return numberOfSameRef;
-    }
-
     protected final boolean alreadyExistMapping(
             PrismContainerValueWrapper prismContainerValue, String errorMessage, String value, IValidatable<String> validatable) {
-        int numberOfSameRef = getSameMappingNames(prismContainerValue, value);
+        int numberOfSameRef = WebPrismUtil.getNumberOfSameMappingNames(prismContainerValue, value);
 
         boolean containsSameValue = false;
 
@@ -157,7 +132,7 @@ public class MappingNameValidator implements IValidator<String> {
 
             PrismContainerValueWrapper wrapper = pageBase.createValueWrapper(
                     parentWrapper, bean.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context);
-            int numberOfSameRef = getSameMappingNames(wrapper, value);
+            int numberOfSameRef = WebPrismUtil.getNumberOfSameMappingNames(wrapper, value);
 
             if (numberOfSameRef > 0) {
 

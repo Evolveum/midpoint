@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.button.ReloadableButton;
 import com.evolveum.midpoint.gui.impl.component.data.provider.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.CollectionPanelType;
@@ -14,18 +13,14 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchContext;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
 
 import com.evolveum.midpoint.gui.impl.component.wizard.MultiSelectObjectTypeTileWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.shadow.ShadowAssociationObjectsColumn;
 import com.evolveum.midpoint.gui.impl.page.admin.simulation.TitleWithMarks;
 import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
 import com.evolveum.midpoint.schema.processor.ShadowReferenceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.task.ActivityDefinitionBuilder;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -40,7 +35,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -231,13 +225,13 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                                 return item.associationName.equivalent(value.getRealValue().getRef().getItemPath());
                             }).findFirst();
 
-                    boolean  createNewAssociationValue = false;
+                    boolean createNewAssociationValue = false;
 
                     if (match.isPresent()) {
                         valueWrapper = match.get();
 
                         PrismPropertyWrapper<ExpressionType> expression = valueWrapper.findProperty(
-                                        ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
+                                ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
                         if (ExpressionUtil.containsAssociationFromLinkElement(expression.getValue().getRealValue())) {
                             createNewAssociationValue = true;
                         }
@@ -248,13 +242,22 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
 
                         PrismContainerValue<ResourceObjectAssociationType> newValue = associationContainer.getItem().createNewValue();
 
+                        String defaultName = "association-for-" + item.associationName.getLocalPart();
+                        String name = defaultName;
+
+                        int numberOfSameRef = WebPrismUtil.getNumberOfSameMappingNames(getDetailsModel().getObjectWrapper().getValue(), name);
+                        for(int i = 2; numberOfSameRef != 0; i++) {
+                            name = defaultName + "-" + i;
+                            numberOfSameRef = WebPrismUtil.getNumberOfSameMappingNames(getDetailsModel().getObjectWrapper().getValue(), name);
+                        }
 
                         NameItemPathSegment segment = new NameItemPathSegment(item.associationName);
                         newValue.asContainerable().ref(new ItemPathType(ItemPath.create(segment)));
                         newValue.asContainerable()
                                 .beginOutbound()
-                                    .strength(MappingStrengthType.STRONG)
-                                    .beginExpression();
+                                .strength(MappingStrengthType.STRONG)
+                                .name(name)
+                                .beginExpression();
 
                         valueWrapper = WebPrismUtil.createNewValueWrapper(
                                 associationContainer,
@@ -269,6 +272,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                                     ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
                     ExpressionUtil.addShadowRefEvaluatorValue(
                             expression.getValue().getRealValue(),
+                            item.associationName,
                             item.oid);
 
                 } catch (SchemaException e) {
@@ -325,7 +329,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     @Override
     protected void customizeTile(@NotNull SelectableBean<ShadowType> object, @Nullable TemplateTile<SelectableBean<ShadowType>> tile) {
         object.setSelected(false);
-        if (tile != null){
+        if (tile != null) {
             tile.setSelected(false);
         }
 
@@ -402,7 +406,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                 item.add(new TitleWithMarks(
                         id,
                         () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject()),
-                        createRealMarksList(row.getObject().getValue())){
+                        createRealMarksList(row.getObject().getValue())) {
                     @Override
                     protected boolean isTitleLinkEnabled() {
                         return false;

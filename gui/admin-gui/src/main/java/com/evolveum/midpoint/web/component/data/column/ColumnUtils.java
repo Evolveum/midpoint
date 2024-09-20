@@ -31,6 +31,7 @@ import com.evolveum.midpoint.gui.impl.util.ProvisioningObjectsUtil;
 import com.evolveum.midpoint.gui.impl.util.RelationUtil;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertMiscUtil;
-import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.component.DeadlinePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CampaignProcessingHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.certification.helpers.CertificationItemResponseHelper;
@@ -1888,8 +1888,7 @@ public class ColumnUtils {
 
                     ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
                     List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
-                                    expressionType,
-                                    page.getPrismContext()),
+                            expressionType),
                             OPERATION_LOAD_SHADOW_OBJECT, page);
 
                     MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<>(componentId,
@@ -1916,7 +1915,11 @@ public class ColumnUtils {
                             ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
                             if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
                                 ExpressionType expression = getExpressionFromRowModel(rowModel, true);
-                                ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid());
+                                ConstructionType construction = rowModel.getObject().getRealValue().getConstruction();
+                                ItemName associationName = ProvisioningObjectsUtil.getAssociationForConstructionAndShadow(construction, shadow, getPageBase());
+                                if (associationName != null) {
+                                    ExpressionUtil.addShadowRefEvaluatorValue(expression, associationName, shadow.getOid());
+                                }
                             }
                         }
 
