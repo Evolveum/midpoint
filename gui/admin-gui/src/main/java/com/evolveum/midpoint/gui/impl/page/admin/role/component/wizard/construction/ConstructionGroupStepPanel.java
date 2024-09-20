@@ -225,13 +225,13 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                                 return item.associationName.equivalent(value.getRealValue().getRef().getItemPath());
                             }).findFirst();
 
-                    boolean  createNewAssociationValue = false;
+                    boolean createNewAssociationValue = false;
 
                     if (match.isPresent()) {
                         valueWrapper = match.get();
 
                         PrismPropertyWrapper<ExpressionType> expression = valueWrapper.findProperty(
-                                        ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
+                                ItemPath.create(ResourceObjectAssociationType.F_OUTBOUND, MappingType.F_EXPRESSION));
                         if (ExpressionUtil.containsAssociationFromLinkElement(expression.getValue().getRealValue())) {
                             createNewAssociationValue = true;
                         }
@@ -242,13 +242,22 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
 
                         PrismContainerValue<ResourceObjectAssociationType> newValue = associationContainer.getItem().createNewValue();
 
+                        String defaultName = "association-for-" + item.associationName.getLocalPart();
+                        String name = defaultName;
+
+                        int numberOfSameRef = WebPrismUtil.getNumberOfSameMappingNames(getDetailsModel().getObjectWrapper().getValue(), name);
+                        for(int i = 2; numberOfSameRef != 0; i++) {
+                            name = defaultName + "-" + i;
+                            numberOfSameRef = WebPrismUtil.getNumberOfSameMappingNames(getDetailsModel().getObjectWrapper().getValue(), name);
+                        }
 
                         NameItemPathSegment segment = new NameItemPathSegment(item.associationName);
                         newValue.asContainerable().ref(new ItemPathType(ItemPath.create(segment)));
                         newValue.asContainerable()
                                 .beginOutbound()
-                                    .strength(MappingStrengthType.STRONG)
-                                    .beginExpression();
+                                .strength(MappingStrengthType.STRONG)
+                                .name(name)
+                                .beginExpression();
 
                         valueWrapper = WebPrismUtil.createNewValueWrapper(
                                 associationContainer,
@@ -320,7 +329,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
     @Override
     protected void customizeTile(@NotNull SelectableBean<ShadowType> object, @Nullable TemplateTile<SelectableBean<ShadowType>> tile) {
         object.setSelected(false);
-        if (tile != null){
+        if (tile != null) {
             tile.setSelected(false);
         }
 
@@ -397,7 +406,7 @@ public class ConstructionGroupStepPanel<AR extends AbstractRoleType>
                 item.add(new TitleWithMarks(
                         id,
                         () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject()),
-                        createRealMarksList(row.getObject().getValue())){
+                        createRealMarksList(row.getObject().getValue())) {
                     @Override
                     protected boolean isTitleLinkEnabled() {
                         return false;
