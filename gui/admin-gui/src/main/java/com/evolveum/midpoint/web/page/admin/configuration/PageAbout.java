@@ -17,6 +17,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
+
 import org.apache.catalina.util.ServerInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -344,7 +346,7 @@ public class PageAbout extends PageAdminConfiguration {
         return argument.substring(0, index) + "=" + StartupConfiguration.SENSITIVE_VALUE_OUTPUT;
     }
 
-    private void addLabel(String id, Function<RepositoryDiag, String> valueFunction) {
+    private void addLabel(String id, SerializableFunction<RepositoryDiag, String> valueFunction) {
         Label label = new Label(id, () -> valueFunction.apply(repoDiagModel.getObject()));
         label.setRenderBodyOnly(true);
         add(label);
