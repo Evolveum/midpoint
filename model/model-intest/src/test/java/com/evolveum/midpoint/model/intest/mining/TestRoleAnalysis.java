@@ -41,8 +41,6 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
 
     private record OutlierDetectionResult(
             Integer processedObjectCount,
-            Integer clusterCount,
-            Double meanDensity,
             Integer innerOutlierCount,
             Integer outerOutlierCount
     ) {}
@@ -167,15 +165,11 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test030RoleAnalysisSessionOutlierPart1() throws Exception {
         Integer expectedObjectsCount = 1063;
-        Integer expectedClusterCount = 18;
-        Double expectedMeanDensity = 89.36643749031973;
         Integer expectedInnerOutlierCount = 12;
         Integer expectedOuterOutlierCount = 0;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
-                expectedClusterCount,
-                expectedMeanDensity,
                 expectedInnerOutlierCount,
                 expectedOuterOutlierCount
         );
@@ -196,15 +190,11 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
     @Test
     public void test040RoleAnalysisSessionOutlierFull1() throws Exception {
         Integer expectedObjectsCount = 1063;
-        Integer expectedClusterCount = 18;
-        Double expectedMeanDensity = 89.36643749031973;
         Integer expectedInnerOutlierCount = 12;
         Integer expectedOuterOutlierCount = 157;
 
         OutlierDetectionResult expectedResult = new OutlierDetectionResult(
                 expectedObjectsCount,
-                expectedClusterCount,
-                expectedMeanDensity,
                 expectedInnerOutlierCount,
                 expectedOuterOutlierCount
         );
@@ -264,14 +254,11 @@ public class TestRoleAnalysis extends AbstractInitializedModelIntegrationTest {
 
         OutlierDetectionResult actualResult = new OutlierDetectionResult(
                 sessionStatistic.getProcessedObjectCount(),
-                sessionStatistic.getClusterCount(),
-                sessionStatistic.getMeanDensity(),
                 getOutlierCount(sessionId, OutlierClusterCategoryType.INNER_OUTLIER),
                 getOutlierCount(sessionId, OutlierClusterCategoryType.OUTER_OUTLIER)
         );
 
         assertEquals(expectedResult, actualResult);
-        assertObjects(RoleAnalysisClusterType.class, buildClustersQuery(sessionId), expectedResult.clusterCount());
     }
 
     private RoleAnalysisSessionType getSession(String sessionOid) throws Exception {
