@@ -2640,7 +2640,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Entry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN_NORM);
         display("LDAP group", groupEntry);
         assertNotNull("No LDAP group entry", groupEntry);
-        openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
+        if (!hasNativeReferences()) {
+            openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
+        } else {
+            // currently, there's no referential integrity set up on this OpenDJ, so the membership is still there
+        }
 
         assertShadows(21);
     }
